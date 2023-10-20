@@ -622,7 +622,7 @@
 
                             <div class="ml-12">
                                 <div class="mt-2 text-gray-600 dark:text-gray-400 text-sm">
-                                    Cuenta con integraciones a otros servicios externos como la de facturación electrónica del SII y empresas de envío de bienes como Starken o Fedex.
+                                    Cuenta con integraciones a otros servicios externos como la de facturación electrónica del SII y empresas de envío de bienes en el país.
                                 </div>
                             </div>
                         </div>
