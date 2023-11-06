@@ -155,7 +155,7 @@ class RespActivoController extends Controller
             'tratamiento'   => 'required|integer|min:1', 
             'numero_af'     => 'required|max:124',  
             'centro_costo'  => 'required|max:64',  
-            'localizacion'  => 'required|integer|min:1',  
+            'localizacion'  => 'required|integer|min:1|exists:ubicaciones_geograficas,codigoCliente',  
             'fecha_compra'  => 'required|date|date_format:d-m-Y',  
             'valor_compra'  => 'required|numeric|min:0',  
             'descripcion'   => 'required|max:255',  
