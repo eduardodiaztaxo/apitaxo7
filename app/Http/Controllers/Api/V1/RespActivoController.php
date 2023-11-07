@@ -42,23 +42,28 @@ class RespActivoController extends Controller
         
         //
         $activo = [
-            'tratamiento'   => $request->tratamiento, 
-            'numero_af'     => $request->numero_af,  
-            'centro_costo'  => $request->centro_costo,  
-            'localizacion'  => $request->localizacion,  
-            'fecha_compra'  => $usableDate,  
-            'valor_compra'  => $request->valor_compra,  
-            'descripcion'   => $request->descripcion,  
-            'etiqueta'      => $request->etiqueta,  
-            'serie'         => $request->serie,   
-            'marca'         => $request->marca,   
-            'modelo'        => $request->modelo,  
-            'unidad_negocio'=> $request->unidad_negocio,  
-            'elemento_pep'  => $request->elemento_pep,  
-            'adicionales'   => $request->adicionales ? $request->adicionales : null,
+            'tratamiento'       => $request->tratamiento, 
+            'numero_af'         => $request->numero_af,  
+            'centro_costo'      => $request->centro_costo,  
+            'localizacion'      => $request->localizacion,  
+            'fecha_compra'      => $usableDate,  
+            'valor_neto'        => $request->valor_neto,
+            'valor_actual'      => $request->valor_actual,  
+            'descripcion'       => $request->descripcion,  
+            'etiqueta'          => $request->etiqueta,  
+            'serie'             => $request->serie,   
+            'marca'             => $request->marca,   
+            'modelo'            => $request->modelo,  
+            'clasificacion_op'  => $request->clasificacion_op,  
+            'elemento_pep'      => $request->elemento_pep,  
+            'adicionales'       => $request->adicionales ? $request->adicionales : null,
         ];
 
         $asset = RespActivo::create($activo);
+
+        $asset->generate_catalog();
+        $asset->set_brand_id();
+        $asset->set_centro_costo_id();
 
         return new RespActivoResource($asset);
         
@@ -106,22 +111,23 @@ class RespActivoController extends Controller
                 $usableDate = $date->format('Y-m-d');
 
                 $activo = [
-                    'tratamiento'   => $item->tratamiento, 
-                    'numero_af'     => $item->numero_af,  
-                    'centro_costo'  => $item->centro_costo,  
-                    'localizacion'  => $item->localizacion,  
-                    'fecha_compra'  => $usableDate,  
-                    'valor_compra'  => $item->valor_compra,  
-                    'descripcion'   => $item->descripcion,  
-                    'etiqueta'      => $item->etiqueta,  
-                    'serie'         => $item->serie,   
-                    'marca'         => $item->marca,   
-                    'modelo'        => $item->modelo,  
-                    'unidad_negocio'=> $item->unidad_negocio,  
-                    'elemento_pep'  => $item->elemento_pep,  
-                    'adicionales'   => isset($item->adicionales) ? $item->adicionales : null,
-                    'created_at'    => date('Y-m-d H:i:s'),
-                    'updated_at'    => date('Y-m-d H:i:s'),
+                    'tratamiento'       => $item->tratamiento, 
+                    'numero_af'         => $item->numero_af,  
+                    'centro_costo'      => $item->centro_costo,  
+                    'localizacion'      => $item->localizacion,  
+                    'fecha_compra'      => $usableDate,  
+                    'valor_neto'        => $item->valor_neto,
+                    'valor_actual'      => $item->valor_actual,   
+                    'descripcion'       => $item->descripcion,  
+                    'etiqueta'          => $item->etiqueta,  
+                    'serie'             => $item->serie,   
+                    'marca'             => $item->marca,   
+                    'modelo'            => $item->modelo,  
+                    'clasificacion_op'  => $item->clasificacion_op,  
+                    'elemento_pep'      => $item->elemento_pep,  
+                    'adicionales'       => isset($item->adicionales) ? $item->adicionales : null,
+                    'created_at'        => date('Y-m-d H:i:s'),
+                    'updated_at'        => date('Y-m-d H:i:s'),
                 ];
 
                 $assets[] = $activo;
@@ -140,7 +146,16 @@ class RespActivoController extends Controller
             ],422);
         } else {
 
-            $assets = RespActivo::insert($assets);
+            foreach($assets as $activo){
+
+                $asset = RespActivo::create($activo);
+
+                $asset->generate_catalog();
+                $asset->set_brand_id();
+                $asset->set_centro_costo_id();
+            }
+
+            //$assets = RespActivo::insert($assets);
 
             return response()->json(['status'=>'OK', 'message' => 'items created sucssessfuly']);
         }
@@ -154,16 +169,19 @@ class RespActivoController extends Controller
         return [
             'tratamiento'   => 'required|integer|min:1', 
             'numero_af'     => 'required|max:124',  
-            'centro_costo'  => 'required|max:64',  
+            'centro_costo'  => 'required|max:64|exists:centro_costos,codigoCliente',  
             'localizacion'  => 'required|integer|min:1|exists:ubicaciones_geograficas,codigoCliente',  
             'fecha_compra'  => 'required|date|date_format:d-m-Y',  
-            'valor_compra'  => 'required|numeric|min:0',  
+            //'valor_compra'=> 'required|numeric|min:0', -> ahora valor_neto
+            'valor_neto'    => 'required|numeric|min:0',   
+            'valor_actual'  => 'required|numeric|min:0',//nuevo
             'descripcion'   => 'required|max:255',  
             'etiqueta'      => 'required|max:64',  
             'serie'         => 'required|max:64',   
             'marca'         => 'required|max:64',   
             'modelo'        => 'required|max:64',  
-            'unidad_negocio'=> 'required|max:64',  
+            //'unidad_negocio'=> 'required|max:64', -> ahora clasificacion_op
+            'clasificacion_op'=> 'required|max:64',  
             'elemento_pep'  => 'required|max:64',
             'adicionales'   => 'sometimes|json'
         ];
