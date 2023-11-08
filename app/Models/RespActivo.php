@@ -93,6 +93,7 @@ class RespActivo extends Model
 
     public function set_brand_id(){
 
+        #este es mi comentario
         
         $sql  = "SELECT * FROM indices_listas ";
         $sql .= "WHERE TRIM(descripcion) = TRIM('".$this->marca."') "; 
