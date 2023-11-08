@@ -157,5 +157,25 @@ class RespActivo extends Model
 
     }
 
+    public function set_ubicacion_geografica_id(){
+
+        
+        $sql  = "SELECT * FROM ubicaciones_geograficas ";
+        $sql .= "WHERE codigoCliente = '".$this->localizacion."' "; 
+
+        $id_direccion = DB::selectOne($sql);
+
+        if( isset($id_direccion->idUbicacionGeo) ){
+
+            $this->localizacion_id = $id_direccion->idUbicacionGeo;
+            $this->save();
+
+        }
+        
+        
+        
+        return $this->localizacion_id;
+
+    }
 
 }
