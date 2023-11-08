@@ -154,6 +154,7 @@ class RespActivoController extends Controller
                 $asset->generate_catalog();
                 $asset->set_brand_id();
                 $asset->set_centro_costo_id();
+                $asset->set_ubicacion_geografica_id();
             }
 
             //$assets = RespActivo::insert($assets);
