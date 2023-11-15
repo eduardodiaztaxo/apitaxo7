@@ -12,27 +12,31 @@ class RespActivo extends Model
 
     protected $fillable = [
         'tratamiento',
+        'sociedad',
+        'fecha',
         'numero_af',
-        'catalogo',//nuevo
+        'sub_numero',
         'centro_costo',
         'localizacion',
         'fecha_compra',
-        //'valor_compra', -> ahora valor_neto
-        'valor_neto',
-        'valor_actual',//nuevo
         'descripcion',
         'etiqueta',
         'serie',
         'marca',
         'modelo',
-        //'unidad_negocio', -> ahora clasificacion_op
+        'catalogo',
         'clasificacion_op',
+        'valor_compra',
+        'fecha_baja',
+        'motivo_baja',
+        'fecha_baja',
         'elemento_pep',
         'adicionales',
         'lista_bien_id',//nuevo
         'lista_marca_id',//nuevo
         'centro_costo_id',//nuevo
-        
+        'localizacion_id',//nuevo
+
     ];
 
     public function generate_catalog(){

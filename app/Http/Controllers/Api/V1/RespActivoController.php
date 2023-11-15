@@ -43,18 +43,24 @@ class RespActivoController extends Controller
         //
         $activo = [
             'tratamiento'       => $request->tratamiento, 
+            'sociedad'          => $request->sociedad, 
+            'fecha'             => $request->fecha, 
             'numero_af'         => $request->numero_af,  
+            'sub_numero'        => $request->sub_numero,  
             'centro_costo'      => $request->centro_costo,  
             'localizacion'      => $request->localizacion,  
             'fecha_compra'      => $usableDate,  
-            'valor_neto'        => $request->valor_neto,
-            'valor_actual'      => $request->valor_actual,  
             'descripcion'       => $request->descripcion,  
             'etiqueta'          => $request->etiqueta,  
             'serie'             => $request->serie,   
             'marca'             => $request->marca,   
             'modelo'            => $request->modelo,  
+            'catalogo'          => $request->catalogo,  
             'clasificacion_op'  => $request->clasificacion_op,  
+            'valor_compra'      => $request->valor_compra,  
+            'fecha_baja'        => $usableDate, 
+            'motivo_baja'       => $request->motivo_baja,  
+            'status'            => $request->status,  
             'elemento_pep'      => $request->elemento_pep,  
             'adicionales'       => $request->adicionales ? $request->adicionales : null,
         ];
@@ -113,18 +119,24 @@ class RespActivoController extends Controller
 
                 $activo = [
                     'tratamiento'       => $item->tratamiento, 
+                    'sociedad'          => $item->sociedad,  
+                    'fecha'             => $item->fecha,  
                     'numero_af'         => $item->numero_af,  
+                    'sub_numero'        => $item->sub_numero,  
                     'centro_costo'      => $item->centro_costo,  
                     'localizacion'      => $item->localizacion,  
                     'fecha_compra'      => $usableDate,  
-                    'valor_neto'        => $item->valor_neto,
-                    'valor_actual'      => $item->valor_actual,   
                     'descripcion'       => $item->descripcion,  
                     'etiqueta'          => $item->etiqueta,  
                     'serie'             => $item->serie,   
                     'marca'             => $item->marca,   
                     'modelo'            => $item->modelo,  
+                    'catalogo'          => $item->catalogo,  
                     'clasificacion_op'  => $item->clasificacion_op,  
+                    'valor_compra'      => $item->valor_compra,  
+                    'fecha_baja'        => $item->fecha_baja,  
+                    'motivo_baja'       => $item->motivo_baja,  
+                    'status'            => $item->status,  
                     'elemento_pep'      => $item->elemento_pep,  
                     'adicionales'       => isset($item->adicionales) ? $item->adicionales : null,
                     'created_at'        => date('Y-m-d H:i:s'),
@@ -169,23 +181,27 @@ class RespActivoController extends Controller
     protected function rules(){
 
         return [
-            'tratamiento'   => 'required|integer|min:1', 
-            'numero_af'     => 'required|max:124',  
-            'centro_costo'  => 'required|max:64|exists:centro_costos,codigoCliente',  
-            'localizacion'  => 'required|integer|min:1|exists:ubicaciones_geograficas,codigoCliente',  
-            'fecha_compra'  => 'required|date|date_format:d-m-Y',  
-            //'valor_compra'=> 'required|numeric|min:0', -> ahora valor_neto
-            'valor_neto'    => 'required|numeric|min:0',   
-            'valor_actual'  => 'required|numeric|min:0',//nuevo
-            'descripcion'   => 'required|max:255',  
-            'etiqueta'      => 'required|max:64',  
-            'serie'         => 'required|max:64',   
-            'marca'         => 'required|max:64',   
-            'modelo'        => 'required|max:64',  
-            //'unidad_negocio'=> 'required|max:64', -> ahora clasificacion_op
-            'clasificacion_op'=> 'required|max:64',  
-            'elemento_pep'  => 'required|max:64',
-            'adicionales'   => 'sometimes|json'
+            'tratamiento'       => 'required|integer|min:1', 
+            'sociedad'          => 'required|max:4',  
+            'fecha'             => 'required|date|date_format:dmY',  
+            'numero_af'         => 'required|max:15',  
+            'sub_numero'        => 'required|max:2',  
+            'centro_costo'      => 'required|max:12|exists:centro_costos,codigoCliente',  
+            'localizacion'      => 'required|integer|min:1|exists:ubicaciones_geograficas,codigoCliente',  
+            'fecha_compra'      => 'required|date|date_format:d-m-Y',  
+            'descripcion'       => 'required|max:255',  
+            'etiqueta'          => 'required|max:64',  
+            'serie'             => 'required|max:64',   
+            'marca'             => 'required|max:64',   
+            'modelo'            => 'required|max:64',  
+            'catalogo'          => 'required|max:64',  
+            'clasificacion_op'  => 'required|max:64',  
+            'valor_compra'      => 'required|numeric|min:0',   
+            'fecha_baja'        => 'required|date|date_format:d.m.Y',  
+            'motivo_baja'       => 'required|max:255',  
+            'status'            => 'required|max:124',  
+            'elemento_pep'      => 'required|max:64',
+            'adicionales'       => 'sometimes|json'
         ];
     }
 
