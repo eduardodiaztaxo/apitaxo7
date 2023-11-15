@@ -11,8 +11,18 @@ class RespLocalizacion extends Model
 
     protected $fillable = [
         'tratamiento',
-        'descripcion',
-        'adicionales',
+        'sociedad',
+        'centro',
+        'localizacion',
+        'centro_costo',
+        'denominacion_localizacion',
+        'denominacion_ceco',
+        'tipo',
+        'status',
+        'region',
+        'comuna',
+        'calle',
+        'correo_resp',
     ];
 
     protected $table = 'resp_localizaciones';
