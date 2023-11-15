@@ -182,8 +182,8 @@ class RespActivoController extends Controller
 
         return [
             'tratamiento'       => 'required|integer|min:1', 
-            'sociedad'          => 'required|max:4',  
-            'fecha'             => 'required|date|date_format:dmY',  
+            'sociedad'          => 'required|max:6',  
+            'fecha'             => 'required|max:64',  
             'numero_af'         => 'required|max:15',  
             'sub_numero'        => 'required|max:2',  
             'centro_costo'      => 'required|max:12|exists:centro_costos,codigoCliente',  
@@ -197,7 +197,7 @@ class RespActivoController extends Controller
             'catalogo'          => 'required|max:64',  
             'clasificacion_op'  => 'required|max:64',  
             'valor_compra'      => 'required|numeric|min:0',   
-            'fecha_baja'        => 'required|date|date_format:d.m.Y',  
+            'fecha_baja'        => 'required|max:255',  
             'motivo_baja'       => 'required|max:255',  
             'status'            => 'required|max:124',  
             'elemento_pep'      => 'required|max:64',
