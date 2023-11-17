@@ -40,16 +40,16 @@ class RespLocalizacionController extends Controller
             'tratamiento'                   => $request->tratamiento, 
             'sociedad'                      => $request->sociedad, 
             'centro'                        => $request->centro, 
-            'localizacion'                  => $request->localizacion, 
-            'centro_costo'                  => $request->centro_costo, 
-            'denominacion_localizacion'     => $request->denominacion_localizacion, 
-            'denominacion_ceco'             => $request->denominacion_ceco, 
+            'localizacionFisica'            => $request->localizacion, 
+            'ccosto'                        => $request->centro_costo, 
+            'denominacionLocalizacion'      => $request->denominacion_localizacion, 
+            'denominacionCentroCosto'       => $request->denominacion_ceco, 
             'tipo'                          => $request->tipo, 
             'status'                        => $request->status, 
             'region'                        => $request->region, 
             'comuna'                        => $request->comuna, 
             'calle'                         => $request->calle, 
-            'correo_resp'                   => $request->correo_resp, 
+            'correoElectronicoResponsable'  => $request->correo_resp, 
             'adicionales'                   => $request->adicionales ? $request->adicionales : null,
         ];
 
@@ -101,16 +101,16 @@ class RespLocalizacionController extends Controller
                     'tratamiento'                   => $item->tratamiento, 
                     'sociedad'                      => $item->sociedad, 
                     'centro'                        => $item->centro, 
-                    'localizacion'                  => $item->localizacion, 
-                    'centro_costo'                  => $item->centro_costo, 
-                    'denominacion_localizacion'     => $item->denominacion_localizacion, 
-                    'denominacion_ceco'             => $item->denominacion_ceco, 
+                    'localizacionFisica'            => $item->localizacion, 
+                    'ccosto'                        => $item->centro_costo, 
+                    'denominacionLocalizacion'      => $item->denominacion_localizacion, 
+                    'denominacionCentroCosto'       => $item->denominacion_ceco, 
                     'tipo'                          => $item->tipo, 
                     'status'                        => $item->status, 
                     'region'                        => $item->region, 
                     'comuna'                        => $item->comuna, 
                     'calle'                         => $item->calle, 
-                    'correo_resp'                   => $item->correo_resp, 
+                    'correoElectronicoResponsable'  => $item->correo_resp, 
                     'adicionales'   => isset($item->adicionales) ? $item->adicionales : null,
                 ];
 
@@ -140,20 +140,20 @@ class RespLocalizacionController extends Controller
     protected function rules(){
 
         return [
-            'tratamiento'               => 'required|integer|min:1',  
-            'sociedad'                  => 'required|max:50',
-            'centro'                    => 'required|max:50',
-            'localizacion'              => 'required|max:50',
-            'centro_costo'              => 'required|max:50',
-            'denominacion_localizacion' => 'required|max:255',
-            'denominacion_ceco'         => 'required|max:50',
-            'tipo'                      => 'required|max:50',
-            'status'                    => 'required|max:50',
-            'region'                    => 'required|max:50',
-            'comuna'                    => 'required|max:50',
-            'calle'                     => 'required|max:50',
-            'correo_resp'               => 'required|max:50',
-            'adicionales'               => 'sometimes|json'
+            'tratamiento'                   => 'required|integer|min:1',  
+            'sociedad'                      => 'required|max:50',
+            'centro'                        => 'required|max:50',
+            'localizacionFisica'            => 'required|max:50',
+            'ccosto'                        => 'required|max:50',
+            'denominacionLocalizacion'      => 'required|max:255',
+            'denominacionCentroCosto'       => 'required|max:50',
+            'tipo'                          => 'required|max:50',
+            'status'                        => 'required|max:50',
+            'region'                        => 'required|max:50',
+            'comuna'                        => 'required|max:50',
+            'calle'                         => 'required|max:50',
+            'correoElectronicoResponsable'  => 'required|max:50',
+            'adicionales'                   => 'sometimes|json'
         ];
     }
 

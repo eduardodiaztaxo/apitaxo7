@@ -13,16 +13,16 @@ class RespLocalizacion extends Model
         'tratamiento',
         'sociedad',
         'centro',
-        'localizacion',
-        'centro_costo',
-        'denominacion_localizacion',
-        'denominacion_ceco',
+        'localizacionFisica',
+        'ccosto',
+        'denominacionLocalizacion',
+        'denominacionCentroCosto',
         'tipo',
         'status',
         'region',
         'comuna',
         'calle',
-        'correo_resp',
+        'correoElectronicoResponsable',
     ];
 
     protected $table = 'resp_localizaciones';
