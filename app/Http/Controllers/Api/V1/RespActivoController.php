@@ -114,30 +114,36 @@ class RespActivoController extends Controller
 
             } else if( empty($errors) ){
 
-                $date = DateTime::createFromFormat('d-m-Y', $item->fecha_compra);
-                $usableDate = $date->format('Y-m-d');
+                $date = isset($item->fecha_compra) ? DateTime::createFromFormat('d-m-Y', $item->fecha_compra) : false;
+
+                if( !$date ){
+                    $usableDate = null;
+                } else {
+                    $usableDate = $date->format('Y-m-d');
+                }
+                
 
                 $activo = [
-                    'tratamiento'       => $item->tratamiento, 
-                    'sociedad'          => $item->sociedad,  
-                    'fecha'             => $item->fecha,  
-                    'numero_af'         => $item->numero_af,  
-                    'sub_numero'        => $item->sub_numero,  
-                    'centro_costo'      => $item->centro_costo,  
-                    'localizacion'      => $item->localizacion,  
+                    'tratamiento'       => isset($item->tratamiento) ? $item->tratamiento : 0, 
+                    'sociedad'          => isset($item->sociedad) ? $item->sociedad : null,  
+                    'fecha'             => isset($item->fecha) ? $item->fecha : null,  
+                    'numero_af'         => isset($item->numero_af) ? $item->numero_af : null,  
+                    'sub_numero'        => isset($item->sub_numero) ? $item->sub_numero : null,  
+                    'centro_costo'      => isset($item->centro_costo) ? $item->centro_costo : null,  
+                    'localizacion'      => isset($item->localizacion) ? $item->localizacion : null,  
                     'fecha_compra'      => $usableDate,  
-                    'descripcion'       => $item->descripcion,  
-                    'etiqueta'          => $item->etiqueta,  
-                    'serie'             => $item->serie,   
-                    'marca'             => $item->marca,   
-                    'modelo'            => $item->modelo,  
-                    'catalogo'          => $item->catalogo,  
-                    'clasificacion_op'  => $item->clasificacion_op,  
-                    'valor_compra'      => $item->valor_compra,  
-                    'fecha_baja'        => $item->fecha_baja,  
-                    'motivo_baja'       => $item->motivo_baja,  
-                    'status'            => $item->status,  
-                    'elemento_pep'      => $item->elemento_pep,  
+                    'descripcion'       => isset($item->descripcion) ? $item->descripcion : null,  
+                    'etiqueta'          => isset($item->etiqueta) ? $item->etiqueta : null,  
+                    'serie'             => isset($item->serie) ? $item->serie : null,   
+                    'marca'             => isset($item->marca) ? $item->marca : null,   
+                    'modelo'            => isset($item->modelo) ? $item->modelo : null,  
+                    'catalogo'          => isset($item->catalogo) ? $item->catalogo : null,  
+                    'clasificacion_op'  => isset($item->clasificacion_op) ? $item->clasificacion_op : null,  
+                    'valor_compra'      => isset($item->valor_compra) ? $item->valor_compra : null,  
+                    'fecha_baja'        => isset($item->fecha_baja) ? $item->fecha_baja : null,  
+                    'motivo_baja'       => isset($item->motivo_baja) ? $item->motivo_baja : null,  
+                    'status'            => isset($item->status) ? $item->status : null,  
+                    'elemento_pep'      => isset($item->elemento_pep) ? $item->elemento_pep : null,  
                     'adicionales'       => isset($item->adicionales) ? $item->adicionales : null,
                     'created_at'        => date('Y-m-d H:i:s'),
                     'updated_at'        => date('Y-m-d H:i:s'),
