@@ -33,7 +33,6 @@ class RespLocalizacionController extends Controller
         }
 
         $request->validate($this->rules());
-
         
         //
         $activo = [
