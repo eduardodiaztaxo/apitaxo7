@@ -97,21 +97,22 @@ class RespLocalizacionController extends Controller
             } else if( empty($errors) ){
 
 
+                
                 $activo = [
-                    'tratamiento'                   => $item->tratamiento, 
-                    'sociedad'                      => $item->sociedad, 
-                    'centro'                        => $item->centro, 
-                    'localizacionFisica'            => $item->localizacionFisica, 
-                    'ccosto'                        => $item->ccosto, 
-                    'denominacionLocalizacion'      => $item->denominacionLocalizacion, 
-                    'denominacionCentroCosto'       => $item->denominacionCentroCosto, 
-                    'tipo'                          => $item->tipo, 
-                    'status'                        => $item->status, 
-                    'region'                        => $item->region, 
-                    'comuna'                        => $item->comuna, 
-                    'calle'                         => $item->calle, 
-                    'correoElectronicoResponsable'  => $item->correoElectronicoResponsable, 
-                    'adicionales'   => isset($item->adicionales) ? $item->adicionales : null,
+                    'tratamiento'                   => isset($item->tratamiento) ? $item->tratamiento : null,
+                    'sociedad'                      => isset($item->sociedad) ? $item->sociedad : null,
+                    'centro'                        => isset($item->centro) ? $item->centro : null,
+                    'localizacionFisica'            => isset($item->localizacionFisica) ? $item->localizacionFisica : null,
+                    'ccosto'                        => isset($item->ccosto) ? $item->ccosto : null,
+                    'denominacionLocalizacion'      => isset($item->denominacionLocalizacion) ? $item->denominacionLocalizacion : null,
+                    'denominacionCentroCosto'       => isset($item->denominacionCentroCosto) ? $item->denominacionCentroCosto : null, 
+                    'tipo'                          => isset($item->tipo) ? $item->tipo : null, 
+                    'status'                        => isset($item->status) ? $item->status : null, 
+                    'region'                        => isset($item->region) ? $item->region : null, 
+                    'comuna'                        => isset($item->comuna) ? $item->comuna : null, 
+                    'calle'                         => isset($item->calle) ? $item->calle : null, 
+                    'correoElectronicoResponsable'  => isset($item->correoElectronicoResponsable) ? $item->correoElectronicoResponsable : null, 
+                    'adicionales'                   => isset($item->adicionales) ? $item->adicionales : null,
                 ];
 
                 $assets[] = $activo;
@@ -140,19 +141,19 @@ class RespLocalizacionController extends Controller
     protected function rules(){
 
         return [
-            'tratamiento'                   => 'required|integer|min:1',  
-            'sociedad'                      => 'required|max:50',
-            'centro'                        => 'required|max:50',
-            'localizacionFisica'            => 'required|max:50',
-            'ccosto'                        => 'required|max:50',
-            'denominacionLocalizacion'      => 'required|max:255',
-            'denominacionCentroCosto'       => 'required|max:50',
-            'tipo'                          => 'required|max:50',
-            'status'                        => 'required|max:50',
-            'region'                        => 'required|max:50',
-            'comuna'                        => 'required|max:50',
-            'calle'                         => 'required|max:50',
-            'correoElectronicoResponsable'  => 'required|max:50',
+            'tratamiento'                   => 'max:50',  
+            'sociedad'                      => 'max:50',
+            'centro'                        => 'max:50',
+            'localizacionFisica'            => 'max:50',
+            'ccosto'                        => 'max:50',
+            'denominacionLocalizacion'      => 'max:255',
+            'denominacionCentroCosto'       => 'max:50',
+            'tipo'                          => 'max:50',
+            'status'                        => 'max:50',
+            'region'                        => 'max:50',
+            'comuna'                        => 'max:50',
+            'calle'                         => 'max:50',
+            'correoElectronicoResponsable'  => 'max:50',
             'adicionales'                   => 'sometimes|json'
         ];
     }
