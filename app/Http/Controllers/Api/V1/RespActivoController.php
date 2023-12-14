@@ -54,7 +54,7 @@ class RespActivoController extends Controller
             'etiqueta'          => $request->etiqueta,  
             'serie'             => $request->serie,   
             'marca'             => $request->marca,   
-            'modelo'            => $request->modelo,  
+            'modelo'            => strtoupper($request->modelo),  
             'catalogo'          => $request->catalogo,  
             'clasificacion_op'  => $request->clasificacion_op,  
             'valor_compra'      => $request->valor_compra,  

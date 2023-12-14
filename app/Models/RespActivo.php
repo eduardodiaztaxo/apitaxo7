@@ -41,6 +41,14 @@ class RespActivo extends Model
 
     public function generate_catalog(){
 
+        $descripcion = preg_replace('/\s+/', ' ', trim($this->descripcion) );
+        $descripcion = strtr($descripcion, array('.' => '', ',' => ''));
+
+        $descripcion = $this->eliminar_tildes($descripcion);
+        $descripcion = strtoupper($descripcion);
+
+
+
         $prefix = '010101';
 
         $sql  = "SELECT * FROM ";
@@ -57,7 +65,7 @@ class RespActivo extends Model
         $sql .= "    WHERE idIndice = '1' AND idAtributo = 1 ";
             
         $sql .= ") AS tab1 ";
-        $sql .= "WHERE REPLACE(REPLACE(TRIM(descripcion), '.', ''), ',', '')  = REPLACE(REPLACE(TRIM('".$this->descripcion."'), '.', ''), ',', '') "; 
+        $sql .= "WHERE REPLACE(REPLACE(TRIM(descripcion), '.', ''), ',', '')  = REPLACE(REPLACE(TRIM('".$descripcion."'), '.', ''), ',', '') "; 
 
         $indice = DB::selectOne($sql);
 
@@ -70,9 +78,6 @@ class RespActivo extends Model
             $maxLista = IndicesLista::max('idLista');
             
             $newIdLista = $maxLista + 1;
-
-            $descripcion = preg_replace('/\s+/', ' ', trim($this->descripcion) );
-            $descripcion = strtr($descripcion, array('.' => '', ',' => ''));
 
             $indLista = IndicesLista::create([
                 'idLista' => $newIdLista,
@@ -155,8 +160,6 @@ class RespActivo extends Model
 
         }
         
-        
-        
         return $this->centro_costo_id;
 
     }
@@ -176,10 +179,49 @@ class RespActivo extends Model
 
         }
         
-        
-        
         return $this->localizacion_id;
+    }
 
+
+    public function eliminar_tildes($cadena){
+
+        //Codificamos la cadena en formato utf8 en caso de que nos de errores
+        $cadena = utf8_encode($cadena);
+    
+        //Ahora reemplazamos las letras
+        $cadena = str_replace(
+            array('á', 'à', 'ä', 'â', 'ª', 'Á', 'À', 'Â', 'Ä'),
+            array('a', 'a', 'a', 'a', 'a', 'A', 'A', 'A', 'A'),
+            $cadena
+        );
+    
+        $cadena = str_replace(
+            array('é', 'è', 'ë', 'ê', 'É', 'È', 'Ê', 'Ë'),
+            array('e', 'e', 'e', 'e', 'E', 'E', 'E', 'E'),
+            $cadena );
+    
+        $cadena = str_replace(
+            array('í', 'ì', 'ï', 'î', 'Í', 'Ì', 'Ï', 'Î'),
+            array('i', 'i', 'i', 'i', 'I', 'I', 'I', 'I'),
+            $cadena );
+    
+        $cadena = str_replace(
+            array('ó', 'ò', 'ö', 'ô', 'Ó', 'Ò', 'Ö', 'Ô'),
+            array('o', 'o', 'o', 'o', 'O', 'O', 'O', 'O'),
+            $cadena );
+    
+        $cadena = str_replace(
+            array('ú', 'ù', 'ü', 'û', 'Ú', 'Ù', 'Û', 'Ü'),
+            array('u', 'u', 'u', 'u', 'U', 'U', 'U', 'U'),
+            $cadena );
+    
+        $cadena = str_replace(
+            array('ñ', 'Ñ', 'ç', 'Ç'),
+            array('n', 'N', 'c', 'C'),
+            $cadena
+        );
+    
+        return $cadena;
     }
 
 }
