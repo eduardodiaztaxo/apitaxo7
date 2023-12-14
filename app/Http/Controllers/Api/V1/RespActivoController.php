@@ -121,7 +121,10 @@ class RespActivoController extends Controller
                 } else {
                     $usableDate = $date->format('Y-m-d');
                 }
+
+
                 
+                //dd( $str );
 
                 $activo = [
                     'tratamiento'       => isset($item->tratamiento) ? $item->tratamiento : 0, 
@@ -132,7 +135,7 @@ class RespActivoController extends Controller
                     'centro_costo'      => isset($item->centro_costo) ? $item->centro_costo : null,  
                     'localizacion'      => isset($item->localizacion) ? $item->localizacion : null,  
                     'fecha_compra'      => isset($item->fecha_compra) ? $item->fecha_compra : null, 
-                    'descripcion'       => isset($item->descripcion) ? iconv('UTF-8','ASCII//TRANSLIT',$item->descripcion) : null,  
+                    'descripcion'       => isset($item->descripcion) ? str_delete_accents( $item->descripcion ) : null,  
                     'etiqueta'          => isset($item->etiqueta) ? $item->etiqueta : null,  
                     'serie'             => isset($item->serie) ? $item->serie : null,   
                     'marca'             => isset($item->marca) ? $item->marca : null,   
