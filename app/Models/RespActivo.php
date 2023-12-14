@@ -46,7 +46,7 @@ class RespActivo extends Model
 
         $descripcion = $this->eliminar_tildes($descripcion);
         $descripcion = strtoupper($descripcion);
-        $this->descripcion = $descripcion;
+        $this->descripcion = iconv('UTF-8','ASCII//TRANSLIT',$descripcion);
 
 
         $prefix = '010101';
