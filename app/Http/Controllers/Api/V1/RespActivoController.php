@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\RespActivoResource;
 use DateTime;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class RespActivoController extends Controller
@@ -64,6 +65,9 @@ class RespActivoController extends Controller
             'elemento_pep'      => $request->elemento_pep,  
             'adicionales'       => $request->adicionales ? $request->adicionales : null,
         ];
+
+        RespActivo::where(DB::raw("TRIM(LEADING '0' FROM numero_af)"), '=', ltrim($activo['numero_af'], '0'))->where('estado_proceso','=','0')
+        ->update(['estado_proceso'=> '1']);
 
         $asset = RespActivo::create($activo);
 
@@ -169,6 +173,10 @@ class RespActivoController extends Controller
         } else {
 
             foreach($assets as $activo){
+
+
+                RespActivo::where(DB::raw("TRIM(LEADING '0' FROM numero_af)"), '=', ltrim($activo['numero_af'], '0'))->where('estado_proceso','=','0')
+                ->update(['estado_proceso'=> '1']);
 
                 $asset = RespActivo::create($activo);
 
