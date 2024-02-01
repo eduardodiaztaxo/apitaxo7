@@ -33,4 +33,18 @@ class LoginController extends Controller
             'name' => 'required'
         ]);
     }
+
+
+    public function makePassword(Request $request){
+
+        $request->validate([
+            
+            'password' => 'required|min:6',
+            
+        ]);
+
+        return response()->json([
+            'pass' => \Illuminate\Support\Facades\Hash::make($request->password)
+        ],401);
+    }
 }

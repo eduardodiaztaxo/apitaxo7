@@ -36,6 +36,11 @@ Route::middleware(['auth:sanctum','switch.database'])->prefix('v1')->group(funct
 
     Route::post('localizaciones/actualizar-multiples', [RespLocV1::class, 'storeMultiple']);
 
+    Route::post('generate-encrypt-password',[
+        App\Http\Controllers\Api\LoginController::class,
+        'makePassword'
+    ]);
+
 });
 
 
