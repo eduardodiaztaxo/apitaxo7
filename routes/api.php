@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\TestConnectionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\PostController as PostV1;
@@ -23,6 +24,9 @@ use App\Http\Controllers\Api\V1\RespLocalizacionController as RespLocV1;
 // });
 
 Route::middleware(['auth:sanctum','switch.database'])->prefix('v1')->group(function () {
+
+
+    Route::get('test/connection', [TestConnectionController::class, 'pin']);
 
     Route::apiResource('posts', PostV1::class)->only(['index','show','destroy']);
 
