@@ -80,6 +80,10 @@ class RespActivoController extends Controller
         
     }
 
+
+
+ 
+
     /**
      * Store newly created resources in storage.
      *
@@ -194,6 +198,130 @@ class RespActivoController extends Controller
 
         
     }
+
+
+
+
+
+ 
+
+    /**
+     * Store newly created resources in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function storeMultiple_v2(Request $request)
+    {
+
+        if($request->items){
+            $request->merge(['items' => json_encode($request->items)]);
+        }
+
+
+        $request->validate([
+            'items'   => 'required|json'
+        ]);
+
+
+        $items = json_decode($request->items);
+
+        $assets = [];
+        $errors = [];
+
+        foreach($items as $key => $item){
+            
+            if( isset($item->adicionales) ){
+                $item->adicionales = json_encode($item->adicionales);
+            }
+            
+            $validator = Validator::make((array)$item, $this->rules());
+
+            if( $validator->fails() ){
+
+                $errors[] = ['index' => $key, 'errors' => $validator->errors()->get("*")];
+
+            } else if( empty($errors) ){
+
+                $date = isset($item->fecha_compra) ? DateTime::createFromFormat('d-m-Y', $item->fecha_compra) : false;
+
+                if( !$date ){
+                    $usableDate = null;
+                } else {
+                    $usableDate = $date->format('Y-m-d');
+                }
+
+
+                
+                //dd( $str );
+
+                $activo = [
+                    'tratamiento'       => isset($item->tratamiento) ? $item->tratamiento : 0, 
+                    'sociedad'          => isset($item->sociedad) ? $item->sociedad : null,  
+                    'fecha'             => isset($item->fecha) ? $item->fecha : null,  
+                    'numero_af'         => isset($item->numero_af) ? $item->numero_af : null,  
+                    'sub_numero'        => isset($item->sub_numero) ? $item->sub_numero : null,  
+                    'centro_costo'      => isset($item->centro_costo) ? $item->centro_costo : null,  
+                    'localizacion'      => isset($item->localizacion) ? $item->localizacion : null,  
+                    'fecha_compra'      => isset($item->fecha_compra) ? $item->fecha_compra : null, 
+                    'descripcion'       => isset($item->descripcion) ? str_delete_accents( $item->descripcion ) : null,  
+                    'etiqueta'          => isset($item->etiqueta) ? $item->etiqueta : null,  
+                    'serie'             => isset($item->serie) ? $item->serie : null,   
+                    'marca'             => isset($item->marca) ? str_replace_accents_and_upper($item->marca) : null,   
+                    'modelo'            => isset($item->modelo) ? $item->modelo : null,  
+                    'catalogo'          => isset($item->catalogo) ? $item->catalogo : null,  
+                    'clasificacion_op'  => isset($item->clasificacion_op) ? $item->clasificacion_op : null,  
+                    'valor_compra'      => isset($item->valor_compra) ? $item->valor_compra : null,  
+                    'fecha_baja'        => isset($item->fecha_baja) ? $item->fecha_baja : null,  
+                    'motivo_baja'       => isset($item->motivo_baja) ? $item->motivo_baja : null,  
+                    'status'            => isset($item->status) ? $item->status : null,  
+                    'elemento_pep'      => isset($item->elemento_pep) ? $item->elemento_pep : null,  
+                    'tipo'              => isset($item->tipo) ? $item->tipo : null,  
+                    'adicionales'       => isset($item->adicionales) ? $item->adicionales : null,
+                    'created_at'        => date('Y-m-d H:i:s'),
+                    'updated_at'        => date('Y-m-d H:i:s'),
+                ];
+
+                $assets[] = $activo;
+
+            }
+
+            
+
+        }
+
+        if(!empty($errors)){
+            return response()->json([
+                'status'=>'error', 
+                'message' => 'There are some items with errors, fix them and try again', 
+                'errors' => $errors
+            ],422);
+        } else {
+
+            foreach($assets as $activo){
+
+
+                RespActivo::where(DB::raw("TRIM(LEADING '0' FROM numero_af)"), '=', ltrim($activo['numero_af'], '0'))->where('estado_proceso','=','0')
+                ->update(['estado_proceso'=> '1']);
+
+                $asset = RespActivo::create($activo);
+
+                $asset->generate_catalog();
+                $asset->set_brand_id();
+                $asset->set_centro_costo_id();
+                $asset->set_ubicacion_geografica_id();
+            }
+
+            //$assets = RespActivo::insert($assets);
+
+            return response()->json(['status'=>'OK', 'message' => 'items created sucssessfuly']);
+        }
+
+
+        
+    }
+
+
 
     protected function rules(){
 

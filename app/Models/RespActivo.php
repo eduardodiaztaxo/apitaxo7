@@ -36,6 +36,7 @@ class RespActivo extends Model
         'lista_marca_id',//nuevo
         'centro_costo_id',//nuevo
         'localizacion_id',//nuevo
+        'tipo',//nuevo
 
     ];
 

@@ -36,6 +36,8 @@ Route::middleware(['auth:sanctum','switch.database'])->prefix('v1')->group(funct
 
     Route::post('activos/actualizar-multiples', [RespActivoV1::class, 'storeMultiple']);
 
+    Route::post('activos/actualizar-multiples-v2', [RespActivoV1::class, 'storeMultiple_v2']);
+
     Route::apiResource('localizaciones/actualizar', RespLocV1::class)->only(['store']);
 
     Route::post('localizaciones/actualizar-multiples', [RespLocV1::class, 'storeMultiple']);
