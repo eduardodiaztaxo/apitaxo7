@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\V2\PostController as PostV2;
 use App\Http\Controllers\Api\V1\BajaDocumentoController as BajaV1;
 use App\Http\Controllers\Api\V1\RespActivoController as RespActivoV1;
 use App\Http\Controllers\Api\V1\RespLocalizacionController as RespLocV1;
+use App\Http\Controllers\Api\V1\User\UserController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -46,6 +48,12 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
         App\Http\Controllers\Api\LoginController::class,
         'makePassword'
     ]);
+});
+
+
+Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
+
+    Route::get('my-user-info', [UserController::class, 'show']);
 });
 
 

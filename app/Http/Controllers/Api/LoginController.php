@@ -6,27 +6,38 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 use App\Models\User;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
     //
-    public function login(Request $request){
+    public function login(Request $request)
+    {
         $this->validateLogin($request);
 
-        if(Auth::attempt($request->only('email','password'))){
+        if (Auth::attempt($request->only('email', 'password'))) {
+
+            $expiration = config('sanctum.expiration', null);
+
+            $expires_at = $expiration ? Carbon::now()->addMinutes($expiration) : null;
+
+            $token = $request->user()->createToken($request->name, ['*'], $expires_at);
+
             return response()->json([
-                'token' => $request->user()->createToken($request->name)->plainTextToken,
+                'token' => $token->plainTextToken,
+                'expires_at' => $token->accessToken->expires_at,
                 'message' => 'Success'
             ]);
         }
 
         return response()->json([
             'message' => 'Unauthorized'
-        ],401);
+        ], 401);
     }
 
-    public function validateLogin(Request $request){
+    public function validateLogin(Request $request)
+    {
         return $request->validate([
             'email' => 'required|email',
             'password' => 'required',
@@ -35,16 +46,17 @@ class LoginController extends Controller
     }
 
 
-    public function makePassword(Request $request){
+    public function makePassword(Request $request)
+    {
 
         $request->validate([
-            
+
             'password' => 'required|min:6',
-            
+
         ]);
 
         return response()->json([
             'pass' => \Illuminate\Support\Facades\Hash::make($request->password)
-        ],401);
+        ], 401);
     }
 }
