@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\PostController as PostV1;
 use App\Http\Controllers\Api\V2\PostController as PostV2;
 use App\Http\Controllers\Api\V1\BajaDocumentoController as BajaV1;
+use App\Http\Controllers\Api\V1\CrudActivoController;
 use App\Http\Controllers\Api\V1\RespActivoController as RespActivoV1;
 use App\Http\Controllers\Api\V1\RespLocalizacionController as RespLocV1;
 use App\Http\Controllers\Api\V1\User\UserController;
@@ -48,6 +49,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
         App\Http\Controllers\Api\LoginController::class,
         'makePassword'
     ]);
+
+    Route::get('activos/etiqueta/{etiqueta}', [CrudActivoController::class, 'showByEtiqueta']);
 });
 
 

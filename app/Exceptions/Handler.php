@@ -49,8 +49,28 @@ class Handler extends ExceptionHandler
      */
     protected function unauthenticated($request, \Illuminate\Auth\AuthenticationException $exception)
     {
+
+
+        $json_response = ['message' => $exception->getMessage(), 'type' => 'unauthenticated'];
+
+        if (in_array('sanctum', $exception->guards())) {
+
+            $token = \App\Models\Sanctum\PersonalAccessToken::getTokenFromRequest($request);
+
+            if ($token && !empty($token)) {
+
+                $accessToken = \App\Models\Sanctum\PersonalAccessToken::getAccessToken($token);
+
+                $isValid = \App\Models\Sanctum\PersonalAccessToken::isValidAccessToken($accessToken);
+
+                if (!$isValid) {
+                    $json_response['type'] = 'invalid_token';
+                }
+            }
+        }
+
         return $this->shouldReturnJson($request, $exception)
-            ? response()->json(['message' => $exception->getMessage()], 401)
+            ? response()->json($json_response, 401)
             : redirect()->guest($exception->redirectTo() ?? route('login'));
     }
 }
