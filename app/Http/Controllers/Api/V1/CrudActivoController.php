@@ -5,10 +5,22 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\CrudActivoResource;
 use App\Models\CrudActivo;
+use App\Services\ActivoService;
 use Illuminate\Http\Request;
 
 class CrudActivoController extends Controller
 {
+
+
+    private $activoService;
+
+    public function __construct(ActivoService $activoService)
+    {
+        $this->activoService = $activoService;
+    }
+
+
+
     /**
      * Display a listing of the resource.
      *
@@ -56,19 +68,24 @@ class CrudActivoController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param  \Illuminate\Http\Request $request 
+     * @param int  $etiqueta
      * @return \Illuminate\Http\Response
      */
-    public function showByEtiqueta($etiqueta)
+    public function showByEtiqueta(Request $request, $etiqueta)
     {
         //
         $activo = CrudActivo::where('etiqueta', '=', $etiqueta)->first();
 
+        $activo->fotoUrl = $this->activoService->getUrlAsset($activo, $request->user());
 
         $resource = new CrudActivoResource($activo);
 
         return response()->json($resource, 200);
     }
+
+
+
 
     /**
      * Show the form for editing the specified resource.
