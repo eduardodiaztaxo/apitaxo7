@@ -77,6 +77,13 @@ class CrudActivoController extends Controller
         //
         $activo = CrudActivo::where('etiqueta', '=', $etiqueta)->first();
 
+        if (!$activo) {
+            return response()->json([
+                "message" => "Not Found",
+                "status"  => "error"
+            ], 404);
+        }
+
         $activo->fotoUrl = $this->activoService->getUrlAsset($activo, $request->user());
 
         $resource = new CrudActivoResource($activo);

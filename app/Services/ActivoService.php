@@ -26,7 +26,9 @@ class ActivoService
         $proyecto_id = $user->proyecto_id;
 
         $nombre_foto = $activo->foto1;
+
         $nombre_cliente = $user->nombre_cliente;
+
         $numero_etiqueta = $activo->etiqueta;
 
         #CLIENTE
