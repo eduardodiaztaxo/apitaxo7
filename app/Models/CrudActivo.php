@@ -53,7 +53,7 @@ class CrudActivo extends Model
 
         $emplazamiento = DB::table('ubicaciones_n2')
             ->where('idAgenda', '=', $this->ubicacionGeografica)
-            ->where('codigoUbicacion', '=', $this->ubicacionOrganicaN1)
+            ->where('codigoUbicacion', '=', $this->ubicacionOrganicaN2)
             ->first();
 
 
