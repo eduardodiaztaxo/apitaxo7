@@ -6,17 +6,23 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\CrudActivoResource;
 use App\Models\CrudActivo;
 use App\Services\ActivoService;
+use App\Services\ImageService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Encoders\JpegEncoder;
+use Intervention\Image\Laravel\Facades\Image as Image;
 
 class CrudActivoController extends Controller
 {
 
 
     private $activoService;
+    private $imageService;
 
-    public function __construct(ActivoService $activoService)
+    public function __construct(ActivoService $activoService, ImageService $imageService)
     {
         $this->activoService = $activoService;
+        $this->imageService  = $imageService;
     }
 
 
@@ -89,6 +95,44 @@ class CrudActivoController extends Controller
         $resource = new CrudActivoResource($activo);
 
         return response()->json($resource, 200);
+    }
+
+
+    public function uploadImageByEtiqueta(Request $request, $etiqueta)
+    {
+
+        //\\10.3.126.1\taxo_files\SAFIN\nombre_cliente\img
+
+        $request->validate([
+            'imagen' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
+        ]);
+
+        $activo = CrudActivo::where('etiqueta', '=', $etiqueta)->first();
+
+        if (!$activo) {
+            return response()->json([
+                "message" => "Not Found",
+                "status"  => "error"
+            ], 404);
+        }
+
+        $path = $this->imageService->optimizeImageAndSave(
+            $request->file('imagen'),
+            "customers/" . $request->user()->nombre_cliente . "/images",
+            $etiqueta
+        );
+
+        $activo->foto4 = $path;
+
+        $activo->save();
+
+        return response()->json(
+            [
+                'status'    => 'OK',
+                'path'      => $path
+            ],
+            201
+        );
     }
 
 

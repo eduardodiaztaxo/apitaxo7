@@ -51,6 +51,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     ]);
 
     Route::get('activos/etiqueta/{etiqueta}', [CrudActivoController::class, 'showByEtiqueta']);
+
+    Route::put('activos/upload-image/etiqueta/{etiqueta}', [CrudActivoController::class, 'uploadImageByEtiqueta']);
 });
 
 

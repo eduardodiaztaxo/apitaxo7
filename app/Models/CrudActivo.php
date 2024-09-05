@@ -11,7 +11,15 @@ class CrudActivo extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'foto4'
+    ];
 
+
+    protected $primaryKey = 'idActivo';
+
+    const CREATED_AT = 'fechaCreacion';
+    const UPDATED_AT = 'fechaModificacion';
 
 
 
