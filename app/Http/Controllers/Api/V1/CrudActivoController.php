@@ -129,7 +129,8 @@ class CrudActivoController extends Controller
         return response()->json(
             [
                 'status'    => 'OK',
-                'path'      => $path
+                'path'      => $path,
+                'url'       => asset('storage/' . $path)
             ],
             201
         );

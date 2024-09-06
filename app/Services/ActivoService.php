@@ -20,6 +20,11 @@ class ActivoService
     public function getUrlAsset(CrudActivo $activo, User $user): string
     {
 
+        if ($activo->foto4) {
+            return asset('storage/' . $activo->foto4);
+        }
+
+
         $url = url('img/notavailable.jpg');
 
 

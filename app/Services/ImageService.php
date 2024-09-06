@@ -38,17 +38,23 @@ class ImageService
         }
 
 
-        $img->encode(new JpegEncoder(quality: 10));
+        $encode = $img->encode(new JpegEncoder(quality: 10));
 
         //sobre escribir sobre la imagen subida
-        $img->save($uploadedImage->getRealPath());
+        //$img->save($uploadedImage->getRealPath());
 
-        //guardar imagen
-        $path = Storage::putFileAs(
-            $subdir,
-            $uploadedImage->getRealPath(),
-            $imageName . "." . $ext
+        $path = $subdir . "/" . $imageName . "." . $ext;
+
+        Storage::disk('public')->put(
+            $path,
+            $encode
         );
+        // guardar imagen
+        // $path = Storage::putFileAs(
+        //     $subdir,
+        //     $uploadedImage->getRealPath(),
+        //     $imageName . "." . $ext
+        // );
 
         return $path;
     }
