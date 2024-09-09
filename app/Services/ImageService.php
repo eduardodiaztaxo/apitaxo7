@@ -58,4 +58,10 @@ class ImageService
 
         return $path;
     }
+
+    public function deleteImage(string $path)
+    {
+
+        return Storage::disk('public')->delete($path);
+    }
 }

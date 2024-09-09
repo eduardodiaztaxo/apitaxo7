@@ -116,10 +116,13 @@ class CrudActivoController extends Controller
             ], 404);
         }
 
+        if ($activo->foto4)
+            $this->imageService->deleteImage($activo->foto4);
+
         $path = $this->imageService->optimizeImageAndSave(
             $request->file('imagen'),
             "customers/" . $request->user()->nombre_cliente . "/images",
-            $etiqueta
+            $etiqueta . "_" . date('YmdHis')
         );
 
         $activo->foto4 = $path;
