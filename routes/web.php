@@ -21,4 +21,8 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth'])->name('dashboard');
 
-require __DIR__.'/auth.php';
+Route::get('/reset-password_success', function () {
+    return view('auth.reset-success');
+})->name('reset-success');
+
+require __DIR__ . '/auth.php';
