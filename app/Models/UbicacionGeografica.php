@@ -20,4 +20,9 @@ class UbicacionGeografica extends Model
     {
         return $this->belongsTo(Comuna::class, 'comuna', 'idComuna');
     }
+
+    public function activos()
+    {
+        return $this->hasMany(CrudActivo::class, 'ubicacionGeografica', 'idUbicacionGeo');
+    }
 }

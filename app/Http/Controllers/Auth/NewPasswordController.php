@@ -57,7 +57,7 @@ class NewPasswordController extends Controller
 
         if ($status == Password::PASSWORD_RESET) {
 
-            $oldUser = OldUser::where('user_login', '=', $request->email)->first();
+            $oldUser = OldUser::where('email', '=', $request->email)->first();
 
             if ($oldUser) {
                 $oldUser->user_pw = $request->password;

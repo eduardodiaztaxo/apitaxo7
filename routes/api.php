@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\PostController as PostV1;
 use App\Http\Controllers\Api\V2\PostController as PostV2;
 use App\Http\Controllers\Api\V1\BajaDocumentoController as BajaV1;
+use App\Http\Controllers\Api\V1\CiclosController;
+use App\Http\Controllers\Api\V1\CiclosUbicacionesController;
 use App\Http\Controllers\Api\V1\CrudActivoController;
 use App\Http\Controllers\Api\V1\RespActivoController as RespActivoV1;
 use App\Http\Controllers\Api\V1\RespLocalizacionController as RespLocV1;
@@ -53,6 +55,17 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('activos/etiqueta/{etiqueta}', [CrudActivoController::class, 'showByEtiqueta']);
 
     Route::put('activos/upload-image/etiqueta/{etiqueta}', [CrudActivoController::class, 'uploadImageByEtiqueta']);
+
+
+
+    Route::get('ciclos', [CiclosController::class, 'index']);
+
+
+    Route::get('ciclos/{ciclo}/puntos', [CiclosUbicacionesController::class, 'show']);
+
+
+
+    //
 });
 
 
@@ -74,6 +87,11 @@ Route::post('login', [
     'login'
 ]);
 
+
+Route::post('login-by-user', [
+    App\Http\Controllers\Api\LoginController::class,
+    'loginByUser'
+]);
 
 Route::post('recovery', [
     App\Http\Controllers\Api\ForgotPasswordController::class,

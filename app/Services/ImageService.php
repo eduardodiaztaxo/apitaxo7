@@ -58,7 +58,12 @@ class ImageService
 
         return $path;
     }
-
+    /**
+     * delete image.
+     *
+     * @param  string  $path
+     * @return bool
+     */
     public function deleteImage(string $path)
     {
 
