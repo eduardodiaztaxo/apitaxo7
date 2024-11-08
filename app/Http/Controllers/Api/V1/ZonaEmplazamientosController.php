@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\V1\UbicacionGeograficaResource;
-use App\Models\InvCiclo;
+use App\Http\Resources\V1\EmplazamientoResource;
+use App\Models\ZonaPunto;
 use Illuminate\Http\Request;
 
-class CiclosUbicacionesController extends Controller
+class ZonaEmplazamientosController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -46,19 +46,19 @@ class CiclosUbicacionesController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show(Request $request, int $ciclo)
+    public function show(Request $request, int $zona)
     {
         //return $request->user()->conn_field;
         //
-        $cicloObj = InvCiclo::find($ciclo);
+        $zonaObj = ZonaPunto::find($zona);
 
-        if (!$cicloObj) {
+        if (!$zonaObj) {
             return response()->json(['status' => 'NOK', 'code' => 404], 404);
         }
 
-        $puntos = $cicloObj->puntos()->get();
+        $emplazamientos = $zonaObj->emplazamientos()->get();
 
-        return response()->json(UbicacionGeograficaResource::collection($puntos), 200);
+        return response()->json(EmplazamientoResource::collection($emplazamientos), 200);
     }
 
     /**

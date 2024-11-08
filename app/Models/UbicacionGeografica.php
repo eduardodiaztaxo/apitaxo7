@@ -25,4 +25,9 @@ class UbicacionGeografica extends Model
     {
         return $this->hasMany(CrudActivo::class, 'ubicacionGeografica', 'idUbicacionGeo');
     }
+
+    public function zonasPunto()
+    {
+        return $this->hasMany(ZonaPunto::class, 'idAgenda', 'idUbicacionGeo');
+    }
 }

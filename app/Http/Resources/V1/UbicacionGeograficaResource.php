@@ -25,6 +25,7 @@ class UbicacionGeograficaResource extends JsonResource
             'direccion'     => $this->direccion,
             'idPunto'       => $this->idPunto,
             'estadoGeo'     => $this->estadoGeo,
+            'zonas_punto'   => ZonaPuntoResource::collection($this->zonasPunto()->get()),
             'num_activos'   => $this->activos()->get()->count()
         ];
     }

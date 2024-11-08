@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\V1\CrudActivoController;
 use App\Http\Controllers\Api\V1\RespActivoController as RespActivoV1;
 use App\Http\Controllers\Api\V1\RespLocalizacionController as RespLocV1;
 use App\Http\Controllers\Api\V1\User\UserController;
+use App\Http\Controllers\Api\V1\ZonaEmplazamientosController;
 
 /*
 |--------------------------------------------------------------------------
@@ -62,6 +63,9 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
 
     Route::get('ciclos/{ciclo}/puntos', [CiclosUbicacionesController::class, 'show']);
+
+
+    Route::get('zones/{zona}/emplazamientos', [ZonaEmplazamientosController::class, 'show']);
 
 
 
