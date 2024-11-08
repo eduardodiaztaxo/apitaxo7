@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\BajaDocumentoController as BajaV1;
 use App\Http\Controllers\Api\V1\CiclosController;
 use App\Http\Controllers\Api\V1\CiclosUbicacionesController;
 use App\Http\Controllers\Api\V1\CrudActivoController;
+use App\Http\Controllers\Api\V1\EmplazamientosActivosController;
 use App\Http\Controllers\Api\V1\RespActivoController as RespActivoV1;
 use App\Http\Controllers\Api\V1\RespLocalizacionController as RespLocV1;
 use App\Http\Controllers\Api\V1\User\UserController;
@@ -66,6 +67,10 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
 
     Route::get('zones/{zona}/emplazamientos', [ZonaEmplazamientosController::class, 'show']);
+
+    Route::get('emplazamientos/{emplazamiento}/activos', [EmplazamientosActivosController::class, 'show']);
+
+    Route::get('emplazamientos/{emplazamiento}/activos/etiquetas', [EmplazamientosActivosController::class, 'showOnlyLabels']);
 
 
 
