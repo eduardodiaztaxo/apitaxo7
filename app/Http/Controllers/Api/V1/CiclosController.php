@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\InvCicloResource;
 use App\Models\InvCiclo;
+use App\Models\InvCicloUser;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CiclosController extends Controller
 {
@@ -18,6 +20,26 @@ class CiclosController extends Controller
     {
         //
         return InvCicloResource::collection(InvCiclo::all());
+    }
+
+
+    public function indexByUser(Request $request)
+    {
+
+
+
+
+        $username = $request->user()->name;
+
+        $ciclos_ids = InvCicloUser::where('usuario', $username)->get()->pluck('ciclo_id');
+
+
+        //no tomar cerrados
+        $inventarios = InvCiclo::where('estadoCiclo', '<>', 2)->whereIn('idCiclo', $ciclos_ids->toArray())->get();
+
+
+
+        return InvCicloResource::collection($inventarios);
     }
 
     /**

@@ -14,6 +14,13 @@ class UbicacionGeograficaResource extends JsonResource
      */
     public function toArray($request)
     {
+        if (isset($this->zonas_cats) && is_array($this->zonas_cats)) {
+            $zonas_punto = ZonaPuntoResource::collection(
+                $this->zonasPunto()->whereIn('codigoUbicacion', $this->zonas_cats)->get()
+            );
+        } else
+            $zonas_punto = ZonaPuntoResource::collection($this->zonasPunto()->get());
+
         return [
             'idUbicacionGeo' => $this->idUbicacionGeo,
             'codigoCliente' => $this->codigoCliente,
@@ -25,7 +32,7 @@ class UbicacionGeograficaResource extends JsonResource
             'direccion'     => $this->direccion,
             'idPunto'       => $this->idPunto,
             'estadoGeo'     => $this->estadoGeo,
-            'zonas_punto'   => ZonaPuntoResource::collection($this->zonasPunto()->get()),
+            'zonas_punto'   => $zonas_punto,
             'num_activos'   => $this->activos()->get()->count()
         ];
     }

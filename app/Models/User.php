@@ -72,4 +72,10 @@ class User extends Authenticatable
 
         return new NewAccessToken($token, $token->getKey() . '|' . $plainTextToken);
     }
+
+
+    // public function ciclos()
+    // {
+    //     return $this->hasManyThrough(InvCiclo::class, InvCicloUser::class,  'usuario', 'idCiclo', 'name', 'usuario');
+    // }
 }
