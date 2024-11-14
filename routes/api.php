@@ -72,9 +72,16 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('zones/{zona}/emplazamientos', [ZonaEmplazamientosController::class, 'show']);
 
+    Route::get('ciclos/{ciclo}/zones/{zona}/emplazamientos', [ZonaEmplazamientosController::class, 'showByCycleCats']);
+
     Route::get('emplazamientos/{emplazamiento}/activos', [EmplazamientosActivosController::class, 'show']);
 
     Route::get('emplazamientos/{emplazamiento}/activos/etiquetas', [EmplazamientosActivosController::class, 'showOnlyLabels']);
+
+    Route::get('ciclos/{ciclo}/emplazamientos/{emplazamiento}/activos/etiquetas', [EmplazamientosActivosController::class, 'showOnlyLabelsByCycleCats']);
+
+
+
 
 
 

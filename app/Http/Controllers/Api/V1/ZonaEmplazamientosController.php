@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\EmplazamientoResource;
+use App\Models\InvCiclo;
 use App\Models\ZonaPunto;
 use Illuminate\Http\Request;
 
@@ -57,6 +58,35 @@ class ZonaEmplazamientosController extends Controller
         }
 
         $emplazamientos = $zonaObj->emplazamientos()->get();
+
+        return response()->json(EmplazamientoResource::collection($emplazamientos), 200);
+    }
+
+
+    public function showByCycleCats(Request $request, int $ciclo, int $zona)
+    {
+        //return $request->user()->conn_field;
+        //
+        $zonaObj = ZonaPunto::find($zona);
+
+        if (!$zonaObj) {
+            return response()->json(['status' => 'NOK', 'message' => 'Zona no encontrada', 'code' => 404], 404);
+        }
+
+
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json(['status' => 'NOK', 'message' => 'Ciclo no encontrado', 'code' => 404], 404);
+        }
+
+
+
+        $emplaCats = $cicloObj->zoneEmplazamientosWithCats($zonaObj)->pluck('idUbicacionN2')->toArray();
+
+
+
+        $emplazamientos = $zonaObj->emplazamientos()->whereIn('idUbicacionN2', $emplaCats)->get();
 
         return response()->json(EmplazamientoResource::collection($emplazamientos), 200);
     }

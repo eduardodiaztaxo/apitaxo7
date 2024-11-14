@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class InvCiclo extends Model
 {
@@ -21,5 +22,79 @@ class InvCiclo extends Model
     public function ciclo_users()
     {
         return $this->hasMany(InvCicloUser::class, 'ciclo_id', 'idCiclo');
+    }
+
+    public function zonesWithCats()
+    {
+
+        $sql = "SELECT 
+        crud_activos.ubicacionGeografica AS punto,
+        crud_activos.ubicacionOrganicaN1 AS zona
+        FROM
+        inv_ciclos
+        INNER JOIN inv_ciclos_puntos ON inv_ciclos.idCiclo = inv_ciclos_puntos.idCiclo
+        INNER JOIN inv_ciclos_categorias ON inv_ciclos.idCiclo = inv_ciclos_categorias.idCiclo
+        INNER JOIN crud_activos 
+            ON inv_ciclos_puntos.idPunto =  crud_activos.ubicacionGeografica 
+                AND inv_ciclos_categorias.categoria1 = crud_activos.categoriaN1
+                AND inv_ciclos_categorias.categoria2 = crud_activos.categoriaN2
+                AND inv_ciclos_categorias.categoria3 = crud_activos.categoriaN3
+        WHERE inv_ciclos.idCiclo = ?
+        GROUP BY crud_activos.ubicacionGeografica, crud_activos.ubicacionOrganicaN1 ";
+
+        return collect(DB::select($sql, [$this->idCiclo]));
+    }
+
+    /**
+     * Get Emplazamientos By Zone and Cycle.
+     *
+     * @param  \App\Models\ZonaPunto  $zona
+     * @return \Illuminate\Support\Collection
+     */
+
+    public function zoneEmplazamientosWithCats(ZonaPunto $zona)
+    {
+        $sql = "
+        SELECT 
+        ubicaciones_n2.idUbicacionN2 AS idUbicacionN2,
+        crud_activos.ubicacionGeografica AS punto,
+        crud_activos.ubicacionOrganicaN2 AS emplazamiento
+        FROM
+        inv_ciclos
+        INNER JOIN inv_ciclos_puntos ON inv_ciclos.idCiclo = inv_ciclos_puntos.idCiclo
+        INNER JOIN ubicaciones_n1 ON inv_ciclos_puntos.idPunto = ubicaciones_n1.idAgenda
+        INNER JOIN ubicaciones_n2 ON ubicaciones_n1.idAgenda = ubicaciones_n2.idAgenda AND ubicaciones_n1.codigoUbicacion = LEFT(ubicaciones_n2.codigoUbicacion, 2)
+        INNER JOIN inv_ciclos_categorias ON inv_ciclos.idCiclo = inv_ciclos_categorias.idCiclo
+        INNER JOIN crud_activos 
+            ON inv_ciclos_puntos.idPunto =  crud_activos.ubicacionGeografica 
+            AND ubicaciones_n1.codigoUbicacion = crud_activos.ubicacionOrganicaN1
+            AND inv_ciclos_categorias.categoria1 = crud_activos.categoriaN1
+            AND inv_ciclos_categorias.categoria2 = crud_activos.categoriaN2
+            AND inv_ciclos_categorias.categoria3 = crud_activos.categoriaN3
+        WHERE inv_ciclos.idCiclo = ? AND crud_activos.ubicacionGeografica = ? AND crud_activos.ubicacionOrganicaN1 = ?
+        GROUP BY ubicaciones_n2.idUbicacionN2, crud_activos.ubicacionGeografica, crud_activos.ubicacionOrganicaN2 ";
+
+        return collect(DB::select($sql, [$this->idCiclo, $zona->idAgenda, $zona->codigoUbicacion]));
+    }
+
+    /**
+     * Gets Category IDs By Cycle
+     * 
+     * @return \Illuminate\Support\Collection
+     */
+
+    public function getCatsIDs()
+    {
+        $sql = "SELECT 
+        inv_ciclos.idCiclo AS idCiclo,
+        inv_ciclos_categorias.categoria1 AS categoria1,
+        inv_ciclos_categorias.categoria2 AS categoria2,
+        inv_ciclos_categorias.categoria3 AS categoria3
+        FROM
+        inv_ciclos
+        INNER JOIN inv_ciclos_categorias ON inv_ciclos.idCiclo = inv_ciclos_categorias.idCiclo
+        WHERE inv_ciclos.idCiclo = ? ";
+
+        return collect(DB::select($sql, [$this->idCiclo]));
     }
 }

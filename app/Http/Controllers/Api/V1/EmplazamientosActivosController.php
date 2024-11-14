@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\CrudActivoResource;
 use App\Models\Emplazamiento;
+use App\Models\InvCiclo;
 use Illuminate\Http\Request;
 
 class EmplazamientosActivosController extends Controller
@@ -72,6 +73,42 @@ class EmplazamientosActivosController extends Controller
         }
 
         $etiquetas = $empObj->activos()->get()->pluck('etiqueta');
+
+
+
+        return response()->json($etiquetas, 200);
+    }
+
+
+    /**
+     * Show labels by cycle and categories.
+     *
+     * @param  int  $ciclo
+     * @param  int  $emplazamiento 
+     * @return \Illuminate\Http\Response
+     */
+    public function showOnlyLabelsByCycleCats(int $ciclo, int $emplazamiento)
+    {
+        $empObj = Emplazamiento::find($emplazamiento);
+
+        if (!$empObj) {
+            return response()->json(['status' => 'NOK', 'code' => 404], 404);
+        }
+
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json(['status' => 'NOK', 'message' => 'Ciclo no encontrado', 'code' => 404], 404);
+        }
+
+
+        $cats_ids = $cicloObj->getCatsIDs();
+
+        $etiquetas = $empObj->activos()
+            ->whereIn('categoriaN1', $cats_ids->pluck('categoria1'))
+            ->whereIn('categoriaN2', $cats_ids->pluck('categoria2'))
+            ->whereIn('categoriaN3', $cats_ids->pluck('categoria3'))
+            ->get()->pluck('etiqueta');
 
 
 
