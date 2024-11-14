@@ -91,9 +91,16 @@ class CrudActivo extends Model
     //     return $this->belongsTo(IndiceLista::class, ['nombreActivo', 'idIndice'], ['idLista', 'idIndice']);
     // }
 
+
+
     public function marcaRelation()
     {
-        return $this->belongsTo(IndiceLista::class, 'marca', 'idLista');
+        return $this->belongsTo(IndiceLista::class, 'marca', 'idLista')->where('idAtributo', '=', 2)->where('idIndice', '=', $this->idIndice);
+    }
+
+    public function estadoBienRelation()
+    {
+        return $this->belongsTo(IndiceLista13::class, 'apoyaBrazosRuedas', 'idLista');
     }
 
     public function categoria()
