@@ -92,6 +92,10 @@ class CrudActivoController extends Controller
 
         $activo->fotoUrl = $this->activoService->getUrlAsset($activo, $request->user());
 
+        $activo->requireUbicacion = 1;
+
+        $activo->requireEmplazamiento = 1;
+
         $resource = new CrudActivoResource($activo);
 
         return response()->json($resource, 200);

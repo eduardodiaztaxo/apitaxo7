@@ -14,16 +14,36 @@ class EmplazamientoResource extends JsonResource
      */
     public function toArray($request)
     {
-        return [
+
+        $activosCollection = $this->activos()->get();
+
+        $emplazamiento = [
             'id' => $this->idUbicacionN2,
             'codigo' => $this->codigo,
             'codigoUbicacion' => $this->codigoUbicacion,
             'nombre' => $this->descripcionUbicacion,
             'idAgenda' => $this->idAgenda,
             'idUbicacionN2' => $this->idUbicacionN2,
-            'num_activos'   => $this->activos()->get()->count(),
+            'num_activos'   => $activosCollection->count(),
+            'num_activos_cats_by_cycle' => 0,
             'num_categorias' => $this->activos()->select('categoriaN3')->groupBy('categoriaN3')->get()->count(),
             'zone_address' => ZonaPuntoResource::make($this->zonaPunto()->first())
         ];
+
+        if (isset($this->requirePunto) && $this->requirePunto) {
+            $emplazamiento['ubicacionPunto'] = UbicacionGeograficaResource::make($this->ubicacionPunto()->first());
+        }
+
+        if (isset($this->requireActivos) && $this->requireActivos) {
+            $emplazamiento['activos'] = CrudActivoResource::collection($activosCollection);
+        }
+
+
+
+        if (isset($this->cycle_id) && $this->cycle_id) {
+            $emplazamiento['num_activos_cats_by_cycle'] = $this->activos_with_cats_by_cycle($this->cycle_id)->count();
+        }
+
+        return $emplazamiento;
     }
 }

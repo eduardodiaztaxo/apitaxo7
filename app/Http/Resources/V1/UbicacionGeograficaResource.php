@@ -14,14 +14,27 @@ class UbicacionGeograficaResource extends JsonResource
      */
     public function toArray($request)
     {
-        if (isset($this->zonas_cats) && is_array($this->zonas_cats)) {
-            $zonas_punto = ZonaPuntoResource::collection(
-                $this->zonasPunto()->whereIn('codigoUbicacion', $this->zonas_cats)->get()
-            );
-        } else
-            $zonas_punto = ZonaPuntoResource::collection($this->zonasPunto()->get());
+        if (
+            isset($this->zonas_cats) && is_array($this->zonas_cats) &&
+            isset($this->cycle_id) && $this->cycle_id
+        ) {
 
-        return [
+            $zones = $this->zonasPunto()->whereIn('codigoUbicacion', $this->zonas_cats)->get();
+
+            foreach ($zones as $zone) {
+                $zone->cycle_id = $this->cycle_id;
+            }
+
+            $zonas_punto = ZonaPuntoResource::collection(
+                $zones
+            );
+        } else if (isset($this->requireZonas) && $this->requireZonas) {
+            $zonas_punto = ZonaPuntoResource::collection($this->zonasPunto()->get());
+        } else {
+            $zonas_punto = [];
+        }
+
+        $address = [
             'idUbicacionGeo' => $this->idUbicacionGeo,
             'codigoCliente' => $this->codigoCliente,
             'descripcion'   => $this->descripcion,
@@ -33,7 +46,18 @@ class UbicacionGeograficaResource extends JsonResource
             'idPunto'       => $this->idPunto,
             'estadoGeo'     => $this->estadoGeo,
             'zonas_punto'   => $zonas_punto,
-            'num_activos'   => $this->activos()->get()->count()
+            'num_activos'   => $this->activos()->get()->count(),
+            'num_activos_cats_by_cycle' => 0,
+            'num_cats_by_cycle' => 0,
         ];
+
+        if (isset($this->cycle_id) && $this->cycle_id) {
+            $address['num_activos_cats_by_cycle'] = $this->activos_with_cats_by_cycle($this->cycle_id)->count();
+            $address['num_cats_by_cycle'] = $this->cats_by_cycle($this->cycle_id)->count();
+        }
+
+
+
+        return $address;
     }
 }

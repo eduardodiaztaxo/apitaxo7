@@ -3,12 +3,11 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\V1\UbicacionGeograficaResource;
-use App\Models\InvCiclo;
+use App\Http\Resources\V1\EmplazamientoResource;
+use App\Models\Emplazamiento;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
-class CiclosUbicacionesController extends Controller
+class EmplazamientoController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -42,63 +41,48 @@ class CiclosUbicacionesController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * check if exists emplazamiento.
      *
-     * @param  int  $id
+     * @param  int  $punto
+     * @param  int  $emplazamiento_code 
+     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function show(Request $request, int $ciclo)
+    public function existsEmplazamiento(int $punto, int $emplazamiento_code, Request $request)
     {
-        //return $request->user()->conn_field;
+
+        $query = Emplazamiento::where('idAgenda', $punto)->where('codigoUbicacion', $emplazamiento_code);
+
+        $q = $query->get()->count();
+
         //
-        $cicloObj = InvCiclo::find($ciclo);
-
-        if (!$cicloObj) {
-            return response()->json(['status' => 'NOK', 'code' => 404], 404);
-        }
-
-        $puntos = $cicloObj->puntos()->get();
-
-        foreach ($puntos as $punto) {
-            $punto->requireZonas = 1;
-        }
-
-
-        return response()->json(UbicacionGeograficaResource::collection($puntos), 200);
+        return response()->json(['status' => 'OK', 'data' => [
+            'exists' => $q > 0,
+            'emplazamiento' => EmplazamientoResource::make($query->first())
+        ]]);
     }
-
 
 
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param  int  $emplazamiento_id
      * @return \Illuminate\Http\Response
      */
-    public function showByCycleCats(Request $request, int $ciclo)
+    public function show(int $emplazamiento)
     {
-        //return $request->user()->conn_field;
-        //
-        $cicloObj = InvCiclo::find($ciclo);
 
-        if (!$cicloObj) {
+        $emplaObj = Emplazamiento::find($emplazamiento);
+
+        if (!$emplaObj) {
             return response()->json(['status' => 'NOK', 'code' => 404], 404);
         }
 
-        $puntos = $cicloObj->puntos()->get();
+        $emplaObj->requirePunto = 1;
+        $emplaObj->requireActivos = 1;
 
-
-
-        $zonas = $cicloObj->zonesWithCats()->pluck('zona')->toArray();
-
-        foreach ($puntos as $punto) {
-            $punto->zonas_cats = $zonas;
-            $punto->cycle_id = $ciclo;
-        }
-
-
-
-        return response()->json(UbicacionGeograficaResource::collection($puntos), 200);
+        //
+        return EmplazamientoResource::make($emplaObj);
     }
 
     /**

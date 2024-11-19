@@ -69,7 +69,10 @@ class CrudActivo extends Model
     }
 
 
-
+    public function emplazamientoZona()
+    {
+        return $this->belongsTo(Emplazamiento::class, 'ubicacionOrganicaN2', 'codigoUbicacion')->where('idAgenda', $this->ubicacionGeografica);
+    }
 
 
 

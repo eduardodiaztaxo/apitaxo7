@@ -14,14 +14,21 @@ class ZonaPuntoResource extends JsonResource
      */
     public function toArray($request)
     {
-        return [
+        $zone = [
             'codigo' => $this->codigo,
             'codigoUbicacion' => $this->codigoUbicacion,
             'descripcionUbicacion' => $this->descripcionUbicacion,
             'idAgenda' => $this->idAgenda,
             'idUbicacionN1' => $this->idUbicacionN1,
             'totalBienes' => $this->totalBienes,
-            'num_activos'   => $this->activos()->get()->count()
+            'num_activos'   => $this->activos()->get()->count(),
+            'num_activos_cats_by_cycle' => 0
         ];
+
+        if (isset($this->cycle_id) && $this->cycle_id) {
+            $zone['num_activos_cats_by_cycle'] = $this->activos_with_cats_by_cycle($this->cycle_id)->count();
+        }
+
+        return $zone;
     }
 }

@@ -38,12 +38,16 @@ class CrudActivoResource extends JsonResource
 
         $ubicacion = $this->ubicacionGeografica()->first();
 
-        if ($ubicacion) {
+        if ($this->requireUbicacion && $ubicacion) {
             $activo['ubicacion'] = $ubicacion->toArray();
             $activo['ubicacion']['region'] = $ubicacion->region()->first()->descripcion;
             $activo['ubicacion']['comuna'] = $ubicacion->comuna()->first()->descripcion;
         } else {
             $activo['ubicacion'] = [];
+        }
+
+        if (isset($this->requireEmplazamiento) && $this->requireEmplazamiento) {
+            $activo['emplazamiento'] = EmplazamientoResource::make($this->emplazamientoZona()->first());
         }
 
 
