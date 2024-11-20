@@ -82,7 +82,7 @@ class EmplazamientoController extends Controller
         $emplaObj->requireActivos = 1;
 
         //
-        return EmplazamientoResource::make($emplaObj);
+        return response()->json(EmplazamientoResource::make($emplaObj));
     }
 
     /**
