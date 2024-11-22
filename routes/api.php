@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\TestConnectionController;
+use App\Http\Controllers\Api\V1\Auditoria\InventarioConteoController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\PostController as PostV1;
@@ -85,6 +86,11 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
 
     Route::get('emplazamientos/{emplazamiento}', [EmplazamientoController::class, 'show']);
+
+
+    Route::post('auditorias/procesar-conteo', [InventarioConteoController::class, 'processConteo']);
+
+    Route::post('auditorias/procesar-conteo-por-emplazamiento', [InventarioConteoController::class, 'processConteoByEmplazamiento']);
 
 
 

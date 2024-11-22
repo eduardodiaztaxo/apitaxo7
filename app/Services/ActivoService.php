@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\CrudActivo;
+use App\Models\Emplazamiento;
+use App\Models\InvCiclo;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -64,5 +66,28 @@ class ActivoService
         if (preg_match('/^HTTP\/\d\.\d\s+(200|301|302)/', $headers[0])) {
             return true;
         } else return false;
+    }
+
+    /**
+     * Gets labels by place and cycle cats
+     * 
+     * @param \App\Models\Emplazamiento $empObj
+     * @param \App\Models\InvCiclo $cicloObj
+     * @return \Illuminate\Support\Collection
+     */
+    public static function getLabelsByCycleAndEmplazamiento(Emplazamiento $empObj, InvCiclo $cicloObj)
+    {
+
+
+
+        $cats_ids = $cicloObj->getCatsIDs();
+
+        $etiquetas = $empObj->activos()
+            ->whereIn('categoriaN1', $cats_ids->pluck('categoria1'))
+            ->whereIn('categoriaN2', $cats_ids->pluck('categoria2'))
+            ->whereIn('categoriaN3', $cats_ids->pluck('categoria3'))
+            ->get()->pluck('etiqueta');
+
+        return $etiquetas;
     }
 }

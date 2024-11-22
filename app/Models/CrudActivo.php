@@ -22,6 +22,10 @@ class CrudActivo extends Model
     const UPDATED_AT = 'fechaModificacion';
 
 
+    const AUDIT_STATUS_COINCIDENTE = 1;
+    const AUDIT_STATUS_FALTANTE = 2;
+    const AUDIT_STATUS_SOBRANTE = 3;
+
 
 
     public function getCodigoActivoAttribute()
