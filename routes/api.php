@@ -93,7 +93,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::post('auditorias/procesar-conteo-por-emplazamiento', [InventarioConteoController::class, 'processConteoByEmplazamiento']);
 
 
-
+    Route::get('auditorias/ciclos/{ciclos}/conteo-por-emplazamiento/{emplazamiento}', [InventarioConteoController::class, 'showConteoByEmplazamiento']);
 
 
 

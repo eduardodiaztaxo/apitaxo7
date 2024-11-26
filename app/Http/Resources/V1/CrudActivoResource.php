@@ -2,10 +2,27 @@
 
 namespace App\Http\Resources\V1;
 
+use App\Services\ActivoService;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class CrudActivoResource extends JsonResource
 {
+
+
+    private $activoService;
+
+    /**
+     * Create a new resource instance.
+     *
+     * @param  mixed  $resource
+     * @return void
+     */
+    public function __construct($resource)
+    {
+        $this->activoService = new ActivoService();
+        parent::__construct($resource);
+    }
+
     /**
      * Transform the resource into an array.
      *
@@ -35,6 +52,10 @@ class CrudActivoResource extends JsonResource
         $activo['organica_n2'] = $this->emplazamiento;
 
         $activo['depreciable'] = $this->depreciableRelation->descripcion;
+
+
+        $activo['fotoUrl'] = $this->activoService->getUrlAsset($this->resource, $request->user());
+
 
         $ubicacion = $this->ubicacionGeografica()->first();
 

@@ -90,7 +90,7 @@ class CrudActivoController extends Controller
             ], 404);
         }
 
-        $activo->fotoUrl = $this->activoService->getUrlAsset($activo, $request->user());
+
 
         $activo->requireUbicacion = 1;
 

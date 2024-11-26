@@ -190,6 +190,49 @@ class InventarioConteoController extends Controller
         ]);
     }
 
+    /**
+     * Show count by Emplazamiento
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function showConteoByEmplazamiento(int $ciclo, int $emplazamiento, Request $request)
+    {
+
+        $request->merge(['ciclo_id'         => $ciclo]);
+        $request->merge(['emplazamiento_id' => $emplazamiento]);
+
+
+        $request->validate([
+            'ciclo_id'          => 'required|integer|exists:inv_ciclos,idCiclo',
+            'emplazamiento_id'  => 'required|integer|exists:ubicaciones_n2,idUbicacionN2',
+        ]);
+
+
+        $empObj = Emplazamiento::find($request->emplazamiento_id);
+
+        $zonaObj = $empObj->zonaPunto;
+
+        $cicloPunto = InvCicloPunto::where('idCiclo', $request->ciclo_id)->where('idPunto', $zonaObj->idAgenda)->first();
+
+        if (!$cicloPunto) {
+            return response()->json([
+                'status' => 'error',
+                'code' => 404,
+                'message' => 'La dirección no está asociada al ciclo ' . $zonaObj->idAgenda
+            ], 404);
+        }
+
+        $data = DB::select("SELECT * FROM inv_conteo_registro 
+        WHERE ciclo_id = ? AND punto_id = ? AND cod_emplazamiento = ? AND status = 1 ", [
+            $cicloPunto->idCiclo,
+            $zonaObj->idAgenda,
+            $empObj->codigoUbicacion
+        ]);
+
+        return response()->json(['status' => 'OK', 'data' => $data]);
+    }
+
     protected function rules()
     {
 
