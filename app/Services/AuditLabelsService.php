@@ -12,7 +12,10 @@ class AuditLabelsService
 
     public function __construct(array $currentLabels, array $initialLabels)
     {
+        //Etiquetas encontradas
         $this->currentLabels = $currentLabels;
+
+        //Etiquetas iniciales
         $this->initialLabels = $initialLabels;
         $this->uniques = $this->removeDuplicates($this->currentLabels);
     }

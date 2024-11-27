@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\PostController as PostV1;
 use App\Http\Controllers\Api\V2\PostController as PostV2;
 use App\Http\Controllers\Api\V1\BajaDocumentoController as BajaV1;
 use App\Http\Controllers\Api\V1\CiclosController;
+use App\Http\Controllers\Api\V1\CiclosEmplazamientosController;
 use App\Http\Controllers\Api\V1\CiclosUbicacionesController;
 use App\Http\Controllers\Api\V1\CrudActivoController;
 use App\Http\Controllers\Api\V1\EmplazamientoController;
@@ -86,6 +87,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
 
     Route::get('emplazamientos/{emplazamiento}', [EmplazamientoController::class, 'show']);
+
+    Route::get('ciclos/{ciclo}/emplazamientos/{emplazamiento}', [CiclosEmplazamientosController::class, 'show']);
 
 
     Route::post('auditorias/procesar-conteo', [InventarioConteoController::class, 'processConteo']);

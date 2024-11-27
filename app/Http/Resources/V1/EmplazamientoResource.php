@@ -35,13 +35,17 @@ class EmplazamientoResource extends JsonResource
         }
 
         if (isset($this->requireActivos) && $this->requireActivos) {
-            $emplazamiento['activos'] = CrudActivoResource::collection($activosCollection);
+            if (isset($this->cycle_id) && $this->cycle_id) {
+                $emplazamiento['activos'] = CrudActivoResource::collection($this->activos_with_cats_by_cycle($this->cycle_id)->get());
+            } else {
+                $emplazamiento['activos'] = CrudActivoResource::collection($activosCollection);
+            }
         }
 
 
 
         if (isset($this->cycle_id) && $this->cycle_id) {
-            $emplazamiento['num_activos_cats_by_cycle'] = $this->activos_with_cats_by_cycle($this->cycle_id)->count();
+            $emplazamiento['num_activos_cats_by_cycle'] = isset($emplazamiento['activos']) ? count($emplazamiento['activos']) : $this->activos_with_cats_by_cycle($this->cycle_id)->count();
         }
 
         return $emplazamiento;

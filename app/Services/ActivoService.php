@@ -88,6 +88,8 @@ class ActivoService
             ->whereIn('categoriaN3', $cats_ids->pluck('categoria3'))
             ->get()->pluck('etiqueta');
 
+
+
         return $etiquetas;
     }
 }
