@@ -16,7 +16,9 @@ use App\Http\Controllers\Api\V1\EmplazamientosActivosController;
 use App\Http\Controllers\Api\V1\RespActivoController as RespActivoV1;
 use App\Http\Controllers\Api\V1\RespLocalizacionController as RespLocV1;
 use App\Http\Controllers\Api\V1\User\UserController;
+use App\Http\Controllers\Api\V1\ZonaController;
 use App\Http\Controllers\Api\V1\ZonaEmplazamientosController;
+use App\Http\Controllers\Api\V1\ZonasActivosController;
 
 /*
 |--------------------------------------------------------------------------
@@ -77,6 +79,12 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('ciclos/{ciclo}/zones/{zona}/emplazamientos', [ZonaEmplazamientosController::class, 'showByCycleCats']);
 
+    Route::get('ciclos/{ciclo}/zones/{zona}', [ZonaController::class, 'showByCycleCats']);
+
+    Route::get('zones/{zona}', [ZonaController::class, 'show']);
+
+    Route::get('ciclos/{ciclo}/zones/{zona}/activos/etiquetas', [ZonasActivosController::class, 'showOnlyLabelsByCycleCats']);
+
     Route::get('emplazamientos/{emplazamiento}/activos', [EmplazamientosActivosController::class, 'show']);
 
     Route::get('emplazamientos/{emplazamiento}/activos/etiquetas', [EmplazamientosActivosController::class, 'showOnlyLabels']);
@@ -95,10 +103,11 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::post('auditorias/procesar-conteo-por-emplazamiento', [InventarioConteoController::class, 'processConteoByEmplazamiento']);
 
+    Route::post('auditorias/procesar-conteo-por-zona', [InventarioConteoController::class, 'processConteoByZona']);
 
     Route::get('auditorias/ciclos/{ciclos}/conteo-por-emplazamiento/{emplazamiento}', [InventarioConteoController::class, 'showConteoByEmplazamiento']);
 
-
+    Route::get('auditorias/ciclos/{ciclos}/conteo-por-zona/{zona}', [InventarioConteoController::class, 'showConteoByZone']);
 
     //
 });

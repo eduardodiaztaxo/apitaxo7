@@ -6,6 +6,7 @@ use App\Models\CrudActivo;
 use App\Models\Emplazamiento;
 use App\Models\InvCiclo;
 use App\Models\User;
+use App\Models\ZonaPunto;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -86,6 +87,24 @@ class ActivoService
             ->whereIn('categoriaN1', $cats_ids->pluck('categoria1'))
             ->whereIn('categoriaN2', $cats_ids->pluck('categoria2'))
             ->whereIn('categoriaN3', $cats_ids->pluck('categoria3'))
+            ->get()->pluck('etiqueta');
+
+
+
+        return $etiquetas;
+    }
+
+    /**
+     * Gets labels by place/zone and cycle cats
+     * 
+     * @param \App\Models\ZonaPunto $zoneObj
+     * @param \App\Models\InvCiclo $cicloObj
+     * @return \Illuminate\Support\Collection
+     */
+    public static function getLabelsByCycleAndZone(ZonaPunto $zoneObj, InvCiclo $cicloObj)
+    {
+
+        $etiquetas = $zoneObj->activos_with_cats_without_emplazamientos_by_cycle($cicloObj->idCiclo)
             ->get()->pluck('etiqueta');
 
 
