@@ -561,6 +561,74 @@ class InventarioConteoController extends Controller
         return response()->json(['status' => 'OK', 'data' => $data]);
     }
 
+    public function resetConteoByEmplazamiento(Request $request)
+    {
+
+
+
+        $request->validate([
+            'ciclo_id'          => 'required|integer|exists:inv_ciclos,idCiclo',
+            'emplazamiento_id'  => 'required|integer|exists:ubicaciones_n2,idUbicacionN2',
+        ]);
+
+
+        $empObj = Emplazamiento::find($request->emplazamiento_id);
+
+        $zonaObj = $empObj->zonaPunto;
+
+        $cicloPunto = InvCicloPunto::where('idCiclo', $request->ciclo_id)->where('idPunto', $zonaObj->idAgenda)->first();
+
+        if (!$cicloPunto) {
+            return response()->json([
+                'status' => 'error',
+                'code' => 404,
+                'message' => 'La dirección ' . $zonaObj->idAgenda . ' no está asociada al ciclo '
+            ], 404);
+        }
+
+        DB::update(
+            'UPDATE inv_conteo_registro 
+                    SET status = 2, updated_at = NOW(), user_id = ? 
+                    WHERE ciclo_id = ? AND punto_id = ? AND cod_emplazamiento = ? ',
+            [$request->user()->id, $request->ciclo_id, $zonaObj->idAgenda, $empObj->codigoUbicacion]
+        );
+
+        return response()->json(['status' => 'OK', 'message' => 'Realizado exitosamente']);
+    }
+
+    public function resetConteoByZona(Request $request)
+    {
+
+
+        $request->validate([
+            'ciclo_id'          => 'required|integer|exists:inv_ciclos,idCiclo',
+            'zona_id'           => 'required|integer|exists:ubicaciones_n1,idUbicacionN1',
+        ]);
+
+
+        $zonaObj = ZonaPunto::find($request->zona_id);
+
+
+        $cicloPunto = InvCicloPunto::where('idCiclo', $request->ciclo_id)->where('idPunto', $zonaObj->idAgenda)->first();
+
+        if (!$cicloPunto) {
+            return response()->json([
+                'status' => 'error',
+                'code' => 404,
+                'message' => 'La dirección ' . $zonaObj->idAgenda . ' no está asociada al ciclo '
+            ], 404);
+        }
+
+        DB::update(
+            'UPDATE inv_conteo_registro 
+                    SET status = 2, updated_at = NOW(), user_id = ? 
+                    WHERE ciclo_id = ? AND punto_id = ? AND cod_zona = ? AND codigo_emplazamiento IS NULL',
+            [$request->user()->id, $request->ciclo_id, $zonaObj->idAgenda, $zonaObj->codigoUbicacion]
+        );
+
+        return response()->json(['status' => 'OK', 'message' => 'Realizado exitosamente']);
+    }
+
     protected function rules()
     {
 
