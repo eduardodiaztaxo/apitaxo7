@@ -194,6 +194,86 @@ class InventarioConteoController extends Controller
 
 
     /**
+     * Process count by Emplazamiento multiple users
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function processConteoByEmplazamientoMultipleUsers(Request $request)
+    {
+
+
+        if ($request->items) {
+            $request->merge(['items' => json_encode($request->items)]);
+        }
+
+
+        $request->validate([
+            'items'             => 'required|json',
+            'ciclo_id'          => 'required|integer|exists:inv_ciclos,idCiclo',
+            'emplazamiento_id'  => 'required|integer|exists:ubicaciones_n2,idUbicacionN2',
+        ]);
+
+
+        $empObj = Emplazamiento::find($request->emplazamiento_id);
+
+        $zonaObj = $empObj->zonaPunto;
+
+        $cicloPunto = InvCicloPunto::where('idCiclo', $request->ciclo_id)->where('idPunto', $zonaObj->idAgenda)->first();
+
+        if (!$cicloPunto) {
+            return response()->json([
+                'status' => 'error',
+                'code' => 404,
+                'message' => 'La dirección ' . $zonaObj->idAgenda . ' no está asociada al ciclo '
+            ], 404);
+        }
+
+
+        $items = json_decode($request->items);
+
+        $cicloObj = $cicloPunto->ciclo;
+
+        $etiquetas = ActivoService::getLabelsByCycleAndEmplazamiento($empObj, $cicloObj);
+
+
+        $items = collect($items)->unique();
+
+
+        $processedLabels = DB::table("inv_conteo_registro")
+            ->where('status', '=', 1)
+            ->where('ciclo_id', '=', $request->ciclo_id)
+            ->where('punto_id', '=', $zonaObj->idAgenda)
+            ->where('cod_zona', '=', $zonaObj->codigoUbicacion)
+            ->where('cod_emplazamiento', '=', $empObj->codigoUbicacion)
+            ->get();
+
+
+
+        $auditLabelServ = new AuditLabelsService($items->pluck('etiqueta')->toArray(), $etiquetas->toArray(), $processedLabels);
+
+        $result = $auditLabelServ->processAuditedLabels_Emplazamiento($request->ciclo_id, $zonaObj->idAgenda, $zonaObj->codigoUbicacion, $empObj->codigoUbicacion, $request->user()->id);
+
+
+        if (!empty($result['errors'])) {
+            return response()->json([
+                'status' => 'error',
+                'code' => 404,
+                'errors' => $result['errors'],
+                'message' => 'Error en etiquetas '
+            ], 422);
+        }
+
+        return response()->json([
+            'status' => 'OK',
+            'code'   => 200,
+            'message' => 'successfully processed'
+        ]);
+    }
+
+
+
+    /**
      * Process count by Zona
      *
      * @param  \Illuminate\Http\Request  $request
@@ -289,6 +369,102 @@ class InventarioConteoController extends Controller
         //se insertan los nuevos registros
         DB::table('inv_conteo_registro')->insert($assets);
 
+
+        return response()->json([
+            'status' => 'OK',
+            'code'   => 200,
+            'message' => 'successfully processed'
+        ]);
+    }
+
+
+    /**
+     * Process count by Zone multiple users
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function processConteoByZonaMultipleUsers(Request $request)
+    {
+
+
+        if ($request->items) {
+            $request->merge(['items' => json_encode($request->items)]);
+        }
+
+
+        $request->validate([
+            'items'             => 'required|json',
+            'ciclo_id'          => 'required|integer|exists:inv_ciclos,idCiclo',
+            'zona_id'           => 'required|integer|exists:ubicaciones_n1,idUbicacionN1',
+        ]);
+
+
+        $zonaObj = ZonaPunto::find($request->zona_id);
+
+
+
+        $cicloPunto = InvCicloPunto::where('idCiclo', $request->ciclo_id)->where('idPunto', $zonaObj->idAgenda)->first();
+
+        if (!$cicloPunto) {
+            return response()->json([
+                'status' => 'error',
+                'code' => 404,
+                'message' => 'La dirección ' . $zonaObj->idAgenda . ' no está asociada al ciclo '
+            ], 404);
+        }
+
+
+        $items = json_decode($request->items);
+
+        $cicloObj = $cicloPunto->ciclo;
+
+
+
+        $cicloPunto = InvCicloPunto::where('idCiclo', $request->ciclo_id)->where('idPunto', $zonaObj->idAgenda)->first();
+
+        if (!$cicloPunto) {
+            return response()->json([
+                'status' => 'error',
+                'code' => 404,
+                'message' => 'La dirección ' . $zonaObj->idAgenda . ' no está asociada al ciclo '
+            ], 404);
+        }
+
+
+        $items = json_decode($request->items);
+
+        $cicloObj = $cicloPunto->ciclo;
+
+        $etiquetas = ActivoService::getLabelsByCycleAndZone($zonaObj, $cicloObj);
+
+
+        $items = collect($items)->unique();
+
+
+        $processedLabels = DB::table("inv_conteo_registro")
+            ->where('status', '=', 1)
+            ->where('ciclo_id', '=', $request->ciclo_id)
+            ->where('punto_id', '=', $zonaObj->idAgenda)
+            ->where('cod_zona', '=', $zonaObj->codigoUbicacion)
+            ->whereNull('cod_emplazamiento')
+            ->get();
+
+
+
+        $auditLabelServ = new AuditLabelsService($items->pluck('etiqueta')->toArray(), $etiquetas->toArray(), $processedLabels);
+
+        $result = $auditLabelServ->processAuditedLabels_Zone($request->ciclo_id, $zonaObj->idAgenda, $zonaObj->codigoUbicacion, $request->user()->id);
+
+
+        if (!empty($result['errors'])) {
+            return response()->json([
+                'status' => 'error',
+                'code' => 404,
+                'errors' => $result['errors'],
+                'message' => 'Error en etiquetas '
+            ], 422);
+        }
 
         return response()->json([
             'status' => 'OK',
