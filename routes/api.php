@@ -46,7 +46,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::apiResource('activos/actualizar', RespActivoV1::class)->only(['store']);
 
-    Route::post('activos/actualizar-multiples', [RespActivoV1::class, 'storeMultiple']);
+    Route::post('activos/actualizar-multiples', [RespActivoV1::class, 'storeMultiple_v2']);
 
     Route::post('activos/actualizar-multiples-v2', [RespActivoV1::class, 'storeMultiple_v2']);
 
