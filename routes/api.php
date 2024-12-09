@@ -67,6 +67,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('ciclos', [CiclosController::class, 'index']);
 
+    Route::get('ciclos/{ciclo}', [CiclosController::class, 'show']);
+
     Route::get('ciclos-by-user', [CiclosController::class, 'indexByUser']);
 
 

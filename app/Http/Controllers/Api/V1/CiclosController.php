@@ -69,9 +69,20 @@ class CiclosController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show($ciclo)
     {
         //
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json(['status' => 'error', 'message' => 'Not Found', 'code' => 404], 404);
+        }
+
+
+
+
+
+        return response()->json(InvCicloResource::make($cicloObj), 200);
     }
 
     /**
