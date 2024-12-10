@@ -160,13 +160,47 @@ class CrudActivoController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param  \Illuminate\Http\Request     $request
+     * @param  int                          $etiqueta
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $etiqueta)
     {
-        //
+        $request->validate([
+            'marca'         =>  'required|integer|exists:indices_listas,idLista',
+            'modelo'        =>  'required',
+            'serie'         =>  'required',
+            'responsable'   =>  'required|integer|exists:responsables,idResponsable'
+        ]);
+
+        $activo = CrudActivo::where('etiqueta', '=', $etiqueta)->first();
+
+        if (!$activo) {
+            return response()->json([
+                "message" => "Not Found",
+                "status"  => "error"
+            ], 404);
+        }
+
+        $activo->fill(
+            $request->only([
+                'marca',
+                'modelo',
+                'serie',
+                'reponsable'
+            ])
+        );
+
+        $activo->save();
+
+        return response()->json(
+            [
+                'status'    => 'OK',
+                'code'      => 200,
+                'data'      => CrudActivoResource::make($activo)
+            ],
+            200
+        );
     }
 
     /**

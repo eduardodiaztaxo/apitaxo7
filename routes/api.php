@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\BajaDocumentoController as BajaV1;
 use App\Http\Controllers\Api\V1\CiclosController;
 use App\Http\Controllers\Api\V1\CiclosEmplazamientosController;
 use App\Http\Controllers\Api\V1\CiclosUbicacionesController;
+use App\Http\Controllers\Api\V1\Comunes\DatosActivosController;
 use App\Http\Controllers\Api\V1\CrudActivoController;
 use App\Http\Controllers\Api\V1\EmplazamientoController;
 use App\Http\Controllers\Api\V1\EmplazamientosActivosController;
@@ -62,6 +63,12 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('activos/etiqueta/{etiqueta}', [CrudActivoController::class, 'showByEtiqueta']);
 
     Route::put('activos/upload-image/etiqueta/{etiqueta}', [CrudActivoController::class, 'uploadImageByEtiqueta']);
+
+    Route::put('activos/update/etiqueta/{etiqueta}', [CrudActivoController::class, 'update']);
+
+    Route::get('marcas', [DatosActivosController::class, 'marcas']);
+
+    Route::get('responsables', [DatosActivosController::class, 'responsables']);
 
 
 
