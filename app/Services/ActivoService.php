@@ -26,6 +26,8 @@ class ActivoService
         if ($activo->foto4) {
             if (is_string_url($activo->foto4)) {
                 return $activo->foto4;
+            } else if ($activo->foto4 === 'img/notavailable.jpg') {
+                return asset('img/notavailable.jpg');
             } else {
                 return asset('storage/' . $activo->foto4);
             }
@@ -33,7 +35,7 @@ class ActivoService
 
 
 
-        $url = url('img/notavailable.jpg');
+        $url = 'img/notavailable.jpg';
 
 
         $proyecto_id = $user->proyecto_id;
