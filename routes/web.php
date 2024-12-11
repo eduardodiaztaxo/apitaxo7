@@ -1,6 +1,5 @@
 <?php
 
-use App\Jobs\UpdateImagesAssets;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,8 +14,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    UpdateImagesAssets::dispatch('pjara@demo.cl');
-    //return view('welcome');
+    return view('welcome');
 });
 
 Route::get('/dashboard', function () {
