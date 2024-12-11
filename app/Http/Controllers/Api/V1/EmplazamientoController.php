@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\EmplazamientoResource;
+use App\Models\CrudActivo;
 use App\Models\Emplazamiento;
 use Illuminate\Http\Request;
 
@@ -79,10 +80,16 @@ class EmplazamientoController extends Controller
         }
 
         $emplaObj->requirePunto = 1;
+
         $emplaObj->requireActivos = 1;
 
+        $resource = EmplazamientoResource::make($emplaObj);
+
+
+
+        //$resource->activos = $activos;
         //
-        return response()->json(EmplazamientoResource::make($emplaObj));
+        return response()->json($resource);
     }
 
     /**

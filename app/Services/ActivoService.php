@@ -24,8 +24,13 @@ class ActivoService
     {
 
         if ($activo->foto4) {
-            return asset('storage/' . $activo->foto4);
+            if (is_string_url($activo->foto4)) {
+                return $activo->foto4;
+            } else {
+                return asset('storage/' . $activo->foto4);
+            }
         }
+
 
 
         $url = url('img/notavailable.jpg');

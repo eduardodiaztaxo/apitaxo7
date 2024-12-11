@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\V1;
 
+use App\Http\Resources\V1\CrudActivoLiteResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class EmplazamientoResource extends JsonResource
@@ -15,7 +16,13 @@ class EmplazamientoResource extends JsonResource
     public function toArray($request)
     {
 
-        $activosCollection = $this->activos()->get();
+        $activosCollection = $this->activos()->select(
+            'etiqueta',
+            'categoriaN3',
+            'nombreActivo',
+            'idIndice',
+            'foto4'
+        )->get();
 
         $emplazamiento = [
             'id' => $this->idUbicacionN2,
@@ -36,9 +43,9 @@ class EmplazamientoResource extends JsonResource
 
         if (isset($this->requireActivos) && $this->requireActivos) {
             if (isset($this->cycle_id) && $this->cycle_id) {
-                $emplazamiento['activos'] = CrudActivoResource::collection($this->activos_with_cats_by_cycle($this->cycle_id)->get());
+                $emplazamiento['activos'] = CrudActivoLiteResource::collection($this->activos_with_cats_by_cycle($this->cycle_id)->get());
             } else {
-                $emplazamiento['activos'] = CrudActivoResource::collection($activosCollection);
+                $emplazamiento['activos'] = CrudActivoLiteResource::collection($activosCollection);
             }
         }
 
