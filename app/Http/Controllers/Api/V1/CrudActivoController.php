@@ -170,7 +170,8 @@ class CrudActivoController extends Controller
             'marca'         =>  'required|integer|exists:indices_listas,idLista',
             'modelo'        =>  'required',
             'serie'         =>  'required',
-            'responsable'   =>  'required|integer|exists:responsables,idResponsable'
+            'responsable'   =>  'sometimes|integer|exists:responsables,idResponsable',
+            'estado_bien'   =>  'required|exists:indices_listas_13,idLista'
         ]);
 
         $activo = CrudActivo::where('etiqueta', '=', $etiqueta)->first();
@@ -182,8 +183,11 @@ class CrudActivoController extends Controller
             ], 404);
         }
 
+        if ($request->responsable) {
+            $request->merge(['responsableN1' => $request->responsable]);
+        }
 
-        $request->merge(['responsableN1' => $request->responsable]);
+        $request->merge(['apoyaBrazosRuedas' => $request->estado_bien]);
 
 
         $activo->fill(
@@ -191,7 +195,8 @@ class CrudActivoController extends Controller
                 'marca',
                 'modelo',
                 'serie',
-                'responsableN1'
+                'responsableN1',
+                'apoyaBrazosRuedas'
             ])
         );
 
@@ -205,6 +210,24 @@ class CrudActivoController extends Controller
             ],
             200
         );
+    }
+
+
+    public function marcasDisponibles(Request $request, $etiqueta)
+    {
+
+        $activo = CrudActivo::where('etiqueta', '=', $etiqueta)->first();
+
+        if (!$activo) {
+            return response()->json([
+                "message" => "Not Found",
+                "status"  => "error"
+            ], 404);
+        }
+
+
+        $collection = $activo->marcasDisponibles()->get();
+        return response()->json($collection, 200);
     }
 
     /**

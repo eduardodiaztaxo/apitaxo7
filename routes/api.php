@@ -70,7 +70,9 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('responsables', [DatosActivosController::class, 'responsables']);
 
+    Route::get('estados-bienes', [DatosActivosController::class, 'estadosBienes']);
 
+    Route::get('marcas-disponibles/{etiqueta}', [CrudActivoController::class, 'marcasDisponibles']);
 
     Route::get('ciclos', [CiclosController::class, 'index']);
 

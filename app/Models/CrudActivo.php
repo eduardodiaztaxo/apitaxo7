@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Facades\DB;
 
 class CrudActivo extends Model
@@ -16,7 +17,8 @@ class CrudActivo extends Model
         'marca',
         'modelo',
         'serie',
-        'responsableN1'
+        'responsableN1',
+        'apoyaBrazosRuedas'
     ];
 
 
@@ -107,6 +109,37 @@ class CrudActivo extends Model
     public function marcaRelation()
     {
         return $this->belongsTo(IndiceLista::class, 'marca', 'idLista')->where('idAtributo', '=', 2)->where('idIndice', '=', $this->idIndice);
+    }
+
+    public function marcasDisponibles()
+    {
+
+
+
+        $queryBuilder = IndiceLista::select('indices_listas.*')
+            ->join('categoria_n3', function (JoinClause $join) {
+                $join->on('indices_listas.idIndice', '=', 'categoria_n3.idIndice');
+            })
+            ->join('crud_activos', 'categoria_n3.codigoCategoria', '=', 'crud_activos.categoriaN3')
+            ->where('indices_listas.idAtributo', '=', '2')
+            ->where('crud_activos.etiqueta', '=', $this->etiqueta);
+
+
+
+        return $queryBuilder;
+
+
+
+
+        // "SELECT
+        // categoria_n3.idIndice, 
+        // crud_activos.categoriaN3,
+        // indices_listas.idLista,
+        // indices_listas.descripcion 
+        // FROM crud_activos 
+        // INNER JOIN categoria_n3 ON crud_activos.categoriaN3 = categoria_n3.codigoCategoria
+        // INNER JOIN indices_listas ON categoria_n3.idIndice = indices_listas.idIndice AND indices_listas.idAtributo = 2
+        // WHERE etiqueta = 'AF100001'"
     }
 
     public function estadoBienRelation()
