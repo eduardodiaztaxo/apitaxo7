@@ -182,12 +182,16 @@ class CrudActivoController extends Controller
             ], 404);
         }
 
+
+        $request->merge(['responsableN1' => $request->responsable]);
+
+
         $activo->fill(
             $request->only([
                 'marca',
                 'modelo',
                 'serie',
-                'reponsable'
+                'responsableN1'
             ])
         );
 

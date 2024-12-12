@@ -12,7 +12,11 @@ class CrudActivo extends Model
     use HasFactory;
 
     protected $fillable = [
-        'foto4'
+        'foto4',
+        'marca',
+        'modelo',
+        'serie',
+        'responsableN1'
     ];
 
 
