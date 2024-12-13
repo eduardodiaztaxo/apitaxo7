@@ -29,4 +29,5 @@ class DatosActivosController extends Controller
 
         return response()->json($collection, 200);
     }
+  
 }

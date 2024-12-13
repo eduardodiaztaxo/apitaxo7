@@ -167,12 +167,16 @@ class CrudActivoController extends Controller
     public function update(Request $request, $etiqueta)
     {
         $request->validate([
-            'marca'         =>  'required|integer|exists:indices_listas,idLista',
-            'modelo'        =>  'required',
-            'serie'         =>  'required',
-            'responsable'   =>  'sometimes|integer|exists:responsables,idResponsable',
-            'estado_bien'   =>  'required|exists:indices_listas_13,idLista'
+            'marca'           =>  'required|integer|exists:indices_listas,idLista',
+            'modelo'          =>  'required',
+            'serie'           =>  'required',
+            'responsable'     =>  'sometimes|integer|exists:responsables,idResponsable',
+            'estado_bien'     =>  'required|exists:indices_listas_13,idLista',
+            'descripcionTipo' => 'required', 
+            'observacion'     => 'required',
+
         ]);
+        \Log::info($request->all());
 
         $activo = CrudActivo::where('etiqueta', '=', $etiqueta)->first();
 
@@ -196,7 +200,9 @@ class CrudActivoController extends Controller
                 'modelo',
                 'serie',
                 'responsableN1',
-                'apoyaBrazosRuedas'
+                'apoyaBrazosRuedas',
+                'descripcionTipo',
+                'observacion'
             ])
         );
 
@@ -229,7 +235,23 @@ class CrudActivoController extends Controller
         $collection = $activo->marcasDisponibles()->get();
         return response()->json($collection, 200);
     }
+    public function Localizacion(Request $request, $etiqueta)
+    {
 
+        $activo = CrudActivo::where('etiqueta', '=', $etiqueta)->first();
+
+        if (!$activo) {
+            return response()->json([
+                "message" => "Not Found",
+                "status"  => "error"
+            ], 404);
+        }
+
+
+        $collection = $activo->Localizacion()->get();
+        return response()->json($collection, 200);
+    }
+   
     /**
      * Remove the specified resource from storage.
      *

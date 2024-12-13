@@ -18,7 +18,9 @@ class CrudActivo extends Model
         'modelo',
         'serie',
         'responsableN1',
-        'apoyaBrazosRuedas'
+        'apoyaBrazosRuedas',
+        'descripcionTipo',
+        'observacion'
     ];
 
 
@@ -141,7 +143,16 @@ class CrudActivo extends Model
         // INNER JOIN indices_listas ON categoria_n3.idIndice = indices_listas.idIndice AND indices_listas.idAtributo = 2
         // WHERE etiqueta = 'AF100001'"
     }
-
+    public function Localizacion()
+    {
+        $queryBuilder = IndiceLista::select('latitud', 'longitud') 
+            ->from('crud_activos')
+            ->where('crud_activos.etiqueta', '=', $this->etiqueta);
+    
+        return $queryBuilder;
+    }
+    
+    
     public function estadoBienRelation()
     {
         return $this->belongsTo(IndiceLista13::class, 'apoyaBrazosRuedas', 'idLista');
