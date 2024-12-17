@@ -20,7 +20,9 @@ class CrudActivo extends Model
         'responsableN1',
         'apoyaBrazosRuedas',
         'descripcionTipo',
-        'observacion'
+        'observacion',
+        'latitud',
+        'longitud'
     ];
 
 

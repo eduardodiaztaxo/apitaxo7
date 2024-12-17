@@ -174,6 +174,8 @@ class CrudActivoController extends Controller
             'estado_bien'     =>  'required|exists:indices_listas_13,idLista',
             'descripcionTipo' => 'required', 
             'observacion'     => 'required',
+            'latitud'         => 'required',
+            'longitud'        => 'required'
 
         ]);
         \Log::info($request->all());
@@ -202,7 +204,9 @@ class CrudActivoController extends Controller
                 'responsableN1',
                 'apoyaBrazosRuedas',
                 'descripcionTipo',
-                'observacion'
+                'observacion',
+                'latitud',
+                'longitud'
             ])
         );
 
