@@ -35,7 +35,7 @@ class ActivoService
 
 
 
-        $url = 'img/notavailable.jpg';
+        $url = asset('img/notavailable.jpg');
 
 
         $proyecto_id = $user->proyecto_id;
