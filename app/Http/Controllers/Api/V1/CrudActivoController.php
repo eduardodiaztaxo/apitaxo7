@@ -172,13 +172,13 @@ class CrudActivoController extends Controller
             'serie'           =>  'required',
             'responsable'     =>  'sometimes|integer|exists:responsables,idResponsable',
             'estado_bien'     =>  'required|exists:indices_listas_13,idLista',
-            'descripcionTipo' => 'required', 
+            'descripcionTipo' => 'required',
             'observacion'     => 'required',
             'latitud'         => 'required',
             'longitud'        => 'required'
 
         ]);
-        \Log::info($request->all());
+        //\Log::info($request->all());
 
         $activo = CrudActivo::where('etiqueta', '=', $etiqueta)->first();
 
@@ -211,6 +211,10 @@ class CrudActivoController extends Controller
         );
 
         $activo->save();
+
+        $activo->requireUbicacion = 1;
+
+        $activo->requireEmplazamiento = 1;
 
         return response()->json(
             [
@@ -255,7 +259,7 @@ class CrudActivoController extends Controller
         $collection = $activo->Localizacion()->get();
         return response()->json($collection, 200);
     }
-   
+
     /**
      * Remove the specified resource from storage.
      *
