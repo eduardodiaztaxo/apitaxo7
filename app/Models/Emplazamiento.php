@@ -14,7 +14,9 @@ class Emplazamiento extends Model
     protected $table = 'ubicaciones_n2';
 
     protected $primaryKey = 'idUbicacionN2';
+    public $timestamps = false; 
 
+    protected $fillable = ['descripcionUbicacion'];
     public function activos()
     {
         return $this->hasMany(CrudActivo::class, 'ubicacionOrganicaN2', 'codigoUbicacion')->where('ubicacionGeografica', $this->idAgenda);

@@ -82,13 +82,13 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('ciclos-by-user', [CiclosController::class, 'indexByUser']);
 
-
     Route::get('ciclos/{ciclo}/puntos', [CiclosUbicacionesController::class, 'show']);
 
     Route::get('ciclos/{ciclo}/puntos-and-zones-with-cats', [CiclosUbicacionesController::class, 'showByCycleCats']);
 
-
     Route::get('zones/{zona}/emplazamientos', [ZonaEmplazamientosController::class, 'show']);
+    
+    Route::get('zones/{zona}/emplazamientos', [ZonaEmplazamientosController::class, 'show'])->middleware('roles.permissions:emplazamiento,edit');
 
     Route::get('ciclos/{ciclo}/zones/{zona}/emplazamientos', [ZonaEmplazamientosController::class, 'showByCycleCats']);
 
@@ -106,11 +106,13 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('ciclos/{ciclo}/emplazamientos/{emplazamiento}/activos/etiquetas', [EmplazamientosActivosController::class, 'showOnlyLabelsByCycleCats']);
 
-
     Route::get('emplazamientos/{emplazamiento}', [EmplazamientoController::class, 'show']);
 
-    Route::get('ciclos/{ciclo}/emplazamientos/{emplazamiento}', [CiclosEmplazamientosController::class, 'show']);
+    Route::put('emplazamientos/{id}', [EmplazamientoController::class, 'update']);
 
+    Route::post('emplazamientos/create', [EmplazamientoController::class, 'create']);
+
+    Route::get('ciclos/{ciclo}/emplazamientos/{emplazamiento}', [CiclosEmplazamientosController::class, 'show']);
 
     Route::post('auditorias/procesar-conteo', [InventarioConteoController::class, 'processConteo']);
 
@@ -121,7 +123,6 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('auditorias/ciclos/{ciclos}/conteo-por-emplazamiento/{emplazamiento}', [InventarioConteoController::class, 'showConteoByEmplazamiento']);
 
     Route::get('auditorias/ciclos/{ciclos}/conteo-por-zona/{zona}', [InventarioConteoController::class, 'showConteoByZone']);
-
 
     Route::post('auditorias/reset-conteo-emplazamiento', [InventarioConteoController::class, 'resetConteoByEmplazamiento']);
 
