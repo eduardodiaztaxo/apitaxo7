@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Facades\DB;
 
 class InvCiclo extends Model
@@ -96,5 +97,25 @@ class InvCiclo extends Model
         WHERE inv_ciclos.idCiclo = ? ";
 
         return collect(DB::select($sql, [$this->idCiclo]));
+    }
+
+
+
+    public function activos_with_cats()
+    {
+
+        $queryBuilder = CrudActivo::select('crud_activos.*')->join('inv_ciclos_puntos', 'crud_activos.ubicacionGeografica', 'inv_ciclos_puntos.idPunto')
+            ->join('inv_ciclos', 'inv_ciclos.idCiclo', '=', 'inv_ciclos_puntos.idCiclo')
+            ->join('inv_ciclos_categorias', function (JoinClause $join) {
+                $join->on('inv_ciclos.idCiclo', '=', 'inv_ciclos_categorias.idCiclo')
+                    ->on('crud_activos.categoriaN1', '=', 'inv_ciclos_categorias.categoria1')
+                    ->on('crud_activos.categoriaN2', '=', 'inv_ciclos_categorias.categoria2')
+                    ->on('crud_activos.categoriaN3', '=', 'inv_ciclos_categorias.categoria3');
+            })
+            ->where('inv_ciclos.idCiclo', '=', $this->idCiclo);
+
+
+
+        return $queryBuilder;
     }
 }
