@@ -14,8 +14,20 @@ class ZonaPunto extends Model
     protected $table = 'ubicaciones_n1';
 
     protected $primaryKey = 'idUbicacionN1';
-    protected $fillable = ['descripcionUbicacion'];
-    public $timestamps = false;
+
+
+    const CREATED_AT = 'fechaCreacion';
+    const UPDATED_AT = 'fechaActualizacion';
+
+    protected $fillable = [
+        'idAgenda',
+        'descripcionUbicacion',
+        'codigoUbicacion',
+        'estado',
+        'usuario',
+    ];
+
+
     public function activos()
     {
         //return $this->hasMany(CrudActivo::class, 'ubicacionOrganicaN1,ubicacionGeografica', 'idUbicacionN1,idAgenda');

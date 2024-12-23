@@ -10,6 +10,8 @@ class UbicacionGeografica extends Model
 {
     use HasFactory;
 
+    protected $primaryKey = 'idUbicacionGeo';
+
     protected $table = 'ubicaciones_geograficas';
 
     public function region()

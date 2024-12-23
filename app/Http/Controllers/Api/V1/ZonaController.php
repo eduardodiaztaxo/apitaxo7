@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\ZonaPuntoResource;
 use App\Models\InvCiclo;
+use App\Models\UbicacionGeografica;
 use App\Models\ZonaPunto;
+use App\Services\PlaceService;
 use Illuminate\Http\Request;
 
 class ZonaController extends Controller
@@ -38,7 +40,42 @@ class ZonaController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'descripcion'   => 'required|string',
+            'punto_id'      => 'required|exists:ubicaciones_geograficas,idUbicacionGeo',
+            'estado'        => 'sometimes|required|in:0,1'
+        ]);
+
+
+        $punto = UbicacionGeografica::find($request->punto_id);
+
+        $placeService = new PlaceService();
+
+        $code = $placeService->getNewZoneCode($punto);
+
+        $data = [
+            'idAgenda'              => $request->punto_id,
+            'descripcionUbicacion'  => $request->descripcion,
+            'codigoUbicacion'       => $code,
+            'estado'                => $request->estado !== null ? $request->estado : 1,
+            'usuario'               => $request->user()->name
+        ];
+
+        $zona = ZonaPunto::create($data);
+
+        if (!$zona) {
+            return response()->json([
+                'status' => 'error',
+                'No se pudo crear la zona',
+                422
+            ], 422);
+        }
+
+        return response()->json([
+            'status'    => 'OK',
+            'message'   => 'Creado exitosamente',
+            'data'      => ZonaPuntoResource::make($zona)
+        ]);
     }
 
     /**

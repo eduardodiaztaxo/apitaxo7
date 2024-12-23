@@ -87,7 +87,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('ciclos/{ciclo}/puntos-and-zones-with-cats', [CiclosUbicacionesController::class, 'showByCycleCats']);
 
     Route::get('zones/{zona}/emplazamientos', [ZonaEmplazamientosController::class, 'show']);
-    
+
     Route::get('zones/{zona}/emplazamientos', [ZonaEmplazamientosController::class, 'show'])->middleware('roles.permissions:emplazamiento,edit');
 
     Route::get('ciclos/{ciclo}/zones/{zona}/emplazamientos', [ZonaEmplazamientosController::class, 'showByCycleCats']);
@@ -95,6 +95,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('ciclos/{ciclo}/zones/{zona}', [ZonaController::class, 'showByCycleCats']);
 
     Route::get('zones/{zona}', [ZonaController::class, 'show']);
+
+    Route::post('zones', [ZonaController::class, 'store']);
 
     Route::get('ciclos/{ciclo}/zones/{zona}/activos/etiquetas', [ZonasActivosController::class, 'showOnlyLabelsByCycleCats']);
 
@@ -111,6 +113,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::put('emplazamientos/{id}', [EmplazamientoController::class, 'update']);
 
     Route::post('emplazamientos/create', [EmplazamientoController::class, 'create']);
+
+    Route::post('emplazamientos', [EmplazamientoController::class, 'store']);
 
     Route::get('ciclos/{ciclo}/emplazamientos/{emplazamiento}', [CiclosEmplazamientosController::class, 'show']);
 
