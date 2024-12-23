@@ -19,6 +19,7 @@ class ZonaPunto extends Model
     const CREATED_AT = 'fechaCreacion';
     const UPDATED_AT = 'fechaActualizacion';
 
+
     protected $fillable = [
         'idAgenda',
         'descripcionUbicacion',
