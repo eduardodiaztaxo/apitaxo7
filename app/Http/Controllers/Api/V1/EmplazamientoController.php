@@ -165,7 +165,6 @@ class EmplazamientoController extends Controller
 
         $validatedData = $request->validate([
             'nombre_emplazamiento' => 'required|string|max:255',
-            'nombre_zona' => 'required|string|max:255',
             'zona_id' => 'required|exists:ubicaciones_n1,idUbicacionN1',
             'id_agenda' => 'required|exists:ubicaciones_n1,idAgenda',
         ]);
@@ -174,11 +173,6 @@ class EmplazamientoController extends Controller
         $emplaObj->save();
 
         $zona = ZonaPunto::find($validatedData['zona_id']);
-
-        if ($zona) {
-            $zona->descripcionUbicacion = $validatedData['nombre_zona'];
-            $zona->save();
-        }
 
         return response()->json([
             'status' => 'OK',
