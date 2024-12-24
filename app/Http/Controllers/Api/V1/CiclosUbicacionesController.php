@@ -89,11 +89,12 @@ class CiclosUbicacionesController extends Controller
 
 
 
-        $zonas = $cicloObj->zonesWithCats()->pluck('zona')->toArray();
+        //$zonas = $cicloObj->zonesWithCats()->pluck('zona')->toArray();
         //¿La zona tiene bienes que no están asociados a emplazamientos?
 
         foreach ($puntos as $punto) {
-            $punto->zonas_cats = $zonas;
+            //$punto->zonas_cats = $zonas;
+            $punto->requireZonas = 1;
             $punto->cycle_id = $ciclo;
         }
 

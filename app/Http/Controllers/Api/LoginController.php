@@ -27,6 +27,20 @@ class LoginController extends Controller
             return response()->json([
                 'token' => $token->plainTextToken,
                 'expires_at' => $token->accessToken->expires_at,
+                'permissions' => [
+                    'zona' => [
+                        'show' => 1,
+                        'edit' => 1,
+                        'create' => 1,
+                        'delete' => 1,
+                    ],
+                    'emplazamiento' => [
+                        'show' => 1,
+                        'edit' => 1,
+                        'create' => 1,
+                        'delete' => 1,
+                    ],
+                ],
                 'message' => 'Success'
             ]);
         }
@@ -57,6 +71,20 @@ class LoginController extends Controller
             return response()->json([
                 'token' => $token->plainTextToken,
                 'expires_at' => $token->accessToken->expires_at,
+                'permissions' => [
+                    'zona' => [
+                        'show' => 1,
+                        'edit' => 1,
+                        'create' => 1,
+                        'delete' => 1,
+                    ],
+                    'emplazamiento' => [
+                        'show' => 1,
+                        'edit' => 1,
+                        'create' => 1,
+                        'delete' => 1,
+                    ],
+                ],
                 'message' => 'Success'
             ]);
         }

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Facades\DB;
 
 class UbicacionGeografica extends Model
@@ -33,20 +34,32 @@ class UbicacionGeografica extends Model
     {
 
 
-        $sql = "SELECT 
-        crud_activos.*
-        FROM
-        inv_ciclos
-        INNER JOIN inv_ciclos_puntos ON inv_ciclos.idCiclo = inv_ciclos_puntos.idCiclo
-        INNER JOIN inv_ciclos_categorias ON inv_ciclos.idCiclo = inv_ciclos_categorias.idCiclo
-        INNER JOIN crud_activos 
-            ON inv_ciclos_puntos.idPunto =  crud_activos.ubicacionGeografica 
-                AND inv_ciclos_categorias.categoria1 = crud_activos.categoriaN1
-                AND inv_ciclos_categorias.categoria2 = crud_activos.categoriaN2
-                AND inv_ciclos_categorias.categoria3 = crud_activos.categoriaN3
-        WHERE inv_ciclos.idCiclo = ? AND inv_ciclos_puntos.idPunto = ? ";
+        $queryBuilder = CrudActivo::select('crud_activos.*')->join('inv_ciclos_puntos', 'crud_activos.ubicacionGeografica', 'inv_ciclos_puntos.idPunto')
+            ->join('inv_ciclos', 'inv_ciclos.idCiclo', '=', 'inv_ciclos_puntos.idCiclo')
+            ->join('inv_ciclos_categorias', function (JoinClause $join) {
+                $join->on('inv_ciclos.idCiclo', '=', 'inv_ciclos_categorias.idCiclo')
+                    ->on('crud_activos.categoriaN1', '=', 'inv_ciclos_categorias.categoria1')
+                    ->on('crud_activos.categoriaN2', '=', 'inv_ciclos_categorias.categoria2')
+                    ->on('crud_activos.categoriaN3', '=', 'inv_ciclos_categorias.categoria3');
+            })
+            ->where('inv_ciclos.idCiclo', '=', $cycle_id)
+            ->where('inv_ciclos_puntos.idPunto', '=', $this->idUbicacionGeo);
 
-        return collect(DB::select($sql, [$cycle_id, $this->idUbicacionGeo]));
+        return $queryBuilder;
+        // $sql = "SELECT 
+        // crud_activos.*
+        // FROM
+        // inv_ciclos
+        // INNER JOIN inv_ciclos_puntos ON inv_ciclos.idCiclo = inv_ciclos_puntos.idCiclo
+        // INNER JOIN inv_ciclos_categorias ON inv_ciclos.idCiclo = inv_ciclos_categorias.idCiclo
+        // INNER JOIN crud_activos 
+        //     ON inv_ciclos_puntos.idPunto =  crud_activos.ubicacionGeografica 
+        //         AND inv_ciclos_categorias.categoria1 = crud_activos.categoriaN1
+        //         AND inv_ciclos_categorias.categoria2 = crud_activos.categoriaN2
+        //         AND inv_ciclos_categorias.categoria3 = crud_activos.categoriaN3
+        // WHERE inv_ciclos.idCiclo = ? AND inv_ciclos_puntos.idPunto = ? ";
+
+        //return collect(DB::select($sql, [$cycle_id, $this->idUbicacionGeo]));
     }
 
     public function cats_by_cycle($cycle_id)

@@ -29,7 +29,13 @@ class UbicacionGeograficaResource extends JsonResource
                 $zones
             );
         } else if (isset($this->requireZonas) && $this->requireZonas) {
-            $zonas_punto = ZonaPuntoResource::collection($this->zonasPunto()->get());
+
+            $zones = $this->zonasPunto()->get();
+
+            foreach ($zones as $zone) {
+                $zone->cycle_id = $this->cycle_id;
+            }
+            $zonas_punto = ZonaPuntoResource::collection($zones);
         } else {
             $zonas_punto = [];
         }
