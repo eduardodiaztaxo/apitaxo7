@@ -68,9 +68,11 @@ class VerifyRolesAndPermissions
             return response()->json([
                 'message' => 'Unauthorized for this resource'
             ], 401);
-        }
-
+        } 
+    
+        $request->merge(['middleware_message' => 'Funciona el middleware']);
 
         return $next($request);
+
     }
 }

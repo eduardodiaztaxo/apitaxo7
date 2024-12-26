@@ -49,19 +49,20 @@ class ZonaEmplazamientosController extends Controller
      */
     public function show(Request $request, int $zona)
     {
-        //return $request->user()->conn_field;
-        //
         $zonaObj = ZonaPunto::find($zona);
-
+    
         if (!$zonaObj) {
             return response()->json(['status' => 'NOK', 'code' => 404], 404);
         }
-
+    
         $emplazamientos = $zonaObj->emplazamientos()->get();
-
-        return response()->json(EmplazamientoResource::collection($emplazamientos), 200);
+    
+        return response()->json([
+            'message' => $request->get('middleware_message'),
+            'data' => EmplazamientoResource::collection($emplazamientos)
+        ], 200);
     }
-
+    
 
     public function showByCycleCats(Request $request, int $ciclo, int $zona)
     {
