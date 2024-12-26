@@ -86,7 +86,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('ciclos/{ciclo}/puntos-and-zones-with-cats', [CiclosUbicacionesController::class, 'showByCycleCats']);
 
-    Route::get('zones/{zona}/emplazamientos', [ZonaEmplazamientosController::class, 'show']);
+    //Route::get('zones/{zona}/emplazamientos', [ZonaEmplazamientosController::class, 'show']);
 
     Route::get('zones/{zona}/emplazamientos', [ZonaEmplazamientosController::class, 'show'])->middleware('roles.permissions:emplazamiento,edit');
 
