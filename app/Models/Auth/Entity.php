@@ -10,4 +10,5 @@ class Entity extends Model
     use HasFactory;
 
     protected $connection = 'mysql_auth';
+    
 }

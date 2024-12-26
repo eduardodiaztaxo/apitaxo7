@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Laravel\Sanctum\NewAccessToken;
+use App\Models\Auth\Role;
 
 
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
@@ -72,7 +73,11 @@ class User extends Authenticatable
 
         return new NewAccessToken($token, $token->getKey() . '|' . $plainTextToken);
     }
-
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+    
 
     // public function ciclos()
     // {

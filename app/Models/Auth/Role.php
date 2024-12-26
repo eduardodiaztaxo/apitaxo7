@@ -11,7 +11,10 @@ class Role extends Model
 
     protected $connection = 'mysql_auth';
 
-
+    public function users()
+    {
+        return $this->hasMany(User::class);
+    }
 
     public function permissions()
     {
