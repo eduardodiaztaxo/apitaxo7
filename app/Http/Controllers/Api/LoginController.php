@@ -57,7 +57,6 @@ class LoginController extends Controller
                     ];
                 } else {
                     // Entidades sin permisos o con role_id no correspondiente
-                    $formattedPermissions[$entity] = [];
                 }
             }
     
@@ -129,7 +128,6 @@ class LoginController extends Controller
                     ];
                 } else {
                     // Entidades sin permisos o con role_id no correspondiente
-                    $formattedPermissions[$entity] = [];
                 }
             }
             $expiration = config('sanctum.expiration', null);
@@ -138,7 +136,7 @@ class LoginController extends Controller
 
             $token = $request->user()->createToken($request->name, ['*'], $expires_at);
 
-            return response()->json([
+                   return response()->json([
                 'id_user' => $user->id,
                 'token' => $token->plainTextToken,
                 'expires_at' => $token->accessToken->expires_at,
