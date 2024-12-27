@@ -126,17 +126,7 @@ class LoginController extends Controller
                         'delete' => $permission->delete ?? 0,
                     ];
                 } else {
-<<<<<<< HEAD
-                    //Entidades sin permisos
-                    $formattedPermissions[$entity] = [
-                        'show' => 0,
-                        'edit' => 0,
-                        'create' => 0,
-                        'delete' => 0,
-                    ];
-=======
                     // Entidades sin permisos o con role_id no correspondiente
->>>>>>> 1ed1b82fdb9bdb8d0129b50f18a318a96ab82147
                 }
             }
             $expiration = config('sanctum.expiration', null);
@@ -145,7 +135,7 @@ class LoginController extends Controller
 
             $token = $request->user()->createToken($request->name, ['*'], $expires_at);
 
-                   return response()->json([
+            return response()->json([
                 'id_user' => $user->id,
                 'token' => $token->plainTextToken,
                 'expires_at' => $token->accessToken->expires_at,
