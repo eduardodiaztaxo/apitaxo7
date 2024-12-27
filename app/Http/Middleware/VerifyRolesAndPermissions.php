@@ -70,7 +70,7 @@ class VerifyRolesAndPermissions
             ], 401);
         } 
     
-        $request->merge(['middleware_message' => 'Funciona el middleware']);
+        $request->merge(['middleware_message' => ($user->role_id)]);
 
         return $next($request);
 

@@ -25,15 +25,16 @@ class LoginController extends Controller
                     'message' => 'User does not have an associated role'
                 ], 400);
             }
-
+    
             $permissions = \DB::table('entities')
                 ->leftJoin('roles_entities_permissions', 'entities.id', '=', 'roles_entities_permissions.entity_id')
                 ->where(function ($query) use ($role) {
                     $query->where('roles_entities_permissions.role_id', $role->id)
-                        ->orWhereNull('roles_entities_permissions.role_id'); 
+                        ->orWhereNull('roles_entities_permissions.role_id');
                 })
                 ->select(
                     'entities.tag as entity_tag',
+                    'roles_entities_permissions.role_id',
                     'roles_entities_permissions.show',
                     'roles_entities_permissions.edit',
                     'roles_entities_permissions.create',
@@ -41,13 +42,13 @@ class LoginController extends Controller
                 )
                 ->get();
     
-            $entities = \DB::table('entities')->pluck('tag')->toArray(); 
+            $entities = \DB::table('entities')->pluck('tag')->toArray();
             $formattedPermissions = [];
     
             foreach ($entities as $entity) {
                 $permission = $permissions->firstWhere('entity_tag', $entity);
     
-                if ($permission) {
+                if ($permission && $permission->role_id === $role->id) {
                     $formattedPermissions[$entity] = [
                         'show' => $permission->show ?? 0,
                         'edit' => $permission->edit ?? 0,
@@ -55,13 +56,8 @@ class LoginController extends Controller
                         'delete' => $permission->delete ?? 0,
                     ];
                 } else {
-                    //Entidades sin permisos
-                    $formattedPermissions[$entity] = [
-                        'show' => 0,
-                        'edit' => 0,
-                        'create' => 0,
-                        'delete' => 0,
-                    ];
+                    // Entidades sin permisos o con role_id no correspondiente
+                    $formattedPermissions[$entity] = [];
                 }
             }
     
@@ -73,7 +69,7 @@ class LoginController extends Controller
                 'id_user' => $user->id,
                 'token' => $token->plainTextToken,
                 'expires_at' => $token->accessToken->expires_at,
-                'permissions' => $formattedPermissions,    
+                'permissions' => $formattedPermissions,
                 'message' => 'Success'
             ]);
         }
@@ -96,21 +92,21 @@ class LoginController extends Controller
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
             $role = $user->role;
-    
             if (!$role) {
                 return response()->json([
                     'message' => 'User does not have an associated role'
                 ], 400);
             }
-
+    
             $permissions = \DB::table('entities')
                 ->leftJoin('roles_entities_permissions', 'entities.id', '=', 'roles_entities_permissions.entity_id')
                 ->where(function ($query) use ($role) {
                     $query->where('roles_entities_permissions.role_id', $role->id)
-                        ->orWhereNull('roles_entities_permissions.role_id'); 
+                        ->orWhereNull('roles_entities_permissions.role_id');
                 })
                 ->select(
                     'entities.tag as entity_tag',
+                    'roles_entities_permissions.role_id',
                     'roles_entities_permissions.show',
                     'roles_entities_permissions.edit',
                     'roles_entities_permissions.create',
@@ -118,13 +114,13 @@ class LoginController extends Controller
                 )
                 ->get();
     
-            $entities = \DB::table('entities')->pluck('tag')->toArray(); 
+            $entities = \DB::table('entities')->pluck('tag')->toArray();
             $formattedPermissions = [];
     
             foreach ($entities as $entity) {
                 $permission = $permissions->firstWhere('entity_tag', $entity);
     
-                if ($permission) {
+                if ($permission && $permission->role_id === $role->id) {
                     $formattedPermissions[$entity] = [
                         'show' => $permission->show ?? 0,
                         'edit' => $permission->edit ?? 0,
@@ -132,13 +128,8 @@ class LoginController extends Controller
                         'delete' => $permission->delete ?? 0,
                     ];
                 } else {
-                    //Entidades sin permisos
-                    $formattedPermissions[$entity] = [
-                        'show' => 0,
-                        'edit' => 0,
-                        'create' => 0,
-                        'delete' => 0,
-                    ];
+                    // Entidades sin permisos o con role_id no correspondiente
+                    $formattedPermissions[$entity] = [];
                 }
             }
             $expiration = config('sanctum.expiration', null);
@@ -151,15 +142,16 @@ class LoginController extends Controller
                 'id_user' => $user->id,
                 'token' => $token->plainTextToken,
                 'expires_at' => $token->accessToken->expires_at,
-                'permissions' => $formattedPermissions,    
+                'permissions' => $formattedPermissions,
                 'message' => 'Success'
             ]);
         }
-
+    
         return response()->json([
             'message' => 'Unauthorized'
         ], 401);
     }
+    
 
     public function validateLogin(Request $request)
     {
