@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\V1\User\UserController;
 use App\Http\Controllers\Api\V1\ZonaController;
 use App\Http\Controllers\Api\V1\ZonaEmplazamientosController;
 use App\Http\Controllers\Api\V1\ZonasActivosController;
+use App\Http\Controllers\Api\V1\InventariosController;
 
 /*
 |--------------------------------------------------------------------------
@@ -71,6 +72,12 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('responsables', [DatosActivosController::class, 'responsables']);
 
     Route::get('estados-bienes', [DatosActivosController::class, 'estadosBienes']);
+
+    Route::get('categoriasn1', [InventariosController::class, 'categoriasNivel1']);
+
+    Route::get('categoriasn2/{codigoCategoria}', [InventariosController::class, 'categoriasNivel2']);
+
+    Route::get('bienes_marcas', [InventariosController::class, 'bienes_Marcas']);
 
     Route::get('localizacion/{etiqueta}', [CrudActivoController::class, 'localizacion']);
 

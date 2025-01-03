@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\CrudActivoResource;
 use App\Models\CrudActivo;
+use App\Models\CategoriaN1;
+use App\Models\CategoriaN2;
 use App\Services\ActivoService;
 use App\Services\ImageService;
 use Illuminate\Http\Request;
@@ -259,7 +261,21 @@ class CrudActivoController extends Controller
         $collection = $activo->Localizacion()->get();
         return response()->json($collection, 200);
     }
-
+    public function categoriasNivel1()
+    {
+       
+    
+        $collection = CategoriaN1::all();
+    
+        return response()->json($collection, 200);
+    }
+    public function categoriasNivel2($codigoCategoria)
+    {
+        $collection = CategoriaN2::where('codigoCategoria', 'LIKE', $codigoCategoria . '%')->get();
+    
+        return response()->json($collection, 200);
+    }
+    
     /**
      * Remove the specified resource from storage.
      *
