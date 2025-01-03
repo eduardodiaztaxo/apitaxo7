@@ -73,9 +73,9 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('estados-bienes', [DatosActivosController::class, 'estadosBienes']);
 
-    Route::get('categoriasn1', [InventariosController::class, 'categoriasNivel1']);
+    Route::get('categoriasn1', [InventariosController::class, 'grupo']);
 
-    Route::get('categoriasn2/{codigoCategoria}', [InventariosController::class, 'categoriasNivel2']);
+    Route::get('categoriasn2/{codigoCategoria}', [InventariosController::class, 'familia']);
 
     Route::get('bienes_marcas', [InventariosController::class, 'bienes_Marcas']);
 

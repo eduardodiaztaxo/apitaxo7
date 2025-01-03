@@ -10,7 +10,7 @@ use App\Models\IndiceLista;
 
 class InventariosController extends Controller
 {
-       public function categoriasNivel1()
+       public function grupo()
     {
        
     
@@ -18,7 +18,7 @@ class InventariosController extends Controller
     
         return response()->json($collection, 200);
     }
-    public function categoriasNivel2($codigoCategoria)
+    public function familia($codigoCategoria)
     {
         $collection = CategoriaN2::where('codigoCategoria', 'LIKE', $codigoCategoria . '%')->get();
     
