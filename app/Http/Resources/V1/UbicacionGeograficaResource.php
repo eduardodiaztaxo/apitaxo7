@@ -58,8 +58,15 @@ class UbicacionGeograficaResource extends JsonResource
         ];
 
         if (isset($this->cycle_id) && $this->cycle_id) {
+
+
             $address['num_activos_cats_by_cycle'] = $this->activos_with_cats_by_cycle($this->cycle_id)->count();
-            $address['num_cats_by_cycle'] = $this->cats_by_cycle($this->cycle_id)->count();
+
+            $coll = $this->cats_by_cycle($this->cycle_id);
+
+            $address['num_cats_by_cycle']       = $coll->pluck('categoriaN1')->unique()->count();
+            $address['num_subcats_n2_by_cycle'] = $coll->pluck('categoriaN2')->unique()->count();
+            $address['num_subcats_n3_by_cycle'] = $coll->pluck('categoriaN3')->unique()->count();
         }
 
 

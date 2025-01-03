@@ -15,17 +15,17 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         $this->validateLogin($request);
-    
+
         if (Auth::attempt($request->only('email', 'password'))) {
             $user = Auth::user();
             $role = $user->role;
-    
+
             if (!$role) {
                 return response()->json([
                     'message' => 'User does not have an associated role'
                 ], 400);
             }
-    
+
             $permissions = \DB::table('entities')
                 ->leftJoin('roles_entities_permissions', 'entities.id', '=', 'roles_entities_permissions.entity_id')
                 ->where(function ($query) use ($role) {
@@ -34,21 +34,20 @@ class LoginController extends Controller
                 })
                 ->select(
                     'entities.tag as entity_tag',
-                    'roles_entities_permissions.role_id',
                     'roles_entities_permissions.show',
                     'roles_entities_permissions.edit',
                     'roles_entities_permissions.create',
                     'roles_entities_permissions.delete'
                 )
                 ->get();
-    
+
             $entities = \DB::table('entities')->pluck('tag')->toArray();
             $formattedPermissions = [];
-    
+
             foreach ($entities as $entity) {
                 $permission = $permissions->firstWhere('entity_tag', $entity);
-    
-                if ($permission && $permission->role_id === $role->id) {
+
+                if ($permission) {
                     $formattedPermissions[$entity] = [
                         'show' => $permission->show ?? 0,
                         'edit' => $permission->edit ?? 0,
@@ -59,11 +58,11 @@ class LoginController extends Controller
                     // Entidades sin permisos o con role_id no correspondiente
                 }
             }
-    
+
             $expiration = config('sanctum.expiration', null);
             $expires_at = $expiration ? Carbon::now()->addMinutes($expiration) : null;
             $token = $request->user()->createToken($request->name, ['*'], $expires_at);
-    
+
             return response()->json([
                 'id_user' => $user->id,
                 'token' => $token->plainTextToken,
@@ -72,12 +71,12 @@ class LoginController extends Controller
                 'message' => 'Success'
             ]);
         }
-    
+
         return response()->json([
             'message' => 'Unauthorized'
         ], 401);
     }
-    
+
 
     public function loginByUser(Request $request)
     {
@@ -91,12 +90,13 @@ class LoginController extends Controller
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
             $role = $user->role;
+
             if (!$role) {
                 return response()->json([
                     'message' => 'User does not have an associated role'
                 ], 400);
             }
-    
+
             $permissions = \DB::table('entities')
                 ->leftJoin('roles_entities_permissions', 'entities.id', '=', 'roles_entities_permissions.entity_id')
                 ->where(function ($query) use ($role) {
@@ -105,21 +105,20 @@ class LoginController extends Controller
                 })
                 ->select(
                     'entities.tag as entity_tag',
-                    'roles_entities_permissions.role_id',
                     'roles_entities_permissions.show',
                     'roles_entities_permissions.edit',
                     'roles_entities_permissions.create',
                     'roles_entities_permissions.delete'
                 )
                 ->get();
-    
+
             $entities = \DB::table('entities')->pluck('tag')->toArray();
             $formattedPermissions = [];
-    
+
             foreach ($entities as $entity) {
                 $permission = $permissions->firstWhere('entity_tag', $entity);
-    
-                if ($permission && $permission->role_id === $role->id) {
+
+                if ($permission) {
                     $formattedPermissions[$entity] = [
                         'show' => $permission->show ?? 0,
                         'edit' => $permission->edit ?? 0,
@@ -136,7 +135,7 @@ class LoginController extends Controller
 
             $token = $request->user()->createToken($request->name, ['*'], $expires_at);
 
-                   return response()->json([
+            return response()->json([
                 'id_user' => $user->id,
                 'token' => $token->plainTextToken,
                 'expires_at' => $token->accessToken->expires_at,
@@ -144,12 +143,11 @@ class LoginController extends Controller
                 'message' => 'Success'
             ]);
         }
-    
+
         return response()->json([
             'message' => 'Unauthorized'
         ], 401);
     }
-    
 
     public function validateLogin(Request $request)
     {
@@ -159,7 +157,7 @@ class LoginController extends Controller
             'name' => 'required'
         ]);
     }
-  
+
 
     public function validateLoginByUser(Request $request)
     {
