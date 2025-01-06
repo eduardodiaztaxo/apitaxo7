@@ -22,6 +22,7 @@ class InvCicloResource extends JsonResource
             'status_name'   => $this->estadoCiclo === 1 ? 'Proceso' : ($this->estadoCiclo === 2 ? 'Cerrado' : 'Abierto'),
             'title'         => $this->descripcion,
             'date'          => $this->fechaInicio,
+            'date_end'      => $this->fechaTermino,
             'assets_cycle'  => $this->activos_with_cats()->count()
         ];
     }

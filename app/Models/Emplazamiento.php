@@ -24,6 +24,7 @@ class Emplazamiento extends Model
         'codigoUbicacion',
         'estado',
         'usuario',
+        'ciclo_auditoria'
     ];
 
 

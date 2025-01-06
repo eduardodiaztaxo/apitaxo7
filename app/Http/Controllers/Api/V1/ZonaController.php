@@ -43,14 +43,15 @@ class ZonaController extends Controller
         $request->validate([
             'descripcion'   => 'required|string',
             'punto_id'      => 'required|exists:ubicaciones_geograficas,idUbicacionGeo',
-            'estado'        => 'sometimes|required|in:0,1'
+            'estado'        => 'sometimes|required|in:0,1',
+            'ciclo_auditoria' => 'required'
         ]);
 
 
         $punto = UbicacionGeografica::find($request->punto_id);
 
         $placeService = new PlaceService();
-
+        $cicloAuditoria = $request->ciclo_auditoria;
         $code = $placeService->getNewZoneCode($punto);
 
         $data = [
@@ -58,7 +59,8 @@ class ZonaController extends Controller
             'descripcionUbicacion'  => $request->descripcion,
             'codigoUbicacion'       => $code,
             'estado'                => $request->estado !== null ? $request->estado : 1,
-            'usuario'               => $request->user()->name
+            'usuario'               => $request->user()->name,
+            'ciclo_auditoria'       => $cicloAuditoria
         ];
 
         $zona = ZonaPunto::create($data);

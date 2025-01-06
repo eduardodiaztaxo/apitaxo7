@@ -47,26 +47,32 @@ class EmplazamientoController extends Controller
             'descripcion'   => 'required|string',
             'zona_id'       => 'required|exists:ubicaciones_n1,idUbicacionN1',
             'agenda_id'     => 'required|exists:ubicaciones_n1,idAgenda',
-            'estado'        => 'sometimes|required|in:0,1'
+            'estado'        => 'sometimes|required|in:0,1',
+            'ciclo_auditoria' => 'required'
         ]);
-
 
         $zona = ZonaPunto::find($request->zona_id);
 
         $placeService = new PlaceService();
-
+        $cicloAuditoria = $request->ciclo_auditoria;
         $code = $placeService->getNewEmplaCode($zona);
-
+    
         $data = [
             'idAgenda'              => $request->agenda_id,
             'descripcionUbicacion'  => $request->descripcion,
             'codigoUbicacion'       => $code,
             'estado'                => $request->estado !== null ? $request->estado : 1,
-            'usuario'               => $request->user()->name
+            'usuario'               => $request->user()->name,
+            'ciclo_auditoria'       => $cicloAuditoria
         ];
-
+    
         $empla = Emplazamiento::create($data);
-
+    
+        Emplazamiento::create([
+            'idAgenda' => $request->codigoUbicacion,
+            'ciclo_auditoria' => $cicloAuditoria
+        ]);
+    
         if (!$empla) {
             return response()->json([
                 'status' => 'error',
@@ -74,14 +80,13 @@ class EmplazamientoController extends Controller
                 422
             ], 422);
         }
-
+    
         return response()->json([
             'status'    => 'OK',
             'message'   => 'Creado exitosamente',
             'data'      => EmplazamientoResource::make($empla)
         ]);
     }
-
     /**
      * check if exists emplazamiento.
      *

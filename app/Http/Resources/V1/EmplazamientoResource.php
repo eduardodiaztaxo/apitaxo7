@@ -34,6 +34,7 @@ class EmplazamientoResource extends JsonResource
             'idUbicacionN2' => $this->idUbicacionN2,
             'num_activos'   => $activosCollection->count(),
             'num_activos_cats_by_cycle' => 0,
+            'ciclo_auditoria' => $this->ciclo_auditoria,
             'num_categorias' => $this->activos()->select('categoriaN3')->groupBy('categoriaN3')->get()->count(),
             'zone_address' => ZonaPuntoResource::make($this->zonaPunto()->first())
         ];
