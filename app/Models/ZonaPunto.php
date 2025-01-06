@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\JoinClause;
@@ -100,10 +101,18 @@ class ZonaPunto extends Model
                     ->on('crud_activos.categoriaN2', '=', 'inv_ciclos_categorias.categoria2')
                     ->on('crud_activos.categoriaN3', '=', 'inv_ciclos_categorias.categoria3');
             })
+            ->leftJoin('ubicaciones_n2', function (JoinClause $join) {
+                $join->on('crud_activos.ubicacionGeografica', '=', 'ubicaciones_n2.idAgenda')
+                    ->on('crud_activos.ubicacionOrganicaN2', '=', 'ubicaciones_n2.codigoUbicacion');
+            })
+            ->where(function (Builder $query) {
+                $query->whereNull('crud_activos.ubicacionOrganicaN2')
+                    ->orWhereNull('ubicaciones_n2.codigoUbicacion');
+            })
             ->where('inv_ciclos.idCiclo', '=', $cycle_id)
             ->where('inv_ciclos_puntos.idPunto', '=', $this->idAgenda)
             ->where('crud_activos.ubicacionOrganicaN1', '=', $this->codigoUbicacion)
-            ->whereNull('crud_activos.ubicacionOrganicaN2')
+            //->whereNull('crud_activos.ubicacionOrganicaN2')
             ->where('crud_activos.ubicacionGeografica', '=', $this->idAgenda);
 
 
@@ -119,8 +128,15 @@ class ZonaPunto extends Model
 
 
         $queryBuilder = CrudActivo::select('crud_activos.*')
+            ->leftJoin('ubicaciones_n2', function (JoinClause $join) {
+                $join->on('crud_activos.ubicacionGeografica', '=', 'ubicaciones_n2.idAgenda')
+                    ->on('crud_activos.ubicacionOrganicaN2', '=', 'ubicaciones_n2.codigoUbicacion');
+            })
+            ->where(function (Builder $query) {
+                $query->whereNull('crud_activos.ubicacionOrganicaN2')
+                    ->orWhereNull('ubicaciones_n2.codigoUbicacion');
+            })
             ->where('crud_activos.ubicacionOrganicaN1', '=', $this->codigoUbicacion)
-            ->whereNull('crud_activos.ubicacionOrganicaN2')
             ->where('crud_activos.ubicacionGeografica', '=', $this->idAgenda);
 
 
