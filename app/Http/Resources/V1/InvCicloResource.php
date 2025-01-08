@@ -23,7 +23,8 @@ class InvCicloResource extends JsonResource
             'title'         => $this->descripcion,
             'date'          => $this->fechaInicio,
             'date_end'      => $this->fechaTermino,
-            'assets_cycle'  => $this->activos_with_cats()->count()
+            'assets_cycle'  => $this->activos_with_cats()->count(),
+            'assets_count'  => $this->audit_activos_address_cats()->count()
         ];
     }
 }

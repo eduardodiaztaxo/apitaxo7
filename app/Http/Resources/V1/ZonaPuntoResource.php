@@ -21,7 +21,7 @@ class ZonaPuntoResource extends JsonResource
             'descripcionUbicacion' => $this->descripcionUbicacion,
             'idAgenda' => $this->idAgenda,
             'idUbicacionN1' => $this->idUbicacionN1,
-            'ciclo_auditoria' => $this->ciclo_auditoria,
+            'ciclo_auditoria' => (int)$this->ciclo_auditoria,
             'totalBienes' => $this->totalBienes,
             'num_activos'   => $this->activos()->get()->count(),
             'num_activos_cats_by_cycle' => 0
