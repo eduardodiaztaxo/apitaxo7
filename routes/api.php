@@ -73,11 +73,27 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('estados-bienes', [DatosActivosController::class, 'estadosBienes']);
 
-    Route::get('categoriasn1', [InventariosController::class, 'grupo']);
+    Route::get('grupo', [DatosActivosController::class, 'grupo']);
 
-    Route::get('categoriasn2/{codigoCategoria}', [InventariosController::class, 'familia']);
+    Route::get('familia/{codigo_grupo}', [DatosActivosController::class, 'familia']);
 
-    Route::get('bienes_marcas', [InventariosController::class, 'bienes_Marcas']);
+    Route::get('bienes_marcas/{id_familia}', [DatosActivosController::class, 'bienes_Marcas']);
+
+    Route::get('colores', [DatosActivosController::class, 'indiceColores']);
+
+    Route::get('estados-operacionales', [DatosActivosController::class, 'estadosOperacional']);
+
+    Route::get('tipos-trabajo', [DatosActivosController::class, 'tipoTrabajo']);
+
+    Route::get('cargas-trabajo', [DatosActivosController::class, 'cargaTrabajo']);
+
+    Route::get('condiciones-ambientales', [DatosActivosController::class, 'condicionAmbiental']);
+
+    Route::get('estados-conservacion', [DatosActivosController::class, 'estadoConservacion']);
+
+    Route::get('materiales/{id_familia}', [DatosActivosController::class, 'material']);
+
+    Route::get('formas/{id_familia}', [DatosActivosController::class, 'forma']);
 
     Route::get('localizacion/{etiqueta}', [CrudActivoController::class, 'localizacion']);
 
@@ -101,7 +117,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('ciclos/{ciclo}/zones/{zona}', [ZonaController::class, 'showByCycleCats']);
 
-    Route::get('zones/{zona}', [ZonaController::class, 'show']);
+    Route::get('zones/{zona}', [ZonaController::class, 'show'])->name('zone.show');
 
     Route::post('zones', [ZonaController::class, 'store']);
 
