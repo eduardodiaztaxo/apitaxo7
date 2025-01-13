@@ -37,9 +37,8 @@ class InvCiclo extends Model
         INNER JOIN inv_ciclos_categorias ON inv_ciclos.idCiclo = inv_ciclos_categorias.idCiclo
         INNER JOIN crud_activos 
             ON inv_ciclos_puntos.idPunto =  crud_activos.ubicacionGeografica 
-                AND inv_ciclos_categorias.categoria1 = crud_activos.categoriaN1
-                AND inv_ciclos_categorias.categoria2 = crud_activos.categoriaN2
-                AND inv_ciclos_categorias.categoria3 = crud_activos.categoriaN3
+                AND inv_ciclos_categorias.id_familia = crud_activos.id_familia
+                
         WHERE inv_ciclos.idCiclo = ?
         GROUP BY crud_activos.ubicacionGeografica, crud_activos.ubicacionOrganicaN1 ";
 
@@ -69,9 +68,7 @@ class InvCiclo extends Model
         INNER JOIN crud_activos 
             ON inv_ciclos_puntos.idPunto =  crud_activos.ubicacionGeografica 
             AND ubicaciones_n1.codigoUbicacion = crud_activos.ubicacionOrganicaN1
-            AND inv_ciclos_categorias.categoria1 = crud_activos.categoriaN1
-            AND inv_ciclos_categorias.categoria2 = crud_activos.categoriaN2
-            AND inv_ciclos_categorias.categoria3 = crud_activos.categoriaN3
+            AND inv_ciclos_categorias.id_familia = crud_activos.id_familia
         WHERE inv_ciclos.idCiclo = ? AND crud_activos.ubicacionGeografica = ? AND crud_activos.ubicacionOrganicaN1 = ?
         GROUP BY ubicaciones_n2.idUbicacionN2, crud_activos.ubicacionGeografica, crud_activos.ubicacionOrganicaN2 ";
 
@@ -108,9 +105,7 @@ class InvCiclo extends Model
             ->join('inv_ciclos', 'inv_ciclos.idCiclo', '=', 'inv_ciclos_puntos.idCiclo')
             ->join('inv_ciclos_categorias', function (JoinClause $join) {
                 $join->on('inv_ciclos.idCiclo', '=', 'inv_ciclos_categorias.idCiclo')
-                    ->on('crud_activos.categoriaN1', '=', 'inv_ciclos_categorias.categoria1')
-                    ->on('crud_activos.categoriaN2', '=', 'inv_ciclos_categorias.categoria2')
-                    ->on('crud_activos.categoriaN3', '=', 'inv_ciclos_categorias.categoria3');
+                    ->on('crud_activos.id_familia', '=', 'inv_ciclos_categorias.id_familia');
             })
             ->where('inv_ciclos.idCiclo', '=', $this->idCiclo);
 
@@ -128,9 +123,7 @@ class InvCiclo extends Model
             ->join('inv_ciclos', 'inv_ciclos.idCiclo', '=', 'inv_ciclos_puntos.idCiclo')
             ->join('inv_ciclos_categorias', function (JoinClause $join) {
                 $join->on('inv_ciclos.idCiclo', '=', 'inv_ciclos_categorias.idCiclo')
-                    ->on('crud_activos.categoriaN1', '=', 'inv_ciclos_categorias.categoria1')
-                    ->on('crud_activos.categoriaN2', '=', 'inv_ciclos_categorias.categoria2')
-                    ->on('crud_activos.categoriaN3', '=', 'inv_ciclos_categorias.categoria3');
+                    ->on('crud_activos.id_familia', '=', 'inv_ciclos_categorias.id_familia');
             })
             ->join('inv_conteo_registro', function (JoinClause $join) {
                 $join->on('crud_activos.etiqueta', '=', 'inv_conteo_registro.etiqueta')

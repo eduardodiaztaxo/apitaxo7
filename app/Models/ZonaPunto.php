@@ -53,9 +53,7 @@ class ZonaPunto extends Model
             ->join('inv_ciclos', 'inv_ciclos.idCiclo', '=', 'inv_ciclos_puntos.idCiclo')
             ->join('inv_ciclos_categorias', function (JoinClause $join) {
                 $join->on('inv_ciclos.idCiclo', '=', 'inv_ciclos_categorias.idCiclo')
-                    ->on('crud_activos.categoriaN1', '=', 'inv_ciclos_categorias.categoria1')
-                    ->on('crud_activos.categoriaN2', '=', 'inv_ciclos_categorias.categoria2')
-                    ->on('crud_activos.categoriaN3', '=', 'inv_ciclos_categorias.categoria3');
+                    ->on('crud_activos.id_familia', '=', 'inv_ciclos_categorias.id_familia');
             })
             ->where('inv_ciclos.idCiclo', '=', $cycle_id)
             ->where('inv_ciclos_puntos.idPunto', '=', $this->idAgenda)
@@ -98,9 +96,7 @@ class ZonaPunto extends Model
             ->join('inv_ciclos', 'inv_ciclos.idCiclo', '=', 'inv_ciclos_puntos.idCiclo')
             ->join('inv_ciclos_categorias', function (JoinClause $join) {
                 $join->on('inv_ciclos.idCiclo', '=', 'inv_ciclos_categorias.idCiclo')
-                    ->on('crud_activos.categoriaN1', '=', 'inv_ciclos_categorias.categoria1')
-                    ->on('crud_activos.categoriaN2', '=', 'inv_ciclos_categorias.categoria2')
-                    ->on('crud_activos.categoriaN3', '=', 'inv_ciclos_categorias.categoria3');
+                    ->on('crud_activos.id_familia', '=', 'inv_ciclos_categorias.id_familia');
             })
             ->leftJoin('ubicaciones_n2', function (JoinClause $join) {
                 $join->on('crud_activos.ubicacionGeografica', '=', 'ubicaciones_n2.idAgenda')
