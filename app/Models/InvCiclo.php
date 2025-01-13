@@ -118,4 +118,29 @@ class InvCiclo extends Model
 
         return $queryBuilder;
     }
+
+
+
+    public function audit_activos_address_cats()
+    {
+
+        $queryBuilder = CrudActivo::select('crud_activos.*')->join('inv_ciclos_puntos', 'crud_activos.ubicacionGeografica', 'inv_ciclos_puntos.idPunto')
+            ->join('inv_ciclos', 'inv_ciclos.idCiclo', '=', 'inv_ciclos_puntos.idCiclo')
+            ->join('inv_ciclos_categorias', function (JoinClause $join) {
+                $join->on('inv_ciclos.idCiclo', '=', 'inv_ciclos_categorias.idCiclo')
+                    ->on('crud_activos.categoriaN1', '=', 'inv_ciclos_categorias.categoria1')
+                    ->on('crud_activos.categoriaN2', '=', 'inv_ciclos_categorias.categoria2')
+                    ->on('crud_activos.categoriaN3', '=', 'inv_ciclos_categorias.categoria3');
+            })
+            ->join('inv_conteo_registro', function (JoinClause $join) {
+                $join->on('crud_activos.etiqueta', '=', 'inv_conteo_registro.etiqueta')
+                    ->on('inv_ciclos.idCiclo', '=', 'inv_conteo_registro.ciclo_id');
+            })
+            ->where('inv_ciclos.idCiclo', '=', $this->idCiclo)
+            ->where('inv_conteo_registro.status', '=', 1);
+
+
+
+        return $queryBuilder;
+    }
 }
