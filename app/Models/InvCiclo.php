@@ -85,8 +85,8 @@ class InvCiclo extends Model
     {
         $sql = "SELECT 
         inv_ciclos.idCiclo AS idCiclo,
-        inv_ciclos_categorias.categoria1 AS categoria1,
-        inv_ciclos_categorias.categoria2 AS categoria2,
+        inv_ciclos_categorias.id_grupo AS id_grupo,
+        inv_ciclos_categorias.id_familia AS id_familia,
         inv_ciclos_categorias.categoria3 AS categoria3
         FROM
         inv_ciclos

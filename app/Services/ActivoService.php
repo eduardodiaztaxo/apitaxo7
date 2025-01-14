@@ -91,9 +91,7 @@ class ActivoService
         $cats_ids = $cicloObj->getCatsIDs();
 
         $etiquetas = $empObj->activos()
-            ->whereIn('categoriaN1', $cats_ids->pluck('categoria1'))
-            ->whereIn('categoriaN2', $cats_ids->pluck('categoria2'))
-            ->whereIn('categoriaN3', $cats_ids->pluck('categoria3'))
+            ->whereIn('id_familia', $cats_ids->pluck('id_familia'))
             ->get()->pluck('etiqueta');
 
 
