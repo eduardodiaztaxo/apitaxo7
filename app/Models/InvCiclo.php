@@ -17,7 +17,7 @@ class InvCiclo extends Model
     {
         //return $this->hasMany(UbicacionGeografica::class, 'idPunto', 'idPunto');
 
-        return $this->hasManyThrough(UbicacionGeografica::class, InvCicloPunto::class, 'idCiclo', 'idPunto', 'idCiclo', 'idPunto');
+        return $this->hasManyThrough(UbicacionGeografica::class, InvCicloPunto::class, 'idCiclo', 'idUbicacionGeo', 'idCiclo', 'idPunto');
     }
 
     public function ciclo_users()
