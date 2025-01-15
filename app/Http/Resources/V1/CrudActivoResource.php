@@ -35,7 +35,7 @@ class CrudActivoResource extends JsonResource
 
         $activo['codigo_activo'] = $this->codigo_activo;
 
-        $activo['tipoAlta'] = $this->tipoAltaRelation->descripcion;
+        $activo['tipoAlta'] = $this->tipoAltaRelation ? $this->tipoAltaRelation->descripcion : '';
 
         $activo['nombreActivo'] = $this->nombre_activo_origen;
 
@@ -44,6 +44,8 @@ class CrudActivoResource extends JsonResource
         $activo['estadoBien'] = $this->estadoBienRelation->descripcion;
 
         $activo['descripcionCategoria'] = $this->categoria ? $this->categoria->descripcionCategoria : '';
+
+        $activo['descripcionFamilia'] = $this->familia ? $this->familia->descripcion_familia : '';
 
         $activo['responsable'] = $this->responsable->name;
 
