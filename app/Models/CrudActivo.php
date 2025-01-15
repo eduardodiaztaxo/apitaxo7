@@ -147,14 +147,14 @@ class CrudActivo extends Model
     }
     public function Localizacion()
     {
-        $queryBuilder = IndiceLista::select('latitud', 'longitud') 
+        $queryBuilder = IndiceLista::select('latitud', 'longitud')
             ->from('crud_activos')
             ->where('crud_activos.etiqueta', '=', $this->etiqueta);
-    
+
         return $queryBuilder;
     }
-    
-    
+
+
     public function estadoBienRelation()
     {
         return $this->belongsTo(IndiceLista13::class, 'apoyaBrazosRuedas', 'idLista');
@@ -163,6 +163,11 @@ class CrudActivo extends Model
     public function categoria()
     {
         return $this->belongsTo(Categoria::class, 'categoriaN3', 'codigoCategoria');
+    }
+
+    public function familia()
+    {
+        return $this->belongsTo(Familia::class, 'id_familia', 'id_familia');
     }
 
     public function responsable()

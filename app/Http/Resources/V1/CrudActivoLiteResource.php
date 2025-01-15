@@ -33,10 +33,13 @@ class CrudActivoLiteResource extends JsonResource
         $activo = [];
         $activo['etiqueta'] = $this->etiqueta;
         $activo['categoriaN3'] = $this->categoriaN3;
+        $activo['id_familia'] = $this->id_familia;
         $activo['nombreActivo'] = $this->nombre_activo_origen;
 
 
         $activo['descripcionCategoria'] = $this->categoria ? $this->categoria->descripcionCategoria : '';
+
+        $activo['descripcionFamilia'] = $this->familia ? $this->familia->descripcion_familia : '';
 
 
         $activo['fotoUrl'] = $this->activoService->getUrlAsset($this->resource, $request->user());

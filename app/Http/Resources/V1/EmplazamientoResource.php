@@ -20,6 +20,7 @@ class EmplazamientoResource extends JsonResource
         $activosCollection = $this->activos()->select(
             'etiqueta',
             'categoriaN3',
+            'id_familia',
             'nombreActivo',
             'idIndice',
             'foto4'
