@@ -41,7 +41,7 @@ class CrudActivoResource extends JsonResource
 
         $activo['marca'] = $this->marcaRelation->descripcion;
 
-        $activo['estadoBien'] = $this->estadoBienRelation->descripcion;
+        $activo['estadoBien'] = $this->estadoBienRelation ? $this->estadoBienRelation->descripcion : '';
 
         $activo['descripcionCategoria'] = $this->categoria ? $this->categoria->descripcionCategoria : '';
 
