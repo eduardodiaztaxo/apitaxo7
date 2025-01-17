@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1\User;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -48,7 +49,7 @@ class UserController extends Controller
     {
         //
         return response()->json(
-            $request->user(),
+            UserResource::make($request->user()),
             200
         );
     }

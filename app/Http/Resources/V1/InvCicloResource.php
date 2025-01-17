@@ -23,9 +23,9 @@ class InvCicloResource extends JsonResource
             'title'         => $this->descripcion,
             'date'          => $this->fechaInicio,
             'date_end'      => $this->fechaTermino,
-            'assets_cycle'  => $this->activos_with_cats()->count(),
-            'assets_count'  => $this->audit_activos_address_cats()->count(),
-            'puntos_count'  => $this->puntos()->count()
+            'assets_cycle'  => $this->activos_with_cats()->count(), //activos a auditar
+            'assets_count'  => $this->audit_activos_address_cats()->count(), //activos auditados
+            'puntos_count'  => $this->puntos()->count() //direcciones
         ];
     }
 }
