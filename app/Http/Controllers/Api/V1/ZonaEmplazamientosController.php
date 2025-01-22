@@ -87,8 +87,12 @@ class ZonaEmplazamientosController extends Controller
 
 
 
-        $emplazamientos = $zonaObj->emplazamientos()->whereIn('idUbicacionN2', $emplaCats)->get();
-
+        if (empty($emplaCats)) {
+            $emplazamientos = $zonaObj->emplazamientos()->get(); 
+        } else {
+            $emplazamientos = $zonaObj->emplazamientos()->whereIn('idUbicacionN2', $emplaCats)->get();
+        }
+        
         foreach ($emplazamientos as $emplazamiento) {
             $emplazamiento->cycle_id = $ciclo;
         }
