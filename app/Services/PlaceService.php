@@ -25,13 +25,29 @@ class PlaceService
     }
 
 
-    public function getNewZoneCode(UbicacionGeografica $punto)
+    public function getNewZoneCode(UbicacionGeografica $punto) 
     {
 
-        $zona = ZonaPunto::select(DB::raw('( MAX( codigoUbicacion ) + 1 ) AS max_code'))
-            ->where('idAgenda', '=', $punto->idUbicacionGeo)
-            ->first();
+        DB::beginTransaction();
+    
+        try {
 
-        return $zona->max_code ? str_pad($zona->max_code, 2, '0', STR_PAD_LEFT) : '01';
+            $zona = ZonaPunto::select(DB::raw('(MAX(codigoUbicacion) + 1) AS max_code'))
+                ->where('idAgenda', '=', $punto->idUbicacionGeo)
+                ->lockForUpdate()  
+                ->first();
+    
+
+            $newCode = $zona->max_code ? str_pad($zona->max_code, 2, '0', STR_PAD_LEFT) : '01';
+
+            DB::commit();
+    
+            return $newCode;
+    
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e; 
+        }
     }
+    
 }
