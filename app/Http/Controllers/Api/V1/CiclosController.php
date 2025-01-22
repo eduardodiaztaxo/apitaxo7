@@ -22,12 +22,9 @@ class CiclosController extends Controller
         return InvCicloResource::collection(InvCiclo::all());
     }
 
-    //test PuTTY
+    //test PuTTY 2
     public function indexByUser(Request $request)
     {
-
-
-
 
         $username = $request->user()->name;
 
