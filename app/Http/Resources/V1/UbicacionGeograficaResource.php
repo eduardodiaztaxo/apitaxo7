@@ -3,6 +3,7 @@
 namespace App\Http\Resources\V1;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Models\CiclosEstados;
 
 class UbicacionGeograficaResource extends JsonResource
 {
@@ -40,6 +41,8 @@ class UbicacionGeograficaResource extends JsonResource
             $zonas_punto = [];
         }
 
+        $estadoDescripcion = CiclosEstados::where('id_estado', $this->estadoGeo)->value('descripcion');
+
         $address = [
             'idUbicacionGeo' => $this->idUbicacionGeo,
             'codigoCliente' => $this->codigoCliente,
@@ -51,6 +54,7 @@ class UbicacionGeograficaResource extends JsonResource
             'direccion'     => $this->direccion,
             'idPunto'       => $this->idPunto,
             'estadoGeo'     => $this->estadoGeo,
+            'descEstadoGeo'  => $estadoDescripcion ?? 'Estado no encontrado',
             'zonas_punto'   => $zonas_punto,
             'num_activos'   => $this->activos()->get()->count(),
             'num_activos_cats_by_cycle' => 0,
