@@ -88,7 +88,6 @@ class CiclosUbicacionesController extends Controller
         $puntos = $cicloObj->puntos()->get();
 
 
-
         //$zonas = $cicloObj->zonesWithCats()->pluck('zona')->toArray();
         //¿La zona tiene bienes que no están asociados a emplazamientos?
 

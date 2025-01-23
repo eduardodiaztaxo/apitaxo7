@@ -137,6 +137,7 @@ class LoginController extends Controller
 
             return response()->json([
                 'id_user' => $user->id,
+                'User' => $user->name,
                 'token' => $token->plainTextToken,
                 'expires_at' => $token->accessToken->expires_at,
                 'permissions' => $formattedPermissions,

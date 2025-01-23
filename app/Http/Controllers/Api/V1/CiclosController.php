@@ -32,7 +32,7 @@ class CiclosController extends Controller
 
 
         //no tomar cerrados
-        $inventarios = InvCiclo::where('estadoCiclo', '<>', 2)->whereIn('idCiclo', $ciclos_ids->toArray())->get();
+        $inventarios = InvCiclo::where('estadoCiclo', '<>', 3)->whereIn('idCiclo', $ciclos_ids->toArray())->get();
 
 
 

@@ -3,8 +3,9 @@
 namespace App\Http\Resources\V1;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Models\CiclosEstados;
-
+use App\Models\CiclosPunto;
+use App\Models\PuntosEstados;
+use Illuminate\Support\Facades\Auth;
 class UbicacionGeograficaResource extends JsonResource
 {
     /**
@@ -40,26 +41,51 @@ class UbicacionGeograficaResource extends JsonResource
         } else {
             $zonas_punto = [];
         }
+        
+        $user = Auth::user();
+        
+        $buscarRelacion = CiclosPunto::
+        where('usuario', $user->name)
+        ->where('idCiclo', $this->cycle_id)
+        ->first();
+    
+        $idPunto = null;
+        $id_estado = null;
+        
+    if ($buscarRelacion) {
+        $id_estado = $buscarRelacion->id_estado;
+        $idPunto = $buscarRelacion->idPunto;
+    }
+    
+    $descripcionEstado = null;
 
-        $estadoDescripcion = CiclosEstados::where('id_estado', $this->estadoGeo)->value('descripcion');
-
-        $address = [
-            'idUbicacionGeo' => $this->idUbicacionGeo,
-            'codigoCliente' => $this->codigoCliente,
-            'descripcion'   => $this->descripcion,
-            'zona'          => $this->zona,
-            'region'        => $this->region()->first()->descripcion,
-            'ciudad'        => $this->ciudad,
-            'comuna'        => $this->comuna()->first()->descripcion,
-            'direccion'     => $this->direccion,
-            'idPunto'       => $this->idPunto,
-            'estadoGeo'     => $this->estadoGeo,
-            'descEstadoGeo'  => $estadoDescripcion ?? 'Estado no encontrado',
-            'zonas_punto'   => $zonas_punto,
-            'num_activos'   => $this->activos()->get()->count(),
-            'num_activos_cats_by_cycle' => 0,
-            'num_cats_by_cycle' => 0,
-        ];
+    if ($idPunto == $this->idUbicacionGeo) {
+        $estadoDirecciones = PuntosEstados::Where('id_estado', $id_estado)->first();
+        
+        if($estadoDirecciones){
+            $descripcionEstado = $estadoDirecciones->descripcion;
+            $id_estado = $estadoDirecciones->id_estado;
+        }
+    }
+    
+    $address = [
+        'idUbicacionGeo' => $this->idUbicacionGeo,
+        'codigoCliente' => $this->codigoCliente,
+        'descripcion'   => $this->descripcion,
+        'zona'          => $this->zona,
+        'region'        => $this->region()->first()->descripcion,
+        'ciudad'        => $this->ciudad,
+        'comuna'        => $this->comuna()->first()->descripcion,
+        'direccion'     => $this->direccion,
+        'idPunto'       => $this->idPunto,
+        'estadoGeo'     => $this->estadoGeo,
+        'id_estado'     => ($id_estado && $descripcionEstado) ? $id_estado : 1,
+        'estado_punto'  => ($id_estado && $descripcionEstado) ? $descripcionEstado : 'ABIERTO',
+        'zonas_punto'   => $zonas_punto,
+        'num_activos'   => $this->activos()->get()->count(),
+        'num_activos_cats_by_cycle' => 0,
+        'num_cats_by_cycle' => 0,
+    ];
 
         if (isset($this->cycle_id) && $this->cycle_id) {
 
