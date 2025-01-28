@@ -20,6 +20,7 @@ class InvCicloResource extends JsonResource
         return [
             'idCiclo'       => $this->idCiclo,
             'status'        => $this->estadoCiclo,
+            'tipoCiclo'     => $this->idTipoCiclo,
             'status_name'   => $estadoDescripcion ?? 'Desconocido', // Mostrar descripción desde la tabla o un valor por defecto
             'title'         => $this->descripcion,
             'date'          => $this->fechaInicio,
