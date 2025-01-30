@@ -5,10 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class IndiceLista extends Model
+class Inv_ciclos_categorias extends Model
 {
     use HasFactory;
 
-    protected $table = 'indices_listas';
-    public $timestamps = false;
+    protected $table = 'inv_ciclos_categorias';
 }

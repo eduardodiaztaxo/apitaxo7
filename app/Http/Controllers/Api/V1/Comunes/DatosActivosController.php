@@ -17,6 +17,7 @@ use App\Models\IndiceListaConservacion;
 use App\Models\IndiceListaCondicionAmbiental;
 use App\Models\IndiceListaMaterial;
 use App\Models\IndiceListaForma;
+use App\Models\Inv_ciclos_categorias;
 
 class DatosActivosController extends Controller
 {
@@ -39,14 +40,18 @@ class DatosActivosController extends Controller
 
         return response()->json($collection, 200);
     }
-    public function grupo()
+    public function grupo($ciclo)
     {
-        $collection = Grupo::all();
+        $idsGrupos = Inv_ciclos_categorias::where('idCiclo', $ciclo)->pluck('id_grupo')->toArray();
     
-        return response()->json($collection, 200);
+        $grupos = Grupo::whereIn('id_grupo', $idsGrupos)->get();
+    
+        return response()->json($grupos, 200);
     }
+
     public function familia($codigo_grupo)
     {
+        
         $collection = Familia::where('codigo_grupo', $codigo_grupo)->get();
 
         return response()->json($collection, 200);
@@ -110,5 +115,30 @@ class DatosActivosController extends Controller
         $collection = IndiceListaForma::where('id_familia', $id_familia)->get();
 
         return response()->json($collection, 200);
+    }
+
+    public function showBienes(Request $request){
+        $request->validate([
+            'descripcion'       => 'required|string',
+            'observacion'       => 'required|string',
+            'idAtributo'        => 'required',
+            'id_familia'        => 'required',
+            'ciclo_inventario'  => 'required'      
+        ]);
+
+        $bienes = new IndiceLista();
+        $bienes->idLista = 12;
+        $bienes->idIndice = 12;
+        $bienes->descripcion = $request->descripcion;
+        $bienes->observacion = $request->observacion;
+        $bienes->idAtributo = $request->idAtributo;
+        $bienes->id_familia = $request->id_familia;
+        $bienes->ciclo_inventario = $request->ciclo_inventario;
+        $bienes->save();
+
+        return response()->json([
+            'status'    => 'OK',
+            'message'   => 'Creado exitosamente'
+        ]);
     }
 }
