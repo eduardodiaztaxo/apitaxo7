@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Controllers\Api\V1\Comunes;
-
 use App\Http\Controllers\Controller;
 use App\Models\IndiceLista;
 use App\Models\IndiceLista13;
@@ -18,6 +17,8 @@ use App\Models\IndiceListaCondicionAmbiental;
 use App\Models\IndiceListaMaterial;
 use App\Models\IndiceListaForma;
 use App\Models\Inv_ciclos_categorias;
+use Illuminate\Support\Facades\DB;
+
 
 class DatosActivosController extends Controller
 {
@@ -123,22 +124,41 @@ class DatosActivosController extends Controller
             'observacion'       => 'required|string',
             'idAtributo'        => 'required',
             'id_familia'        => 'required',
-            'ciclo_inventario'  => 'required'      
+            'ciclo_inventario'  => 'required'     
         ]);
-
+    
+        $sql  = "SELECT * FROM indices_listas ";
+        $sql .= "WHERE idIndice = $request->id_familia AND idAtributo = $request->idAtributo";
+    
+        $indice = DB::selectOne($sql);
+    
+        $maxLista = IndiceLista::where('idAtributo', $request->idAtributo)
+            ->where('idIndice', $request->id_familia)
+            ->max('idLista');
+        $newIdLista = $maxLista + 1;
+    
         $bienes = new IndiceLista();
-        $bienes->idLista = 12;
-        $bienes->idIndice = 12;
+        $bienes->idLista     = $newIdLista;
+        $bienes->idIndice    = $request->id_familia;
         $bienes->descripcion = $request->descripcion;
         $bienes->observacion = $request->observacion;
-        $bienes->idAtributo = $request->idAtributo;
-        $bienes->id_familia = $request->id_familia;
+        $bienes->idAtributo  = $request->idAtributo;
+        $bienes->id_familia  = $request->id_familia;
         $bienes->ciclo_inventario = $request->ciclo_inventario;
         $bienes->save();
-
+    
         return response()->json([
             'status'    => 'OK',
-            'message'   => 'Creado exitosamente'
+            'message'   => 'Creado exitosamente',
+            'data'      => [
+                'idLista'     => $bienes->idLista,
+                'idIndice'    => $bienes->idIndice,
+                'descripcion' => $bienes->descripcion,
+                'observacion' => $bienes->observacion,
+                'idAtributo'  => $bienes->idAtributo,
+                'id_familia'  => $bienes->id_familia,
+                'ciclo_inventario' => $bienes->ciclo_inventario,
+            ]
         ]);
     }
 }

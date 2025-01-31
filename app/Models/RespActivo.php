@@ -116,7 +116,7 @@ class RespActivo extends Model
             $lista_marca_id = $indice->idLista;
 
         } else {
-
+//cambio
             $maxLista = IndicesLista::max('idLista');
             
             $newIdLista = $maxLista + 1;
@@ -125,8 +125,8 @@ class RespActivo extends Model
 
             $indLista = IndicesLista::create([
                 'idLista' => $newIdLista,
-                'idAtributo' => '2',
-                'idIndice'  => '1',
+                'idAtributo' => '2', 
+                'idIndice'  => '1',  
                 'descripcion' => $marca,  
             ]);
 
