@@ -95,7 +95,11 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('formas/{id_familia}', [DatosActivosController::class, 'forma']);
 
-   Route::post('show-bienes', [DatosActivosController::class, 'showBienes']);
+    Route::post('show-bienes', [DatosActivosController::class, 'showBienes']);
+
+    Route::post('show-marcas', [DatosActivosController::class, 'showMarcas']);
+
+    Route::post('show-inventario', [InventariosController::class, 'showinventario']);
 
     Route::get('localizacion/{etiqueta}', [CrudActivoController::class, 'localizacion']);
 

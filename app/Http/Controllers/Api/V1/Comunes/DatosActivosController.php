@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\V1\Comunes;
 use App\Http\Controllers\Controller;
 use App\Models\IndiceLista;
+use App\Models\Inventario_bienes;
+use App\Models\Inventario_marcas;
 use App\Models\IndiceLista13;
 use App\Models\Responsable;
 use Illuminate\Http\Request;
@@ -60,9 +62,23 @@ class DatosActivosController extends Controller
 
     public function bienes_Marcas($id_familia)
     {
-        $collection = IndiceLista::where('id_familia', $id_familia)->get();
+        $sql = "
+            SELECT * FROM (
+                SELECT * FROM inv_bienes_nuevos WHERE id_familia = :id_familia_bienes
+                UNION ALL
+                SELECT * FROM inv_marcas_nuevos WHERE id_familia = :id_familia_marcas
+                UNION ALL
+                SELECT * FROM indices_listas WHERE id_familia = :id_familia_indices
+            ) AS resultado
+        ";
     
-        return response()->json($collection, 200);
+        $bienesMarcas = DB::select($sql, [
+            'id_familia_bienes' => $id_familia,
+            'id_familia_marcas' => $id_familia,
+            'id_familia_indices' => $id_familia,
+        ]);
+    
+        return response()->json($bienesMarcas, 200);
     }
 
     public function indiceColores(){
@@ -127,17 +143,25 @@ class DatosActivosController extends Controller
             'ciclo_inventario'  => 'required'     
         ]);
     
-        $sql  = "SELECT * FROM indices_listas ";
-        $sql .= "WHERE idIndice = $request->id_familia AND idAtributo = $request->idAtributo";
+        $sql  = "SELECT * FROM inv_bienes_nuevos WHERE idIndice = $request->id_familia AND idAtributo = $request->idAtributo";
     
         $indice = DB::selectOne($sql);
     
-        $maxLista = IndiceLista::where('idAtributo', $request->idAtributo)
-            ->where('idIndice', $request->id_familia)
-            ->max('idLista');
-        $newIdLista = $maxLista + 1;
+        $maxListaIndicelista = Indicelista::where('idAtributo', $request->idAtributo)
+        ->where('idIndice', $request->id_familia)
+        ->max('idLista');
     
-        $bienes = new IndiceLista();
+        $maxListaMarcasNuevos = Inventario_bienes::where('idAtributo', $request->idAtributo)
+        ->where('id_familia', $request->id_familia)
+        ->max('idLista');
+    
+        if ($maxListaIndicelista === null && $maxListaMarcasNuevos === null) {
+            $newIdLista = 1;
+        } else {
+            $newIdLista = max($maxListaIndicelista, $maxListaMarcasNuevos) + 1;
+        }
+
+        $bienes = new Inventario_bienes();
         $bienes->idLista     = $newIdLista;
         $bienes->idIndice    = $request->id_familia;
         $bienes->descripcion = $request->descripcion;
@@ -158,6 +182,59 @@ class DatosActivosController extends Controller
                 'idAtributo'  => $bienes->idAtributo,
                 'id_familia'  => $bienes->id_familia,
                 'ciclo_inventario' => $bienes->ciclo_inventario,
+            ]
+        ]);
+    }
+
+    public function showMarcas(Request $request){
+        $request->validate([
+            'descripcion'       => 'required|string',
+            'observacion'       => 'required|string',
+            'idAtributo'        => 'required',
+            'id_familia'        => 'required',
+            'ciclo_inventario'  => 'required'     
+        ]);
+    
+        $sql  = "SELECT * FROM inv_marcas_nuevos WHERE idIndice = $request->id_familia AND idAtributo = $request->idAtributo";
+    
+        $indice = DB::selectOne($sql);
+    
+        $maxListaIndicelista = Indicelista::where('idAtributo', $request->idAtributo)
+        ->where('idIndice', $request->id_familia)
+        ->max('idLista');
+    
+        $maxListaMarcasNuevos = Inventario_marcas::where('idAtributo', $request->idAtributo)
+        ->where('id_familia', $request->id_familia)
+        ->max('idLista');
+    
+        if ($maxListaIndicelista === null && $maxListaMarcasNuevos === null) {
+            $newIdLista = 1;
+        } else {
+            $newIdLista = max($maxListaIndicelista, $maxListaMarcasNuevos) + 1;
+        }
+
+
+        $marcas = new Inventario_marcas();
+        $marcas->idLista     = $newIdLista;
+        $marcas->idIndice    = $request->id_familia;
+        $marcas->descripcion = $request->descripcion;
+        $marcas->observacion = $request->observacion;
+        $marcas->idAtributo  = $request->idAtributo;
+        $marcas->id_familia  = $request->id_familia;
+        $marcas->ciclo_inventario = $request->ciclo_inventario;
+        $marcas->save();
+    
+        return response()->json([
+            'status'    => 'OK',
+            'message'   => 'Creado exitosamente',
+            'data'      => [
+                'idLista'     => $marcas->idLista,
+                'idIndice'    => $marcas->idIndice,
+                'descripcion' => $marcas->descripcion,
+                'observacion' => $marcas->observacion,
+                'idAtributo'  => $marcas->idAtributo,
+                'id_familia'  => $marcas->id_familia,
+                'ciclo_inventario' => $marcas->ciclo_inventario,
             ]
         ]);
     }
