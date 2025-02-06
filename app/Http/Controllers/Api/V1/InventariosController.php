@@ -50,7 +50,7 @@ class InventariosController extends Controller
                     MAX(CASE WHEN id_atributo = $modelo THEN id_validacion END) AS conf_modelo,
                     MAX(CASE WHEN id_atributo = $serie THEN id_validacion END) AS conf_serie,
                     MAX(CASE WHEN id_atributo = $capacidad THEN id_validacion END) AS conf_capacidad,
-                    MAX(CASE WHEN id_atributo = $marcas THEN id_validacion END) AS conf_marcas
+                    MAX(CASE WHEN id_atributo = $marcas THEN id_validacion END) AS conf_marca
                 FROM inv_atributos 
                 WHERE id_atributo IN ($modelo, $serie, $capacidad, $marcas) 
                 AND id_grupo = $id_grupo";
