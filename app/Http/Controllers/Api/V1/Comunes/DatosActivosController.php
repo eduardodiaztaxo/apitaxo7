@@ -218,9 +218,9 @@ public function indiceColores($id_grupo)
         $request->validate([
             'descripcion'       => 'required|string',
             'observacion'       => 'required|string',
-            'idAtributo'        => 'required',
-            'id_familia'        => 'required',
-            'ciclo_inventario'  => 'required'     
+            'idAtributo'        => 'required|exists:indices_listas,idAtributo',
+            'id_familia'        => 'required|exists:dp_familias,id_familia',
+            'ciclo_inventario'  => 'required|exists:inv_ciclos,idCiclo'     
         ]);
     
         $sql  = "SELECT * FROM inv_bienes_nuevos WHERE idIndice = $request->id_familia AND idAtributo = $request->idAtributo";
@@ -266,9 +266,9 @@ public function indiceColores($id_grupo)
         $request->validate([
             'descripcion'       => 'required|string',
             'observacion'       => 'required|string',
-            'idAtributo'        => 'required',
-            'id_familia'        => 'required',
-            'ciclo_inventario'  => 'required'     
+            'idAtributo'        => 'required|exists:indices_listas,idAtributo',
+            'id_familia'        => 'required|exists:dp_familias,id_familia',
+            'ciclo_inventario'  => 'required|exists:inv_ciclos,idCiclo'       
         ]);
     
         $sql  = "SELECT * FROM inv_marcas_nuevos WHERE idIndice = $request->id_familia AND idAtributo = $request->idAtributo";

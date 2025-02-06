@@ -15,7 +15,8 @@ class InventariosController extends Controller
         $request->validate([
             'id_grupo'              => 'required|string',
             'id_familia'            => 'required|string',
-            'id_ciclo'              => 'required'
+            'id_ciclo'              => 'required|exists:inv_ciclos,idCiclo'
+            
         ]);
 
         $inventario = new Inventario();
