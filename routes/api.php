@@ -73,33 +73,37 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('estados-bienes', [DatosActivosController::class, 'estadosBienes']);
 
+    Route::get('estados-inv/{id_grupo}', [DatosActivosController::class, 'estadosInventario']);
+
     Route::get('grupo/{ciclo}', [DatosActivosController::class, 'grupo']);
 
     Route::get('familia/{codigo_grupo}', [DatosActivosController::class, 'familia']);
 
     Route::get('bienes_marcas/{id_familia}', [DatosActivosController::class, 'bienes_Marcas']);
 
-    Route::get('colores', [DatosActivosController::class, 'indiceColores']);
+    Route::get('colores/{id_grupo}', [DatosActivosController::class, 'indiceColores']);
 
-    Route::get('estados-operacionales', [DatosActivosController::class, 'estadosOperacional']);
+    Route::get('estados-operacionales/{id_grupo}', [DatosActivosController::class, 'estadosOperacional']);
 
-    Route::get('tipos-trabajo', [DatosActivosController::class, 'tipoTrabajo']);
+    Route::get('tipos-trabajo/{id_grupo}', [DatosActivosController::class, 'tipoTrabajo']);
 
-    Route::get('cargas-trabajo', [DatosActivosController::class, 'cargaTrabajo']);
+    Route::get('cargas-trabajo/{id_grupo}', [DatosActivosController::class, 'cargaTrabajo']);
 
-    Route::get('condiciones-ambientales', [DatosActivosController::class, 'condicionAmbiental']);
+    Route::get('condiciones-ambientales/{id_grupo}', [DatosActivosController::class, 'condicionAmbiental']);
 
-    Route::get('estados-conservacion', [DatosActivosController::class, 'estadoConservacion']);
+    Route::get('estados-conservacion/{id_grupo}', [DatosActivosController::class, 'estadoConservacion']);
 
-    Route::get('materiales/{id_familia}', [DatosActivosController::class, 'material']);
+    Route::get('materiales/{id_familia}/{id_grupo}', [DatosActivosController::class, 'material']);
 
-    Route::get('formas/{id_familia}', [DatosActivosController::class, 'forma']);
+    Route::get('formas/{id_familia}/{id_grupo}', [DatosActivosController::class, 'forma']);
+    
+    Route::post('create-bienes', [DatosActivosController::class, 'createBienes']);
 
-    Route::post('show-bienes', [DatosActivosController::class, 'showBienes']);
+    Route::post('create-marcas', [DatosActivosController::class, 'createMarcas']);
 
-    Route::post('show-marcas', [DatosActivosController::class, 'showMarcas']);
+    Route::post('create-inventario', [InventariosController::class, 'createinventario']);
 
-    Route::post('show-inventario', [InventariosController::class, 'showinventario']);
+    Route::get('configuracion-input/{id_grupo}/{modelo}/{serie}/{capacidad}/{marcas}', [InventariosController::class, 'configuracion']);
 
     Route::get('localizacion/{etiqueta}', [CrudActivoController::class, 'localizacion']);
 

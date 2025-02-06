@@ -7,5 +7,5 @@ class IndiceListaConservacion extends Model
 {
     use HasFactory;
 
-    protected $table = 'ind_list_conservacion_estados';
+    protected $table = 'ind_list_estados_conservacion';
 }

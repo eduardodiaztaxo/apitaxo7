@@ -8,4 +8,5 @@ class IndiceListaMaterial extends Model
     use HasFactory;
 
     protected $table = 'ind_list_materiales_por_familia';
+    
 }

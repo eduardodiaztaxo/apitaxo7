@@ -9,6 +9,6 @@ class Inventario extends Model
 {
     use HasFactory;
 
-    protected $table = 'inventario';
+    protected $table = 'inv_inventario';
     public $timestamps = false;
 }

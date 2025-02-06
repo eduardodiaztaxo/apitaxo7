@@ -47,6 +47,7 @@ class UbicacionGeograficaResource extends JsonResource
         $buscarRelacion = CiclosPunto::
         where('usuario', $user->name)
         ->where('idCiclo', $this->cycle_id)
+        ->where('idPunto', $this->idUbicacionGeo)
         ->first();
     
         $idPunto = null;
