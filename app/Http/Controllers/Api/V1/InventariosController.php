@@ -45,14 +45,16 @@ class InventariosController extends Controller
     }
 
 
-    public function configuracion($id_grupo, $modelo, $serie, $capacidad, $marcas){
+    public function configuracion($id_grupo, $modelo, $serie, $capacidad, $marcas, $etiqueta){
         $sql = "SELECT 
                     MAX(CASE WHEN id_atributo = $modelo THEN id_validacion END) AS conf_modelo,
                     MAX(CASE WHEN id_atributo = $serie THEN id_validacion END) AS conf_serie,
                     MAX(CASE WHEN id_atributo = $capacidad THEN id_validacion END) AS conf_capacidad,
-                    MAX(CASE WHEN id_atributo = $marcas THEN id_validacion END) AS conf_marca
+                    MAX(CASE WHEN id_atributo = $marcas THEN id_validacion END) AS conf_marca,
+                    MAX(CASE WHEN id_atributo = $etiqueta THEN valor_minimo END) AS lench_etiqueta,
+                    MAX(CASE WHEN id_atributo = $etiqueta THEN tipo_etiqueta END) AS tipo_etiqueta
                 FROM inv_atributos 
-                WHERE id_atributo IN ($modelo, $serie, $capacidad, $marcas) 
+                WHERE id_atributo IN ($modelo, $serie, $capacidad, $marcas, $etiqueta) 
                 AND id_grupo = $id_grupo";
         $validacion = DB::select($sql);
 
