@@ -1,15 +1,10 @@
 <?php
-
 namespace App\Models;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class IndiceLista extends Model
+class Inv_imagenes extends Model
 {
     use HasFactory;
-
-    protected $table = 'indices_listas';
-    
-    public $timestamps = false;
+    protected $table = 'inv_imagenes';
 }

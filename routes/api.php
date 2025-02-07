@@ -105,6 +105,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('configuracion-input/{id_grupo}/{modelo}/{serie}/{capacidad}/{marcas}/{etiqueta}', [InventariosController::class, 'configuracion']);
 
+    Route::put('inventario/image/{etiqueta}', [InventariosController::class, 'ImageByEtiqueta']);
+
     Route::get('localizacion/{etiqueta}', [CrudActivoController::class, 'localizacion']);
 
     Route::get('marcas-disponibles/{etiqueta}', [CrudActivoController::class, 'marcasDisponibles']);
