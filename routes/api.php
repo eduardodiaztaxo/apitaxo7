@@ -81,6 +81,10 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('bienes_marcas/{id_familia}', [DatosActivosController::class, 'bienes_Marcas']);
 
+    Route::get('bienes_grupo_familia/{idCiclo}', [DatosActivosController::class, 'bienesGrupoFamilia']);
+
+    Route::get('buscar_grupo_familia/{id_familia}', [DatosActivosController::class, 'buscarGrupoFamilia']);
+    
     Route::get('colores/{id_grupo}', [DatosActivosController::class, 'indiceColores']);
 
     Route::get('estados-operacionales/{id_grupo}', [DatosActivosController::class, 'estadosOperacional']);

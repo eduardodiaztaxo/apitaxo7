@@ -50,7 +50,7 @@ class InventariosController extends Controller
         $inventario->estado_conservacion = intval($request->estado_conservacion ?? 0);
         $inventario->condicion_ambiental = intval($request->condicion_ambiental ?? 0);
         $inventario->cantidad_img        = $request->cantidad_img;
-        $inventario->url_img             = $url_img;  
+        $inventario->id_img              = $url_img;  
         $inventario->id_ciclo            = $request->id_ciclo;
         $inventario->save();
     

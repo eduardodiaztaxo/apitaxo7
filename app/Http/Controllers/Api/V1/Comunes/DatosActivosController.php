@@ -70,7 +70,58 @@ class DatosActivosController extends Controller
 
         return response()->json($collection, 200);
     }
+    public function bienesGrupoFamilia($idCiclo) {
 
+        $idsGrupos = Inv_ciclos_categorias::where('idCiclo', $idCiclo)->pluck('id_grupo')->toArray();
+    
+        $familias = Familia::select('dp_familias.id_familia', 'dp_familias.descripcion_familia', 'dp_familias.id_grupo', 'dp_grupos.descripcion_grupo')
+        ->leftJoin('dp_grupos', 'dp_familias.id_grupo', '=', 'dp_grupos.id_grupo')
+        ->whereIn('dp_familias.id_grupo', $idsGrupos)
+        ->get();
+    
+    $idsfamilia = $familias->pluck('id_familia')->toArray();
+    
+    $sql = "
+        SELECT * FROM (
+            SELECT * FROM inv_bienes_nuevos WHERE idAtributo = 1 AND id_familia IN (" . implode(',', $idsfamilia) . ")
+            UNION ALL
+            SELECT * FROM indices_listas WHERE idAtributo = 1 AND id_familia IN (" . implode(',', $idsfamilia) . ")
+        ) AS resultado
+    ";
+    
+    $bienes = DB::select($sql);
+    
+    $bienes = collect($bienes)->map(function ($bien) use ($familias) {
+        $familia = $familias->where('id_familia', $bien->id_familia)->first();
+        $bien->descripcion_familia = $familia->descripcion_familia;
+        $bien->id_grupo = $familia->id_grupo;
+        $bien->descripcion_grupo = $familia->descripcion_grupo;
+        return $bien;
+    });
+    
+    return response()->json($bienes, 200);
+}
+    
+    public function buscarGrupoFamilia($id_familia)
+    {
+        $sql = "
+          SELECT descripcion_familia, id_grupo  FROM dp_familias WHERE id_familia = $id_familia
+        ";
+    
+        $result = DB::select($sql);
+    
+        $id_grupo = $result[0]->id_grupo;
+    
+        $sql = "
+          SELECT * FROM dp_grupos WHERE id_grupo = $id_grupo
+        ";
+    
+        $grupo = DB::select($sql);
+    
+        return response()->json([
+            'grupo' => $grupo[0]
+        ], 200);
+    }
     public function bienes_Marcas($id_familia)
     {
         $sql = "
