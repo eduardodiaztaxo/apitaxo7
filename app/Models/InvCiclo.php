@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\JoinClause;
+use App\Models\Inventario;
 use Illuminate\Support\Facades\DB;
 
 class InvCiclo extends Model
@@ -114,7 +115,14 @@ class InvCiclo extends Model
         return $queryBuilder;
     }
 
+    public function activos_with_cats_inv()
+    {
 
+        $queryBuilder = Inventario::select('inv_inventario.*')
+            ->where('inv_inventario.id_ciclo', '=', $this->idCiclo);
+
+        return $queryBuilder;
+    }
 
     public function audit_activos_address_cats()
     {

@@ -24,9 +24,11 @@ class InventariosController extends Controller
             'id_grupo'              => 'required|string',
             'id_familia'            => 'required|string',
             'etiqueta'              => 'required|string', 
-            'id_ciclo'              => 'required|exists:inv_ciclos,idCiclo'
+            'id_ciclo'              => 'required|exists:inv_ciclos,idCiclo',
+            'codigoUbicacion'       => 'required|exists:ubicaciones_n2,codigoUbicacion'
         ]);
     
+        $idUbicacionN2 = DB::table('ubicaciones_n2')->where('codigoUbicacion', $request->codigoUbicacion)->value('idUbicacionN2');
         $id_img = DB::selectOne("SELECT id_img FROM inv_imagenes WHERE etiqueta = ?", [$request->etiqueta]);
     
         $url_img = $id_img ? $id_img->id_img : null;
@@ -52,6 +54,7 @@ class InventariosController extends Controller
         $inventario->cantidad_img        = $request->cantidad_img;
         $inventario->id_img              = $url_img;  
         $inventario->id_ciclo            = $request->id_ciclo;
+        $inventario->codigoUbicacion     = $idUbicacionN2;
         $inventario->save();
     
         return response()->json($inventario, 201);
@@ -96,7 +99,7 @@ class InventariosController extends Controller
         if (!$existingFolder) {
             $img = new Inv_imagenes();
             $img->etiqueta = $etiqueta;
-            $img->url_imagen = $userFolder;
+            $img->url_imagen = asset('storage/' . $userFolder);
             $img->save();
         }
     
