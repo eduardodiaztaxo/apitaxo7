@@ -108,7 +108,6 @@ class UbicacionGeograficaResource extends JsonResource
 
     public function activos_with_cats_inv_by_cycle($cycle_id)
     {
-        // Aquí estamos usando $cycle_id correctamente
         $queryBuilder = Inventario::select('inv_inventario.*')
             ->where('inv_inventario.id_ciclo', '=', $cycle_id);
     
