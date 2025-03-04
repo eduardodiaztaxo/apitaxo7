@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\V1;
 use Illuminate\Http\Request;
 use App\Models\Inventario;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Inv_imagenes;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +21,14 @@ class InventariosController extends Controller
     {
         $this->imageService  = $imageService;
     } 
+    public function getNombre()
+    {
+        $user = Auth::user();
+        $usuario = $user->name;
+        $responsable = DB::table('sec_users')->where('login', $usuario)->value('name');
+        return $responsable;
+
+    }
     public function createinventario(Request $request){
         $request->validate([
             'id_grupo'              => 'required|string',
@@ -55,6 +65,7 @@ class InventariosController extends Controller
         $inventario->id_img              = $url_img;  
         $inventario->id_ciclo            = $request->id_ciclo;
         $inventario->codigoUbicacion     = $idUbicacionN2;
+        $inventario->responsable         = $this->getNombre();
         $inventario->save();
     
         return response()->json($inventario, 201);
