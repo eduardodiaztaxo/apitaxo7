@@ -4,7 +4,7 @@ namespace App\Http\Resources\V1;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Models\CiclosEstados;
-use App\Models\InvCicloPunto;
+use App\Models\InvConteoRegistro;
 class InvCicloResource extends JsonResource
 {
     /**
@@ -17,7 +17,7 @@ class InvCicloResource extends JsonResource
     {
         // Obtener la descripción del estado desde la tabla `estados`
         $estadoDescripcion = CiclosEstados::where('id_estado', $this->estadoCiclo)->value('descripcion');
-        $numAudith = InvCicloPunto::Where('idCiclo', $this->idCiclo)->value('totalPunto');
+        $numAudith = InvConteoRegistro::Where('idCiclo', $this->idCiclo)->where('status', 1)->count();
 
         return [
             'idCiclo'       => $this->idCiclo,
