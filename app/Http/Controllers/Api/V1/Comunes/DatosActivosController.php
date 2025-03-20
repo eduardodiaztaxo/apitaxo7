@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api\V1\Comunes;
+
 use App\Http\Controllers\Controller;
 use App\Models\IndiceLista;
 use App\Models\Inventario_bienes;
@@ -46,15 +47,15 @@ class DatosActivosController extends Controller
     public function grupo($ciclo)
     {
         $idsGrupos = Inv_ciclos_categorias::where('idCiclo', $ciclo)->pluck('id_grupo')->toArray();
-    
+
         $grupos = Grupo::whereIn('id_grupo', $idsGrupos)->get();
-    
+
         return response()->json($grupos, 200);
     }
 
     public function familia($codigo_grupo)
     {
-        
+
         $collection = Familia::where('codigo_grupo', $codigo_grupo)->get();
 
         return response()->json($collection, 200);
@@ -71,90 +72,99 @@ class DatosActivosController extends Controller
                 SELECT * FROM indices_listas WHERE id_familia = :id_familia_indices
             ) AS resultado
         ";
-    
+
         $bienesMarcas = DB::select($sql, [
             'id_familia_bienes' => $id_familia,
             'id_familia_marcas' => $id_familia,
             'id_familia_indices' => $id_familia,
         ]);
-    
+
         return response()->json($bienesMarcas, 200);
     }
 
-    public function indiceColores(){
+    public function indiceColores()
+    {
 
         $collection = IndiceListaColores::all();
-    
+
         return response()->json($collection, 200);
     }
 
-    public function estadosOperacional(){
+    public function estadosOperacional()
+    {
 
         $collection = IndiceListaOperacional::all();
-    
+
         return response()->json($collection, 200);
     }
-    public function tipoTrabajo(){
+    public function tipoTrabajo()
+    {
 
         $collection = IndiceListaTipoTrabajo::all();
-    
+
         return response()->json($collection, 200);
     }
-    public function cargaTrabajo(){
+    public function cargaTrabajo()
+    {
 
         $collection = IndiceListaCargaTrabajo::all();
-    
+
         return response()->json($collection, 200);
     }
 
-    public function estadoConservacion(){
+    public function estadoConservacion()
+    {
 
         $collection = IndiceListaConservacion::all();
-    
+
         return response()->json($collection, 200);
     }
 
-    public function condicionAmbiental(){
+    public function condicionAmbiental()
+    {
 
         $collection = IndiceListaCondicionAmbiental::all();
-    
+
         return response()->json($collection, 200);
     }
-    public function material($id_familia){
+    public function material($id_familia)
+    {
 
         $collection = IndiceListaMaterial::where('id_familia', $id_familia)->get();
 
         return response()->json($collection, 200);
     }
 
-    public function forma($id_familia){
+    public function forma($id_familia)
+    {
 
         $collection = IndiceListaForma::where('id_familia', $id_familia)->get();
 
         return response()->json($collection, 200);
     }
 
-    public function showBienes(Request $request){
+    public function showBienes(Request $request)
+    {
         $request->validate([
             'descripcion'       => 'required|string',
             'observacion'       => 'required|string',
             'idAtributo'        => 'required',
             'id_familia'        => 'required',
-            'ciclo_inventario'  => 'required'     
+            'ciclo_inventario'  => 'required'
         ]);
-    
+
         $sql  = "SELECT * FROM inv_bienes_nuevos WHERE idIndice = $request->id_familia AND idAtributo = $request->idAtributo";
-    
+
         $indice = DB::selectOne($sql);
-    
+
         $maxListaIndicelista = Indicelista::where('idAtributo', $request->idAtributo)
-        ->where('idIndice', $request->id_familia)
-        ->max('idLista');
-    
+            ->where('idIndice', $request->id_familia)
+            ->max('idLista');
+
         $maxListaMarcasNuevos = Inventario_bienes::where('idAtributo', $request->idAtributo)
-        ->where('id_familia', $request->id_familia)
-        ->max('idLista');
-    
+            ->where('id_familia', $request->id_familia)
+            ->max('idLista');
+
         if ($maxListaIndicelista === null && $maxListaMarcasNuevos === null) {
             $newIdLista = 1;
         } else {
@@ -170,7 +180,7 @@ class DatosActivosController extends Controller
         $bienes->id_familia  = $request->id_familia;
         $bienes->ciclo_inventario = $request->ciclo_inventario;
         $bienes->save();
-    
+
         return response()->json([
             'status'    => 'OK',
             'message'   => 'Creado exitosamente',
@@ -186,27 +196,28 @@ class DatosActivosController extends Controller
         ]);
     }
 
-    public function showMarcas(Request $request){
+    public function showMarcas(Request $request)
+    {
         $request->validate([
             'descripcion'       => 'required|string',
             'observacion'       => 'required|string',
             'idAtributo'        => 'required',
             'id_familia'        => 'required',
-            'ciclo_inventario'  => 'required'     
+            'ciclo_inventario'  => 'required'
         ]);
-    
+
         $sql  = "SELECT * FROM inv_marcas_nuevos WHERE idIndice = $request->id_familia AND idAtributo = $request->idAtributo";
-    
+
         $indice = DB::selectOne($sql);
-    
+
         $maxListaIndicelista = Indicelista::where('idAtributo', $request->idAtributo)
-        ->where('idIndice', $request->id_familia)
-        ->max('idLista');
-    
+            ->where('idIndice', $request->id_familia)
+            ->max('idLista');
+
         $maxListaMarcasNuevos = Inventario_marcas::where('idAtributo', $request->idAtributo)
-        ->where('id_familia', $request->id_familia)
-        ->max('idLista');
-    
+            ->where('id_familia', $request->id_familia)
+            ->max('idLista');
+
         if ($maxListaIndicelista === null && $maxListaMarcasNuevos === null) {
             $newIdLista = 1;
         } else {
@@ -223,7 +234,7 @@ class DatosActivosController extends Controller
         $marcas->id_familia  = $request->id_familia;
         $marcas->ciclo_inventario = $request->ciclo_inventario;
         $marcas->save();
-    
+
         return response()->json([
             'status'    => 'OK',
             'message'   => 'Creado exitosamente',
