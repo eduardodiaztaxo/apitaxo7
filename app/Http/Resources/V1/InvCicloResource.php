@@ -4,6 +4,7 @@ namespace App\Http\Resources\V1;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Models\CiclosEstados;
+use App\Models\InvConteoRegistro;
 class InvCicloResource extends JsonResource
 {
     /**
@@ -16,7 +17,8 @@ class InvCicloResource extends JsonResource
     {
         // Obtener la descripción del estado desde la tabla `estados`
         $estadoDescripcion = CiclosEstados::where('id_estado', $this->estadoCiclo)->value('descripcion');
-    
+        $numAudith = InvConteoRegistro::Where('ciclo_id', $this->idCiclo)->where('status', 1)->count();
+
         return [
             'idCiclo'       => $this->idCiclo,
             'status'        => $this->estadoCiclo,
@@ -25,9 +27,9 @@ class InvCicloResource extends JsonResource
             'title'         => $this->descripcion,
             'date'          => $this->fechaInicio,
             'date_end'      => $this->fechaTermino,
-            'assets_cycle'  => $this->activos_with_cats()->count(), // activos a auditar
-            'assets_count'  => $this->audit_activos_address_cats()->count(), // activos auditados
-            'puntos_count'  => $this->puntos()->count() // direcciones
+            'assets_cycle' => $this->activos_with_cats()->count() + $this->activos_with_cats_inv()->count(),            'assets_count'  => $this->audit_activos_address_cats()->count(), // activos auditados
+            'puntos_count'  => $this->puntos()->count(), // direcciones
+            'audith_count'  => $numAudith, //total de auditados
         ];
     }
     

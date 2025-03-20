@@ -10,5 +10,6 @@ class IndiceLista extends Model
     use HasFactory;
 
     protected $table = 'indices_listas';
+    
     public $timestamps = false;
 }

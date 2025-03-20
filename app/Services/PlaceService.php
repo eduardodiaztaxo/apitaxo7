@@ -15,14 +15,23 @@ class PlaceService
 {
     public function getNewEmplaCode(ZonaPunto $zona)
     {
-
-        $empla = Emplazamiento::select(DB::raw('( MAX( SUBSTRING(codigoUbicacion,3,2) ) + 1 ) AS max_code'))
-            ->where('idAgenda', '=', $zona->idAgenda)
-            ->whereRaw('SUBSTRING(codigoUbicacion,1,2) = ?', [$zona->codigoUbicacion])
-            ->first();
-
-        return $empla->max_code ? $zona->codigoUbicacion . str_pad($empla->max_code, 2, '0', STR_PAD_LEFT) : $zona->codigoUbicacion . '01';
+        $newCodigo = DB::table('ubicaciones_n2')
+            // ->where('idAgenda', $zona->idAgenda)
+            ->where('codigoUbicacion', 'like', "{$zona->codigoUbicacion}%") 
+            ->selectRaw("
+                IFNULL(
+                    CONCAT(
+                        '{$zona->codigoUbicacion}', 
+                        LPAD(MAX(CAST(SUBSTRING(codigoUbicacion, 3, 2) AS UNSIGNED)) + 1, 2, '0')
+                    ), 
+                    '{$zona->codigoUbicacion}01'
+                ) AS newCodigo
+            ")
+            ->value('newCodigo');
+    
+        return $newCodigo;
     }
+    
 
 
     public function getNewZoneCode(UbicacionGeografica $punto) 

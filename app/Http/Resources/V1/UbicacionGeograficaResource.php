@@ -4,6 +4,7 @@ namespace App\Http\Resources\V1;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Models\CiclosPunto;
+use App\Models\Inventario;
 use App\Models\PuntosEstados;
 use Illuminate\Support\Facades\Auth;
 class UbicacionGeograficaResource extends JsonResource
@@ -47,6 +48,7 @@ class UbicacionGeograficaResource extends JsonResource
         $buscarRelacion = CiclosPunto::
         where('usuario', $user->name)
         ->where('idCiclo', $this->cycle_id)
+        ->where('idPunto', $this->idUbicacionGeo)
         ->first();
     
         $idPunto = null;
@@ -90,7 +92,7 @@ class UbicacionGeograficaResource extends JsonResource
         if (isset($this->cycle_id) && $this->cycle_id) {
 
 
-            $address['num_activos_cats_by_cycle'] = $this->activos_with_cats_by_cycle($this->cycle_id)->count();
+            $address['num_activos_cats_by_cycle'] = $this->activos_with_cats_by_cycle($this->cycle_id)->count() + $this->activos_with_cats_inv_by_cycle($this->cycle_id)->count();
 
             $coll = $this->cats_by_cycle($this->cycle_id);
 
@@ -103,4 +105,13 @@ class UbicacionGeograficaResource extends JsonResource
 
         return $address;
     }
+
+    public function activos_with_cats_inv_by_cycle($cycle_id)
+    {
+        $queryBuilder = Inventario::select('inv_inventario.*')
+            ->where('inv_inventario.id_ciclo', '=', $cycle_id);
+    
+        return $queryBuilder;
+    }
+    
 }

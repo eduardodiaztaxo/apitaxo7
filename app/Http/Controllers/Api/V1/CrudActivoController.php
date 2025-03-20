@@ -1,12 +1,16 @@
 <?php
 
 namespace App\Http\Controllers\Api\V1;
-
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\CrudActivoResource;
+use App\Http\Resources\V1\InventariosResource;
 use App\Models\CrudActivo;
 use App\Models\CategoriaN1;
 use App\Models\CategoriaN2;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use App\Models\Inventario;
 use App\Services\ActivoService;
 use App\Services\ImageService;
 use Illuminate\Http\Request;
@@ -84,24 +88,27 @@ class CrudActivoController extends Controller
     {
         //
         $activo = CrudActivo::where('etiqueta', '=', $etiqueta)->first();
-
+    
+        if (!$activo) {
+            $etiqueta = Inventario::where('etiqueta', '=', $etiqueta)->first();
+            $resource = new InventariosResource($etiqueta);
+            return response()->json($resource, 200);
+        }
+    
         if (!$activo) {
             return response()->json([
                 "message" => "Not Found",
                 "status"  => "error"
             ], 404);
         }
-
-
-
         $activo->requireUbicacion = 1;
 
         $activo->requireEmplazamiento = 1;
 
         $resource = new CrudActivoResource($activo);
-
         return response()->json($resource, 200);
     }
+
 
 
     public function uploadImageByEtiqueta(Request $request, $etiqueta)
@@ -166,40 +173,70 @@ class CrudActivoController extends Controller
      * @param  int                          $etiqueta
      * @return \Illuminate\Http\Response
      */
+    public function getNombre()
+    {
+        $user = Auth::user();
+        $usuario = $user->name;
+        $responsable = DB::table('sec_users')->where('login', $usuario)->value('name');
+        return $responsable;
+
+    }
     public function update(Request $request, $etiqueta)
     {
         $request->validate([
-            'marca'           =>  'required|integer|exists:indices_listas,idLista',
-            'modelo'          =>  'required',
-            'serie'           =>  'required',
-            'responsable'     =>  'sometimes|integer|exists:responsables,idResponsable',
-            'estado_bien'     =>  'required|exists:indices_listas_13,idLista',
-            'descripcionTipo' => 'required',
-            'observacion'     => 'required',
-            'latitud'         => 'required',
-            'longitud'        => 'required'
-
+            'marca'            =>  'required|integer|exists:indices_listas,idLista',
+            'descripcion_marca'=> 'required',
+            'modelo'           =>  'required',
+            'serie'            =>  'required',
+            'responsable'      =>  'sometimes|integer|exists:responsables,idResponsable',
+            'estado_bien'      =>  'required|exists:indices_listas_13,idLista',
+            'descripcionTipo'  =>  'required',
+            'observacion'      =>  'required',
+            'latitud'          =>  'required',
+            'longitud'         =>  'required'
         ]);
-        //\Log::info($request->all());
-
-        $activo = CrudActivo::where('etiqueta', '=', $etiqueta)->first();
-
+    
+        $activo = CrudActivo::where('etiqueta', $etiqueta)->first();
+    
         if (!$activo) {
-            return response()->json([
-                "message" => "Not Found",
-                "status"  => "error"
-            ], 404);
-        }
+     
+            $activo = Inventario::where('etiqueta', $etiqueta)->first();
+            
+            if ($activo) {
+                $responsable = $this->getNombre();
+    
+                $activo->update([
+                    'descripcion_marca' => $request->descripcion_marca,
+                    'modelo'            => $request->modelo,
+                    'serie'             => $request->serie,
+                    'estado'            => $request->estado_bien,
+                    'descripcionTipo'   => $request->descripcionTipo,
+                    'observacion'       => $request->observacion,
+                    'latitud'           => $request->latitud,
+                    'longitud'          => $request->longitud,
+                    'responsable'       => $responsable,
+                ]);
+    
+                return response()->json([
+                    'status'  => 'OK',
+                    'code'    => 200,
+                    'message' => $activo,
+                ], 200);
+            } else {
+                return response()->json([
+                    "message" => "Not Found",
+                    "status"  => "error"
+                ], 404);
+            }
+        } else {
 
-        if ($request->responsable) {
-            $request->merge(['responsableN1' => $request->responsable]);
-        }
-
-        $request->merge(['apoyaBrazosRuedas' => $request->estado_bien]);
-
-
-        $activo->fill(
-            $request->only([
+            if ($request->responsable) {
+                $request->merge(['responsableN1' => $request->responsable]);
+            }
+    
+            $request->merge(['apoyaBrazosRuedas' => $request->estado_bien]);
+    
+            $activo->fill($request->only([
                 'marca',
                 'modelo',
                 'serie',
@@ -209,36 +246,29 @@ class CrudActivoController extends Controller
                 'observacion',
                 'latitud',
                 'longitud'
-            ])
-        );
-
-        $activo->save();
-
-        $activo->requireUbicacion = 1;
-
-        $activo->requireEmplazamiento = 1;
-
-        return response()->json(
-            [
-                'status'    => 'OK',
-                'code'      => 200,
-                'data'      => CrudActivoResource::make($activo)
-            ],
-            200
-        );
+            ]));
+    
+            $activo->save();
+    
+            $activo->requireUbicacion = 1;
+            $activo->requireEmplazamiento = 1;
+    
+            return response()->json([
+                'status' => 'OK',
+                'code'   => 200,
+                'data'   => CrudActivoResource::make($activo)
+            ], 200);
+        }
     }
-
-
+    
     public function marcasDisponibles(Request $request, $etiqueta)
     {
 
         $activo = CrudActivo::where('etiqueta', '=', $etiqueta)->first();
-
+       
         if (!$activo) {
-            return response()->json([
-                "message" => "Not Found",
-                "status"  => "error"
-            ], 404);
+            $activo = Inventario::where('etiqueta', '=', $etiqueta)->first();
+           
         }
 
 

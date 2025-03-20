@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Resources\V1;
-
+use App\Models\Inventario;
 use App\Models\CrudActivo;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -33,7 +33,7 @@ class ZonaPuntoResource extends JsonResource
         }
 
         if (isset($this->cycle_id) && $this->cycle_id) {
-            $zone['num_activos_cats_by_cycle'] = $this->activos_with_cats_by_cycle($this->cycle_id)->count();
+            $zone['num_activos_cats_by_cycle'] = $this->activos_with_cats_by_cycle($this->cycle_id)->count() + $this->activos_with_cats_inv_by_cycle($this->cycle_id)->count();
             $zone['num_activos_orphans'] = $this->activos_with_cats_without_emplazamientos_by_cycle($this->cycle_id)->count();
             $zone['num_total_orphans'] = $this->activos_without_emplazamientos()->count();
 
@@ -45,12 +45,13 @@ class ZonaPuntoResource extends JsonResource
                 $zone['activos_orphans'] = CrudActivoResource::collection($this->activos_without_emplazamientos()->get());
             }
         }
-
-
-
-
-
-
         return $zone;
+    }
+    public function activos_with_cats_inv_by_cycle($cycle_id)
+    {
+        $queryBuilder = Inventario::select('inv_inventario.*')
+            ->where('inv_inventario.id_ciclo', '=', $cycle_id);
+    
+        return $queryBuilder;
     }
 }
