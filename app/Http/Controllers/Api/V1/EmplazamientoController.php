@@ -158,8 +158,9 @@ class EmplazamientoController extends Controller
      */
     public function update(Request $request, int $id)
     {
-        $emplaObj = Emplazamiento::find($id);
 
+        $emplaObj = Emplazamiento::find($id);
+    
         if (!$emplaObj) {
             return response()->json([
                 'status' => 'NOK',
@@ -169,23 +170,36 @@ class EmplazamientoController extends Controller
         }
 
         $validatedData = $request->validate([
-            'nombre_emplazamiento' => 'required|string|max:255',
+            'nombre_emplazamiento' => 'string|max:255',
+            'ubicacion_emplazamiento' => 'string|max:255',
             'zona_id' => 'required|exists:ubicaciones_n1,idUbicacionN1',
             'id_agenda' => 'required|exists:ubicaciones_n1,idAgenda',
         ]);
-
+    
         $emplaObj->descripcionUbicacion = $validatedData['nombre_emplazamiento'];
         $emplaObj->save();
-
+    
         $zona = ZonaPunto::find($validatedData['zona_id']);
-
+    
+        if ($zona) {
+    
+            $zona->descripcionUbicacion = $validatedData['ubicacion_emplazamiento'];  // Usando el 'ubicacion_emplazamiento' del request
+            $zona->save();
+        } else {
+            return response()->json([
+                'status' => 'NOK',
+                'code' => 404,
+                'message' => 'Zona no encontrada'
+            ], 404);
+        }
+    
         return response()->json([
             'status' => 'OK',
             'message' => 'Emplazamiento y zona actualizados correctamente',
             'data' => EmplazamientoResource::make($emplaObj),
         ], 200);
     }
-
+    
     /**
      * Remove the specified resource from storage.
      *

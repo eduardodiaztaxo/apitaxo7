@@ -107,7 +107,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::post('create-inventario', [InventariosController::class, 'createinventario']);
 
-    Route::get('configuracion-input/{id_grupo}/{modelo}/{serie}/{capacidad}/{marcas}/{etiqueta}', [InventariosController::class, 'configuracion']);
+    Route::get('configuracion-input/{id_grupo}/{modelo}/{serie}/{capacidad}/{marcas}/{etiqueta}/{latitud}/{longitud}', [InventariosController::class, 'configuracion']);
 
     Route::put('inventario/image/{etiqueta}', [InventariosController::class, 'ImageByEtiqueta']);
 
