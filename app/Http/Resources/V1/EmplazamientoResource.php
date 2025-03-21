@@ -48,7 +48,6 @@ class EmplazamientoResource extends JsonResource
                 if (!empty($activo->url_imagen)) {
         
                     $folderPath = str_replace('http://apitaxo7.cl/storage/', '', $activo->url_imagen);
-                    // Construir la ruta de la carpeta dentro del proyecto
                     $localFolderPath = public_path('storage/' . $folderPath);
             
                     if (is_dir($localFolderPath)) {
@@ -58,7 +57,6 @@ class EmplazamientoResource extends JsonResource
                             return in_array(strtolower(pathinfo($file, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png']);
                         });
             
-                        // Si se encuentran imágenes, asigna la URL de la primera imagen
                         if (!empty($imageFiles)) {
                             $firstImageUrl = asset('storage/' . $folderPath . '/' . reset($imageFiles));
                         }
