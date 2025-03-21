@@ -7,6 +7,7 @@ use App\Models\CiclosPunto;
 use App\Models\Inventario;
 use App\Models\PuntosEstados;
 use Illuminate\Support\Facades\Auth;
+
 class UbicacionGeograficaResource extends JsonResource
 {
     /**
@@ -42,52 +43,54 @@ class UbicacionGeograficaResource extends JsonResource
         } else {
             $zonas_punto = [];
         }
-        
+
         $user = Auth::user();
-        
-        $buscarRelacion = CiclosPunto::
-        where('usuario', $user->name)
-        ->where('idCiclo', $this->cycle_id)
-        ->where('idPunto', $this->idUbicacionGeo)
-        ->first();
-    
+
+        $buscarRelacion = CiclosPunto::where('usuario', $user->name)
+            ->where('idCiclo', $this->cycle_id)
+            ->where('idPunto', $this->idUbicacionGeo)
+            ->first();
+
         $idPunto = null;
         $id_estado = null;
-        
-    if ($buscarRelacion) {
-        $id_estado = $buscarRelacion->id_estado;
-        $idPunto = $buscarRelacion->idPunto;
-    }
-    
-    $descripcionEstado = null;
 
-    if ($idPunto == $this->idUbicacionGeo) {
-        $estadoDirecciones = PuntosEstados::Where('id_estado', $id_estado)->first();
-        
-        if($estadoDirecciones){
-            $descripcionEstado = $estadoDirecciones->descripcion;
-            $id_estado = $estadoDirecciones->id_estado;
+        if ($buscarRelacion) {
+            $id_estado = $buscarRelacion->id_estado;
+            $idPunto = $buscarRelacion->idPunto;
         }
-    }
-    
-    $address = [
-        'idUbicacionGeo' => $this->idUbicacionGeo,
-        'codigoCliente' => $this->codigoCliente,
-        'descripcion'   => $this->descripcion,
-        'zona'          => $this->zona,
-        'region'        => $this->region()->first()->descripcion,
-        'ciudad'        => $this->ciudad,
-        'comuna'        => $this->comuna()->first()->descripcion,
-        'direccion'     => $this->direccion,
-        'idPunto'       => $this->idPunto,
-        'estadoGeo'     => $this->estadoGeo,
-        'id_estado'     => ($id_estado && $descripcionEstado) ? $id_estado : 1,
-        'estado_punto'  => ($id_estado && $descripcionEstado) ? $descripcionEstado : 'ABIERTO',
-        'zonas_punto'   => $zonas_punto,
-        'num_activos'   => $this->activos()->get()->count(),
-        'num_activos_cats_by_cycle' => 0,
-        'num_cats_by_cycle' => 0,
-    ];
+
+        $descripcionEstado = null;
+
+        if ($idPunto == $this->idUbicacionGeo) {
+            $estadoDirecciones = PuntosEstados::Where('id_estado', $id_estado)->first();
+
+            if ($estadoDirecciones) {
+                $descripcionEstado = $estadoDirecciones->descripcion;
+                $id_estado = $estadoDirecciones->id_estado;
+            }
+        }
+
+        $auditoria_general = isset($this->auditoria_general) ? $this->auditoria_general : 0;
+
+        $address = [
+            'idUbicacionGeo' => $this->idUbicacionGeo,
+            'codigoCliente' => $this->codigoCliente,
+            'descripcion'   => $this->descripcion,
+            'zona'          => $this->zona,
+            'region'        => $this->region()->first()->descripcion,
+            'ciudad'        => $this->ciudad,
+            'comuna'        => $this->comuna()->first()->descripcion,
+            'direccion'     => $this->direccion,
+            'idPunto'       => $this->idPunto,
+            'estadoGeo'     => $this->estadoGeo,
+            'id_estado'     => ($id_estado && $descripcionEstado) ? $id_estado : 1,
+            'estado_punto'  => ($id_estado && $descripcionEstado) ? $descripcionEstado : 'ABIERTO',
+            'auditoria_general' => $auditoria_general,
+            'zonas_punto'   => $zonas_punto,
+            'num_activos'   => $this->activos()->get()->count(),
+            'num_activos_cats_by_cycle' => 0,
+            'num_cats_by_cycle' => 0,
+        ];
 
         if (isset($this->cycle_id) && $this->cycle_id) {
 
@@ -110,8 +113,7 @@ class UbicacionGeograficaResource extends JsonResource
     {
         $queryBuilder = Inventario::select('inv_inventario.*')
             ->where('inv_inventario.id_ciclo', '=', $cycle_id);
-    
+
         return $queryBuilder;
     }
-    
 }

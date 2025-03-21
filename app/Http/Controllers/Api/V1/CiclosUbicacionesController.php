@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\UbicacionGeograficaResource;
 use App\Models\InvCiclo;
+use App\Models\InvCicloPunto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -95,6 +96,17 @@ class CiclosUbicacionesController extends Controller
             //$punto->zonas_cats = $zonas;
             $punto->requireZonas = 1;
             $punto->cycle_id = $ciclo;
+            //Si el ciclo es auditoría y la auditoría es general, el atributo auditoria_general se pone a 1
+            if ($cicloObj->idTipoCiclo == 2) {
+
+                $InvCicloPunto = InvCicloPunto::where('idCiclo', $ciclo)->where('idPunto', $punto->idUbicacionGeo)->first();
+
+                if ($InvCicloPunto) {
+                    $punto->auditoria_general = $InvCicloPunto->auditoria_general;
+                } else {
+                    $punto->auditoria_general = 0;
+                }
+            }
         }
 
 
