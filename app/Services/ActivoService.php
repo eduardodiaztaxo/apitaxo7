@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\CrudActivo;
 use App\Models\Emplazamiento;
 use App\Models\InvCiclo;
+use App\Models\UbicacionGeografica;
 use App\Models\User;
 use App\Models\ZonaPunto;
 use Illuminate\Support\Collection;
@@ -110,6 +111,32 @@ class ActivoService
     {
 
         $etiquetas = $zoneObj->activos_with_cats_without_emplazamientos_by_cycle($cicloObj->idCiclo)
+            ->get()->pluck('etiqueta');
+
+
+
+        return $etiquetas;
+    }
+
+
+
+
+    /**
+     * Gets labels by address and cycle cats
+     * 
+     * @param \App\Models\UbicacionGeografica $puntoObj
+     * @param \App\Models\InvCiclo $cicloObj
+     * @return \Illuminate\Support\Collection
+     */
+    public static function getLabelsByCycleAndAddress(UbicacionGeografica $puntoObj, InvCiclo $cicloObj)
+    {
+
+
+
+        $cats_ids = $cicloObj->getCatsIDs();
+
+        $etiquetas = $puntoObj->activos()
+            ->whereIn('id_familia', $cats_ids->pluck('id_familia'))
             ->get()->pluck('etiqueta');
 
 

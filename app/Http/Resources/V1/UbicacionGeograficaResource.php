@@ -102,7 +102,14 @@ class UbicacionGeograficaResource extends JsonResource
             $address['num_cats_by_cycle']       = $coll->pluck('categoriaN1')->unique()->count();
             $address['num_subcats_n2_by_cycle'] = $coll->pluck('categoriaN2')->unique()->count();
             $address['num_subcats_n3_by_cycle'] = $coll->pluck('categoriaN3')->unique()->count();
+
+            if (isset($this->requireActivos) && $this->requireActivos) {
+                $address['activos'] = CrudActivoLiteResource::collection($this->activos_with_cats_by_cycle($this->cycle_id)->get());
+            }
         }
+
+
+
 
 
 

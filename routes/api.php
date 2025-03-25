@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\V1\ZonaController;
 use App\Http\Controllers\Api\V1\ZonaEmplazamientosController;
 use App\Http\Controllers\Api\V1\ZonasActivosController;
 use App\Http\Controllers\Api\V1\InventariosController;
+use App\Http\Controllers\Api\V1\UbicacionesActivosController;
 
 /*
 |--------------------------------------------------------------------------
@@ -84,7 +85,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('bienes_grupo_familia/{idCiclo}', [DatosActivosController::class, 'bienesGrupoFamilia']);
 
     Route::get('buscar_grupo_familia/{id_familia}', [DatosActivosController::class, 'buscarGrupoFamilia']);
-    
+
     Route::get('colores/{id_grupo}', [DatosActivosController::class, 'indiceColores']);
 
     Route::get('estados-operacionales/{id_grupo}', [DatosActivosController::class, 'estadosOperacional']);
@@ -100,7 +101,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('materiales/{id_familia}/{id_grupo}', [DatosActivosController::class, 'material']);
 
     Route::get('formas/{id_familia}/{id_grupo}', [DatosActivosController::class, 'forma']);
-    
+
     Route::post('create-bienes', [DatosActivosController::class, 'createBienes']);
 
     Route::post('create-marcas', [DatosActivosController::class, 'createMarcas']);
@@ -147,6 +148,10 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('ciclos/{ciclo}/emplazamientos/{emplazamiento}/activos/etiquetas', [EmplazamientosActivosController::class, 'showOnlyLabelsByCycleCats']);
 
+    Route::get('ciclos/{ciclo}/puntos/{punto}/activos/etiquetas', [UbicacionesActivosController::class, 'showOnlyLabelsByCycleCats']);
+
+    Route::get('ciclos/{ciclo}/puntos/{punto}', [CiclosUbicacionesController::class, 'showAll']);
+
     Route::get('emplazamientos/{emplazamiento}', [EmplazamientoController::class, 'show']);
 
     Route::put('emplazamientos/{id}', [EmplazamientoController::class, 'update']);
@@ -163,13 +168,19 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::post('auditorias/procesar-conteo-por-zona', [InventarioConteoController::class, 'processConteoByZonaMultipleUsers']);
 
+    Route::post('auditorias/procesar-conteo-por-punto', [InventarioConteoController::class, 'processConteoByAddressMultipleUsers']);
+
     Route::get('auditorias/ciclos/{ciclos}/conteo-por-emplazamiento/{emplazamiento}', [InventarioConteoController::class, 'showConteoByEmplazamiento']);
 
     Route::get('auditorias/ciclos/{ciclos}/conteo-por-zona/{zona}', [InventarioConteoController::class, 'showConteoByZone']);
 
+    Route::get('auditorias/ciclos/{ciclos}/conteo-por-punto/{punto}', [InventarioConteoController::class, 'showConteoByAddress']);
+
     Route::post('auditorias/reset-conteo-emplazamiento', [InventarioConteoController::class, 'resetConteoByEmplazamiento']);
 
     Route::post('auditorias/reset-conteo-zona', [InventarioConteoController::class, 'resetConteoByZona']);
+
+    Route::post('auditorias/reset-conteo-punto', [InventarioConteoController::class, 'resetConteoByAddress']);
 
     //
 });

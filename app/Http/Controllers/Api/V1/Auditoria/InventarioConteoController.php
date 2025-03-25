@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Auditoria;
 use App\Http\Controllers\Controller;
 use App\Models\Emplazamiento;
 use App\Models\InvCicloPunto;
+use App\Models\UbicacionGeografica;
 use App\Models\ZonaPunto;
 use App\Services\ActivoService;
 use App\Services\AuditLabelsService;
@@ -76,7 +77,7 @@ class InventarioConteoController extends Controller
             }
         }
 
-        dd($assets);
+
         DB::table('inv_conteo_det')->insert($assets);
 
 
@@ -473,6 +474,81 @@ class InventarioConteoController extends Controller
         ]);
     }
 
+
+    /**
+     * Process count by Address multiple users
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function processConteoByAddressMultipleUsers(Request $request)
+    {
+
+
+        if ($request->items) {
+            $request->merge(['items' => json_encode($request->items)]);
+        }
+
+
+        $request->validate([
+            'items'             => 'required|json',
+            'ciclo_id'          => 'required|integer|exists:inv_ciclos,idCiclo',
+            'address_id'        => 'required|integer|exists:ubicaciones_geograficas,idUbicacionGeo',
+        ]);
+
+
+        $puntoObj = UbicacionGeografica::find($request->address_id);
+
+        $cicloPunto = InvCicloPunto::where('idCiclo', $request->ciclo_id)->where('idPunto', $request->address_id)->first();
+
+        if (!$cicloPunto) {
+            return response()->json([
+                'status' => 'error',
+                'code' => 404,
+                'message' => 'La dirección ' . $request->address_id . ' no está asociada al ciclo '
+            ], 404);
+        }
+
+
+        $items = json_decode($request->items);
+
+        $cicloObj = $cicloPunto->ciclo;
+
+        $etiquetas = ActivoService::getLabelsByCycleAndAddress($puntoObj, $cicloObj);
+
+
+        $items = collect($items)->unique();
+
+
+        $processedLabels = DB::table("inv_conteo_registro")
+            ->where('status', '=', 1)
+            ->where('ciclo_id', '=', $request->ciclo_id)
+            ->where('punto_id', '=', $puntoObj->idUbicacionGeo)
+            ->get();
+
+
+
+        $auditLabelServ = new AuditLabelsService($items->pluck('etiqueta')->toArray(), $etiquetas->toArray(), $processedLabels);
+
+        $result = $auditLabelServ->processAuditedLabels_Address($request->ciclo_id, $puntoObj->idUbicacionGeo, $request->user()->id);
+
+
+        if (!empty($result['errors'])) {
+            return response()->json([
+                'status' => 'error',
+                'code' => 404,
+                'errors' => $result['errors'],
+                'message' => 'Error en etiquetas '
+            ], 422);
+        }
+
+        return response()->json([
+            'status' => 'OK',
+            'code'   => 200,
+            'message' => 'successfully processed'
+        ]);
+    }
+
     /**
      * Show count by Emplazamiento
      *
@@ -561,6 +637,49 @@ class InventarioConteoController extends Controller
         return response()->json(['status' => 'OK', 'data' => $data]);
     }
 
+
+    /**
+     * Show count by Address
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function showConteoByAddress(int $ciclo, int $punto, Request $request)
+    {
+
+        $request->merge(['ciclo_id'         => $ciclo]);
+        $request->merge(['address_id' => $punto]);
+
+
+        $request->validate([
+            'ciclo_id'          => 'required|integer|exists:inv_ciclos,idCiclo',
+            'address_id'        => 'required|integer|exists:ubicaciones_geograficas,idUbicacionGeo',
+        ]);
+
+
+        $puntoObj = UbicacionGeografica::find($request->address_id);
+
+
+
+        $cicloPunto = InvCicloPunto::where('idCiclo', $request->ciclo_id)->where('idPunto', $puntoObj->idUbicacionGeo)->first();
+
+        if (!$cicloPunto) {
+            return response()->json([
+                'status' => 'error',
+                'code' => 404,
+                'message' => 'La dirección ' . $puntoObj->idUbicacionGeo . ' no está asociada al ciclo '
+            ], 404);
+        }
+
+        $data = DB::select("SELECT * FROM inv_conteo_registro 
+        WHERE ciclo_id = ? AND punto_id = ? AND status = 1 ", [
+            $cicloPunto->idCiclo,
+            $puntoObj->idUbicacionGeo
+        ]);
+
+        return response()->json(['status' => 'OK', 'data' => $data]);
+    }
+
     public function resetConteoByEmplazamiento(Request $request)
     {
 
@@ -624,6 +743,47 @@ class InventarioConteoController extends Controller
                     SET status = 2, updated_at = NOW(), user_id = ? 
                     WHERE ciclo_id = ? AND punto_id = ? AND cod_zona = ? AND codigo_emplazamiento IS NULL',
             [$request->user()->id, $request->ciclo_id, $zonaObj->idAgenda, $zonaObj->codigoUbicacion]
+        );
+
+        return response()->json(['status' => 'OK', 'message' => 'Realizado exitosamente']);
+    }
+
+    /**
+     * Show count by Address
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function resetConteoByAddress(Request $request)
+    {
+
+
+
+        $request->validate([
+            'ciclo_id'          => 'required|integer|exists:inv_ciclos,idCiclo',
+            'address_id'        => 'required|integer|exists:ubicaciones_geograficas,idUbicacionGeo',
+        ]);
+
+
+        $puntoObj = UbicacionGeografica::find($request->address_id);
+
+
+
+        $cicloPunto = InvCicloPunto::where('idCiclo', $request->ciclo_id)->where('idPunto', $puntoObj->idUbicacionGeo)->first();
+
+        if (!$cicloPunto) {
+            return response()->json([
+                'status' => 'error',
+                'code' => 404,
+                'message' => 'La dirección ' . $puntoObj->idUbicacionGeo . ' no está asociada al ciclo '
+            ], 404);
+        }
+
+        DB::update(
+            'UPDATE inv_conteo_registro 
+                    SET status = 2, updated_at = NOW(), user_id = ? 
+                    WHERE ciclo_id = ? AND punto_id = ?  ',
+            [$request->user()->id, $request->ciclo_id, $puntoObj->idUbicacionGeo]
         );
 
         return response()->json(['status' => 'OK', 'message' => 'Realizado exitosamente']);

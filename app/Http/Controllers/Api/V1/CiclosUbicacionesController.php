@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\UbicacionGeograficaResource;
 use App\Models\InvCiclo;
 use App\Models\InvCicloPunto;
+use App\Models\UbicacionGeografica;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -67,6 +68,46 @@ class CiclosUbicacionesController extends Controller
 
         return response()->json(UbicacionGeograficaResource::collection($puntos), 200);
     }
+
+    /**
+     * Display address resource.
+     *
+     * @param  int  $ciclo 
+     * * @param  int  $punto
+     * @return \Illuminate\Http\Response
+     */
+    public function showAll(Request $request, int $ciclo, int $punto)
+    {
+
+        $puntoObj = UbicacionGeografica::find($punto);
+
+        if (!$puntoObj) {
+            return response()->json(['status' => 'NOK', 'code' => 404], 404);
+        }
+
+
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json(['status' => 'NOK', 'code' => 404], 404);
+        }
+
+        if ($cicloObj->puntos()->where('idUbicacionGeo', $puntoObj->idUbicacionGeo)->count() === 0) {
+            return response()->json(['status' => 'NOK', 'code' => 404, 'message' => 'La dirección no se corresponde con el ciclo'], 404);
+        }
+
+
+
+        $puntoObj->requireActivos = 1;
+        $puntoObj->cycle_id = $cicloObj->idCiclo;
+
+
+        //
+        return response()->json(UbicacionGeograficaResource::make($puntoObj));
+    }
+
+
+
 
 
 

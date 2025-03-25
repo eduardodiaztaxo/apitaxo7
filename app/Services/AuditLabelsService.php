@@ -126,6 +126,20 @@ class AuditLabelsService
         return $this->processAndSaveAuditedLabels($ciclo_id, $punto_id, $cod_zona, null, $user_id);
     }
 
+
+    /**
+     * process labels and save in DB by Address
+     * 
+     * @param int       $ciclo_id
+     * @param int       $punto_id
+     * @param int       $user_id
+     * @return array
+     */
+    public function processAuditedLabels_Address($ciclo_id, $punto_id, $user_id)
+    {
+        return $this->processAndSaveAuditedLabels($ciclo_id, $punto_id, null, null, $user_id);
+    }
+
     /**
      * process labels and save in DB
      * 
