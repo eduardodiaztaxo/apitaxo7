@@ -4,6 +4,7 @@ namespace App\Http\Resources\V1;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Models\CiclosPunto;
+use App\Models\InvConteoRegistro;
 use App\Models\Inventario;
 use App\Models\PuntosEstados;
 use Illuminate\Support\Facades\Auth;
@@ -89,7 +90,7 @@ class UbicacionGeograficaResource extends JsonResource
             'zonas_punto'   => $zonas_punto,
             'num_activos'   => $this->activos()->get()->count(),
             'num_activos_cats_by_cycle' => 0,
-            'num_cats_by_cycle' => 0,
+            'num_cats_by_cycle' => 0
         ];
 
         if (isset($this->cycle_id) && $this->cycle_id) {
@@ -102,6 +103,13 @@ class UbicacionGeograficaResource extends JsonResource
             $address['num_cats_by_cycle']       = $coll->pluck('categoriaN1')->unique()->count();
             $address['num_subcats_n2_by_cycle'] = $coll->pluck('categoriaN2')->unique()->count();
             $address['num_subcats_n3_by_cycle'] = $coll->pluck('categoriaN3')->unique()->count();
+
+
+            $address['num_activos_audit'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
+                ->where('status', '=', '1')
+                ->where('punto_id', '=', $this->idUbicacionGeo)
+                ->count();
+
 
             if (isset($this->requireActivos) && $this->requireActivos) {
                 $address['activos'] = CrudActivoLiteResource::collection($this->activos_with_cats_by_cycle($this->cycle_id)->get());
