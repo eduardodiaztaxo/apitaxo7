@@ -162,3 +162,19 @@ function is_string_url($url)
 
     return preg_match($urlPattern, $url);
 }
+
+function format_chilean_rut($rut)
+{
+    // Remove any dots or dashes
+    $rut = preg_replace('/[^kK0-9]/', '', $rut);
+
+    // Separate the body and the verifier digit
+    $body = substr($rut, 0, -1);
+    $verifier = substr($rut, -1);
+
+    // Format the body with dots every three digits
+    $formattedBody = number_format($body, 0, '', '.');
+
+    // Return the formatted RUT with a dash before the verifier digit
+    return $formattedBody . '-' . strtoupper($verifier);
+}

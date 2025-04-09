@@ -21,6 +21,8 @@ use App\Http\Controllers\Api\V1\ZonaController;
 use App\Http\Controllers\Api\V1\ZonaEmplazamientosController;
 use App\Http\Controllers\Api\V1\ZonasActivosController;
 use App\Http\Controllers\Api\V1\InventariosController;
+use App\Http\Controllers\Api\V1\Responsible\AssignResponsibleController;
+use App\Http\Controllers\Api\V1\ResponsibleController;
 use App\Http\Controllers\Api\V1\UbicacionesActivosController;
 
 /*
@@ -64,6 +66,10 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('activos/etiqueta/{etiqueta}', [CrudActivoController::class, 'showByEtiqueta']);
 
+    Route::post('activos/etiquetas', [CrudActivoController::class, 'showByEtiquetas']);
+
+    Route::post('activos/not-responsibles/etiquetas', [CrudActivoController::class, 'showByEtiquetasWithoutResponsibles']);
+
     Route::put('activos/upload-image/etiqueta/{etiqueta}', [CrudActivoController::class, 'uploadImageByEtiqueta']);
 
     Route::put('activos/update/etiqueta/{etiqueta}', [CrudActivoController::class, 'update']);
@@ -71,6 +77,23 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('marcas', [DatosActivosController::class, 'marcas']);
 
     Route::get('responsables', [DatosActivosController::class, 'responsables']);
+
+
+
+    Route::get('responsibles', [ResponsibleController::class, 'showAll']);
+
+    Route::get('responsibles/{id}', [ResponsibleController::class, 'show']);
+
+    Route::post('responsibles', [ResponsibleController::class, 'store']);
+
+    Route::put('responsibles/{id}', [ResponsibleController::class, 'update']);
+
+    Route::post('responsibles/assign-responsible/prepare', [AssignResponsibleController::class, 'prepareAssignTags']);
+
+    Route::post('responsibles/assign-responsible/send-blank-document', [AssignResponsibleController::class, 'sendBlankDocument']);
+
+
+    Route::get('puntos/{punto}/responsibles', [ResponsibleController::class, 'showAllByPunto']);
 
     Route::get('estados-bienes', [DatosActivosController::class, 'estadosBienes']);
 
@@ -125,6 +148,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('ciclos/{ciclo}/puntos', [CiclosUbicacionesController::class, 'show']);
 
     Route::get('ciclos/{ciclo}/puntos-and-zones-with-cats', [CiclosUbicacionesController::class, 'showByCycleCats']);
+
+    Route::get('puntos', [UbicacionesActivosController::class, 'index']);
 
     //Route::get('zones/{zona}/emplazamientos', [ZonaEmplazamientosController::class, 'show']);
 

@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api\V1;
+
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\CrudActivoResource;
 use App\Http\Resources\V1\InventariosResource;
@@ -88,13 +89,13 @@ class CrudActivoController extends Controller
     {
         //
         $activo = CrudActivo::where('etiqueta', '=', $etiqueta)->first();
-    
+
         if (!$activo) {
             $etiqueta = Inventario::where('etiqueta', '=', $etiqueta)->first();
             $resource = new InventariosResource($etiqueta);
             return response()->json($resource, 200);
         }
-    
+
         if (!$activo) {
             return response()->json([
                 "message" => "Not Found",
@@ -110,6 +111,68 @@ class CrudActivoController extends Controller
     }
 
 
+    /**
+     * Display the specified resource.
+     *
+     * @param  \Illuminate\Http\Request $request 
+     * @return \Illuminate\Http\Response
+     */
+    public function showByEtiquetas(Request $request)
+    {
+
+        $request->validate([
+            'etiquetas' => 'required|array',
+        ]);
+
+        $etiquetas = $request->etiquetas;
+
+        //
+        $activos = CrudActivo::whereIn('etiqueta', $etiquetas)->get();
+
+
+
+        if (empty($activos)) {
+            return response()->json([
+                "message" => "Not Found",
+                "status"  => "error"
+            ], 404);
+        }
+
+        return response()->json(CrudActivoResource::collection($activos), 200);
+    }
+
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  \Illuminate\Http\Request $request 
+     * @return \Illuminate\Http\Response
+     */
+    public function showByEtiquetasWithoutResponsibles(Request $request)
+    {
+
+        $request->validate([
+            'etiquetas' => 'required|array',
+        ]);
+
+        $etiquetas = $request->etiquetas;
+
+        //
+        $activos = CrudActivo::whereIn('etiqueta', $etiquetas)
+            ->where('tipoCambio', '=', '0')
+            ->where('responsableN1', '=', '0')->get();
+
+
+
+        if (empty($activos)) {
+            return response()->json([
+                "message" => "Not Found",
+                "status"  => "error"
+            ], 404);
+        }
+
+        return response()->json(CrudActivoResource::collection($activos), 200);
+    }
 
     public function uploadImageByEtiqueta(Request $request, $etiqueta)
     {
@@ -179,13 +242,12 @@ class CrudActivoController extends Controller
         $usuario = $user->name;
         $responsable = DB::table('sec_users')->where('login', $usuario)->value('name');
         return $responsable;
-
     }
     public function update(Request $request, $etiqueta)
     {
         $request->validate([
             'marca'            =>  'required|integer|exists:indices_listas,idLista',
-            'descripcion_marca'=> 'required',
+            'descripcion_marca' => 'required',
             'modelo'           =>  'required',
             'serie'            =>  'required',
             'responsable'      =>  'sometimes|integer|exists:responsables,idResponsable',
@@ -195,16 +257,16 @@ class CrudActivoController extends Controller
             'latitud'          =>  'required',
             'longitud'         =>  'required'
         ]);
-    
+
         $activo = CrudActivo::where('etiqueta', $etiqueta)->first();
-    
+
         if (!$activo) {
-     
+
             $activo = Inventario::where('etiqueta', $etiqueta)->first();
-            
+
             if ($activo) {
                 $responsable = $this->getNombre();
-    
+
                 $activo->update([
                     'descripcion_marca' => $request->descripcion_marca,
                     'modelo'            => $request->modelo,
@@ -216,7 +278,7 @@ class CrudActivoController extends Controller
                     'longitud'          => $request->longitud,
                     'responsable'       => $responsable,
                 ]);
-    
+
                 return response()->json([
                     'status'  => 'OK',
                     'code'    => 200,
@@ -233,9 +295,9 @@ class CrudActivoController extends Controller
             if ($request->responsable) {
                 $request->merge(['responsableN1' => $request->responsable]);
             }
-    
+
             $request->merge(['apoyaBrazosRuedas' => $request->estado_bien]);
-    
+
             $activo->fill($request->only([
                 'marca',
                 'modelo',
@@ -247,12 +309,12 @@ class CrudActivoController extends Controller
                 'latitud',
                 'longitud'
             ]));
-    
+
             $activo->save();
-    
+
             $activo->requireUbicacion = 1;
             $activo->requireEmplazamiento = 1;
-    
+
             return response()->json([
                 'status' => 'OK',
                 'code'   => 200,
@@ -260,15 +322,14 @@ class CrudActivoController extends Controller
             ], 200);
         }
     }
-    
+
     public function marcasDisponibles(Request $request, $etiqueta)
     {
 
         $activo = CrudActivo::where('etiqueta', '=', $etiqueta)->first();
-       
+
         if (!$activo) {
             $activo = Inventario::where('etiqueta', '=', $etiqueta)->first();
-           
         }
 
 
@@ -293,19 +354,19 @@ class CrudActivoController extends Controller
     }
     public function categoriasNivel1()
     {
-       
-    
+
+
         $collection = CategoriaN1::all();
-    
+
         return response()->json($collection, 200);
     }
     public function categoriasNivel2($codigoCategoria)
     {
         $collection = CategoriaN2::where('codigoCategoria', 'LIKE', $codigoCategoria . '%')->get();
-    
+
         return response()->json($collection, 200);
     }
-    
+
     /**
      * Remove the specified resource from storage.
      *

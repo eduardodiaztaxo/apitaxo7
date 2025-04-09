@@ -84,4 +84,12 @@ class UbicacionGeografica extends Model
     {
         return $this->hasMany(ZonaPunto::class, 'idAgenda', 'idUbicacionGeo');
     }
+
+    /**
+     * Get the responsibles for the address.
+     */
+    public function responsibles()
+    {
+        return $this->hasMany(Responsable::class, 'idUbicacionGeografica', 'idUbicacionGeo');
+    }
 }

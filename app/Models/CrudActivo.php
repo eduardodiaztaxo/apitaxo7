@@ -115,6 +115,12 @@ class CrudActivo extends Model
         return $this->belongsTo(IndiceLista::class, 'marca', 'idLista')->where('idAtributo', '=', 2)->where('idIndice', '=', $this->idIndice);
     }
 
+    public function modeloRelation()
+    {
+        return $this->belongsTo(IndiceLista::class, 'marca', 'idLista')->where('idAtributo', '=', 1)->where('idIndice', '=', $this->idIndice);
+    }
+
+
     public function marcasDisponibles()
     {
 

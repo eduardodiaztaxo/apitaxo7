@@ -33,6 +33,8 @@ class CrudActivoResource extends JsonResource
     {
         $activo = parent::toArray($request);
 
+        $activo['idUbicacionGeografica'] = (int)$activo['ubicacionGeografica'];
+
         $activo['codigo_activo'] = $this->codigo_activo;
 
         $activo['tipoAlta'] = $this->tipoAltaRelation ? $this->tipoAltaRelation->descripcion : '';

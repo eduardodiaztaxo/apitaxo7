@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\V1\UbicacionGeograficaResource;
 use App\Models\InvCiclo;
 use App\Models\UbicacionGeografica;
 use App\Services\ActivoService;
@@ -18,6 +19,10 @@ class UbicacionesActivosController extends Controller
     public function index()
     {
         //
+        return response()->json(
+            UbicacionGeograficaResource::collection(UbicacionGeografica::all()),
+            200
+        );
     }
 
     /**
