@@ -165,6 +165,10 @@ function is_string_url($url)
 
 function format_chilean_rut($rut)
 {
+    if (!$rut) {
+        return '';
+    }
+
     // Remove any dots or dashes
     $rut = preg_replace('/[^kK0-9]/', '', $rut);
 

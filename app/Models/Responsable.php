@@ -29,6 +29,6 @@ class Responsable extends Model
 
     public function solicitudesAsignacion()
     {
-        return $this->hasMany(SolicitudAsignacion::class, 'idResponsable', 'idResponsable');
+        return $this->hasMany(SolicitudAsignacion::class, 'id_responsable', 'idResponsable');
     }
 }

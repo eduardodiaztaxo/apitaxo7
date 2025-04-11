@@ -11,21 +11,26 @@ use Illuminate\Support\Facades\File;
 
 class ActaHelperService
 {
-    public function createActa(Collection $assets, Responsable $responsable, SecScUser $user, SolicitudAsignacion $solicitud)
-    {
+    public function createActa(
+        Collection $assets,
+        Responsable $responsable,
+        SecScUser $user,
+        SolicitudAsignacion $solicitud,
+        String $responsible_signature = ''
+    ) {
         // Implement the logic to create an "Acta" document
         // Example: Validate data, process it, and return the result
 
         // Placeholder logic
 
 
-        $subdir = "/documents/acta-entrega/";
+        $subdir = "actas/documents/acta-entrega/";
 
-        $filename = "acta_entrega.pdf";
+        $filename = $solicitud->n_solicitud . "_acta_entrega.pdf";
 
         $path = $subdir . $filename;
 
-        $dir = storage_path('app/actas') . $subdir;
+        $dir = storage_path('app') . $subdir;
 
         if (!File::exists($dir)) {
             File::makeDirectory($dir, 0777, true, true);
@@ -149,8 +154,22 @@ class ActaHelperService
             $acta->setFirmaEntregador($dir . 'firma_representante.png');
         }
 
+        if (preg_match('/^data:image\/png;base64,/', $responsible_signature)) {
+            $data = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $responsible_signature));
+            file_put_contents($dir . 'firma_responsable.png', $data);
+            $acta->setFirmaReceptor($dir . 'firma_responsable.png');
+        }
+
+
         $acta->makePDF();
 
         return $path;
+    }
+
+
+    public function saveFilePaths(array $doctos, SolicitudAsignacion $solicitud)
+    {
+        $solicitud->acta = json_encode($doctos);
+        $solicitud->save();
     }
 }

@@ -92,6 +92,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::post('responsibles/assign-responsible/send-blank-document', [AssignResponsibleController::class, 'sendBlankDocument']);
 
+    Route::post('responsibles/assign-responsible/sign-document-confirm-responsible', [AssignResponsibleController::class, 'signDocumentAndConfirmResponsible']);
 
     Route::get('puntos/{punto}/responsibles', [ResponsibleController::class, 'showAllByPunto']);
 
