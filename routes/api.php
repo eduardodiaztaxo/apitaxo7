@@ -215,6 +215,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
 
     Route::get('my-user-info', [UserController::class, 'show']);
+
+    Route::post('users/register-signature', [UserController::class, 'registerSignature']);
 });
 
 

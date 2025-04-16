@@ -5,9 +5,12 @@ namespace App\Services\Documents;
 use App\Models\Responsable;
 use App\Models\SecScUser;
 use App\Models\SolicitudAsignacion;
-use App\Services\Documents\QRCode\QRCode;
+
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\File;
+
+use EasyLegalPdfDocuments\QRCode\QRCode;
+use EasyLegalPdfDocuments\Documents\ActaEntregaBienes;
 
 class ActaHelperService
 {
@@ -24,13 +27,15 @@ class ActaHelperService
         // Placeholder logic
 
 
-        $subdir = "actas/documents/acta-entrega/";
+        $subdir = "/actas/documents/acta-entrega/";
 
         $filename = $solicitud->n_solicitud . "_acta_entrega.pdf";
 
         $path = $subdir . $filename;
 
         $dir = storage_path('app') . $subdir;
+
+
 
         if (!File::exists($dir)) {
             File::makeDirectory($dir, 0777, true, true);
@@ -95,17 +100,6 @@ class ActaHelperService
 
 
 
-
-
-
-
-
-
-
-
-
-
-
         foreach ($_bienes as $key => $bien) {
 
             $qr = QRCode::getMinimumQRCode($bien['serie'], QR_ERROR_CORRECT_LEVEL_L);
@@ -120,30 +114,8 @@ class ActaHelperService
 
 
 
-        $acta = new ActaEntrega();
 
-
-        $acta->setNumero($_numero);
-
-        $acta->setDireccion($_direccion);
-        $acta->setComuna($_comuna);
-        $acta->setTelefono($_telefono);
-
-        $acta->setFecha($_fecha);
-        $acta->setNombreEntregador($_nombre_entregador);
-        $acta->setRutEntregador($_rut_entregador);
-        $acta->setNombreReceptor($_nombre_receptor);
-        $acta->setRutReceptor($_rut_receptor);
-        $acta->setCargoReceptor($cargo_receptor);
-
-        $acta->setObservaciones($_observaciones);
-        $acta->setBienesEntregados($_bienes);
-
-
-
-
-        $acta->setNameFile($dir . $filename);
-        $acta->setDestFile('F');
+        $path_quien_entrega = '';
 
         if ($user->firma && !empty($user->firma)) {
 
@@ -151,17 +123,68 @@ class ActaHelperService
 
             file_put_contents($dir . 'firma_representante.png', $data);
 
-            $acta->setFirmaEntregador($dir . 'firma_representante.png');
+            $path_quien_entrega = $dir . 'firma_representante.png';
         }
+
+        $path_quien_recive = '';
 
         if (preg_match('/^data:image\/png;base64,/', $responsible_signature)) {
             $data = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $responsible_signature));
             file_put_contents($dir . 'firma_responsable.png', $data);
-            $acta->setFirmaReceptor($dir . 'firma_responsable.png');
+            $path_quien_recive = $dir . 'firma_responsable.png';
         }
 
 
-        $acta->makePDF();
+
+
+        $acta = new ActaEntregaBienes();
+
+
+
+
+
+
+
+
+        $acta->setLogo(public_path('img/logo-safin.png'));
+
+        $acta->setNumero($_numero);
+        $acta->setDireccion($_direccion);
+        $acta->setComuna($_comuna);
+        $acta->setTelefono($_telefono);
+        $acta->setFecha($_fecha);
+
+        $acta->setNombreQuienEntrega($_nombre_entregador);
+        $acta->setRutQuienEntrega($_rut_entregador);
+        $acta->setCargoQuienEntrega('');
+        $acta->setNombreReceptor($_nombre_receptor);
+        $acta->setRutReceptor($_rut_receptor);
+        $acta->setCargoReceptor($cargo_receptor);
+        $acta->setObservaciones($_observaciones);
+        $acta->setBienes($_bienes);
+
+        $acta->setPathQuienEntrega($path_quien_entrega);
+        $acta->setPathReceptor($path_quien_recive);
+
+
+
+
+
+
+
+
+        $acta->save($dir . $filename);
+
+
+
+
+
+
+
+
+
+
+
 
         return $path;
     }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Models\SecScUser;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -50,6 +51,51 @@ class UserController extends Controller
         //
         return response()->json(
             UserResource::make($request->user()),
+            200
+        );
+    }
+
+    /**
+     * Register Signature.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function registerSignature(Request $request)
+    {
+
+        $request->validate([
+
+
+            'signature' => [
+                'required',
+                'string',
+                'regex:/^data:image\/png;base64,/'
+            ],
+
+        ]);
+
+
+        $user = $request->user();
+
+        $user->signature = $request->signature;
+
+        $user->save();
+
+        $resource = UserResource::make($user);
+
+        $conn_field = $user->conn_field;
+
+        $login = $user->name;
+
+        $secScUser = SecScUser::on($conn_field)->find($login);
+
+        $secScUser->firma = $request->signature;
+
+        $secScUser->save();
+
+        return response()->json(
+            $resource,
             200
         );
     }

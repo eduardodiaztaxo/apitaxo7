@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class LoginController extends Controller
 {
@@ -15,18 +16,18 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         $this->validateLogin($request);
-    
+
         if (Auth::attempt($request->only('email', 'password'))) {
             $user = Auth::user();
             $role = $user->role;
-    
+
             if (!$role) {
                 return response()->json([
                     'message' => 'User does not have an associated role'
                 ], 400);
             }
-    
-            $permissions = \DB::table('entities')
+
+            $permissions = DB::table('entities')
                 ->leftJoin('roles_entities_permissions', 'entities.id', '=', 'roles_entities_permissions.entity_id')
                 ->where(function ($query) use ($role) {
                     $query->where('roles_entities_permissions.role_id', $role->id)
@@ -41,13 +42,14 @@ class LoginController extends Controller
                     'roles_entities_permissions.delete'
                 )
                 ->get();
-    
-            $entities = \DB::table('entities')->pluck('tag')->toArray();
+
+
+            $entities = DB::table('entities')->pluck('tag')->toArray();
             $formattedPermissions = [];
-    
+
             foreach ($entities as $entity) {
                 $permission = $permissions->firstWhere('entity_tag', $entity);
-    
+
                 if ($permission) {
                     // Si el ID de la entidad es 4, asignar todos los permisos 
                     if ($permission->id == 4) {
@@ -56,7 +58,7 @@ class LoginController extends Controller
                             'emplazamiento' => ['show' => 1, 'edit' => 1, 'create' => 1, 'delete' => 1],
                             'bien' => ['show' => 1, 'edit' => 1, 'create' => 1, 'delete' => 1],
                         ];
-                        break; 
+                        break;
                     } else {
                         $formattedPermissions[$entity] = [
                             'show' => $permission->show ?? 0,
@@ -67,11 +69,11 @@ class LoginController extends Controller
                     }
                 }
             }
-    
+
             $expiration = config('sanctum.expiration', null);
             $expires_at = $expiration ? Carbon::now()->addMinutes($expiration) : null;
             $token = $request->user()->createToken($request->name, ['*'], $expires_at);
-    
+
             return response()->json([
                 'id_user' => $user->id,
                 'token' => $token->plainTextToken,
@@ -80,12 +82,12 @@ class LoginController extends Controller
                 'message' => 'Success'
             ]);
         }
-    
+
         return response()->json([
             'message' => 'Unauthorized'
         ], 401);
     }
-    
+
 
     public function loginByUser(Request $request)
     {
@@ -106,13 +108,13 @@ class LoginController extends Controller
                 ], 400);
             }
 
-            $permissions = \DB::table('entities')
+            $permissions = DB::table('entities')
                 ->leftJoin('roles_entities_permissions', 'entities.id', '=', 'roles_entities_permissions.entity_id')
                 ->where(function ($query) use ($role) {
                     $query->where('roles_entities_permissions.role_id', $role->id)
                         ->orWhereNull('roles_entities_permissions.role_id');
                 })
-               ->select(
+                ->select(
                     'entities.id',
                     'entities.tag as entity_tag',
                     'roles_entities_permissions.show',
@@ -122,7 +124,7 @@ class LoginController extends Controller
                 )
                 ->get();
 
-            $entities = \DB::table('entities')->pluck('tag')->toArray();
+            $entities = DB::table('entities')->pluck('tag')->toArray();
             $formattedPermissions = [];
 
             foreach ($entities as $entity) {
@@ -136,7 +138,7 @@ class LoginController extends Controller
                             'emplazamiento' => ['show' => 1, 'edit' => 1, 'create' => 1, 'delete' => 1],
                             'bien' => ['show' => 1, 'edit' => 1, 'create' => 1, 'delete' => 1],
                         ];
-                        break; 
+                        break;
                     } else {
                         $formattedPermissions[$entity] = [
                             'show' => $permission->show ?? 0,
@@ -147,7 +149,7 @@ class LoginController extends Controller
                     }
                 }
             }
-    
+
             $expiration = config('sanctum.expiration', null);
             $expires_at = $expiration ? Carbon::now()->addMinutes($expiration) : null;
             $token = $request->user()->createToken($request->name, ['*'], $expires_at);
