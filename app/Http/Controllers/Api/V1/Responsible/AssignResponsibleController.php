@@ -87,7 +87,7 @@ class AssignResponsibleController extends Controller
 
 
     /**
-     * Assign tags to responsible.
+     * Send blank document to possible responsible and user.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response

@@ -38,7 +38,7 @@ class SendBlankDocument extends Mailable
      */
     public function build()
     {
-        $pdf_acta = storage_path('app/actas') . $this->path;
+        $pdf_acta = storage_path('app') . $this->path;
 
         return $this->markdown('vendor.emails.blank-document', [
             'solicitud' => $this->solicitud

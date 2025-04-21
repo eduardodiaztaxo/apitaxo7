@@ -148,6 +148,23 @@ class ActaHelperService
 
         $acta->setLogo(public_path('img/logo-safin.png'));
 
+        $_txt_parte1 = ', mediante el presente documento se realiza la entrega formal del o los siguiente(s) activos VER ANEXO DE BIENES ASIGNADOS al Responsable: ';
+        $_txt_parte2 = ', para el cumplimiento de las actividades laborales, quién declara recepción de los mismos en buen estado';
+        $_txt_parte3 = 'y se compromete a cuidar de los recursos y hacer uso de ellos para los fines establecidos.';
+        $_txt_parte4 = 'Detalle de la responsabilidad sobre estos activos estará incluida en Reglamento interno y/o contrato de trabajo (Anexo).';
+        $_txt_pdf_equipo_asignando = 'En anexos detalles de los bienes asignados';
+        $_txt_pdf_observaciones = 'En anexos detalles de los bienes asignados';
+        $_txt_pdf_entrega = 'En anexos detalles de los bienes asignados';
+
+        $acta->setTxtParte1($_txt_parte1);
+        $acta->setTxtParte2($_txt_parte2);
+        $acta->setTxtParte3($_txt_parte3);
+        $acta->setTxtParte4($_txt_parte4);
+        $acta->setTxtPDFEquipoAsigando($_txt_pdf_equipo_asignando);
+        $acta->setTxtPDFObservaciones($_txt_pdf_observaciones);
+        $acta->setTxtPDFEntrega($_txt_pdf_entrega);
+
+
         $acta->setNumero($_numero);
         $acta->setDireccion($_direccion);
         $acta->setComuna($_comuna);
