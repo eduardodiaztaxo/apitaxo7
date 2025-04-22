@@ -59,8 +59,11 @@ class ActaHelperService
 
             $_bienes[] = [
 
+                'etiqueta'          => $asset->etiqueta,
                 'nombre'            => ($asset->modeloRelation->descripcion ?? 'S/N') . '-' . ($asset->marcaRelation->descripcion ?? 'S/M') . ($asset->modelo ?? 'S/M'),
-                'serie'             => $asset->serie . '-' . $asset->etiqueta,
+                'serie'             => $asset->serie,
+                'marca'             => '',
+                'modelo'            => $asset->modelo,
                 'caracteristicas'   => $asset->capacidadUnidadMedida,
                 'adicionales'       => $asset->opcional1,
                 'valor_aprox'       => $asset->valorCompra ? $asset->valorCompra : 1,
