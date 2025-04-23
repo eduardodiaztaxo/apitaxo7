@@ -3,6 +3,7 @@
 namespace App\Http\Resources\V1;
 
 use App\Services\ActivoService;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class CrudActivoLiteResource extends JsonResource
@@ -29,13 +30,20 @@ class CrudActivoLiteResource extends JsonResource
      */
     public function toArray($request)
     {
+        $marcaResult = DB::select("SELECT descripcion 
+        FROM `indices_listas`
+        WHERE idLista = $this->marca
+        AND id_familia = $this->id_familia
+        AND idAtributo = 2");
 
         $activo = [];
         $activo['etiqueta'] = $this->etiqueta;
         $activo['categoriaN3'] = $this->categoriaN3;
         $activo['id_familia'] = $this->id_familia;
         $activo['nombreActivo'] = $this->nombre_activo_origen;
-
+        $activo['modelo'] = $this->modelo;
+        $activo['serie'] = $this->serie;
+        $activo['marca'] = !empty($marcaResult) ? $marcaResult[0]->descripcion : ''; 
 
         $activo['descripcionCategoria'] = $this->categoria ? $this->categoria->descripcionCategoria : '';
 

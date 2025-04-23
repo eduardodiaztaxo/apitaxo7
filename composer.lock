@@ -504,12 +504,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:edualejandrodiaz/easy-legal-pdf-documents.git",
-                "reference": "81f2dde34bf03bbedbc3216fc5a10d1ec2a97b7e"
+                "reference": "2020434ccac2ef7c4ae0531570b47ab1fae67c89"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/edualejandrodiaz/easy-legal-pdf-documents/zipball/81f2dde34bf03bbedbc3216fc5a10d1ec2a97b7e",
-                "reference": "81f2dde34bf03bbedbc3216fc5a10d1ec2a97b7e",
+                "url": "https://api.github.com/repos/edualejandrodiaz/easy-legal-pdf-documents/zipball/2020434ccac2ef7c4ae0531570b47ab1fae67c89",
+                "reference": "2020434ccac2ef7c4ae0531570b47ab1fae67c89",
                 "shasum": ""
             },
             "require": {
@@ -533,7 +533,7 @@
                 "source": "https://github.com/edualejandrodiaz/easy-legal-pdf-documents/tree/main",
                 "issues": "https://github.com/edualejandrodiaz/easy-legal-pdf-documents/issues"
             },
-            "time": "2025-04-17T17:36:00+00:00"
+            "time": "2025-04-21T20:39:54+00:00"
         },
         {
             "name": "egulias/email-validator",
@@ -8058,6 +8058,6 @@
     "platform": {
         "php": "^7.3|^8.0"
     },
-    "platform-dev": [],
+    "platform-dev": {},
     "plugin-api-version": "2.6.0"
 }

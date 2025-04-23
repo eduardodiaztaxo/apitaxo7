@@ -39,7 +39,8 @@ class AssignResponsibleController extends Controller
 
         $request->validate([
             'etiquetas'         => 'required|array',
-            'responsible_id'    => 'required|exists:responsables,idResponsable'
+            'responsible_id'    => 'required|exists:responsables,idResponsable',
+            'comentario'        => 'required|string|max:255'
         ]);
 
         $username = $request->user()->name;
@@ -57,7 +58,7 @@ class AssignResponsibleController extends Controller
                 'estado_proceso' => 500,
                 'estado_docto'  => 1,
                 'id_responsable' => $request->responsible_id,
-                'tipo'          => 'D'
+                'tipo'          => 'A'
             ]);
 
             CrudActivo::whereIn('etiqueta', $request->etiquetas)
@@ -229,10 +230,12 @@ class AssignResponsibleController extends Controller
 
         $assets = CrudActivo::whereIn('etiqueta', $request->etiquetas)->where('idActa', '=', $solicitud->n_solicitud)->get();
 
+        
+
         if (!$assets || $assets->count() === 0) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'No existen bienes asociados a la solicitud de asignación',
+                'message' => $solicitud,
                 404
             ], 404);
         }
