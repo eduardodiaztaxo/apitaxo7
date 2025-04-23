@@ -12,12 +12,15 @@ use Illuminate\Support\Facades\File;
 use EasyLegalPdfDocuments\QRCode\QRCode;
 use EasyLegalPdfDocuments\Documents\ActaEntregaBienes;
 
+use Illuminate\Support\Facades\Storage;
+
 class ActaHelperService
 {
     public function createActa(
         Collection $assets,
         Responsable $responsable,
         SecScUser $user,
+        string $client_name,
         SolicitudAsignacion $solicitud,
         String $responsible_signature = ''
     ) {
@@ -27,15 +30,17 @@ class ActaHelperService
         // Placeholder logic
 
 
-        $subdir = "/actas/documents/acta-entrega/";
+        $subdir = self::getActasSubdir($client_name);
 
-        $filename = $solicitud->n_solicitud . "_acta_entrega.pdf";
+        $filename = date('YmdHis') . '_' . $solicitud->n_solicitud . "_acta_entrega.pdf";
 
         $path = $subdir . $filename;
 
-        $dir = storage_path('app') . $subdir;
 
 
+        $storage_path = self::getActasPath();
+
+        $dir = $storage_path . $subdir;
 
         if (!File::exists($dir)) {
             File::makeDirectory($dir, 0777, true, true);
@@ -214,5 +219,25 @@ class ActaHelperService
     {
         $solicitud->acta = json_encode($doctos);
         $solicitud->save();
+    }
+
+    public static function getActasPath(): string
+    {
+        $disk = Storage::disk('taxo');
+
+        $adapter = $disk->getAdapter(); // Get the adapter for the disk
+
+        $storage_path = $adapter->getPathPrefix();
+
+        if (substr($storage_path, -1) === '/' || substr($storage_path, -1) === '\\') {
+            $storage_path = substr($storage_path, 0, -1);
+        }
+
+        return $storage_path;
+    }
+
+    public static function getActasSubdir(string $client_name): string
+    {
+        return "/documents/" . $client_name . "/acta-entrega/";
     }
 }

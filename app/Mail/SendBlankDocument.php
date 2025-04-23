@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\SolicitudAsignacion;
+use App\Services\Documents\ActaHelperService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -38,7 +39,7 @@ class SendBlankDocument extends Mailable
      */
     public function build()
     {
-        $pdf_acta = storage_path('app') . $this->path;
+        $pdf_acta = ActaHelperService::getActasPath() . $this->path;
 
         return $this->markdown('vendor.emails.blank-document', [
             'solicitud' => $this->solicitud

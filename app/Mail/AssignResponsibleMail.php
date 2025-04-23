@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\SolicitudAsignacion;
+use App\Services\Documents\ActaHelperService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -43,7 +44,7 @@ class AssignResponsibleMail extends Mailable
             $filename = pathinfo($path, PATHINFO_BASENAME);
 
 
-            $this->attach(storage_path('app') . $path, [
+            $this->attach(ActaHelperService::getActasPath() . $path, [
                 'as' => 'attachment-' . $key . '-' . $filename,
                 'mime' => 'application/pdf'
             ]);
