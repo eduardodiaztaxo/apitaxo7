@@ -555,6 +555,50 @@ class InventarioConteoController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
+    
+
+
+     public function deleteSobrantesConteoByEmplazamiento(int $ciclo, int $emplazamiento, Request $request)
+     {
+        $request->merge(['ciclo_id'         => $ciclo]);
+        $request->merge(['emplazamiento_id' => $emplazamiento]);
+
+
+        $request->validate([
+            'ciclo_id'          => 'required|integer|exists:inv_ciclos,idCiclo',
+            'emplazamiento_id'  => 'required|integer|exists:ubicaciones_n2,idUbicacionN2',
+        ]);
+
+
+        $empObj = Emplazamiento::find($request->emplazamiento_id);
+
+        $zonaObj = $empObj->zonaPunto;
+
+        $cicloPunto = InvCicloPunto::where('idCiclo', $request->ciclo_id)->where('idPunto', $zonaObj->idAgenda)->first();
+
+        if (!$cicloPunto) {
+            return response()->json([
+                'status' => 'error',
+                'code' => 404,
+                'message' => 'La dirección ' . $zonaObj->idAgenda . ' no está asociada al ciclo '
+            ], 404);
+        }
+
+        $data = DB::delete("DELETE FROM inv_conteo_registro 
+                    WHERE ciclo_id = ? 
+                    AND punto_id = ? 
+                    AND cod_emplazamiento = ? 
+                    AND audit_status = 3", [
+                        $cicloPunto->idCiclo,
+                        $zonaObj->idAgenda,
+                        $empObj->codigoUbicacion
+                    ]);
+
+
+        return response()->json(['status' => 'OK',   'message' => 'Sobrantes eliminados exitosamente.']);
+         
+     }
+     
     public function showConteoByEmplazamiento(int $ciclo, int $emplazamiento, Request $request)
     {
 
@@ -680,6 +724,44 @@ class InventarioConteoController extends Controller
         return response()->json(['status' => 'OK', 'data' => $data]);
     }
 
+    public function deleteSobrantesConteoByAddress(int $ciclo, int $punto, Request $request)
+    {
+
+        $request->merge(['ciclo_id'   => $ciclo]);
+        $request->merge(['address_id' => $punto]);
+
+
+        $request->validate([
+            'ciclo_id'          => 'required|integer|exists:inv_ciclos,idCiclo',
+            'address_id'        => 'required|integer|exists:ubicaciones_geograficas,idUbicacionGeo',
+        ]);
+
+
+        $puntoObj = UbicacionGeografica::find($request->address_id);
+
+
+
+        $cicloPunto = InvCicloPunto::where('idCiclo', $request->ciclo_id)->where('idPunto', $puntoObj->idUbicacionGeo)->first();
+
+        if (!$cicloPunto) {
+            return response()->json([
+                'status' => 'error',
+                'code' => 404,
+                'message' => 'La dirección ' . $puntoObj->idUbicacionGeo . ' no está asociada al ciclo '
+            ], 404);
+        }
+
+        $data = DB::delete("DELETE FROM inv_conteo_registro 
+        WHERE ciclo_id = ? 
+        AND punto_id = ? 
+        AND audit_status = 3 ", [
+            $cicloPunto->idCiclo,
+            $puntoObj->idUbicacionGeo
+        ]);
+
+        return response()->json(['status' => 'OK', 'message' => 'Sobrantes eliminados exitosamente.']);
+    }
+  
     public function resetConteoByEmplazamiento(Request $request)
     {
 
