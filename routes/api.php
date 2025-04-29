@@ -162,6 +162,10 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('zones/{zona}', [ZonaController::class, 'show'])->name('zone.show');
 
+    Route::put('zones/{zona}/update-direccion', [ZonaController::class, 'update']);
+
+    Route::get('zones/{zona}/{id_ciclo}', [ZonaController::class, 'show_Direccion']);
+
     Route::post('zones', [ZonaController::class, 'store']);
 
     Route::get('ciclos/{ciclo}/zones/{zona}/activos/etiquetas', [ZonasActivosController::class, 'showOnlyLabelsByCycleCats']);

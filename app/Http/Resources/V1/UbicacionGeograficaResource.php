@@ -116,6 +116,7 @@ class UbicacionGeograficaResource extends JsonResource
                 $address['num_activos_audit'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
                 ->where('status', '=', '1')
                 ->where('punto_id', '=', $this->idUbicacionGeo)
+                ->where('audit_status', '=', '1')
                 ->count();
 
             }

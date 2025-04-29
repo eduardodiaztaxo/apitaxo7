@@ -14,7 +14,7 @@ class UbicacionGeografica extends Model
     protected $primaryKey = 'idUbicacionGeo';
 
     protected $table = 'ubicaciones_geograficas';
-
+    public $timestamps = false; // No usar timestamps en esta tabla
     public function region()
     {
         return $this->belongsTo(Region::class, 'region', 'idRegion');

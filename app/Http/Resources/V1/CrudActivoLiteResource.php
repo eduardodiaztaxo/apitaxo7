@@ -30,11 +30,20 @@ class CrudActivoLiteResource extends JsonResource
      */
     public function toArray($request)
     {
-        $marcaResult = DB::select("SELECT descripcion 
-        FROM `indices_listas`
-        WHERE idLista = $this->marca
-        AND id_familia = $this->id_familia
-        AND idAtributo = 2");
+        $marcaResult = [];
+        if (!empty($this->marca) && !empty($this->id_familia)) {
+            $marcaResult = DB::select("SELECT descripcion 
+                FROM `indices_listas`
+                WHERE idLista = :idLista
+                AND id_familia = :idFamilia
+                AND idAtributo = :idAtributo", [
+                    'idLista' => $this->marca,
+                    'idFamilia' => $this->id_familia,
+                    'idAtributo' => 2,
+                ]);
+        }
+        
+        $activo['marca'] = !empty($marcaResult) ? $marcaResult[0]->descripcion : 'Sin marca';
 
         $activo = [];
         $activo['etiqueta'] = $this->etiqueta;
