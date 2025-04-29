@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\File;
 
 use EasyLegalPdfDocuments\QRCode\QRCode;
 use EasyLegalPdfDocuments\Documents\ActaEntregaBienes;
-
+use Exception;
 use Illuminate\Support\Facades\Storage;
 
 class ActaHelperService
@@ -104,21 +104,6 @@ class ActaHelperService
             'Sin observaciones',
             'Con observaciones',
         ];
-
-
-
-
-
-        foreach ($_bienes as $key => $bien) {
-
-            $qr = QRCode::getMinimumQRCode($bien['serie'], QR_ERROR_CORRECT_LEVEL_L);
-
-            $im = $qr->createImage(2, 4);
-
-            $_bienes[$key]['qr'] = $dir . $bien['serie'] . ".png";
-
-            imagepng($im, $_bienes[$key]['qr']);
-        }
 
 
 
