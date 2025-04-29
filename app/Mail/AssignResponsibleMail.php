@@ -20,16 +20,19 @@ class AssignResponsibleMail extends Mailable
     protected $paths = [];
 
     protected $asunto = 'Notificación';
+
+    protected $observaciones = [];
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct(SolicitudAsignacion $solicitud, array $paths)
+    public function __construct(SolicitudAsignacion $solicitud, array $paths, array $observaciones = [])
     {
         $this->paths = $paths;
         $this->solicitud = $solicitud;
         $this->asunto = 'Asiignación Responsable Activos - N° Solicitud: ' . $solicitud->n_solicitud;
+        $this->observaciones = $observaciones;
     }
 
     /**
@@ -54,7 +57,8 @@ class AssignResponsibleMail extends Mailable
 
 
         return $this->markdown('vendor.emails.assign-responsible', [
-            'solicitud' => $this->solicitud
+            'solicitud' => $this->solicitud,
+            'observaciones' => $this->observaciones
         ])->subject($this->asunto);
     }
 }

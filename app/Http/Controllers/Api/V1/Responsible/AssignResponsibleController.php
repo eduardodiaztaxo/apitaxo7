@@ -62,7 +62,7 @@ class AssignResponsibleController extends Controller
             ]);
 
             CrudActivo::whereIn('etiqueta', $request->etiquetas)
-                ->where('tipoCambio', '=', '0')
+                ->whereIn('tipoCambio', ['0', '500'])
                 ->where('responsableN1', '=', '0')
                 ->update(['tipoCambio' => 500, 'usuario' => $username, 'idActa' => $solicitud->n_solicitud]);
 
@@ -195,6 +195,7 @@ class AssignResponsibleController extends Controller
         $request->validate([
 
             'etiquetas'             => 'required|array',
+            'no_match_address'             => 'sometimes|array',
             'responsible_id'        => 'required|exists:responsables,idResponsable',
 
             'responsible_signature' => [
@@ -340,8 +341,14 @@ class AssignResponsibleController extends Controller
             $mail->cc([$sc_user->email]);
         }
 
+        $observaciones = [];
 
-        $mail->send(new AssignResponsibleMail($solicitud, $doctos));
+        if ($request->no_match_address && !empty($request->no_match_address)) {
+            $observaciones[] = "Etiquetas correspondientes a otra ubicación: " . implode(',', $request->no_match_address);
+        }
+
+
+        $mail->send(new AssignResponsibleMail($solicitud, $doctos, $observaciones));
 
         return response()->json(
             [
