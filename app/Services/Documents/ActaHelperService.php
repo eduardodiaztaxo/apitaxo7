@@ -206,13 +206,14 @@ class ActaHelperService
 
         //remove chunks
         foreach ($_bienes as $bien) {
-            unlink($bien['qr']);
+            if (file_exists($bien['qr']))
+                unlink($bien['qr']);
         }
 
-        if (!empty($path_quien_entrega))
+        if (!empty($path_quien_entrega) && file_exists($path_quien_entrega))
             unlink($path_quien_entrega);
 
-        if (!empty($path_quien_recive))
+        if (!empty($path_quien_recive) && file_exists($path_quien_recive))
             unlink($path_quien_recive);
 
 
