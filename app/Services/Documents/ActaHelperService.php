@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\File;
 
 use EasyLegalPdfDocuments\QRCode\QRCode;
 use EasyLegalPdfDocuments\Documents\ActaEntregaBienes;
-
+use Exception;
 use Illuminate\Support\Facades\Storage;
 
 class ActaHelperService
@@ -91,33 +91,19 @@ class ActaHelperService
         $_fecha = \Carbon\Carbon::parse($solicitud->fecha_mov)->format('d/m/Y');
 
 
-        $_nombre_entregador = $responsable->name;
-        $_rut_entregador = format_chilean_rut($responsable->rut);
+        $_nombre_entregador = $user->name;
+        $_rut_entregador = format_chilean_rut($user->rut);
+        $cargo_receptor = 'Encargado';
 
 
-        $_nombre_receptor = $user->name;
-        $_rut_receptor = format_chilean_rut($user->rut);
-        $cargo_receptor = 'Quien Entrega';
+        $_nombre_receptor = $responsable->name;
+        $_rut_receptor = format_chilean_rut($responsable->rut);
+        $cargo_receptor = 'Responsable';
 
         $_observaciones = [
             'Sin observaciones',
             'Con observaciones',
         ];
-
-
-
-
-
-        foreach ($_bienes as $key => $bien) {
-
-            $qr = QRCode::getMinimumQRCode($bien['serie'], QR_ERROR_CORRECT_LEVEL_L);
-
-            $im = $qr->createImage(2, 4);
-
-            $_bienes[$key]['qr'] = $dir . $bien['serie'] . ".png";
-
-            imagepng($im, $_bienes[$key]['qr']);
-        }
 
 
 
@@ -203,8 +189,17 @@ class ActaHelperService
 
 
 
+        //remove chunks
+        foreach ($_bienes as $bien) {
+            if (file_exists($bien['qr']))
+                unlink($bien['qr']);
+        }
 
+        if (!empty($path_quien_entrega) && file_exists($path_quien_entrega))
+            unlink($path_quien_entrega);
 
+        if (!empty($path_quien_recive) && file_exists($path_quien_recive))
+            unlink($path_quien_recive);
 
 
 
