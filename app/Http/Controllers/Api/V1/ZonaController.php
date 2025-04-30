@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\ZonaPuntoResource;
 use App\Models\InvCiclo;
 use App\Models\UbicacionGeografica;
+use App\Http\Resources\V1\UbicacionGeograficaDireccionResource;
+use App\Http\Resources\V1\UbicacionGeograficaResource;
 use App\Models\ZonaPunto;
 use App\Services\PlaceService;
 use Illuminate\Http\Request;
@@ -86,22 +88,42 @@ class ZonaController extends Controller
      * @param  int  $zona
      * @return \Illuminate\Http\Response
      */
-    public function show(Request $request, int $zona)
-    {
-        $zonaObj = ZonaPunto::find($zona);
 
-        if (!$zonaObj) {
-            return response()->json(['status' => 'NOK', 'message' => 'Zona no encontrada', 'code' => 404], 404);
-        }
+     public function show_Direccion(Request $request, int $zona, int $ciclo)
+     {
+         $zonaObj = UbicacionGeografica::find($zona);
+     
+         if (!$zonaObj) {
+             return response()->json(['status' => 'NOK', 'message' => 'Zona no encontrada', 'code' => 404], 404);
+         }
+     
+         // Configurar propiedades adicionales
+         $zonaObj->requireAddress = 1;
+         $zonaObj->requireOrphanAssets = 1;
+         $zonaObj->cycle_id = $ciclo; // Asignar el ciclo al recurso
+         // Agregar el ciclo al recurso
 
+         return response()->json(UbicacionGeograficaDireccionResource::make($zonaObj), 200);
+     }
 
+     public function show(Request $request, int $zona)
+     {
 
-        $zonaObj->requireOrphanAssets = 1;
-        $zonaObj->requireAddress = 1;
-
-        return response()->json(ZonaPuntoResource::make($zonaObj), 200);
-    }
-
+         $zonaObj = ZonaPunto::find($zona);
+    
+     
+             if (!$zonaObj) {
+        
+                 return response()->json(['status' => 'NOK', 'message' => 'Zona no encontrada', 'code' => 404], 404);
+             }
+         
+     
+         // Configurar propiedades adicionales
+         $zonaObj->requireAddress = 1;
+         $zonaObj->requireOrphanAssets = 1;
+     
+         return response()->json(ZonaPuntoResource::make($zonaObj), 200);
+     }
 
     /**
      * Display zone resource by cycle constraints.
@@ -165,7 +187,28 @@ class ZonaController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $emplaObj = UbicacionGeografica::find($id);
+    
+        if (!$emplaObj) {
+            return response()->json([
+                'status' => 'NOK',
+                'code' => 404,
+                'message' => 'Dirección no encontrado'
+            ], 404);
+        }
+
+        $validatedData = $request->validate([
+            'nombre_emplazamiento' => 'string|max:255',
+        ]);
+    
+        $emplaObj->descripcion = $validatedData['nombre_emplazamiento'];
+        $emplaObj->save();
+    
+        return response()->json([
+            'status' => 'OK',
+            'message' => 'Emplazamiento y zona actualizados correctamente',
+            'data' => UbicacionGeograficaResource::make($emplaObj),
+        ], 200);
     }
 
     /**

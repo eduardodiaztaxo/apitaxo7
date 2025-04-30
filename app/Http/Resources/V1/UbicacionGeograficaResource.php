@@ -104,12 +104,23 @@ class UbicacionGeograficaResource extends JsonResource
             $address['num_subcats_n2_by_cycle'] = $coll->pluck('categoriaN2')->unique()->count();
             $address['num_subcats_n3_by_cycle'] = $coll->pluck('categoriaN3')->unique()->count();
 
+            if($auditoria_general == 1){
 
-            $address['num_activos_audit'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
+                $address['num_activos_audit'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
+                    ->where('status', '=', '1')
+                    ->where('punto_id', '=', $this->idUbicacionGeo)
+                    ->where('audit_status', '=', '1')
+                    ->count();
+
+            }else{
+                $address['num_activos_audit'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
                 ->where('status', '=', '1')
                 ->where('punto_id', '=', $this->idUbicacionGeo)
+                ->where('audit_status', '=', '1')
                 ->count();
 
+            }
+          
 
             if (isset($this->requireActivos) && $this->requireActivos) {
                 $address['activos'] = CrudActivoLiteResource::collection($this->activos_with_cats_by_cycle($this->cycle_id)->get());

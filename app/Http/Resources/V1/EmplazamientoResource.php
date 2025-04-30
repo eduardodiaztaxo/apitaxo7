@@ -17,14 +17,17 @@ class EmplazamientoResource extends JsonResource
      */
     public function toArray($request)
     {
-        $activosCollection = $this->activos()->select(
+        $activosCollection = $this->activos()
+        ->select(
             'etiqueta',
             'categoriaN3',
             'id_familia',
             'nombreActivo',
             'idIndice',
-            'foto4'
-        )->get();
+            DB::raw("COALESCE(crud_activos_foto_docto.foto_1, 'https://api.taxochile.cl/img/notavailable.jpg') AS foto4")
+        )
+        ->leftJoin('crud_activos_foto_docto', 'crud_activos_foto_docto.idActivo', '=', 'crud_activos.idActivo')
+        ->get();
     
         $activosInventario = DB::table('inv_inventario')
             ->leftJoin('categoria_n3', 'inv_inventario.id_familia', '=', 'categoria_n3.id_familia')
@@ -103,6 +106,7 @@ class EmplazamientoResource extends JsonResource
             $emplazamiento['num_activos_audit'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
                 ->where('status', '=', '1')
                 ->where('cod_emplazamiento', '=', $this->codigoUbicacion)
+                ->where('audit_status', '=', '1')
                 ->count();
             $emplazamiento['num_activos_cats_by_cycle'] = isset($emplazamiento['activos']) ? count($emplazamiento['activos']) : $this->activos_with_cats_by_cycle($this->cycle_id)->count();
         }

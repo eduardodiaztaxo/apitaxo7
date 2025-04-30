@@ -187,17 +187,27 @@ class CrudActivoController extends Controller
             'imagen' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
         ]);
 
-        $activo = CrudActivo::where('etiqueta', '=', $etiqueta)->first();
+        // $activo = CrudActivo::where('etiqueta', '=', $etiqueta)->first();
 
-        if (!$activo) {
+        $idActivo_Documento = CrudActivo::where('etiqueta', '=', $etiqueta)->value('idActivo');
+
+
+        if (!$idActivo_Documento) {
             return response()->json([
                 "message" => "Not Found",
                 "status"  => "error"
             ], 404);
         }
 
-        if ($activo->foto4)
-            $this->imageService->deleteImage($activo->foto4);
+        // if (!$activo) {
+        //     return response()->json([
+        //         "message" => "Not Found",
+        //         "status"  => "error"
+        //     ], 404);
+        // }
+
+        // if ($activo->foto4)
+        //     $this->imageService->deleteImage($activo->foto4);
 
         $path = $this->imageService->optimizeImageAndSave(
             $request->file('imagen'),
@@ -205,9 +215,26 @@ class CrudActivoController extends Controller
             $etiqueta . "_" . date('YmdHis')
         );
 
-        $activo->foto4 = $path;
+        $url = asset('storage/' . $path);
+        
+        $existingRecord = DB::table('crud_activos_foto_docto')->where('idActivo', $idActivo_Documento)->first();
 
-        $activo->save();
+        if ($existingRecord) {
+            // Actualizar
+            DB::table('crud_activos_foto_docto')
+                ->where('idActivo', $idActivo_Documento)
+                ->update(['foto_1' => $url]);
+        } else {
+            // Insertar
+            DB::table('crud_activos_foto_docto')->insert([
+                'idActivo' => $idActivo_Documento,
+                'foto_1'   => $url,
+            ]);
+        }
+
+        // $activo->foto4 = $path;
+
+        // $activo->save();
 
         return response()->json(
             [

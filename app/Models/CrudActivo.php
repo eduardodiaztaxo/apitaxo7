@@ -46,17 +46,21 @@ class CrudActivo extends Model
 
 
     public function getNombreActivoOrigenAttribute()
-    {
-
-        $indice = DB::table('indices_listas')
-            ->where('idLista', '=', $this->nombreActivo)
-            ->where('idAtributo', '=', 1)
-            ->where('idIndice', '=', $this->idIndice)
-            ->first();
-
-
-        return $indice ? $indice->descripcion : null;
+{
+    // Validar que las propiedades no estén vacías
+    if (empty($this->nombreActivo) || empty($this->idIndice)) {
+        return null; // Retorna null si los valores necesarios están vacíos
     }
+
+    // Construir la consulta solo si los valores son válidos
+    $indice = DB::table('indices_listas')
+        ->where('idLista', '=', $this->nombreActivo)
+        ->where('idAtributo', '=', 1)
+        ->where('idIndice', '=', $this->idIndice)
+        ->first();
+
+    return $indice ? $indice->descripcion : null;
+}
 
     public function getZonaAttribute()
     {

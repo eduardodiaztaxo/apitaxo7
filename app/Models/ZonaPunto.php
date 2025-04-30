@@ -118,6 +118,9 @@ class ZonaPunto extends Model
         return $queryBuilder;
     }
 
+   
+
+
 
     public function activos_without_emplazamientos()
     {
