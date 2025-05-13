@@ -144,6 +144,7 @@ class CrudActivoController extends Controller
 
     /**
      * Display the specified resource.
+     * show tags without responsibles and available
      *
      * @param  \Illuminate\Http\Request $request 
      * @return \Illuminate\Http\Response
@@ -157,10 +158,13 @@ class CrudActivoController extends Controller
 
         $etiquetas = $request->etiquetas;
 
-        //
+        //Disponibles y sin responsables
         $activos = CrudActivo::whereIn('etiqueta', $etiquetas)
             ->where('tipoCambio', '=', '0')
-            ->where('responsableN1', '=', '0')->get();
+            ->where(function ($query) {
+                $query->where('responsableN1', '=', '0')
+                    ->orWhereNull('responsableN1');
+            })->get();
 
 
 

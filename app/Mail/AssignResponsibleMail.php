@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\SolicitudAsignacion;
+use App\Services\Documents\ActaHelperService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -19,16 +20,19 @@ class AssignResponsibleMail extends Mailable
     protected $paths = [];
 
     protected $asunto = 'Notificación';
+
+    protected $observaciones = [];
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct(SolicitudAsignacion $solicitud, array $paths)
+    public function __construct(SolicitudAsignacion $solicitud, array $paths, array $observaciones = [])
     {
         $this->paths = $paths;
         $this->solicitud = $solicitud;
         $this->asunto = 'Asiignación Responsable Activos - N° Solicitud: ' . $solicitud->n_solicitud;
+        $this->observaciones = $observaciones;
     }
 
     /**
@@ -43,7 +47,7 @@ class AssignResponsibleMail extends Mailable
             $filename = pathinfo($path, PATHINFO_BASENAME);
 
 
-            $this->attach(storage_path('app') . $path, [
+            $this->attach(ActaHelperService::getActasPath() . $path, [
                 'as' => 'attachment-' . $key . '-' . $filename,
                 'mime' => 'application/pdf'
             ]);
@@ -53,7 +57,8 @@ class AssignResponsibleMail extends Mailable
 
 
         return $this->markdown('vendor.emails.assign-responsible', [
-            'solicitud' => $this->solicitud
+            'solicitud' => $this->solicitud,
+            'observaciones' => $this->observaciones
         ])->subject($this->asunto);
     }
 }

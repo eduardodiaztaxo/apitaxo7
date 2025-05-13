@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\File;
 
 use EasyLegalPdfDocuments\QRCode\QRCode;
 use EasyLegalPdfDocuments\Documents\ActaEntregaBienes;
+use Exception;
+use Illuminate\Support\Facades\Storage;
 
 class ActaHelperService
 {
@@ -18,6 +20,7 @@ class ActaHelperService
         Collection $assets,
         Responsable $responsable,
         SecScUser $user,
+        string $client_name,
         SolicitudAsignacion $solicitud,
         String $responsible_signature = ''
     ) {
@@ -27,15 +30,17 @@ class ActaHelperService
         // Placeholder logic
 
 
-        $subdir = "/actas/documents/acta-entrega/";
+        $subdir = self::getActasSubdir($client_name);
 
-        $filename = $solicitud->n_solicitud . "_acta_entrega.pdf";
+        $filename = date('YmdHis') . '_' . $solicitud->n_solicitud . "_acta_entrega.pdf";
 
         $path = $subdir . $filename;
 
-        $dir = storage_path('app') . $subdir;
 
 
+        $storage_path = self::getActasPath();
+
+        $dir = $storage_path . $subdir;
 
         if (!File::exists($dir)) {
             File::makeDirectory($dir, 0777, true, true);
@@ -86,33 +91,19 @@ class ActaHelperService
         $_fecha = \Carbon\Carbon::parse($solicitud->fecha_mov)->format('d/m/Y');
 
 
-        $_nombre_entregador = $responsable->name;
-        $_rut_entregador = format_chilean_rut($responsable->rut);
+        $_nombre_entregador = $user->name;
+        $_rut_entregador = format_chilean_rut($user->rut);
+        $cargo_receptor = 'Encargado';
 
 
-        $_nombre_receptor = $user->name;
-        $_rut_receptor = format_chilean_rut($user->rut);
-        $cargo_receptor = 'Quien Entrega';
+        $_nombre_receptor = $responsable->name;
+        $_rut_receptor = format_chilean_rut($responsable->rut);
+        $cargo_receptor = 'Responsable';
 
         $_observaciones = [
             'Sin observaciones',
             'Con observaciones',
         ];
-
-
-
-
-
-        foreach ($_bienes as $key => $bien) {
-
-            $qr = QRCode::getMinimumQRCode($bien['serie'], QR_ERROR_CORRECT_LEVEL_L);
-
-            $im = $qr->createImage(2, 4);
-
-            $_bienes[$key]['qr'] = $dir . $bien['serie'] . ".png";
-
-            imagepng($im, $_bienes[$key]['qr']);
-        }
 
 
 
@@ -151,6 +142,23 @@ class ActaHelperService
 
         $acta->setLogo(public_path('img/logo-safin.png'));
 
+        $_txt_parte1 = ', mediante el presente documento se realiza la entrega formal del o los siguiente(s) activos VER ANEXO DE BIENES ASIGNADOS al Responsable: ';
+        $_txt_parte2 = ', para el cumplimiento de las actividades laborales, quién declara recepción de los mismos en buen estado';
+        $_txt_parte3 = 'y se compromete a cuidar de los recursos y hacer uso de ellos para los fines establecidos.';
+        $_txt_parte4 = 'Detalle de la responsabilidad sobre estos activos estará incluida en Reglamento interno y/o contrato de trabajo (Anexo).';
+        $_txt_pdf_equipo_asignando = 'En anexos detalles de los bienes asignados';
+        $_txt_pdf_observaciones = 'En anexos detalles de los bienes asignados';
+        $_txt_pdf_entrega = 'En anexos detalles de los bienes asignados';
+
+        $acta->setTxtParte1($_txt_parte1);
+        $acta->setTxtParte2($_txt_parte2);
+        $acta->setTxtParte3($_txt_parte3);
+        $acta->setTxtParte4($_txt_parte4);
+        $acta->setTxtPDFEquipoAsigando($_txt_pdf_equipo_asignando);
+        $acta->setTxtPDFObservaciones($_txt_pdf_observaciones);
+        $acta->setTxtPDFEntrega($_txt_pdf_entrega);
+
+
         $acta->setNumero($_numero);
         $acta->setDireccion($_direccion);
         $acta->setComuna($_comuna);
@@ -181,8 +189,17 @@ class ActaHelperService
 
 
 
+        //remove chunks
+        foreach ($_bienes as $bien) {
+            if (file_exists($bien['qr']))
+                unlink($bien['qr']);
+        }
 
+        if (!empty($path_quien_entrega) && file_exists($path_quien_entrega))
+            unlink($path_quien_entrega);
 
+        if (!empty($path_quien_recive) && file_exists($path_quien_recive))
+            unlink($path_quien_recive);
 
 
 
@@ -197,5 +214,25 @@ class ActaHelperService
     {
         $solicitud->acta = json_encode($doctos);
         $solicitud->save();
+    }
+
+    public static function getActasPath(): string
+    {
+        $disk = Storage::disk('taxo');
+
+        $adapter = $disk->getAdapter(); // Get the adapter for the disk
+
+        $storage_path = $adapter->getPathPrefix();
+
+        if (substr($storage_path, -1) === '/' || substr($storage_path, -1) === '\\') {
+            $storage_path = substr($storage_path, 0, -1);
+        }
+
+        return $storage_path;
+    }
+
+    public static function getActasSubdir(string $client_name): string
+    {
+        return "/documents/" . $client_name . "/acta-entrega/";
     }
 }

@@ -62,7 +62,7 @@ class AssignResponsibleController extends Controller
             ]);
 
             CrudActivo::whereIn('etiqueta', $request->etiquetas)
-                ->where('tipoCambio', '=', '0')
+                ->whereIn('tipoCambio', ['0', '500'])
                 ->where('responsableN1', '=', '0')
                 ->update(['tipoCambio' => 500, 'usuario' => $username, 'idActa' => $solicitud->n_solicitud]);
 
@@ -88,7 +88,7 @@ class AssignResponsibleController extends Controller
 
 
     /**
-     * Assign tags to responsible.
+     * Send blank document to possible responsible and user.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
@@ -151,7 +151,13 @@ class AssignResponsibleController extends Controller
 
 
 
-        $path = $actaHelper->createActa($assets, $responsable, $sc_user, $solicitud);
+        $path = $actaHelper->createActa(
+            $assets,
+            $responsable,
+            $sc_user,
+            $request->user()->nombre_cliente,
+            $solicitud
+        );
 
 
         $mail = Mail::to([$responsable->mail]);
@@ -189,6 +195,7 @@ class AssignResponsibleController extends Controller
         $request->validate([
 
             'etiquetas'             => 'required|array',
+            'no_match_address'             => 'sometimes|array',
             'responsible_id'        => 'required|exists:responsables,idResponsable',
 
             'responsible_signature' => [
@@ -230,7 +237,7 @@ class AssignResponsibleController extends Controller
 
         $assets = CrudActivo::whereIn('etiqueta', $request->etiquetas)->where('idActa', '=', $solicitud->n_solicitud)->get();
 
-        
+
 
         if (!$assets || $assets->count() === 0) {
             return response()->json([
@@ -262,7 +269,14 @@ class AssignResponsibleController extends Controller
 
 
 
-            $path = $actaHelper->createActa($assets, $responsable, $sc_user, $solicitud, $request->responsible_signature);
+            $path = $actaHelper->createActa(
+                $assets,
+                $responsable,
+                $sc_user,
+                $request->user()->nombre_cliente,
+                $solicitud,
+                $request->responsible_signature
+            );
 
             //Solicitud Asignación Completada
             $solicitud->acta = $path;
@@ -285,9 +299,9 @@ class AssignResponsibleController extends Controller
 
                 $namefile = $key . "_" . date('YmdHis') . "_" . $namefile . "." . $extension;
 
-                $subdir = "/documents/acta-entrega/";
 
-                $path = $file->storeAs('actas/documents/acta-entrega', $namefile, 'local'); // Save files to 'storage/app/actas'
+
+                $path = $file->storeAs(ActaHelperService::getActasSubdir($request->user()->nombre_cliente), $namefile, 'taxo');
 
                 $doctos[] = "/" . $path;
             }
@@ -327,8 +341,14 @@ class AssignResponsibleController extends Controller
             $mail->cc([$sc_user->email]);
         }
 
+        $observaciones = [];
 
-        $mail->send(new AssignResponsibleMail($solicitud, $doctos));
+        if ($request->no_match_address && !empty($request->no_match_address)) {
+            $observaciones[] = "Etiquetas correspondientes a otra ubicación: " . implode(',', $request->no_match_address);
+        }
+
+
+        $mail->send(new AssignResponsibleMail($solicitud, $doctos, $observaciones));
 
         return response()->json(
             [

@@ -9,9 +9,17 @@ Se informa que el proceso ha sido completado exitosamente, se ha adjuntado en es
 
 Cualquier duda no dude en comunicarse con nosotros.
 
-N° de Solicitud Asignación <strong>{{$solicitud->n_solicitud}}</strong>
+N° de Solicitud Asignación: <strong>{{$solicitud->n_solicitud}}</strong>
 
+@if(!empty($observaciones))
+Observaciones:
 
+@foreach ($observaciones as $observacion)
+    {{$observacion}}
+
+@endforeach
+
+@endif
 
 
 
