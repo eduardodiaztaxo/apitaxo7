@@ -159,7 +159,6 @@ class LoginController extends Controller
                 'User' => $user->name,
                 'email' => $user->email,
                 'token' => $token->plainTextToken,
-                'base' => $user->conn_field,
                 'expires_at' => $token->accessToken->expires_at,
                 'permissions' => $formattedPermissions,
                 'message' => 'Success'
