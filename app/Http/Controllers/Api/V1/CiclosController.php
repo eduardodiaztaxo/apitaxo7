@@ -31,8 +31,9 @@ class CiclosController extends Controller
         $ciclos_ids = InvCicloUser::where('usuario', $username)->get()->pluck('ciclo_id');
 
 
-        //no tomar cerrados
-        $inventarios = InvCiclo::where('estadoCiclo', '<>', 3)->whereIn('idCiclo', $ciclos_ids->toArray())->get();
+        //solo aceptar en ejecucion
+        $inventarios = InvCiclo::where('estadoCiclo', '=', 1)->whereIn('idCiclo', $ciclos_ids->toArray())->get();
+        // $inventarios = InvCiclo::where('estadoCiclo', '<>', 3)->whereIn('idCiclo', $ciclos_ids->toArray())->get();
 
 
 
