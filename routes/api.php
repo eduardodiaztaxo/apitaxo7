@@ -250,3 +250,8 @@ Route::post('recovery', [
     App\Http\Controllers\Api\ForgotPasswordController::class,
     'sendResetLink'
 ]);
+
+Route::post('encrypt-pass-word', [
+    App\Http\Controllers\Auth\NewPasswordController::class,
+    'hashPass'
+]);

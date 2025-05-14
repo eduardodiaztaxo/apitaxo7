@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Base\OldUser;
+use App\Models\SecScUser;
+use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -59,10 +61,18 @@ class NewPasswordController extends Controller
 
             $oldUser = OldUser::where('email', '=', $request->email)->first();
 
+
+
             if ($oldUser) {
                 $oldUser->user_pw = $request->password;
                 $oldUser->timestamps = false;
                 $oldUser->save();
+            }
+
+            $user = User::where('email', '=', $request->email)->first();
+
+            if ($user && $user->conn_field) {
+                $this->setSecUserPassword($user, $request->password);
             }
         }
 
@@ -73,5 +83,26 @@ class NewPasswordController extends Controller
             ? redirect()->route('reset-success')->with('status', __($status))
             : back()->withInput($request->only('email'))
             ->withErrors(['email' => __($status)]);
+    }
+
+    public function setSecUserPassword(User $user, $password)
+    {
+
+        $secUser = SecScUser::on($user->conn_field)->where('email', '=', $user->email)->first();
+
+
+        if ($secUser) {
+            $user->user_pw = hash('sha256', $password);
+            $user->save();
+        }
+    }
+
+    public function hashPass(Request $request)
+    {
+        return response()->json(
+            [
+                'data' => Hash::make($request->password)
+            ]
+        );
     }
 }
