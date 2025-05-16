@@ -13,5 +13,9 @@ class SecScUser extends Model
 
     protected $primaryKey = 'login';
 
+    protected $fillable = [
+        'pswd',
+    ];
+
     public $timestamps = false;
 }

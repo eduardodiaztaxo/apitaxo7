@@ -92,8 +92,8 @@ class NewPasswordController extends Controller
 
 
         if ($secUser) {
-            $user->user_pw = hash('sha256', $password);
-            $user->save();
+            $secUser->pswd = hash('sha256', $password);
+            $secUser->save();
         }
     }
 
