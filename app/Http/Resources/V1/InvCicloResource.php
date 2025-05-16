@@ -17,7 +17,7 @@ class InvCicloResource extends JsonResource
     {
         // Obtener la descripción del estado desde la tabla `estados`
         $estadoDescripcion = CiclosEstados::where('id_estado', $this->estadoCiclo)->value('descripcion');
-        $numAudith = InvConteoRegistro::Where('ciclo_id', $this->idCiclo)->where('status', 1)->count();
+        $numAudith = InvConteoRegistro::Where('ciclo_id', $this->idCiclo)->where('audit_status', 1)->count();
 
         return [
             'idCiclo'       => $this->idCiclo,
