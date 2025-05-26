@@ -4,6 +4,7 @@ namespace App\Http\Resources\V1;
 use Illuminate\Support\Facades\DB;
 use App\Http\Resources\V1\CrudActivoLiteResource;
 use App\Models\InvConteoRegistro;
+use App\Models\Inv_ciclos_categorias;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
 
@@ -17,6 +18,7 @@ class EmplazamientoResource extends JsonResource
      */
     public function toArray($request)
     {
+    
         $activosCollection = $this->activos()
         ->select(
             'etiqueta',
@@ -76,18 +78,18 @@ class EmplazamientoResource extends JsonResource
                 'fotoUrl' => $firstImageUrl,
             ];
         });
-    
+     
         $emplazamiento = [
             'id' => $this->idUbicacionN2,
             'codigo' => $this->codigo,
             'codigoUbicacion' => $this->codigoUbicacion,
             'nombre' => $this->descripcionUbicacion,
             'idAgenda' => $this->idAgenda,
-            'idUbicacionN2' => $this->idUbicacionN2,
-            'num_activos' => $activosCollection->count() + $activosInventario->count(),  
+            'idUbicacionN2' => $this->idUbicacionN2, 
             'num_activos_cats_by_cycle' => 0,
             'ciclo_auditoria' => $this->ciclo_auditoria,
             'num_categorias' => $this->activos()->select('categoriaN3')->groupBy('categoriaN3')->get()->count(),
+            'id_ciclo' => $this->cycle_id,
             'zone_address' => ZonaPuntoResource::make($this->zonaPunto()->first())
         ];
     
@@ -95,13 +97,28 @@ class EmplazamientoResource extends JsonResource
             $emplazamiento['ubicacionPunto'] = UbicacionGeograficaResource::make($this->ubicacionPunto()->first());
         }
         if (isset($this->requireActivos) && $this->requireActivos) {
+       
+        $categorias = Inv_ciclos_categorias::where('idCiclo', $this->cycle_id)
+            ->pluck('id_grupo')
+            ->unique()
+            ->values()
+            ->toArray();
+
             if (isset($this->cycle_id) && $this->cycle_id) {
-                $emplazamiento['activos'] = CrudActivoLiteResource::collection($this->activos_with_cats_by_cycle($this->cycle_id)->get());
+                $emplazamiento['activos'] = CrudActivoLiteResource::collection($this->activos_with_cats_by_cycle($this->cycle_id)
+               ->whereIn('crud_activos.id_grupo', $categorias)
+                ->get());
+                $emplazamiento['num_activos'] = count($emplazamiento['activos']);
             } else {
-                $activosCollectionArray = CrudActivoLiteResource::collection($activosCollection)->toArray(request());
-                $emplazamiento['activos'] = array_merge($activosCollectionArray, $activosInventario->toArray());
+                $activosCollectionFiltrados = $activosCollection->whereIn('id_grupo', $categorias);
+                $activosInventarioFiltrados = $activosInventario->whereIn('id_grupo', $categorias);
+
+                $activosCollectionArray = CrudActivoLiteResource::collection($activosCollectionFiltrados)->toArray(request());
+                $emplazamiento['activos'] = array_merge($activosCollectionArray, CrudActivoLiteResource::collection($activosInventarioFiltrados)->toArray(request()));
+                $emplazamiento['num_activos'] = count($emplazamiento['activos']);
             }
-        }
+}
+
         if (isset($this->cycle_id) && $this->cycle_id) {
             $emplazamiento['num_activos_audit'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
                 ->where('status', '=', '1')

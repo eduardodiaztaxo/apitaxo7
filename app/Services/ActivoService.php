@@ -70,14 +70,18 @@ class ActivoService
         }
     
 
-    protected function urlCheck($url)
-    {
-
-        @$headers = get_headers($url);
+protected function urlCheck($url)
+{
+    @$headers = get_headers($url);
+    
+    if ($headers && is_array($headers) && isset($headers[0])) {
         if (preg_match('/^HTTP\/\d\.\d\s+(200|301|302)/', $headers[0])) {
             return true;
-        } else return false;
+        }
     }
+    
+    return false;
+}
 
     /**
      * Gets labels by place and cycle cats

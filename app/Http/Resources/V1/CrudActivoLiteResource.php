@@ -30,6 +30,7 @@ class CrudActivoLiteResource extends JsonResource
      */
     public function toArray($request)
     {
+        
         $marcaResult = [];
         if (!empty($this->marca) && !empty($this->id_familia)) {
             $marcaResult = DB::select("SELECT descripcion 
@@ -53,6 +54,32 @@ class CrudActivoLiteResource extends JsonResource
         $activo['modelo'] = $this->modelo;
         $activo['serie'] = $this->serie;
         $activo['marca'] = !empty($marcaResult) ? $marcaResult[0]->descripcion : ''; 
+       
+        $activo['ubicacionOrganicaN2'] = $this->ubicacionOrganicaN2;
+        $auditStatus = DB::table('inv_conteo_registro')
+        ->where('etiqueta', $this->etiqueta)
+        ->where('cod_emplazamiento', $this->ubicacionOrganicaN2)
+        ->value('status');
+
+    // cod_emplazamiento en null
+    if (is_null($auditStatus)) {
+        $auditStatus = DB::table('inv_conteo_registro')
+            ->where('etiqueta', $this->etiqueta)
+            ->value('status');
+    }
+
+    $activo['audit_status'] = $auditStatus ?? null;
+
+        $statusDescriptions = [
+        1 => 'coincidente',
+        2 => 'faltante',
+        3 => 'sobrante',
+        ];
+
+        $activo['audit_status_name'] = $auditStatus && isset($statusDescriptions[$auditStatus])
+        ? $statusDescriptions[$auditStatus]
+        : null;
+
 
         $activo['descripcionCategoria'] = $this->categoria ? $this->categoria->descripcionCategoria : '';
 
