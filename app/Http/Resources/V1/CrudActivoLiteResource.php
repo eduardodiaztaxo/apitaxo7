@@ -61,7 +61,7 @@ class CrudActivoLiteResource extends JsonResource
         ->where('cod_emplazamiento', $this->ubicacionOrganicaN2)
         ->value('status');
 
-    // cod_emplazamiento en null
+  
     if (is_null($auditStatus)) {
         $auditStatus = DB::table('inv_conteo_registro')
             ->where('etiqueta', $this->etiqueta)
