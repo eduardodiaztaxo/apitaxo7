@@ -171,4 +171,10 @@ class InvCiclo extends Model
 
         return $queryBuilder;
     }
+
+
+    public function dump()
+    {
+        return $this->hasMany(DbAuditsDump::class, 'cycle_id', 'idCiclo');
+    }
 }

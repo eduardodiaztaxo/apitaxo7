@@ -75,7 +75,12 @@ class ExportAuditCycleSQLiteDatabase extends Command
 
         DB::setDefaultConnection($conn_field);
 
-        $sqlitePath = storage_path('app/db-dumps/' . $conn_field . '/output_audit_cycle_' . $this->cycle . '_database.db');
+        $relativePath = 'app/db-dumps/' . $conn_field . '/output_audit_cycle_' . $this->cycle . '_database.db';
+
+        $relativeZipPath = str_replace('.db', '.zip', $relativePath);
+
+
+        $sqlitePath = storage_path($relativePath);
 
         $pdoServ = new SQLiteConnService(
             $sqlitePath
@@ -103,6 +108,24 @@ class ExportAuditCycleSQLiteDatabase extends Command
         $this->output->getFormatter()->setStyle('success', $style);
 
         $this->output->writeln('<success>SQLite DB created successfully</success>');
+
+
+
+        $zipServ = new \App\Services\Dump\SQLiteZipService($sqlitePath);
+        $zipServ->createZipArchive();
+
+
+        DB::delete('DELETE FROM db_audits_dumps 
+        WHERE cycle_id = ? AND `status` = ? ', [$this->cycle, 1]);
+
+        DB::insert('INSERT INTO db_audits_dumps (
+            `status`, 
+            `cycle_id`, 
+            `path`, 
+            `updated_at`, 
+            `created_at`) VALUES (?, ?, ?, ?, ?)', [1, $this->cycle, $relativeZipPath, now(), now()]);
+
+        $this->output->writeln('<success>SQLite DB zipped successfully: ' . $relativeZipPath . '</success>');
 
         return 0;
     }
