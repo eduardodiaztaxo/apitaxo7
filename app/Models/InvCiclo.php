@@ -83,6 +83,26 @@ class InvCiclo extends Model
         return collect(DB::select($sql, [$this->idCiclo, $zona->idAgenda, $zona->codigoUbicacion]));
     }
 
+
+    public function emplazamientos_with_cats()
+    {
+
+        $queryBuilder = Emplazamiento::select('ubicaciones_n2.*')
+            ->distinct()
+            ->join('inv_ciclos_puntos', 'ubicaciones_n2.idAgenda', 'inv_ciclos_puntos.idPunto')
+            ->join('inv_ciclos', 'inv_ciclos.idCiclo', '=', 'inv_ciclos_puntos.idCiclo')
+            ->join('crud_activos', 'inv_ciclos_puntos.idPunto', 'crud_activos.ubicacionGeografica')
+            ->join('inv_ciclos_categorias', function (JoinClause $join) {
+                $join->on('inv_ciclos.idCiclo', '=', 'inv_ciclos_categorias.idCiclo')
+                    ->on('crud_activos.id_familia', '=', 'inv_ciclos_categorias.id_familia');
+            })
+            ->where('inv_ciclos.idCiclo', '=', $this->idCiclo);
+
+
+
+        return $queryBuilder;
+    }
+
     /**
      * Gets Category IDs By Cycle
      * 
