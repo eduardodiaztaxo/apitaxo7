@@ -116,7 +116,7 @@ class EmplazamientoController extends Controller
      * @param  int  $emplazamiento_id
      * @return \Illuminate\Http\Response
      */
-    public function show(int $emplazamiento)
+    public function show(int $emplazamiento, int $ciclo)
     {
 
         $emplaObj = Emplazamiento::find($emplazamiento);
@@ -128,6 +128,8 @@ class EmplazamientoController extends Controller
         $emplaObj->requirePunto = 1;
 
         $emplaObj->requireActivos = 1;
+    
+        $emplaObj->cycle_id = $ciclo;
 
         $resource = EmplazamientoResource::make($emplaObj);
 
