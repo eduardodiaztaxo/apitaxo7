@@ -118,7 +118,7 @@ class UbicacionGeograficaResource extends JsonResource
                 ->count();
 
             }
-          
+          //
 
             if (isset($this->requireActivos) && $this->requireActivos) {
                 $address['activos'] = CrudActivoLiteResource::collection($this->activos_with_cats_by_cycle($this->cycle_id)->get());
