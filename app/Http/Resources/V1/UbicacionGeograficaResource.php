@@ -107,16 +107,14 @@ class UbicacionGeograficaResource extends JsonResource
             if($auditoria_general == 1){
 
                 $address['num_activos_audit'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
-                    ->where('status', '=', '1')
                     ->where('punto_id', '=', $this->idUbicacionGeo)
-                    ->where('audit_status', '=', '1')
+                    ->whereIn('audit_status', [1, 3])
                     ->count();
 
             }else{
                 $address['num_activos_audit'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
-                ->where('status', '=', '1')
                 ->where('punto_id', '=', $this->idUbicacionGeo)
-                ->where('audit_status', '=', '1')
+                ->whereIn('audit_status', [1, 3])
                 ->count();
 
             }

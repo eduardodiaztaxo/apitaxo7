@@ -18,7 +18,8 @@ class InvCicloResource extends JsonResource
         // Obtener la descripción del estado desde la tabla `estados`
         $estadoDescripcion = CiclosEstados::where('id_estado', $this->estadoCiclo)->value('descripcion');
         $numAudith = InvConteoRegistro::Where('ciclo_id', $this->idCiclo)->where('audit_status', 1)->count();
-
+        $numAudithSobrante = InvConteoRegistro::Where('ciclo_id', $this->idCiclo)->where('audit_status', 3)->count();
+        $numAudithFaltante = InvConteoRegistro::Where('ciclo_id', $this->idCiclo)->where('audit_status', 2)->count();
         return [
             'idCiclo'       => $this->idCiclo,
             'status'        => $this->estadoCiclo,
@@ -30,6 +31,8 @@ class InvCicloResource extends JsonResource
             'assets_cycle' => $this->activos_with_cats()->count() + $this->activos_with_cats_inv()->count(),            'assets_count'  => $this->audit_activos_address_cats()->count(), // activos auditados
             'puntos_count'  => $this->puntos()->count(), // direcciones
             'audith_count'  => $numAudith, //total de auditados
+            'audith_sobrante'  => $numAudithSobrante, //total de auditados
+            'audith_faltante'  => $numAudithFaltante, //total de auditados
         ];
     }
     
