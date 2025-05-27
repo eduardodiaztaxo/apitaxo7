@@ -121,9 +121,8 @@ class EmplazamientoResource extends JsonResource
 
         if (isset($this->cycle_id) && $this->cycle_id) {
             $emplazamiento['num_activos_audit'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
-                ->where('status', '=', '1')
                 ->where('cod_emplazamiento', '=', $this->codigoUbicacion)
-                ->where('audit_status', '=', '1')
+                ->whereIn('audit_status', [1, 3])
                 ->count();
             $emplazamiento['num_activos_cats_by_cycle'] = isset($emplazamiento['activos']) ? count($emplazamiento['activos']) : $this->activos_with_cats_by_cycle($this->cycle_id)->count();
         }
