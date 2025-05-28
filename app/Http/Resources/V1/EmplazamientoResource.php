@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Resources\V1;
+
 use Illuminate\Support\Facades\DB;
 use App\Http\Resources\V1\CrudActivoLiteResource;
 use App\Models\InvConteoRegistro;
@@ -18,19 +19,19 @@ class EmplazamientoResource extends JsonResource
      */
     public function toArray($request)
     {
-    
+
         $activosCollection = $this->activos()
-        ->select(
-            'etiqueta',
-            'categoriaN3',
-            'id_familia',
-            'nombreActivo',
-            'idIndice',
-            DB::raw("COALESCE(crud_activos_foto_docto.foto_1, 'https://api.taxochile.cl/img/notavailable.jpg') AS foto4")
-        )
-        ->leftJoin('crud_activos_foto_docto', 'crud_activos_foto_docto.idActivo', '=', 'crud_activos.idActivo')
-        ->get();
-    
+            ->select(
+                'etiqueta',
+                'categoriaN3',
+                'id_familia',
+                'nombreActivo',
+                'idIndice',
+                DB::raw("COALESCE(crud_activos_foto_docto.foto_1, 'https://api.taxochile.cl/img/notavailable.jpg') AS foto4")
+            )
+            ->leftJoin('crud_activos_foto_docto', 'crud_activos_foto_docto.idActivo', '=', 'crud_activos.idActivo')
+            ->get();
+
         $activosInventario = DB::table('inv_inventario')
             ->leftJoin('categoria_n3', 'inv_inventario.id_familia', '=', 'categoria_n3.id_familia')
             ->leftJoin('dp_familias', 'inv_inventario.id_familia', '=', 'dp_familias.id_familia')
@@ -46,28 +47,28 @@ class EmplazamientoResource extends JsonResource
                 'inv_imagenes.url_imagen'
             )
             ->get();
-        
-            $activosInventario = $activosInventario->map(function ($activo) {
-                $firstImageUrl = "https://api.taxochile.cl/img/notavailable.jpg"; // URL por defecto
-            
-                if (!empty($activo->url_imagen)) {
-        
-                    $folderPath = str_replace('http://apitaxo7.cl/storage/', '', $activo->url_imagen);
-                    $localFolderPath = public_path('storage/' . $folderPath);
-            
-                    if (is_dir($localFolderPath)) {
-                        $files = scandir($localFolderPath);
-            
-                        $imageFiles = array_filter($files, function ($file) {
-                            return in_array(strtolower(pathinfo($file, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png']);
-                        });
-            
-                        if (!empty($imageFiles)) {
-                            $firstImageUrl = asset('storage/' . $folderPath . '/' . reset($imageFiles));
-                        }
+
+        $activosInventario = $activosInventario->map(function ($activo) {
+            $firstImageUrl = "https://api.taxochile.cl/img/notavailable.jpg"; // URL por defecto
+
+            if (!empty($activo->url_imagen)) {
+
+                $folderPath = str_replace('http://apitaxo7.cl/storage/', '', $activo->url_imagen);
+                $localFolderPath = public_path('storage/' . $folderPath);
+
+                if (is_dir($localFolderPath)) {
+                    $files = scandir($localFolderPath);
+
+                    $imageFiles = array_filter($files, function ($file) {
+                        return in_array(strtolower(pathinfo($file, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png']);
+                    });
+
+                    if (!empty($imageFiles)) {
+                        $firstImageUrl = asset('storage/' . $folderPath . '/' . reset($imageFiles));
                     }
                 }
-        
+            }
+
             return [
                 'etiqueta' => $activo->etiqueta,
                 'categoriaN3' => $activo->codigoCategoria,
@@ -78,36 +79,37 @@ class EmplazamientoResource extends JsonResource
                 'fotoUrl' => $firstImageUrl,
             ];
         });
-     
+
         $emplazamiento = [
             'id' => $this->idUbicacionN2,
             'codigo' => $this->codigo,
             'codigoUbicacion' => $this->codigoUbicacion,
             'nombre' => $this->descripcionUbicacion,
             'idAgenda' => $this->idAgenda,
-            'idUbicacionN2' => $this->idUbicacionN2, 
+            'idUbicacionN2' => $this->idUbicacionN2,
+            'num_activos' => 0,
             'num_activos_cats_by_cycle' => 0,
             'ciclo_auditoria' => $this->ciclo_auditoria,
             'num_categorias' => $this->activos()->select('categoriaN3')->groupBy('categoriaN3')->get()->count(),
             'id_ciclo' => $this->cycle_id,
             'zone_address' => ZonaPuntoResource::make($this->zonaPunto()->first())
         ];
-    
+
         if (isset($this->requirePunto) && $this->requirePunto) {
             $emplazamiento['ubicacionPunto'] = UbicacionGeograficaResource::make($this->ubicacionPunto()->first());
         }
         if (isset($this->requireActivos) && $this->requireActivos) {
-       
-        $categorias = Inv_ciclos_categorias::where('idCiclo', $this->cycle_id)
-            ->pluck('id_grupo')
-            ->unique()
-            ->values()
-            ->toArray();
+
+            $categorias = Inv_ciclos_categorias::where('idCiclo', $this->cycle_id)
+                ->pluck('id_grupo')
+                ->unique()
+                ->values()
+                ->toArray();
 
             if (isset($this->cycle_id) && $this->cycle_id) {
                 $emplazamiento['activos'] = CrudActivoLiteResource::collection($this->activos_with_cats_by_cycle($this->cycle_id)
-               ->whereIn('crud_activos.id_grupo', $categorias)
-                ->get());
+                    ->whereIn('crud_activos.id_grupo', $categorias)
+                    ->get());
                 $emplazamiento['num_activos'] = count($emplazamiento['activos']);
             } else {
                 $activosCollectionFiltrados = $activosCollection->whereIn('id_grupo', $categorias);
@@ -117,7 +119,7 @@ class EmplazamientoResource extends JsonResource
                 $emplazamiento['activos'] = array_merge($activosCollectionArray, CrudActivoLiteResource::collection($activosInventarioFiltrados)->toArray(request()));
                 $emplazamiento['num_activos'] = count($emplazamiento['activos']);
             }
-}
+        }
 
         if (isset($this->cycle_id) && $this->cycle_id) {
             $emplazamiento['num_activos_audit'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
@@ -126,7 +128,7 @@ class EmplazamientoResource extends JsonResource
                 ->count();
             $emplazamiento['num_activos_cats_by_cycle'] = isset($emplazamiento['activos']) ? count($emplazamiento['activos']) : $this->activos_with_cats_by_cycle($this->cycle_id)->count();
         }
-    
+
         return $emplazamiento;
     }
-}    
+}
