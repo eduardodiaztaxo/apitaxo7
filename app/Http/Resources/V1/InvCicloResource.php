@@ -5,6 +5,7 @@ namespace App\Http\Resources\V1;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Models\CiclosEstados;
 use App\Models\InvConteoRegistro;
+
 class InvCicloResource extends JsonResource
 {
     /**
@@ -28,12 +29,13 @@ class InvCicloResource extends JsonResource
             'title'         => $this->descripcion,
             'date'          => $this->fechaInicio,
             'date_end'      => $this->fechaTermino,
-            'assets_cycle' => $this->activos_with_cats()->count() + $this->activos_with_cats_inv()->count(),            'assets_count'  => $this->audit_activos_address_cats()->count(), // activos auditados
+            'assets_cycle' => $this->activos_with_cats()->count() + $this->activos_with_cats_inv()->count(),
+            'assets_count'  => $this->audit_activos_address_cats()->count(), // activos auditados
             'puntos_count'  => $this->puntos()->count(), // direcciones
             'audith_count'  => $numAudith, //total de auditados
             'audith_sobrante'  => $numAudithSobrante, //total de auditados
             'audith_faltante'  => $numAudithFaltante, //total de auditados
+            'offline_db'    => $this->dump()->count()
         ];
     }
-    
 }

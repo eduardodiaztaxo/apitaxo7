@@ -144,6 +144,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('ciclos/{ciclo}', [CiclosController::class, 'show']);
 
+    Route::get('ciclos/{ciclo}/download', [CiclosController::class, 'download']);
+
     Route::get('ciclos-by-user', [CiclosController::class, 'indexByUser']);
 
     Route::get('ciclos/{ciclo}/puntos', [CiclosUbicacionesController::class, 'show']);
@@ -157,6 +159,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('zones/{zona}/emplazamientos', [ZonaEmplazamientosController::class, 'show'])->middleware('roles.permissions:emplazamiento,edit');
 
     Route::get('ciclos/{ciclo}/zones/{zona}/emplazamientos', [ZonaEmplazamientosController::class, 'showByCycleCats']);
+
+    Route::get('ciclos/{ciclo}/emplazamientos', [ZonaEmplazamientosController::class, 'showAllEmplaByCycleCats']);
 
     Route::get('ciclos/{ciclo}/zones/{zona}', [ZonaController::class, 'showByCycleCats']);
 

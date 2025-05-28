@@ -14,11 +14,12 @@ class CiclosController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * 
      */
     public function index()
     {
         //
+
         return InvCicloResource::collection(InvCiclo::all());
     }
 
@@ -81,6 +82,30 @@ class CiclosController extends Controller
 
 
         return response()->json(InvCicloResource::make($cicloObj), 200);
+    }
+
+    public function download(Request $request, $ciclo)
+    {
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json(['status' => 'error', 'message' => 'Not Found', 'code' => 404], 404);
+        }
+
+        $dump = $cicloObj->dump()->get()->last();
+
+        if (!$dump) {
+            return response()->json(['status' => 'error', 'message' => 'Dump not found', 'code' => 404], 404);
+        }
+
+        return response()->download(
+            storage_path($dump->path),
+            basename($dump->path),
+            [
+                'Content-Type' => 'application/octet-stream',
+                'Content-Disposition' => 'attachment; filename="' . basename($dump->path) . '"'
+            ]
+        );
     }
 
     /**

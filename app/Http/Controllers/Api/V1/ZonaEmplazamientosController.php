@@ -50,19 +50,19 @@ class ZonaEmplazamientosController extends Controller
     public function show(Request $request, int $zona)
     {
         $zonaObj = ZonaPunto::find($zona);
-    
+
         if (!$zonaObj) {
             return response()->json(['status' => 'NOK', 'code' => 404], 404);
         }
-    
+
         $emplazamientos = $zonaObj->emplazamientos()->get();
-    
+
         return response()->json([
             'message' => $request->get('middleware_message'),
             'data' => EmplazamientoResource::collection($emplazamientos)
         ], 200);
     }
-    
+
 
     public function showByCycleCats(Request $request, int $ciclo, int $zona)
     {
@@ -88,11 +88,36 @@ class ZonaEmplazamientosController extends Controller
 
 
         if (empty($emplaCats)) {
-            $emplazamientos = $zonaObj->emplazamientos()->get(); 
+            $emplazamientos = $zonaObj->emplazamientos()->get();
         } else {
             $emplazamientos = $zonaObj->emplazamientos()->whereIn('idUbicacionN2', $emplaCats)->get();
         }
-        
+
+        foreach ($emplazamientos as $emplazamiento) {
+            $emplazamiento->cycle_id = $ciclo;
+        }
+
+
+        return response()->json(EmplazamientoResource::collection($emplazamientos), 200);
+    }
+
+
+    public function showAllEmplaByCycleCats(Request $request, int $ciclo)
+    {
+
+
+
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json(['status' => 'NOK', 'message' => 'Ciclo no encontrado', 'code' => 404], 404);
+        }
+
+
+
+        $emplazamientos = $cicloObj->emplazamientos_with_cats()->get();
+
+
         foreach ($emplazamientos as $emplazamiento) {
             $emplazamiento->cycle_id = $ciclo;
         }
