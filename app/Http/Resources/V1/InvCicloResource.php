@@ -32,6 +32,7 @@ class InvCicloResource extends JsonResource
             'assets_count'  => $this->audit_activos_address_cats()->count(), // activos auditados
             'puntos_count'  => $this->puntos()->count(), // direcciones
             'audith_count'  => $numAudith, //total de auditados
+            'offline_db'    => $this->dump()->count()
         ];
     }
 }
