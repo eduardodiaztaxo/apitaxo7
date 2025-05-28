@@ -17,37 +17,34 @@ class UbicacionGeograficaResource extends JsonResource
      * @param  \Illuminate\Http\Request  $request
      * @return array|\Illuminate\Contracts\Support\Arrayable|\JsonSerializable
      */
-    public function toArray($request)
-    {
-        if (
-            isset($this->zonas_cats) && is_array($this->zonas_cats) &&
-            isset($this->cycle_id) && $this->cycle_id
-        ) {
+   public function toArray($request)
+{
+    if (
+        isset($this->zonas_cats) && is_array($this->zonas_cats) &&
+        isset($this->cycle_id) && $this->cycle_id
+    ) {
+        $zones = $this->zonasPunto()->whereIn('codigoUbicacion', $this->zonas_cats)->get();
 
-            $zones = $this->zonasPunto()->whereIn('codigoUbicacion', $this->zonas_cats)->get();
-
-            foreach ($zones as $zone) {
-                $zone->cycle_id = $this->cycle_id;
-            }
-
-            $zonas_punto = ZonaPuntoResource::collection(
-                $zones
-            );
-        } else if (isset($this->requireZonas) && $this->requireZonas) {
-
-            $zones = $this->zonasPunto()->get();
-
-            foreach ($zones as $zone) {
-                $zone->cycle_id = $this->cycle_id;
-            }
-            $zonas_punto = ZonaPuntoResource::collection($zones);
-        } else {
-            $zonas_punto = [];
+        foreach ($zones as $zone) {
+            $zone->cycle_id = $this->cycle_id;
         }
 
-        $user = Auth::user();
+        $zonas_punto = ZonaPuntoResource::collection($zones);
+    } elseif (isset($this->requireZonas) && $this->requireZonas) {
+        $zones = $this->zonasPunto()->get();
 
-        $buscarRelacion = null;
+        foreach ($zones as $zone) {
+            $zone->cycle_id = $this->cycle_id;
+        }
+
+        $zonas_punto = ZonaPuntoResource::collection($zones);
+    } else {
+        $zones = collect(); // vacía
+        $zonas_punto = [];
+    }
+
+    $user = Auth::user();
+    $buscarRelacion = null;
 
         if ($user) {
             $buscarRelacion = CiclosPunto::where('usuario', $user->name)
@@ -109,49 +106,31 @@ class UbicacionGeograficaResource extends JsonResource
             $address['num_subcats_n2_by_cycle'] = $coll->pluck('categoriaN2')->unique()->count();
             $address['num_subcats_n3_by_cycle'] = $coll->pluck('categoriaN3')->unique()->count();
 
-            if ($auditoria_general == 1) {
+            $codigosZona = $zones->pluck('codigoUbicacion')->toArray();
 
                 $address['num_activos_audit'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
                     ->where('punto_id', '=', $this->idUbicacionGeo)
+                    ->whereIn('cod_zona', $codigosZona)
                     ->whereIn('audit_status', [1, 3])
                     ->count();
 
                 $address['num_activos_audit_coincidentes'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
                     ->where('punto_id', '=', $this->idUbicacionGeo)
+                    ->whereIn('cod_zona', $codigosZona)
                     ->where('audit_status', '=', 1)
                     ->count();
 
                 $address['num_activos_audit_sobrantes'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
                     ->where('punto_id', '=', $this->idUbicacionGeo)
+                     ->whereIn('cod_zona', $codigosZona)
                     ->where('audit_status', '=', 3)
                     ->count();
 
                 $address['num_activos_audit_faltantes'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
                     ->where('punto_id', '=', $this->idUbicacionGeo)
+                    ->whereIn('cod_zona', $codigosZona)
                     ->where('audit_status', '=', 2)
                     ->count();
-            } else {
-                $address['num_activos_audit'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
-                    ->where('punto_id', '=', $this->idUbicacionGeo)
-                    ->whereIn('audit_status', [1, 3])
-                    ->count();
-
-                $address['num_activos_audit_coincidentes'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
-                    ->where('punto_id', '=', $this->idUbicacionGeo)
-                    ->where('audit_status', '=', 1)
-                    ->count();
-
-                $address['num_activos_audit_sobrantes'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
-                    ->where('punto_id', '=', $this->idUbicacionGeo)
-                    ->where('audit_status', '=', 3)
-                    ->count();
-
-                $address['num_activos_audit_faltantes'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
-                    ->where('punto_id', '=', $this->idUbicacionGeo)
-                    ->where('audit_status', '=', 2)
-                    ->count();
-            }
-            //
 
             if (isset($this->requireActivos) && $this->requireActivos) {
                 $address['activos'] = CrudActivoLiteResource::collection($this->activos_with_cats_by_cycle($this->cycle_id)->get());
