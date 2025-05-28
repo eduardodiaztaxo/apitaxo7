@@ -1,7 +1,9 @@
 <?php
 
 namespace App\Http\Controllers\Api\V1\Auditoria;
-
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\JoinClause;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Models\Emplazamiento;
 use App\Models\InvCicloPunto;
@@ -10,8 +12,11 @@ use App\Models\ZonaPunto;
 use App\Services\ActivoService;
 use App\Services\AuditLabelsService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Resources\V1\CrudActivoLiteResource;
+use App\Models\InvConteoRegistro;
+use App\Models\Inv_ciclos_categorias;
+use App\Models\CrudActivo;
 
 class InventarioConteoController extends Controller
 {
@@ -200,77 +205,95 @@ class InventarioConteoController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function processConteoByEmplazamientoMultipleUsers(Request $request)
-    {
+public function processConteoByEmplazamientoMultipleUsers(Request $request)
+{
 
-
-        if ($request->items) {
-            $request->merge(['items' => json_encode($request->items)]);
-        }
-
-
-        $request->validate([
-            'items'             => 'required|json',
-            'ciclo_id'          => 'required|integer|exists:inv_ciclos,idCiclo',
-            'emplazamiento_id'  => 'required|integer|exists:ubicaciones_n2,idUbicacionN2',
-        ]);
-
-
-        $empObj = Emplazamiento::find($request->emplazamiento_id);
-
-        $zonaObj = $empObj->zonaPunto;
-
-        $cicloPunto = InvCicloPunto::where('idCiclo', $request->ciclo_id)->where('idPunto', $zonaObj->idAgenda)->first();
-
-        if (!$cicloPunto) {
-            return response()->json([
-                'status' => 'error',
-                'code' => 404,
-                'message' => 'La dirección ' . $zonaObj->idAgenda . ' no está asociada al ciclo '
-            ], 404);
-        }
-
-
-        $items = json_decode($request->items);
-
-        $cicloObj = $cicloPunto->ciclo;
-
-        $etiquetas = ActivoService::getLabelsByCycleAndEmplazamiento($empObj, $cicloObj);
-
-
-        $items = collect($items)->unique();
-
-
-        $processedLabels = DB::table("inv_conteo_registro")
-            ->where('status', '=', 1)
-            ->where('ciclo_id', '=', $request->ciclo_id)
-            ->where('punto_id', '=', $zonaObj->idAgenda)
-            ->where('cod_zona', '=', $zonaObj->codigoUbicacion)
-            ->where('cod_emplazamiento', '=', $empObj->codigoUbicacion)
-            ->get();
-
-
-
-        $auditLabelServ = new AuditLabelsService($items->pluck('etiqueta')->toArray(), $etiquetas->toArray(), $processedLabels);
-
-        $result = $auditLabelServ->processAuditedLabels_Emplazamiento($request->ciclo_id, $zonaObj->idAgenda, $zonaObj->codigoUbicacion, $empObj->codigoUbicacion, $request->user()->id);
-
-
-        if (!empty($result['errors'])) {
-            return response()->json([
-                'status' => 'error',
-                'code' => 404,
-                'errors' => $result['errors'],
-                'message' => 'Error en etiquetas '
-            ], 422);
-        }
-
-        return response()->json([
-            'status' => 'OK',
-            'code'   => 200,
-            'message' => 'successfully processed'
-        ]);
+    if ($request->items && !is_string($request->items)) {
+        $request->merge(['items' => json_encode($request->items)]);
     }
+
+    $request->validate([
+        'items'             => 'required|json',
+        'ciclo_id'          => 'required|integer|exists:inv_ciclos,idCiclo',
+        'emplazamiento_id'  => 'required|integer|exists:ubicaciones_n2,idUbicacionN2',
+    ]);
+
+    $empObj = Emplazamiento::find($request->emplazamiento_id);
+    $zonaObj = $empObj->zonaPunto;
+
+    $cicloPunto = InvCicloPunto::where('idCiclo', $request->ciclo_id)
+                ->where('idPunto', $zonaObj->idAgenda)
+                ->first();
+
+    if (!$cicloPunto) {
+        return response()->json([
+            'status' => 'error',
+            'code' => 404,
+            'message' => 'La dirección ' . $zonaObj->idAgenda . ' no está asociada al ciclo '
+        ], 404);
+    }
+
+    $items = collect(json_decode($request->items))->unique('etiqueta');
+
+    $categorias = Inv_ciclos_categorias::where('idCiclo', $request->ciclo_id)
+        ->pluck('id_grupo')
+        ->unique()
+        ->values()
+        ->toArray();
+
+    $etiquetasValidas = CrudActivoLiteResource::collection(
+            $this->activos_with_cats_by_cycle($request->ciclo_id, $zonaObj->idAgenda, $empObj->codigoUbicacion)
+                ->whereIn('crud_activos.id_grupo', $categorias)
+                ->get()
+        )
+        ->map(function ($item) {
+            return $item['etiqueta'];
+        })
+        ->toArray();
+
+    foreach ($items as $item) {
+        $label = $item->etiqueta;
+
+        if (in_array($label, $etiquetasValidas)) {
+            DB::table('inv_conteo_registro')->updateOrInsert(
+                [
+                    'ciclo_id' => $request->ciclo_id,
+                    'punto_id' => $zonaObj->idAgenda,
+                    'cod_emplazamiento' => $empObj->codigoUbicacion,
+                    'etiqueta' => $label,
+                ],
+                [
+                    'status' => 1,
+                    'audit_status' => 1,
+                    'updated_at' => now(),
+                    'user_id' => $request->user()->id,
+                ]
+            );
+        } else {
+            // Si no está en las válidas, actualizar o insertar con status 3
+            DB::table('inv_conteo_registro')->updateOrInsert(
+                [
+                    'ciclo_id' => $request->ciclo_id,
+                    'punto_id' => $zonaObj->idAgenda,
+                    'cod_emplazamiento' => $empObj->codigoUbicacion,
+                    'etiqueta' => $label,
+                ],
+                [
+                    'status' => 3,
+                    'audit_status' => 3,
+                    'updated_at' => now(),
+                    'user_id' => $request->user()->id,
+                ]
+            );
+        }
+    }
+
+    return response()->json([
+        'status' => 'OK',
+        'code' => 200,
+        'message' => 'successfully processed'
+    ]);
+}
 
 
 
@@ -787,16 +810,81 @@ class InventarioConteoController extends Controller
             ], 404);
         }
 
-        DB::update(
-            'UPDATE inv_conteo_registro 
-                    SET status = 2, updated_at = NOW(), user_id = ? 
-                    WHERE ciclo_id = ? AND punto_id = ? AND cod_emplazamiento = ? ',
-            [$request->user()->id, $request->ciclo_id, $zonaObj->idAgenda, $empObj->codigoUbicacion]
-        );
+ 
+$categorias = Inv_ciclos_categorias::where('idCiclo',  $request->ciclo_id)
+    ->pluck('id_grupo')
+    ->unique()
+    ->values()
+    ->toArray();
 
-        return response()->json(['status' => 'OK', 'message' => 'Realizado exitosamente']);
+$etiquetas = CrudActivoLiteResource::collection(
+        $this->activos_with_cats_by_cycle( $request->ciclo_id, $zonaObj->idAgenda, $empObj->codigoUbicacion)
+            ->whereIn('crud_activos.id_grupo', $categorias)
+            ->get()
+    )
+    ->map(function ($item) {
+        return $item['etiqueta'];
+    })
+    ->toArray();
+
+    DB::table('inv_conteo_registro')
+    ->where('ciclo_id', $request->ciclo_id)
+    ->where('punto_id', $zonaObj->idAgenda)
+    ->where('cod_emplazamiento', $empObj->codigoUbicacion)
+    ->whereIn('etiqueta', $etiquetas)
+    ->update([
+        'status' => 2,
+        'audit_status' => 2,
+        'updated_at' => now(),
+        'user_id' => $request->user()->id,
+    ]);
+
+$registros = DB::table('inv_conteo_registro')
+    ->select('etiqueta', DB::raw('MIN(id) as id'))
+    ->where('ciclo_id', $request->ciclo_id)
+    ->where('punto_id', $zonaObj->idAgenda)
+    ->where('cod_emplazamiento', $empObj->codigoUbicacion)
+    ->groupBy('etiqueta')
+    ->pluck('id');
+
+DB::table('inv_conteo_registro')
+    ->where('ciclo_id', $request->ciclo_id)
+    ->where('punto_id', $zonaObj->idAgenda)
+    ->where('cod_emplazamiento', $empObj->codigoUbicacion)
+    ->whereNotIn('id', $registros)
+    ->delete();
+
+
+
+
+        return response()->json(['status' => 'OK', 'message' => $request->ciclo_id, $zonaObj->idAgenda, $empObj->codigoUbicacion, $etiquetas]);
+
     }
 
+
+public function activos_with_cats_by_cycle($cycle_id, $idAgenda, $codigoUbicacion)
+
+    {
+
+
+
+        $queryBuilder = CrudActivo::select('crud_activos.*')->join('inv_ciclos_puntos', 'crud_activos.ubicacionGeografica', 'inv_ciclos_puntos.idPunto')
+            ->join('inv_ciclos', 'inv_ciclos.idCiclo', '=', 'inv_ciclos_puntos.idCiclo')
+            ->join('inv_ciclos_categorias', function (JoinClause $join) {
+                $join->on('inv_ciclos.idCiclo', '=', 'inv_ciclos_categorias.idCiclo')
+                    ->on('crud_activos.id_familia', '=', 'inv_ciclos_categorias.id_familia');
+            })
+            ->where('inv_ciclos.idCiclo', '=', $cycle_id)
+            ->where('inv_ciclos_puntos.idPunto', '=', $idAgenda)
+            ->where('crud_activos.ubicacionOrganicaN2', '=', $codigoUbicacion)
+            ->where('crud_activos.ubicacionGeografica', '=', $idAgenda);
+
+
+
+
+        return $queryBuilder;
+
+    }
     public function resetConteoByZona(Request $request)
     {
 

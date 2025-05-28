@@ -111,12 +111,40 @@ class UbicacionGeograficaResource extends JsonResource
                     ->whereIn('audit_status', [1, 3])
                     ->count();
 
+                    $address['num_activos_audit_coincidentes'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
+                    ->where('punto_id', '=', $this->idUbicacionGeo)
+                    ->where('audit_status', '=' , 1)
+                    ->count(); 
+
+                  $address['num_activos_audit_sobrantes'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
+                    ->where('punto_id', '=', $this->idUbicacionGeo)
+                    ->where('audit_status', '=' , 3)
+                    ->count();
+
+                     $address['num_activos_audit_faltantes'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
+                    ->where('punto_id', '=', $this->idUbicacionGeo)
+                    ->where('audit_status', '=' , 2)
+                    ->count();
             }else{
                 $address['num_activos_audit'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
                 ->where('punto_id', '=', $this->idUbicacionGeo)
                 ->whereIn('audit_status', [1, 3])
                 ->count();
 
+                  $address['num_activos_audit_coincidentes'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
+                    ->where('punto_id', '=', $this->idUbicacionGeo)
+                    ->where('audit_status', '=' , 1)
+                    ->count(); 
+                
+                  $address['num_activos_audit_sobrantes'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
+                    ->where('punto_id', '=', $this->idUbicacionGeo)
+                    ->where('audit_status', '=' , 3)
+                    ->count();
+
+                     $address['num_activos_audit_faltantes'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
+                    ->where('punto_id', '=', $this->idUbicacionGeo)
+                    ->where('audit_status', '=' , 2)
+                    ->count();
             }
           
 
