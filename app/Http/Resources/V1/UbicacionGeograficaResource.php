@@ -108,6 +108,26 @@ class UbicacionGeograficaResource extends JsonResource
 
             $codigosZona = $zones->pluck('codigoUbicacion')->toArray();
 
+            if ($auditoria_general === 1){
+                    $address['num_activos_audit'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
+                    ->where('punto_id', '=', $this->idUbicacionGeo)
+                    ->where('status', '=', 1)
+                    ->whereIn('audit_status', [1, 3])
+                    ->count();
+
+                $address['num_activos_audit_coincidentes'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
+                    ->where('punto_id', '=', $this->idUbicacionGeo)
+                    ->where('status', '=', 1)
+                    ->where('audit_status', '=', 1)
+                    ->count();
+
+                $address['num_activos_audit_sobrantes'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
+                    ->where('punto_id', '=', $this->idUbicacionGeo)
+                      ->where('status', '=', 1)
+                    ->where('audit_status', '=', 3)
+                    ->count();
+
+            }else{
                 $address['num_activos_audit'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
                     ->where('punto_id', '=', $this->idUbicacionGeo)
                     ->whereIn('cod_zona', $codigosZona)
@@ -126,11 +146,7 @@ class UbicacionGeograficaResource extends JsonResource
                     ->where('audit_status', '=', 3)
                     ->count();
 
-                $address['num_activos_audit_faltantes'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
-                    ->where('punto_id', '=', $this->idUbicacionGeo)
-                    ->whereIn('cod_zona', $codigosZona)
-                    ->where('audit_status', '=', 2)
-                    ->count();
+            }
 
             if (isset($this->requireActivos) && $this->requireActivos) {
                 $address['activos'] = CrudActivoLiteResource::collection($this->activos_with_cats_by_cycle($this->cycle_id)->get());
