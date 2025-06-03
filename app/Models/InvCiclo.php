@@ -129,7 +129,9 @@ class InvCiclo extends Model
     public function activos_with_cats()
     {
 
-        $queryBuilder = CrudActivo::select('crud_activos.*')->join('inv_ciclos_puntos', 'crud_activos.ubicacionGeografica', 'inv_ciclos_puntos.idPunto')
+        $queryBuilder = CrudActivo::select('crud_activos.*')
+            ->distinct()
+            ->join('inv_ciclos_puntos', 'crud_activos.ubicacionGeografica', 'inv_ciclos_puntos.idPunto')
             ->join('inv_ciclos', 'inv_ciclos.idCiclo', '=', 'inv_ciclos_puntos.idCiclo')
             ->join('inv_ciclos_categorias', function (JoinClause $join) {
                 $join->on('inv_ciclos.idCiclo', '=', 'inv_ciclos_categorias.idCiclo')

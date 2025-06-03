@@ -57,7 +57,9 @@ class AddressesDumpService implements DumpSQLiteInterface
         // Decodificar el JSON a un arreglo asociativo
         $data = json_decode($jsonContent);
 
-
+        if (isset($data->status) && $data->status !== 'OK') {
+            return;
+        }
 
         $this->insert($data);
     }

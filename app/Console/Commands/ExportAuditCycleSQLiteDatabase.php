@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\CiclosUbicacionesController;
 use App\Http\Controllers\Api\V1\ZonaEmplazamientosController;
 use App\Services\Dump\SQLiteConnService;
 use App\Services\Dump\Tables\AddressesDumpService;
+use App\Services\Dump\Tables\CrudAssetsDumpService;
 use App\Services\Dump\Tables\CyclesDumpService;
 use App\Services\Dump\Tables\EmplazamientosDumpService;
 use App\Services\Dump\Tables\ZonesDumpService;
@@ -100,6 +101,7 @@ class ExportAuditCycleSQLiteDatabase extends Command
         $this->setAddressByCycle();
         $this->setZonesByCycle();
         $this->setEmplazamientosByCycle();
+        $this->setAssetsByCycle();
 
 
 
@@ -178,5 +180,15 @@ class ExportAuditCycleSQLiteDatabase extends Command
         ))->runFromController();
 
         $this->info('Emplazamientos inserted in SQLite DB.');
+    }
+
+    private function setAssetsByCycle()
+    {
+        (new CrudAssetsDumpService(
+            $this->pdo,
+            $this->cycle
+        ))->runFromController();
+
+        $this->info('Assets inserted in SQLite DB.');
     }
 }

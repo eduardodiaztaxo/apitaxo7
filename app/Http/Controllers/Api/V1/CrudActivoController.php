@@ -8,6 +8,7 @@ use App\Http\Resources\V1\InventariosResource;
 use App\Models\CrudActivo;
 use App\Models\CategoriaN1;
 use App\Models\CategoriaN2;
+use App\Models\InvCiclo;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -75,6 +76,24 @@ class CrudActivoController extends Controller
     {
         //
         return $etiqueta;
+    }
+
+
+    public function showAllAssetsByCycleCats(Request $request, $ciclo)
+    {
+
+
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json(['status' => 'error', 'message' => 'Not Found', 'code' => 404], 404);
+        }
+
+
+        $activos = $cicloObj->activos_with_cats()->get();
+
+
+        return response()->json(CrudActivoResource::collection($activos), 200);
     }
 
 
@@ -216,7 +235,7 @@ class CrudActivoController extends Controller
         );
 
         $url = asset('storage/' . $path);
-        
+
         $existingRecord = DB::table('crud_activos_foto_docto')->where('idActivo', $idActivo_Documento)->first();
 
         if ($existingRecord) {

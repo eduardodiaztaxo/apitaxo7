@@ -49,7 +49,7 @@ class CrudActivoResource extends JsonResource
 
         $activo['descripcionFamilia'] = $this->familia ? $this->familia->descripcion_familia : '';
 
-        $activo['responsable'] = $this->responsable->name;
+        $activo['responsable'] = $this->responsable ? $this->responsable->name : null;
 
         $activo['organica_n1'] = $this->zona;
 
@@ -57,8 +57,10 @@ class CrudActivoResource extends JsonResource
 
         $activo['depreciable'] = $this->depreciableRelation->descripcion;
 
+        $activo['fotoUrl'] = null;
 
-        $activo['fotoUrl'] = $this->activoService->getUrlAsset($this->resource, $request->user());
+        if ($request->user())
+            $activo['fotoUrl'] = $this->activoService->getUrlAsset($this->resource, $request->user());
 
 
         $ubicacion = $this->ubicacionGeografica()->first();
