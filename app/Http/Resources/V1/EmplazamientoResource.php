@@ -106,17 +106,28 @@ class EmplazamientoResource extends JsonResource
                 ->values()
                 ->toArray();
 
-            if (isset($this->cycle_id) && $this->cycle_id) {
-                $emplazamiento['activos'] = CrudActivoLiteResource::collection($this->activos_with_cats_by_cycle($this->cycle_id)
-                    ->whereIn('crud_activos.id_grupo', $categorias)
-                    ->get());
-                $emplazamiento['num_activos'] = count($emplazamiento['activos']);
+      if (isset($this->cycle_id) && $this->cycle_id) {
+            $emplazamiento['activos'] = $this->activos_with_cats_by_cycle($this->cycle_id, $this->idAgenda)
+                ->whereIn('crud_activos.id_grupo', $categorias)
+                ->get()
+                ->map(function ($activo) {
+                    return (new CrudActivoLiteResource($activo, $this->cycle_id, $this->idAgenda))->toArray(request());
+                });
+
+            $emplazamiento['num_activos'] = count($emplazamiento['activos']);
             } else {
                 $activosCollectionFiltrados = $activosCollection->whereIn('id_grupo', $categorias);
                 $activosInventarioFiltrados = $activosInventario->whereIn('id_grupo', $categorias);
 
-                $activosCollectionArray = CrudActivoLiteResource::collection($activosCollectionFiltrados)->toArray(request());
-                $emplazamiento['activos'] = array_merge($activosCollectionArray, CrudActivoLiteResource::collection($activosInventarioFiltrados)->toArray(request()));
+                $activosCollectionArray = $activosCollectionFiltrados->map(function ($activo) {
+                    return (new CrudActivoLiteResource($activo))->toArray(request());
+                })->toArray();
+
+                $activosInventarioArray = $activosInventarioFiltrados->map(function ($activo) {
+                    return (new CrudActivoLiteResource($activo))->toArray(request());
+                })->toArray();
+
+                $emplazamiento['activos'] = array_merge($activosCollectionArray, $activosInventarioArray);
                 $emplazamiento['num_activos'] = count($emplazamiento['activos']);
             }
         }

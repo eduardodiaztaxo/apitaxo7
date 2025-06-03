@@ -9,6 +9,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class CrudActivoLiteResource extends JsonResource
 {
     private $activoService;
+    private $cycle_id;
+    private $idAgenda;
 
     /**
      * Create a new resource instance.
@@ -16,9 +18,11 @@ class CrudActivoLiteResource extends JsonResource
      * @param  mixed  $resource
      * @return void
      */
-    public function __construct($resource)
+  public function __construct($resource, $cycle_id = null, $idAgenda = null)
     {
         $this->activoService = new ActivoService();
+        $this->cycle_id = $cycle_id;
+        $this->idAgenda = $idAgenda;
         parent::__construct($resource);
     }
 
@@ -56,19 +60,29 @@ class CrudActivoLiteResource extends JsonResource
         $activo['marca'] = !empty($marcaResult) ? $marcaResult[0]->descripcion : ''; 
        
         $activo['ubicacionOrganicaN2'] = $this->ubicacionOrganicaN2;
+        
         $auditStatus = DB::table('inv_conteo_registro')
         ->where('etiqueta', $this->etiqueta)
         ->where('cod_emplazamiento', $this->ubicacionOrganicaN2)
+        ->where('ciclo_id', $this->cycle_id)
+        ->where('punto_id', $this->idAgenda)
         ->value('audit_status');
 
-  
+        $activo['id_ciclo'] = $this->cycle_id;
+        $activo['id_agenda'] = $this->idAgenda;
+        
+
     if (is_null($auditStatus)) {
         $auditStatus = DB::table('inv_conteo_registro')
             ->where('etiqueta', $this->etiqueta)
+            ->where('cod_emplazamiento', $this->ubicacionOrganicaN2)
+            ->where('ciclo_id', $this->cycle_id)
+            ->where('punto_id', $this->idAgenda)
             ->value('audit_status');
     }
+    
 
-    $activo['audit_status'] = $auditStatus ?? null;
+    $activo['audit_status'] = $auditStatus ?? 2;
 
         $statusDescriptions = [
         1 => 'coincidente',
@@ -78,7 +92,7 @@ class CrudActivoLiteResource extends JsonResource
 
         $activo['audit_status_name'] = $auditStatus && isset($statusDescriptions[$auditStatus])
         ? $statusDescriptions[$auditStatus]
-        : null;
+        : 'faltante';
 
 
         $activo['descripcionCategoria'] = $this->categoria ? $this->categoria->descripcionCategoria : '';

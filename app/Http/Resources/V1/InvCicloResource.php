@@ -18,24 +18,28 @@ class InvCicloResource extends JsonResource
     {
         // Obtener la descripción del estado desde la tabla `estados`
         $estadoDescripcion = CiclosEstados::where('id_estado', $this->estadoCiclo)->value('descripcion');
-        $numAudith = InvConteoRegistro::Where('ciclo_id', $this->idCiclo)->where('audit_status', 1)->count();
-        $numAudithSobrante = InvConteoRegistro::Where('ciclo_id', $this->idCiclo)->where('audit_status', 3)->count();
-        $numAudithFaltante = InvConteoRegistro::Where('ciclo_id', $this->idCiclo)->where('audit_status', 2)->count();
-        return [
-            'idCiclo'       => $this->idCiclo,
-            'status'        => $this->estadoCiclo,
-            'tipoCiclo'     => $this->idTipoCiclo,
-            'status_name'   => $estadoDescripcion ?? 'Desconocido', // Mostrar descripción desde la tabla o un valor por defecto
-            'title'         => $this->descripcion,
-            'date'          => $this->fechaInicio,
-            'date_end'      => $this->fechaTermino,
-            'assets_cycle' => $this->activos_with_cats()->count() + $this->activos_with_cats_inv()->count(),
-            'assets_count'  => $this->audit_activos_address_cats()->count(), // activos auditados
-            'puntos_count'  => $this->puntos()->count(), // direcciones
-            'audith_count'  => $numAudith, //total de auditados
-            'audith_sobrante'  => $numAudithSobrante, //total de auditados
-            'audith_faltante'  => $numAudithFaltante, //total de auditados
-            'offline_db'    => $this->dump()->count()
-        ];
+        $numAudith = InvConteoRegistro::Where('ciclo_id', $this->idCiclo)->where('audit_status', 1)->where('status', 1)->count();
+        $numAudithSobrante = InvConteoRegistro::Where('ciclo_id', $this->idCiclo)->where('audit_status', 3)->where('status', 1)->count();
+        $numAudithFaltante = InvConteoRegistro::Where('ciclo_id', $this->idCiclo)->where('audit_status', 2)->where('status', 1)->count();
+        $assetsCycle = $this->activos_with_cats()->count() + $this->activos_with_cats_inv()->count();
+
+    return [
+        'idCiclo'       => $this->idCiclo,
+        'status'        => $this->estadoCiclo,
+        'tipoCiclo'     => $this->idTipoCiclo,
+        'status_name'   => $estadoDescripcion ?? 'Desconocido',
+        'title'         => $this->descripcion,
+        'date'          => $this->fechaInicio,
+        'date_end'      => $this->fechaTermino,
+        'assets_cycle'  => $assetsCycle,
+        'assets_count'  => $this->audit_activos_address_cats()->count(),
+        'puntos_count'  => $this->puntos()->count(),
+        'audith_count'  => $numAudith,
+        'audith_sobrante'  => $numAudithSobrante,
+        'audith_faltante'  => $assetsCycle - $numAudith,
+        // 'audith_faltante'  => $numAudithFaltante,
+        'offline_db'    => $this->dump()->count()
+    ];
+        
     }
 }

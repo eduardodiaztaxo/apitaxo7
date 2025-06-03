@@ -153,12 +153,12 @@ class ZonaController extends Controller
 
         $count = $cicloObj->zonesWithCats()->where('punto', $zonaObj->idAgenda)->where('zona', $zonaObj->codigoUbicacion)->count();
 
-        if (!$count || $count === 0) {
-            //Si la zona es nueva, creado en el ciclo
-            if ($zonaObj->ciclo_auditoria !== $cicloObj->idCiclo) {
-                return response()->json(['status' => 'NOK', 'message' => 'Zona no asociada al Ciclo', 'code' => 404], 404);
-            }
-        }
+        // if (!$count || $count === 0) {
+        //     //Si la zona es nueva, creado en el ciclo
+        //     if ($zonaObj->ciclo_auditoria !== $cicloObj->idCiclo) {
+        //         return response()->json(['status' => 'NOK', 'message' => 'Zona no asociada al Ciclo', 'code' => 404], 404);
+        //     }
+        // }
 
         $zonaObj->cycle_id = $ciclo;
         $zonaObj->requireOrphanAssets = 1;

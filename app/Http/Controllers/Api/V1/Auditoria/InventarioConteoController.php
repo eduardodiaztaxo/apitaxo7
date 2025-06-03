@@ -207,20 +207,23 @@ class InventarioConteoController extends Controller
      */
 public function processConteoByEmplazamientoMultipleUsers(Request $request)
 {
-
+    // Asegura que items sea JSON (si viene como array, lo codifica)
     if ($request->items && !is_string($request->items)) {
         $request->merge(['items' => json_encode($request->items)]);
     }
 
+    // Validaciones básicas
     $request->validate([
         'items'             => 'required|json',
         'ciclo_id'          => 'required|integer|exists:inv_ciclos,idCiclo',
         'emplazamiento_id'  => 'required|integer|exists:ubicaciones_n2,idUbicacionN2',
     ]);
 
+    // Obtiene el emplazamiento y la zona asociada
     $empObj = Emplazamiento::find($request->emplazamiento_id);
     $zonaObj = $empObj->zonaPunto;
 
+    // Verifica que el ciclo y el punto estén relacionados
     $cicloPunto = InvCicloPunto::where('idCiclo', $request->ciclo_id)
                 ->where('idPunto', $zonaObj->idAgenda)
                 ->first();
@@ -233,14 +236,17 @@ public function processConteoByEmplazamientoMultipleUsers(Request $request)
         ], 404);
     }
 
+    // Decodifica las etiquetas enviadas
     $items = collect(json_decode($request->items))->unique('etiqueta');
 
+    // Obtiene las categorías relacionadas con el ciclo
     $categorias = Inv_ciclos_categorias::where('idCiclo', $request->ciclo_id)
         ->pluck('id_grupo')
         ->unique()
         ->values()
         ->toArray();
 
+    // Obtiene las etiquetas válidas para este ciclo y emplazamiento
     $etiquetasValidas = CrudActivoLiteResource::collection(
             $this->activos_with_cats_by_cycle($request->ciclo_id, $zonaObj->idAgenda, $empObj->codigoUbicacion)
                 ->whereIn('crud_activos.id_grupo', $categorias)
@@ -251,20 +257,24 @@ public function processConteoByEmplazamientoMultipleUsers(Request $request)
         })
         ->toArray();
 
+    // Procesa cada etiqueta recibida
     foreach ($items as $item) {
         $label = $item->etiqueta;
 
         if (in_array($label, $etiquetasValidas)) {
+            // Si la etiqueta está en las válidas, actualizar o insertar con status 1
             DB::table('inv_conteo_registro')->updateOrInsert(
                 [
                     'ciclo_id' => $request->ciclo_id,
                     'punto_id' => $zonaObj->idAgenda,
+                    'cod_zona' => $zonaObj->codigoUbicacion,
                     'cod_emplazamiento' => $empObj->codigoUbicacion,
                     'etiqueta' => $label,
                 ],
                 [
                     'status' => 1,
                     'audit_status' => 1,
+                    'created_at' => now(),
                     'updated_at' => now(),
                     'user_id' => $request->user()->id,
                 ]
@@ -275,12 +285,14 @@ public function processConteoByEmplazamientoMultipleUsers(Request $request)
                 [
                     'ciclo_id' => $request->ciclo_id,
                     'punto_id' => $zonaObj->idAgenda,
+                    'cod_zona' => $zonaObj->codigoUbicacion,
                     'cod_emplazamiento' => $empObj->codigoUbicacion,
                     'etiqueta' => $label,
                 ],
                 [
-                    'status' => 3,
+                    'status' => 1,
                     'audit_status' => 3,
+                    'created_at' => now(),
                     'updated_at' => now(),
                     'user_id' => $request->user()->id,
                 ]
@@ -295,7 +307,7 @@ public function processConteoByEmplazamientoMultipleUsers(Request $request)
     ]);
 }
 
-//
+
 
     /**
      * Process count by Zona
@@ -785,7 +797,7 @@ public function processConteoByEmplazamientoMultipleUsers(Request $request)
         return response()->json(['status' => 'OK', 'message' => 'Sobrantes eliminados exitosamente.']);
     }
   
-    public function resetConteoByEmplazamiento(Request $request)
+public function resetConteoByEmplazamiento(Request $request)
     {
 
 
@@ -840,10 +852,11 @@ $etiquetas = CrudActivoLiteResource::collection(
     ]);
 
 $registros = DB::table('inv_conteo_registro')
-    ->select('etiqueta', DB::raw('MIN(id) as id'))
+    ->select(DB::raw('MIN(id) as id'))
     ->where('ciclo_id', $request->ciclo_id)
     ->where('punto_id', $zonaObj->idAgenda)
     ->where('cod_emplazamiento', $empObj->codigoUbicacion)
+    ->whereIn('etiqueta', $etiquetas) 
     ->groupBy('etiqueta')
     ->pluck('id');
 
@@ -853,8 +866,6 @@ DB::table('inv_conteo_registro')
     ->where('cod_emplazamiento', $empObj->codigoUbicacion)
     ->whereNotIn('id', $registros)
     ->delete();
-
-
 
 
         return response()->json(['status' => 'OK', 'message' => $request->ciclo_id, $zonaObj->idAgenda, $empObj->codigoUbicacion, $etiquetas]);
