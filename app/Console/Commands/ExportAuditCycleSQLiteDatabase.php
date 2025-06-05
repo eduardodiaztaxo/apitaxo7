@@ -9,6 +9,9 @@ use App\Services\Dump\SQLiteConnService;
 use App\Services\Dump\Tables\AddressesDumpService;
 use App\Services\Dump\Tables\CrudAssetsDumpService;
 use App\Services\Dump\Tables\CyclesDumpService;
+use App\Services\Dump\Tables\CyclesCategoriasDumpService;
+use App\Services\Dump\Tables\ConteoRegistroDumpService;
+use App\Services\Dump\Tables\SubZonesDumpService;
 use App\Services\Dump\Tables\EmplazamientosDumpService;
 use App\Services\Dump\Tables\ZonesDumpService;
 use Illuminate\Console\Command;
@@ -103,6 +106,9 @@ class ExportAuditCycleSQLiteDatabase extends Command
         $this->setEmplazamientosByCycle();
         $this->setAssetsByCycle();
 
+        $this->setCyclesCategoriasByCycle();
+        $this->setConteoRegistroByCycle();
+        $this->setSubZonesByCycle();
 
 
         $style = new OutputFormatterStyle('white', 'green', array('bold', 'blink'));
@@ -131,7 +137,6 @@ class ExportAuditCycleSQLiteDatabase extends Command
 
         return 0;
     }
-
 
 
 
@@ -190,5 +195,35 @@ class ExportAuditCycleSQLiteDatabase extends Command
         ))->runFromController();
 
         $this->info('Assets inserted in SQLite DB.');
+    }
+
+    private function setCyclesCategoriasByCycle()
+    {
+        (new CyclesCategoriasDumpService(
+            $this->pdo,
+            $this->cycle
+        ))->runFromController();
+
+        $this->info('Categorías de ciclos insertadas en SQLite DB.');
+    }
+
+    private function setConteoRegistroByCycle()
+    {
+        (new ConteoRegistroDumpService(
+            $this->pdo,
+            $this->cycle
+        ))->runFromController();
+
+        $this->info('Conteo de registros insertado en SQLite DB.');
+    }
+
+    private function setSubZonesByCycle()
+    {
+        (new SubZonesDumpService(
+            $this->pdo,
+            $this->cycle
+        ))->runFromController();
+
+        $this->info('Subzonas insertadas en SQLite DB.');
     }
 }
