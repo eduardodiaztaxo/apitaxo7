@@ -36,21 +36,17 @@ class SubZonesDumpService implements DumpSQLiteInterface
      * @return void
      */
 
-   public function setIdsUbicacionGeo(array $ids)
-    {
-        $this->idsUbicacionGeo = $ids;
-    }
+  
 
     public function runFromController(): void
     {
         $this->createTable();
 
-        $subzonas = \DB::table('ubicaciones_n2')
-            ->whereIn('idAgenda', $this->idsUbicacionGeo)
-            ->get();
+        $subzonas = \DB::table('ubicaciones_n2')->get();
 
         $this->insert($subzonas->toArray());
     }
+
 
     /**
      * Create the subzones table if it does not exist.
