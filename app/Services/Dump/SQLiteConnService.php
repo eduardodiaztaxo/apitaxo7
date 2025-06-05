@@ -36,19 +36,23 @@ class SQLiteConnService
      *
      * @return void
      */
-    public function createSQLiteDatabase()
-    {
-
-
-        $dir = dirname($this->sqlitePath);
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
+public function createSQLiteDatabase()
+{
+    $dir = dirname($this->sqlitePath);
+    if (!is_dir($dir)) {
+        if (!mkdir($dir, 0755, true) && !is_dir($dir)) {
+            throw new \RuntimeException(sprintf('Directory "%s" was not created', $dir));
         }
-
-
-        $this->pdo = new \PDO('sqlite:' . $this->sqlitePath);
     }
 
+    try {
+        $this->pdo = new \PDO('sqlite:' . $this->sqlitePath);
+        // Opcional: configurar PDO para modo de error (excepciones)
+        $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+    } catch (\PDOException $e) {
+        throw new \RuntimeException('Failed to create SQLite connection: ' . $e->getMessage());
+    }
+}
 
     /**
      * Set the SQLite connection.
@@ -87,17 +91,20 @@ class SQLiteConnService
      *
      * @return bool
      */
-    public function deleteDB(): bool
-    {
-        if ($this->pdo) {
-            $this->pdo = null;
-        }
+ public function deleteDB(): bool
+{
+    try {
+        // Cerrar conexión PDO para liberar archivo
+        $this->pdo = null;
 
         if (file_exists($this->sqlitePath)) {
-
             return unlink($this->sqlitePath);
         }
 
         return false;
+    } catch (\Exception $e) {
+        // Puedes loggear o manejar el error si quieres
+        return false;
     }
+}
 }

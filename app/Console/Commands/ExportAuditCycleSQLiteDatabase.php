@@ -89,15 +89,20 @@ class ExportAuditCycleSQLiteDatabase extends Command
         $pdoServ = new SQLiteConnService(
             $sqlitePath
         );
+        //Evita el  [AUX]GuiExtAuxCheckAuxPath:588: Null anb
+        try {
+            if ($pdoServ->deleteDB()) {
+                $this->warn('Existing SQLite database file deleted.');
+            }
 
-        if ($pdoServ->deleteDB()) {
-            $this->warn('output_database.db file deleted.');
+            $pdoServ->createSQLiteDatabase();
+            $this->pdo = $pdoServ->getCurrentConn();
+            $this->info('SQLite DB created successfully.');
+
+        } catch (\Exception $e) {
+            $this->error('Error handling SQLite DB: ' . $e->getMessage());
+            return 1;
         }
-
-
-        $pdoServ->createSQLiteDatabase();
-        $this->pdo = $pdoServ->getCurrentConn();
-        $this->info('SQLite DB created successfully.');
 
 
         $this->setCyclesSQLite();
