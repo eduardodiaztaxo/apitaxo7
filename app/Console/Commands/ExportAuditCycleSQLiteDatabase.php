@@ -90,11 +90,24 @@ class ExportAuditCycleSQLiteDatabase extends Command
             $sqlitePath
         );
 
+
         if ($pdoServ->deleteDB()) {
             $this->warn('output_database.db file deleted.');
         }
+        
+            // 1. Cerrar conexión si está abierta para evitar error "connection already exists"
+        if ($pdoServ->isConnected()) {
+            $pdoServ->closeConnection();
+            $this->info('SQLite connection closed.');
+        }
 
+        // 2. Verificar y borrar el archivo si existe (solo una vez)
+        if ($relativePath && Storage::exists($relativePath)) {
+            Storage::delete($relativePath);
+            $this->info('output_database.db file deleted successfully.');
+        }
 
+        // 3. Crear base de datos nueva
         $pdoServ->createSQLiteDatabase();
         $this->pdo = $pdoServ->getCurrentConn();
         $this->info('SQLite DB created successfully.');
