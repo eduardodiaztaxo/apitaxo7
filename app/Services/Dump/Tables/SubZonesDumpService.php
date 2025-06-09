@@ -36,17 +36,30 @@ class SubZonesDumpService implements DumpSQLiteInterface
      * @return void
      */
 
-  
 
-    public function runFromController(): void
-    {
-        $this->createTable();
+public function runFromController(): void
+{
+    $this->createTable();
 
-        $subzonas = \DB::table('ubicaciones_n2')->get();
+    $stmt = $this->pdo->query("SELECT codigoUbicacion, idAgenda FROM zonas");
+    $zonas = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-        $this->insert($subzonas->toArray());
-    }
+    $allSubzonas = [];
 
+    foreach ($zonas as $zona) {
+        $subzonasZona = \DB::table('ubicaciones_n2')
+            ->where('codigoUbicacion', 'like', '%' . $zona['codigoUbicacion'] . '%')
+            ->where('idAgenda', $zona['idAgenda'])
+            ->get()
+            ->toArray();
+
+    $allSubzonas = array_merge($allSubzonas, $subzonasZona);
+}
+
+    $allSubzonas = collect($allSubzonas)->unique('idUbicacionN2')->values()->toArray();
+
+    $this->insert($allSubzonas);
+}
 
     /**
      * Create the subzones table if it does not exist.
