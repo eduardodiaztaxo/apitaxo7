@@ -249,7 +249,7 @@ class CrudActivoController extends Controller
             ->where('id_activo', $idActivo_Documento)
             ->orderByDesc('id_foto')
             ->first();
-
+//
         if ($ultimo) {
             DB::table('crud_activos_pictures')
                 ->where('id_foto', $ultimo->id_foto)
