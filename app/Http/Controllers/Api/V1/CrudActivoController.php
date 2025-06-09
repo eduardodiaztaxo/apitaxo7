@@ -234,7 +234,8 @@ class CrudActivoController extends Controller
         
         $path = $this->imageService->optimizeImageAndSave(
             $request->file('imagen'),
-            "_lib/file/img/" . $request->user()->nombre_cliente . "/img"
+            "_lib/file/img/" . $request->user()->nombre_cliente . "/img",
+            $filename, 
         );
 
 
