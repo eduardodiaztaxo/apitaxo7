@@ -53,21 +53,19 @@ class CyclesPuntoDumpService implements DumpSQLiteInterface
      *
      * @return void
      */
-    public function createTable(): void
-    {
 
-
-        // Create "ciclos" table
-        $this->pdo->exec("
-                CREATE TABLE IF NOT EXISTS ciclos_puntos (
-                idCiclo INTEGER PRIMARY KEY,
-                idPunto INTEGER DEFAULT NULL,
-                id_estado INTEGER DEFAULT 0,
-                auditoria_general INTEGER DEFAULT 0
-            );
-        ");
-    }
-
+public function createTable(): void
+{
+    $this->pdo->exec("
+        CREATE TABLE IF NOT EXISTS ciclos_puntos (
+            idCiclo INTEGER NOT NULL,
+            idPunto INTEGER NOT NULL,
+            id_estado INTEGER DEFAULT 0,
+            auditoria_general INTEGER DEFAULT 0,
+            PRIMARY KEY (idCiclo, idPunto)
+        );
+    ");
+}
     /**
      * Insert cycles into the ciclos table.
      *
@@ -96,9 +94,7 @@ class CyclesPuntoDumpService implements DumpSQLiteInterface
 
         foreach ($cyclesPunto as $ciclo) {
 
-            $cycle = json_decode($ciclo->toJson());
-
-
+          $cycle = (object) $ciclo;
             $stmt->execute([
                 ':idCiclo'          => $cycle->idCiclo ?? null,
                 ':idPunto'          => $cycle->idPunto ?? null,

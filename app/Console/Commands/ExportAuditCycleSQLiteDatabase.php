@@ -10,6 +10,7 @@ use App\Services\Dump\Tables\AddressesDumpService;
 use App\Services\Dump\Tables\CrudAssetsDumpService;
 use App\Services\Dump\Tables\CyclesDumpService;
 use App\Services\Dump\Tables\CyclesCategoriasDumpService;
+use App\Services\Dump\Tables\CyclesPuntoDumpService;
 use App\Services\Dump\Tables\ConteoRegistroDumpService;
 use App\Services\Dump\Tables\SubZonesDumpService;
 use App\Services\Dump\Tables\EmplazamientosDumpService;
@@ -109,6 +110,7 @@ class ExportAuditCycleSQLiteDatabase extends Command
         $this->setCyclesCategoriasByCycle();
         $this->setConteoRegistroByCycle();
         $this->setSubZonesByCycle();
+        $this->setCyclesPuntosByCycle();
 
 
         $style = new OutputFormatterStyle('white', 'green', array('bold', 'blink'));
@@ -225,5 +227,14 @@ class ExportAuditCycleSQLiteDatabase extends Command
         ))->runFromController();
 
         $this->info('Subzonas insertadas en SQLite DB.');
+    }
+    private function setCyclesPuntosByCycle()
+    {
+        (new CyclesPuntoDumpService(
+            $this->pdo,
+            $this->cycle
+        ))->runFromController();
+
+        $this->info('Puntos de ciclos insertados en SQLite DB.');
     }
 }
