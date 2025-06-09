@@ -228,11 +228,12 @@ class CrudActivoController extends Controller
         // if ($activo->foto4)
         //     $this->imageService->deleteImage($activo->foto4);
 
- $origen = 'SAFIN APP';
+    $origen = 'SAFIN APP';
 
-    $relativePath = $request->user()->nombre_cliente . "/img"; // Ej: SAFIN/img
+    $cliente = $request->user()->nombre_cliente;
+    $relativePath = '_lib/file/img/' . $cliente . '/img'; // Carpeta dentro de storage/app/public
     $basename = '9999_' . $etiqueta;
-    $filename = $basename . '.jpg'; // Extensión .jpg fija
+    $filename = $basename . '.jpg';
 
         // $path = $this->imageService->optimizeImageAndSave(
         //     $request->file('imagen'),
@@ -242,14 +243,14 @@ class CrudActivoController extends Controller
 
         // $url = asset('storage/' . $path);
 
-   $path = $this->imageService->optimizeImageAndSave(
+  $path = $this->imageService->optimizeImageAndSave(
         $request->file('imagen'),
         $relativePath,
-        $basename // sin extensión, la función ya le pone .jpg
+        $basename
     );
 
-    $url = env('APP_URL') . '/_lib/file/img/' . $relativePath . '/';
 
+    $url = asset('storage/' . $path);
 
     $ultimo = DB::table('crud_activos_pictures')
         ->where('id_activo', $idActivo_Documento)
