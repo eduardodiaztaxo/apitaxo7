@@ -41,7 +41,7 @@ return [
             'url' => env('APP_URL') . '/storage',
             'visibility' => 'public',
         ],
-
+       
         'taxo' => [
             'driver' => 'local',
             'root' => env('TAXOFILES'),

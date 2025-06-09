@@ -198,26 +198,72 @@ class CrudActivoController extends Controller
     }
 
     public function uploadImageByEtiqueta(Request $request, $etiqueta)
-    {
+{
+    $request->validate([
+        'imagen' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
+    ]);
+
+    $idActivo_Documento = CrudActivo::where('etiqueta', $etiqueta)->value('idActivo');
+
+    if (!$idActivo_Documento) {
+        return response()->json([
+            "message" => "Not Found",
+            "status"  => "error"
+        ], 404);
+    }
+
+    $origen = 'SAFIN APP';
+
+    $relativePath = $request->user()->nombre_cliente . "/img"; // Ej: SAFIN/img
+    $basename = '9999_' . $etiqueta;
+    $filename = $basename . '.jpg';
+
+    // Crea y guarda la imagen optimizada
+    $image = $request->file('imagen');
+    $optimizedImage = $this->imageService->optimizeImage($image); // Tu método personalizado
+
+    $path = $relativePath . '/' . $filename;
+    Storage::disk('public')->put($path, $optimizedImage); // Guarda imagen
+
+    $url = asset('storage/' . $path); // Genera URL pública
+
+    // Actualiza o inserta en la base de datos
+    $ultimo = DB::table('crud_activos_pictures')
+        ->where('id_activo', $idActivo_Documento)
+        ->orderByDesc('id_foto')
+        ->first();
+
+    if ($ultimo) {
+        DB::table('crud_activos_pictures')
+            ->where('id_foto', $ultimo->id_foto)
+            ->update([
+                'url_picture' => $url,
+                'picture'     => $filename,
+                'origen'      => $origen,
+                'fecha_update' => now(),
+            ]);
+    } else {
+        DB::table('crud_activos_pictures')->insert([
+            'id_activo'   => $idActivo_Documento,
+            'url_picture' => $url,
+            'picture'     => $filename,
+            'origen'      => $origen,
+            'fecha_update' => now(),
+        ]);
+    }
+
+    return response()->json([
+        'status' => 'OK',
+        'path'   => $path,
+        'url'    => $url,
+    ], 201);
+}
 
         //\\10.3.126.1\taxo_files\SAFIN\nombre_cliente\img
 
-        $request->validate([
-            'imagen' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
-        ]);
-
         // $activo = CrudActivo::where('etiqueta', '=', $etiqueta)->first();
 
-        $idActivo_Documento = CrudActivo::where('etiqueta', '=', $etiqueta)->value('idActivo');
-
-
-        if (!$idActivo_Documento) {
-            return response()->json([
-                "message" => "Not Found",
-                "status"  => "error"
-            ], 404);
-        }
-
+  
         // if (!$activo) {
         //     return response()->json([
         //         "message" => "Not Found",
@@ -229,52 +275,16 @@ class CrudActivoController extends Controller
         //     $this->imageService->deleteImage($activo->foto4);
 
 
-        $filename = '9999_' . $etiqueta . '.png'; // construyes el nombre del archivo
-        $origen = 'SAFIN APP';
-        
-        $path = $this->imageService->optimizeImageAndSave(
-            $request->file('imagen'),
-            "customers/" . $request->user()->nombre_cliente . "/images",
-            $etiqueta . "_" . date('YmdHis')
-        );
+        // $path = $this->imageService->optimizeImageAndSave(
+        //     $request->file('imagen'),
+        //     "customers/" . $request->user()->nombre_cliente . "/images",
+        //     $etiqueta . "_" . date('YmdHis')
+        // );
 
-        $url = asset('storage/' . $path);
+        // $url = asset('storage/' . $path);
 
-        $existingRecord = DB::table('crud_activos_pictures')->where('id_activo', $idActivo_Documento)->first();
-
-        if ($existingRecord) {
-            // Actualizar
-            DB::table('crud_activos_pictures')
-                ->where('id_activo', $idActivo_Documento)
-                ->update([
-                    'url_picture' => $url,
-                    'picture' => $filename,
-                    'origen' => $origen,
-                ]);
-        } else {
-            // Insertar
-            DB::table('crud_activos_pictures')->insert([
-                'id_activo' => $idActivo_Documento,
-                'url_picture' => $url,
-                'picture' => $filename,
-                'origen' => $origen,
-            ]);
-        }
-
-        // $activo->foto4 = $path;
-
-        // $activo->save();
-
-        return response()->json(
-            [
-                'status'    => 'OK',
-                'path'      => $path,
-                'url'       => asset('storage/' . $path)
-            ],
-            201
-        );
-    }
-
+ 
+//
 
 
 

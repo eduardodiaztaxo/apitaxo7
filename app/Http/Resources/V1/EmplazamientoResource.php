@@ -20,17 +20,25 @@ class EmplazamientoResource extends JsonResource
     public function toArray($request)
     {
 
-        $activosCollection = $this->activos()
-            ->select(
-                'etiqueta',
-                'categoriaN3',
-                'id_familia',
-                'nombreActivo',
-                'idIndice',
-                DB::raw("COALESCE(crud_activos_pictures.url_picture, 'https://api.taxochile.cl/img/notavailable.jpg') AS foto4")
+      $activosCollection = $this->activos()
+        ->select(
+            'crud_activos.etiqueta',
+            'crud_activos.categoriaN3',
+            'crud_activos.id_familia',
+            'crud_activos.nombreActivo',
+            'crud_activos.idIndice',
+            DB::raw("COALESCE(CONCAT(crud_activos_pictures.url_picture, '/', crud_activos_pictures.picture), 'https://api.taxochile.cl/img/notavailable.jpg') AS foto4")
+        )
+        ->leftJoin(DB::raw('(
+            SELECT id_foto, id_activo, url_picture, picture
+            FROM crud_activos_pictures
+            WHERE (id_foto, id_activo) IN (
+                SELECT MAX(id_foto), id_activo
+                FROM crud_activos_pictures
+                GROUP BY id_activo
             )
-            ->leftJoin('crud_activos_pictures', 'crud_activos_pictures.id_activo', '=', 'crud_activos.idActivo')
-            ->get();
+        ) as crud_activos_pictures'), 'crud_activos_pictures.id_activo', '=', 'crud_activos.idActivo')
+        ->get();
 
         $activosInventario = DB::table('inv_inventario')
             ->leftJoin('categoria_n3', 'inv_inventario.id_familia', '=', 'categoria_n3.id_familia')

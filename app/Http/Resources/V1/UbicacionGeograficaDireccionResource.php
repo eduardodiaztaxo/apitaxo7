@@ -104,36 +104,45 @@ class UbicacionGeograficaDireccionResource extends JsonResource
     }
 
 
-    
-    public function activos_with_cats_without_emplazamientos_by_cycle2($cycle_id)
-    {
-        $queryBuilder = CrudActivo::select('crud_activos.*', 'indices_listas.descripcion AS descripcionActivo', 'dp_familias.descripcion_familia AS descripcionFamilia', DB::raw("COALESCE(crud_activos_pictures.url_picture, 'https://api.taxochile.cl/img/notavailable.jpg') AS foto_url"))
-            ->join('inv_ciclos_puntos', 'crud_activos.ubicacionGeografica', '=', 'inv_ciclos_puntos.idPunto')
-            ->join('inv_ciclos', 'inv_ciclos.idCiclo', '=', 'inv_ciclos_puntos.idCiclo')
-            ->join('inv_ciclos_categorias', function (JoinClause $join) {
-                $join->on('inv_ciclos.idCiclo', '=', 'inv_ciclos_categorias.idCiclo')
-                    ->on('crud_activos.id_familia', '=', 'inv_ciclos_categorias.id_familia');
-            })
-            ->leftJoin('ubicaciones_geograficas', function (JoinClause $join) {
-                $join->on('crud_activos.ubicacionGeografica', '=', 'ubicaciones_geograficas.idUbicacionGeo');
-            })
-            ->leftJoin('indices_listas', function (JoinClause $join) {
-                $join->on('indices_listas.idIndice', '=', 'crud_activos.idIndice')
-                     ->on('indices_listas.idLista', '=', 'crud_activos.nombreActivo')
-                     ->on('indices_listas.idAtributo', '=', DB::raw(1));
-            })
-            ->leftJoin('dp_familias', function (JoinClause $join) {
-                $join->on('dp_familias.id_familia', '=', 'crud_activos.id_familia');
-            })
-            ->leftJoin('crud_activos_pictures', function (JoinClause $join) {
-                $join->on('crud_activos_pictures.id_activo', '=', 'crud_activos.idActivo');
-            })
+public function activos_with_cats_without_emplazamientos_by_cycle2($cycle_id)
+{
+    // Subquery para la última foto por activo, trayendo también 'picture'
+    $subquery = DB::table('crud_activos_pictures as cap')
+        ->select('cap.id_activo', 'cap.url_picture', 'cap.picture')
+        ->whereRaw('cap.id_foto = (SELECT MAX(id_foto) FROM crud_activos_pictures WHERE id_activo = cap.id_activo)');
 
-            ->where('inv_ciclos.idCiclo', '=', $cycle_id)
-            ->where('crud_activos.ubicacionGeografica', '=', $this->idUbicacionGeo);
+    $queryBuilder = CrudActivo::select(
+            'crud_activos.*',
+            'indices_listas.descripcion AS descripcionActivo',
+            'dp_familias.descripcion_familia AS descripcionFamilia',
+            DB::raw("COALESCE(CONCAT(fotos.url_picture, '/', fotos.picture), 'https://api.taxochile.cl/img/notavailable.jpg') AS foto_url")
+        )
+        ->join('inv_ciclos_puntos', 'crud_activos.ubicacionGeografica', '=', 'inv_ciclos_puntos.idPunto')
+        ->join('inv_ciclos', 'inv_ciclos.idCiclo', '=', 'inv_ciclos_puntos.idCiclo')
+        ->join('inv_ciclos_categorias', function (JoinClause $join) {
+            $join->on('inv_ciclos.idCiclo', '=', 'inv_ciclos_categorias.idCiclo')
+                ->on('crud_activos.id_familia', '=', 'inv_ciclos_categorias.id_familia');
+        })
+        ->leftJoin('ubicaciones_geograficas', function (JoinClause $join) {
+            $join->on('crud_activos.ubicacionGeografica', '=', 'ubicaciones_geograficas.idUbicacionGeo');
+        })
+        ->leftJoin('indices_listas', function (JoinClause $join) {
+            $join->on('indices_listas.idIndice', '=', 'crud_activos.idIndice')
+                 ->on('indices_listas.idLista', '=', 'crud_activos.nombreActivo')
+                 ->on('indices_listas.idAtributo', '=', DB::raw(1));
+        })
+        ->leftJoin('dp_familias', function (JoinClause $join) {
+            $join->on('dp_familias.id_familia', '=', 'crud_activos.id_familia');
+        })
+        // Join al subquery de la última foto
+        ->leftJoinSub($subquery, 'fotos', function ($join) {
+            $join->on('fotos.id_activo', '=', 'crud_activos.idActivo');
+        })
+        ->where('inv_ciclos.idCiclo', '=', $cycle_id)
+        ->where('crud_activos.ubicacionGeografica', '=', $this->idUbicacionGeo);
 
-        return $queryBuilder;
-    }
+    return $queryBuilder;
+}
 
     public function activos_without_emplazamientos2()
     {
