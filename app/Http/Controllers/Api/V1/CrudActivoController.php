@@ -228,11 +228,11 @@ class CrudActivoController extends Controller
         // if ($activo->foto4)
         //     $this->imageService->deleteImage($activo->foto4);
 
+ $origen = 'SAFIN APP';
 
-        $filename = '9999_' . $etiqueta . '.png'; // construyes el nombre del archivo
-        $origen = 'SAFIN APP';
-        
-        $relativePath = $request->user()->nombre_cliente . "/img";
+    $relativePath = $request->user()->nombre_cliente . "/img"; // Ej: SAFIN/img
+    $basename = '9999_' . $etiqueta;
+    $filename = $basename . '.jpg'; // Extensión .jpg fija
 
         // $path = $this->imageService->optimizeImageAndSave(
         //     $request->file('imagen'),
@@ -242,52 +242,46 @@ class CrudActivoController extends Controller
 
         // $url = asset('storage/' . $path);
 
-        $path = $this->imageService->optimizeImageAndSave(
+   $path = $this->imageService->optimizeImageAndSave(
         $request->file('imagen'),
         $relativePath,
-        pathinfo($filename, PATHINFO_FILENAME) // sin extensión porque se la añade el método
-        );
+        $basename // sin extensión, la función ya le pone .jpg
+    );
 
-         $url = Storage::disk('public')->url($relativePath . '/' . $filename);
-         
-       $ultimo = DB::table('crud_activos_pictures')
-            ->where('id_activo', $idActivo_Documento)
-            ->orderByDesc('id_foto')
-            ->first();
+    $url = env('APP_URL') . '/_lib/file/img/' . $relativePath . '/';
 
-        if ($ultimo) {
-            DB::table('crud_activos_pictures')
-                ->where('id_foto', $ultimo->id_foto)
-                ->update([
-                    'url_picture' => $url,
-                    'picture'     => $filename,
-                    'origen'      => $origen,
-                    'fecha_update' => now(),
-                ]);
-        } else {
-            // Insertar si no existe ninguno
-            DB::table('crud_activos_pictures')->insert([
-                'id_activo'   => $idActivo_Documento,
+
+    $ultimo = DB::table('crud_activos_pictures')
+        ->where('id_activo', $idActivo_Documento)
+        ->orderByDesc('id_foto')
+        ->first();
+
+    if ($ultimo) {
+        DB::table('crud_activos_pictures')
+            ->where('id_foto', $ultimo->id_foto)
+            ->update([
                 'url_picture' => $url,
                 'picture'     => $filename,
                 'origen'      => $origen,
                 'fecha_update' => now(),
             ]);
-        }
-
-        // $activo->foto4 = $path;
-
-        // $activo->save();
-
-        return response()->json(
-            [
-                'status'    => 'OK',
-                'path'      => $path,
-                'url'       => asset('storage/' . $path)
-            ],
-            201
-        );
+    } else {
+        DB::table('crud_activos_pictures')->insert([
+            'id_activo'   => $idActivo_Documento,
+            'url_picture' => $url,
+            'picture'     => $filename,
+            'origen'      => $origen,
+            'fecha_update' => now(),
+        ]);
     }
+
+    return response()->json([
+        'status' => 'OK',
+        'path'   => $path,
+        'url'    => $url,
+    ], 201);
+}
+
 
 
 
