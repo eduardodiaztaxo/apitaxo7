@@ -229,17 +229,16 @@ class CrudActivoController extends Controller
         //     $this->imageService->deleteImage($activo->foto4);
 
 
-        $filename = '9999_' . $etiqueta . '.png'; // construyes el nombre del archivo
+        $filename = '9999_' . $etiqueta ; // construyes el nombre del archivo
         $origen = 'SAFIN APP';
         
         $path = $this->imageService->optimizeImageAndSave(
             $request->file('imagen'),
-            "_lib/file/img/" . $request->user()->nombre_cliente . "/img/",
-            $filename, 
+            "_lib/file/img/" . $request->user()->nombre_cliente . "/img",
         );
 
 
-        $url = asset('storage/' . $path);
+        $url = asset( $path);
 
        $ultimo = DB::table('crud_activos_pictures')
             ->where('id_activo', $idActivo_Documento)
@@ -251,7 +250,7 @@ class CrudActivoController extends Controller
                 ->where('id_foto', $ultimo->id_foto)
                 ->update([
                     'url_picture' => $url ,
-                    'picture'     => $filename,
+                    'picture'     => $filename.'.jpg',
                     'origen'      => $origen,
                 ]);
         } else {
@@ -259,7 +258,7 @@ class CrudActivoController extends Controller
             DB::table('crud_activos_pictures')->insert([
                 'id_activo'   => $idActivo_Documento,
                 'url_picture' => $url ,
-                'picture'     => $filename,
+                'picture'     => $filename.'.jpg',
                 'origen'      => $origen,
             ]);
         }
