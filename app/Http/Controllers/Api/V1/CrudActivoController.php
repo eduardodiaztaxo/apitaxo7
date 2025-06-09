@@ -238,10 +238,6 @@ class CrudActivoController extends Controller
             $filename, 
         );
 
-         $url_picture = $this->imageService->optimizeImageAndSave(
-            $request->file('imagen'),
-            "_lib/file/img/" . $request->user()->nombre_cliente . "/img/",
-        );
 
         $url = asset('storage/' . $path);
 
@@ -254,7 +250,7 @@ class CrudActivoController extends Controller
             DB::table('crud_activos_pictures')
                 ->where('id_foto', $ultimo->id_foto)
                 ->update([
-                    'url_picture' => $url_picture ,
+                    'url_picture' => $url ,
                     'picture'     => $filename,
                     'origen'      => $origen,
                 ]);
@@ -262,7 +258,7 @@ class CrudActivoController extends Controller
             // Insertar si no existe ninguno
             DB::table('crud_activos_pictures')->insert([
                 'id_activo'   => $idActivo_Documento,
-                'url_picture' => $url_picture ,
+                'url_picture' => $url ,
                 'picture'     => $filename,
                 'origen'      => $origen,
             ]);
