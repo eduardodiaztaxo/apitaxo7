@@ -110,7 +110,7 @@ class ExportAuditCycleSQLiteDatabase extends Command
         $this->setCyclesCategoriasByCycle();
         $this->setConteoRegistroByCycle();
         $this->setSubZonesByCycle();
-        $this->setCyclesPuntosByCycle();
+        // $this->setCyclesPuntosByCycle();
 
 
         $style = new OutputFormatterStyle('white', 'green', array('bold', 'blink'));
@@ -228,13 +228,13 @@ class ExportAuditCycleSQLiteDatabase extends Command
 
         $this->info('Subzonas insertadas en SQLite DB.');
     }
-    private function setCyclesPuntosByCycle()
-    {
-        (new CyclesPuntoDumpService(
-            $this->pdo,
-            $this->cycle
-        ))->runFromController();
+    // private function setCyclesPuntosByCycle()
+    // {
+    //     (new CyclesPuntoDumpService(
+    //         $this->pdo,
+    //         $this->cycle
+    //     ))->runFromController();
 
-        $this->info('ciclos_punto insertados en SQLite DB.');
-    }
+    //     $this->info('ciclos_punto insertados en SQLite DB.');
+    // }
 }
