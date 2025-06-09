@@ -228,6 +228,10 @@ class CrudActivoController extends Controller
         // if ($activo->foto4)
         //     $this->imageService->deleteImage($activo->foto4);
 
+
+        $filename = '9999_' . $etiqueta . '.png'; // construyes el nombre del archivo
+        $origen = 'SAFIN APP';
+        
         $path = $this->imageService->optimizeImageAndSave(
             $request->file('imagen'),
             "customers/" . $request->user()->nombre_cliente . "/images",
@@ -236,18 +240,24 @@ class CrudActivoController extends Controller
 
         $url = asset('storage/' . $path);
 
-        $existingRecord = DB::table('crud_activos_foto_docto')->where('idActivo', $idActivo_Documento)->first();
+        $existingRecord = DB::table('crud_activos_pictures')->where('id_activo', $idActivo_Documento)->first();
 
         if ($existingRecord) {
             // Actualizar
-            DB::table('crud_activos_foto_docto')
-                ->where('idActivo', $idActivo_Documento)
-                ->update(['foto_1' => $url]);
+            DB::table('crud_activos_pictures')
+                ->where('id_activo', $idActivo_Documento)
+                ->update([
+                    'url_picture' => $url,
+                    'picture' => $filename,
+                    'origen' => $origen,
+                ]);
         } else {
             // Insertar
-            DB::table('crud_activos_foto_docto')->insert([
-                'idActivo' => $idActivo_Documento,
-                'foto_1'   => $url,
+            DB::table('crud_activos_pictures')->insert([
+                'id_activo' => $idActivo_Documento,
+                'url_picture' => $url,
+                'picture' => $filename,
+                'origen' => $origen,
             ]);
         }
 

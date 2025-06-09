@@ -107,7 +107,7 @@ class UbicacionGeograficaDireccionResource extends JsonResource
     
     public function activos_with_cats_without_emplazamientos_by_cycle2($cycle_id)
     {
-        $queryBuilder = CrudActivo::select('crud_activos.*', 'indices_listas.descripcion AS descripcionActivo', 'dp_familias.descripcion_familia AS descripcionFamilia', DB::raw("COALESCE(crud_activos_foto_docto.foto_1, 'https://api.taxochile.cl/img/notavailable.jpg') AS foto_url"))
+        $queryBuilder = CrudActivo::select('crud_activos.*', 'indices_listas.descripcion AS descripcionActivo', 'dp_familias.descripcion_familia AS descripcionFamilia', DB::raw("COALESCE(crud_activos_pictures.url_picture, 'https://api.taxochile.cl/img/notavailable.jpg') AS foto_url"))
             ->join('inv_ciclos_puntos', 'crud_activos.ubicacionGeografica', '=', 'inv_ciclos_puntos.idPunto')
             ->join('inv_ciclos', 'inv_ciclos.idCiclo', '=', 'inv_ciclos_puntos.idCiclo')
             ->join('inv_ciclos_categorias', function (JoinClause $join) {
@@ -125,8 +125,8 @@ class UbicacionGeograficaDireccionResource extends JsonResource
             ->leftJoin('dp_familias', function (JoinClause $join) {
                 $join->on('dp_familias.id_familia', '=', 'crud_activos.id_familia');
             })
-            ->leftJoin('crud_activos_foto_docto', function (JoinClause $join) {
-                $join->on('crud_activos_foto_docto.idActivo', '=', 'crud_activos.idActivo');
+            ->leftJoin('crud_activos_pictures', function (JoinClause $join) {
+                $join->on('crud_activos_pictures.id_activo', '=', 'crud_activos.idActivo');
             })
 
             ->where('inv_ciclos.idCiclo', '=', $cycle_id)

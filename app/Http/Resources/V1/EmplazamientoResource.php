@@ -27,9 +27,9 @@ class EmplazamientoResource extends JsonResource
                 'id_familia',
                 'nombreActivo',
                 'idIndice',
-                DB::raw("COALESCE(crud_activos_foto_docto.foto_1, 'https://api.taxochile.cl/img/notavailable.jpg') AS foto4")
+                DB::raw("COALESCE(crud_activos_pictures.url_picture, 'https://api.taxochile.cl/img/notavailable.jpg') AS foto4")
             )
-            ->leftJoin('crud_activos_foto_docto', 'crud_activos_foto_docto.idActivo', '=', 'crud_activos.idActivo')
+            ->leftJoin('crud_activos_pictures', 'crud_activos_pictures.id_activo', '=', 'crud_activos.idActivo')
             ->get();
 
         $activosInventario = DB::table('inv_inventario')
