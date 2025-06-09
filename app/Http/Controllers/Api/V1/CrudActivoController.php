@@ -232,14 +232,24 @@ class CrudActivoController extends Controller
         $filename = '9999_' . $etiqueta . '.png'; // construyes el nombre del archivo
         $origen = 'SAFIN APP';
         
+        $relativePath = $request->user()->nombre_cliente . "/img";
+
+        // $path = $this->imageService->optimizeImageAndSave(
+        //     $request->file('imagen'),
+        //     "customers/" . $request->user()->nombre_cliente . "/images",
+        //     $etiqueta . "_" . date('YmdHis')
+        // );
+
+        // $url = asset('storage/' . $path);
+
         $path = $this->imageService->optimizeImageAndSave(
-            $request->file('imagen'),
-            "customers/" . $request->user()->nombre_cliente . "/images",
-            $etiqueta . "_" . date('YmdHis')
+        $request->file('imagen'),
+        $relativePath,
+        pathinfo($filename, PATHINFO_FILENAME) // sin extensión porque se la añade el método
         );
 
-        $url = asset('storage/' . $path);
-
+         $url = Storage::disk('public')->url($relativePath . '/' . $filename);
+         
        $ultimo = DB::table('crud_activos_pictures')
             ->where('id_activo', $idActivo_Documento)
             ->orderByDesc('id_foto')
@@ -252,6 +262,7 @@ class CrudActivoController extends Controller
                     'url_picture' => $url,
                     'picture'     => $filename,
                     'origen'      => $origen,
+                    'fecha_update' => now(),
                 ]);
         } else {
             // Insertar si no existe ninguno
@@ -260,6 +271,7 @@ class CrudActivoController extends Controller
                 'url_picture' => $url,
                 'picture'     => $filename,
                 'origen'      => $origen,
+                'fecha_update' => now(),
             ]);
         }
 
