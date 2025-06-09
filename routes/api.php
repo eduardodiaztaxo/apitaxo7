@@ -259,3 +259,8 @@ Route::post('encrypt-pass-word', [
     App\Http\Controllers\Auth\NewPasswordController::class,
     'hashPass'
 ]);
+
+Route::post('send-verification-mail', [
+    App\Http\Controllers\Auth\EmailVerificationNotificationController::class,
+    'sendMailVerificationByUsername'
+]);

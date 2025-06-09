@@ -9,8 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Laravel\Sanctum\NewAccessToken;
 use App\Models\Auth\Role;
-
-
+use App\Notifications\CustomVerifyEmail;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Auth\Passwords\CanResetPassword;
 
@@ -77,7 +76,20 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class);
     }
-    
+
+
+    /**
+     * Send the email verification notification.
+     *
+     * @return void
+     */
+    public function sendEmailVerificationNotification($url_callback = null)
+    {
+
+        // Use the CustomVerifyEmail notification with a custom URL callback
+        $this->notify(new CustomVerifyEmail($url_callback));
+    }
+
 
     // public function ciclos()
     // {
