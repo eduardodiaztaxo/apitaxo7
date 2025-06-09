@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\SecScUser;
 use App\Models\User;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Auth\Events\Verified;
@@ -29,6 +30,17 @@ class VerifyEmailController extends Controller
         if ($request->user()->markEmailAsVerified()) {
             event(new Verified($request->user()));
         }
+
+        //Update email_verified_at in sec_users
+        $conn_field = $request->user()->conn_field;
+
+        $login = $request->user()->name;
+
+        $secScUser = SecScUser::on($conn_field)->find($login);
+
+        $secScUser->email_verified_at = date('Y-m-d H:i:s');
+
+        $secScUser->save();
 
 
 

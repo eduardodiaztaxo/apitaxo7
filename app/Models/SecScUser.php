@@ -15,6 +15,7 @@ class SecScUser extends Model
 
     protected $fillable = [
         'pswd',
+        'email_verified_at'
     ];
 
     public $timestamps = false;
