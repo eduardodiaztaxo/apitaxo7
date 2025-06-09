@@ -60,11 +60,11 @@ class CyclesDumpService implements DumpSQLiteInterface
 
         // Create "ciclos" table
         $this->pdo->exec("
-            CREATE TABLE IF NOT EXISTS ciclos_puntos (
+                CREATE TABLE IF NOT EXISTS ciclos_puntos (
                 idCiclo INTEGER PRIMARY KEY,
                 idPunto INTEGER DEFAULT NULL,
                 id_estado INTEGER DEFAULT 0,
-                auditoria_general INTEGER DEFAULT 0,
+                auditoria_general INTEGER DEFAULT 0
             );
         ");
     }
