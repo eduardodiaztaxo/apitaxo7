@@ -240,24 +240,26 @@ class CrudActivoController extends Controller
 
         $url = asset('storage/' . $path);
 
-        $existingRecord = DB::table('crud_activos_pictures')->where('id_activo', $idActivo_Documento)->first();
+       $ultimo = DB::table('crud_activos_pictures')
+            ->where('id_activo', $idActivo_Documento)
+            ->orderByDesc('id_foto')
+            ->first();
 
-        if ($existingRecord) {
-            // Actualizar
+        if ($ultimo) {
             DB::table('crud_activos_pictures')
-                ->where('id_activo', $idActivo_Documento)
+                ->where('id_foto', $ultimo->id_foto)
                 ->update([
                     'url_picture' => $url,
-                    'picture' => $filename,
-                    'origen' => $origen,
+                    'picture'     => $filename,
+                    'origen'      => $origen,
                 ]);
         } else {
-            // Insertar
+            // Insertar si no existe ninguno
             DB::table('crud_activos_pictures')->insert([
-                'id_activo' => $idActivo_Documento,
+                'id_activo'   => $idActivo_Documento,
                 'url_picture' => $url,
-                'picture' => $filename,
-                'origen' => $origen,
+                'picture'     => $filename,
+                'origen'      => $origen,
             ]);
         }
 

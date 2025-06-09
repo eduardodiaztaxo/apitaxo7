@@ -23,15 +23,15 @@ class ActivoService
      */
     public function getUrlAsset(CrudActivo $activo, User $user): string
     {
+       
             $foto = DB::table('crud_activos_pictures')
                 ->where('id_activo', $activo->idActivo)
-                ->value('url_picture');
-        
-       
-            if ($foto) {
-                return $foto;
+                ->orderByDesc('id_foto')
+                ->first(['url_picture', 'picture']);
+
+            if ($foto && $foto->url_picture && $foto->picture) {
+                return rtrim($foto->url_picture, '/') . '/' . ltrim($foto->picture, '/');
             }
-        
          
             if ($activo->foto4) {
                 if (is_string_url($activo->foto4)) {
