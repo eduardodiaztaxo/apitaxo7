@@ -238,7 +238,7 @@ class CrudActivoController extends Controller
         );
 
 
-        $url = asset( $path);
+        $url = asset('storage/' . $path);
 
        $ultimo = DB::table('crud_activos_pictures')
             ->where('id_activo', $idActivo_Documento)
