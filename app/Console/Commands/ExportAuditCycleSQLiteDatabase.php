@@ -235,6 +235,6 @@ class ExportAuditCycleSQLiteDatabase extends Command
             $this->cycle
         ))->runFromController();
 
-        $this->info('Puntos de ciclos insertados en SQLite DB.');
+        $this->info('ciclos_punto insertados en SQLite DB.');
     }
 }
