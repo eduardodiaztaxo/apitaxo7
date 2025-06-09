@@ -23,9 +23,9 @@ class ActivoService
      */
     public function getUrlAsset(CrudActivo $activo, User $user): string
     {
-            $foto = DB::table('crud_activos_foto_docto')
-                ->where('idActivo', $activo->idActivo)
-                ->value('foto_1');
+            $foto = DB::table('crud_activos_pictures')
+                ->where('id_activo', $activo->idActivo)
+                ->value('url_picture');
         
        
             if ($foto) {
