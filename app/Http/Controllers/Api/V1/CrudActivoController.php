@@ -198,60 +198,36 @@ class CrudActivoController extends Controller
     }
 
     public function uploadImageByEtiqueta(Request $request, $etiqueta)
-    {
+{
+    $request->validate([
+        'imagen' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
+    ]);
 
-        //\\10.3.126.1\taxo_files\SAFIN\nombre_cliente\img
+    $idActivo_Documento = CrudActivo::where('etiqueta', $etiqueta)->value('idActivo');
 
-        $request->validate([
-            'imagen' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
-        ]);
-
-        // $activo = CrudActivo::where('etiqueta', '=', $etiqueta)->first();
-
-        $idActivo_Documento = CrudActivo::where('etiqueta', '=', $etiqueta)->value('idActivo');
-
-
-        if (!$idActivo_Documento) {
-            return response()->json([
-                "message" => "Not Found",
-                "status"  => "error"
-            ], 404);
-        }
-
-        // if (!$activo) {
-        //     return response()->json([
-        //         "message" => "Not Found",
-        //         "status"  => "error"
-        //     ], 404);
-        // }
-
-        // if ($activo->foto4)
-        //     $this->imageService->deleteImage($activo->foto4);
+    if (!$idActivo_Documento) {
+        return response()->json([
+            "message" => "Not Found",
+            "status"  => "error"
+        ], 404);
+    }
 
     $origen = 'SAFIN APP';
 
-    $cliente = $request->user()->nombre_cliente;
-    $relativePath = '_lib/file/img/' . $cliente . '/img'; // Carpeta dentro de storage/app/public
+    $relativePath = $request->user()->nombre_cliente . "/img"; // Ej: SAFIN/img
     $basename = '9999_' . $etiqueta;
     $filename = $basename . '.jpg';
 
-        // $path = $this->imageService->optimizeImageAndSave(
-        //     $request->file('imagen'),
-        //     "customers/" . $request->user()->nombre_cliente . "/images",
-        //     $etiqueta . "_" . date('YmdHis')
-        // );
+    // Crea y guarda la imagen optimizada
+    $image = $request->file('imagen');
+    $optimizedImage = $this->imageService->optimizeImage($image); // Tu método personalizado
 
-        // $url = asset('storage/' . $path);
+    $path = $relativePath . '/' . $filename;
+    Storage::disk('public')->put($path, $optimizedImage); // Guarda imagen
 
-  $path = $this->imageService->optimizeImageAndSave(
-        $request->file('imagen'),
-        $relativePath,
-        $basename
-    );
+    $url = asset('storage/' . $path); // Genera URL pública
 
-
-    $url = asset('storage/' . $path);
-
+    // Actualiza o inserta en la base de datos
     $ultimo = DB::table('crud_activos_pictures')
         ->where('id_activo', $idActivo_Documento)
         ->orderByDesc('id_foto')
@@ -283,6 +259,31 @@ class CrudActivoController extends Controller
     ], 201);
 }
 
+        //\\10.3.126.1\taxo_files\SAFIN\nombre_cliente\img
+
+        // $activo = CrudActivo::where('etiqueta', '=', $etiqueta)->first();
+
+  
+        // if (!$activo) {
+        //     return response()->json([
+        //         "message" => "Not Found",
+        //         "status"  => "error"
+        //     ], 404);
+        // }
+
+        // if ($activo->foto4)
+        //     $this->imageService->deleteImage($activo->foto4);
+
+
+        // $path = $this->imageService->optimizeImageAndSave(
+        //     $request->file('imagen'),
+        //     "customers/" . $request->user()->nombre_cliente . "/images",
+        //     $etiqueta . "_" . date('YmdHis')
+        // );
+
+        // $url = asset('storage/' . $path);
+
+ 
 //
 
 

@@ -35,19 +35,13 @@ return [
             'root' => storage_path('app'),
         ],
 
-        // 'public' => [
-        //     'driver' => 'local',
-        //     'root' => storage_path('app/public'),
-        //     'url' => env('APP_URL') . '/storage',
-        //     'visibility' => 'public',
-        // ],
         'public' => [
             'driver' => 'local',
-            'root' => public_path('_lib/file/img'),
-            'url' => env('APP_URL') . '/_lib/file/img',
+            'root' => storage_path('app/public'),
+            'url' => env('APP_URL') . '/storage',
             'visibility' => 'public',
         ],
-
+       
         'taxo' => [
             'driver' => 'local',
             'root' => env('TAXOFILES'),
