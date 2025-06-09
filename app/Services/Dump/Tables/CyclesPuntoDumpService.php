@@ -2,12 +2,11 @@
 
 namespace App\Services\Dump\Tables;
 
-use App\Http\Controllers\Api\V1\CiclosController;
 use App\Services\Dump\Tables\DumpSQLiteInterface;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use PDO;
 
-class CyclesDumpService implements DumpSQLiteInterface
+class CyclesPuntoDumpService implements DumpSQLiteInterface
 {
 
 
