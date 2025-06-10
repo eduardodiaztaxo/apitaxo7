@@ -231,7 +231,7 @@ class CrudActivoController extends Controller
 
 
     $filename = '9999_' . $etiqueta;
-    $origen = 'SAFIN APP';
+    $origen = 'SAFIN_APP';
 
     $file = $request->file('imagen'); 
     $namefile = $filename . '.jpg'; 
