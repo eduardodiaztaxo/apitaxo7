@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-class TokenManager
+class TokenEncodeDecodeService
 {
     private $seed;
 
