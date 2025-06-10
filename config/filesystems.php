@@ -46,6 +46,13 @@ return [
             'driver' => 'local',
             'root' => env('TAXOFILES'),
         ],
+        
+        'taxoImages' => [
+            'driver'     => 'local',
+            'root'       => env('TAXOIMAGES'),
+            'url'        => env('TAXOIMAGES_URL'),
+            'visibility' => 'public',
+        ],
 
         's3' => [
             'driver' => 's3',

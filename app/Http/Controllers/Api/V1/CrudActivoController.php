@@ -16,6 +16,7 @@ use App\Models\Inventario;
 use App\Services\ActivoService;
 use App\Services\ImageService;
 use Illuminate\Http\Request;
+use App\Services\Imagenes\PictureSafinService;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Encoders\JpegEncoder;
 use Intervention\Image\Laravel\Facades\Image as Image;
@@ -229,19 +230,21 @@ class CrudActivoController extends Controller
         //     $this->imageService->deleteImage($activo->foto4);
 
 
-        $filename = '9999_' . $etiqueta ; // construyes el nombre del archivo
-        $origen = 'SAFIN APP';
-        
-        $path = $this->imageService->optimizeImageAndSave(
-            $request->file('imagen'),
-            "_lib/file/img/" . $request->user()->nombre_cliente . "/img",
-            $filename, 
+    $filename = '9999_' . $etiqueta;
+    $origen = 'SAFIN APP';
+
+    $file = $request->file('imagen'); 
+    $namefile = $filename . '.jpg'; 
+
+   $path = $file->storeAs(
+    PictureSafinService::getImgSubdir($request->user()->nombre_cliente), 
+    $namefile, 
+    'taxoImages'
         );
 
-
-        $url = asset('storage/' . $path);
+    $url = Storage::disk('taxoImages')->url($path);
+    $url_pict = dirname($url) . '/';
         
-        $url_pict = dirname($url) . '/'; 
        $ultimo = DB::table('crud_activos_pictures')
             ->where('id_activo', $idActivo_Documento)
             ->orderByDesc('id_foto')
@@ -251,7 +254,7 @@ class CrudActivoController extends Controller
             DB::table('crud_activos_pictures')
                 ->where('id_foto', $ultimo->id_foto)
                 ->update([
-                    'url_picture' => $url_pict ,
+                    'url_picture' => $url_pict,
                     'picture'     => $filename.'.jpg',
                     'origen'      => $origen,
                     'fecha_update' => now()
@@ -260,7 +263,7 @@ class CrudActivoController extends Controller
             // Insertar si no existe ninguno
             DB::table('crud_activos_pictures')->insert([
                 'id_activo'   => $idActivo_Documento,
-                'url_picture' => $url_pict ,
+                'url_picture' => $url_pict,
                 'picture'     => $filename.'.jpg',
                 'origen'      => $origen,
                 'fecha_update' => now()
@@ -271,14 +274,15 @@ class CrudActivoController extends Controller
 
         // $activo->save();
 
-        return response()->json(
-            [
-                'status'    => 'OK',
-                'path'      => $path,
-                'url'       => asset('storage/' . $path)
-            ],
-            201
-        );
+      return response()->json(
+    [
+        'status' => 'OK',
+        'path'   => $path,
+        'url'    => $url
+    ],
+    201
+);
+
     }
 
 
