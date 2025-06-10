@@ -240,7 +240,8 @@ class CrudActivoController extends Controller
 
 
         $url = asset('storage/' . $path);
-
+        
+        $url_pict = dirname($url) . '/'; 
        $ultimo = DB::table('crud_activos_pictures')
             ->where('id_activo', $idActivo_Documento)
             ->orderByDesc('id_foto')
@@ -250,17 +251,19 @@ class CrudActivoController extends Controller
             DB::table('crud_activos_pictures')
                 ->where('id_foto', $ultimo->id_foto)
                 ->update([
-                    'url_picture' => $url ,
+                    'url_picture' => $url_pict ,
                     'picture'     => $filename.'.jpg',
                     'origen'      => $origen,
+                    'fecha_update' => now()
                 ]);
         } else {
             // Insertar si no existe ninguno
             DB::table('crud_activos_pictures')->insert([
                 'id_activo'   => $idActivo_Documento,
-                'url_picture' => $url ,
+                'url_picture' => $url_pict ,
                 'picture'     => $filename.'.jpg',
                 'origen'      => $origen,
+                'fecha_update' => now()
             ]);
         }
 
