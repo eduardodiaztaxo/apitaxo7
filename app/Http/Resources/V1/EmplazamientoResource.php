@@ -25,6 +25,7 @@ class EmplazamientoResource extends JsonResource
             'crud_activos.etiqueta',
             'crud_activos.categoriaN3',
             'crud_activos.id_familia',
+            'crud_activos.id_grupo',
             'crud_activos.nombreActivo',
             'crud_activos.idIndice',
             DB::raw("COALESCE(CONCAT(crud_activos_pictures.url_picture, '/', crud_activos_pictures.picture), 'https://api.taxochile.cl/img/notavailable.jpg') AS foto4")
@@ -81,6 +82,7 @@ class EmplazamientoResource extends JsonResource
                 'etiqueta' => $activo->etiqueta,
                 'categoriaN3' => $activo->codigoCategoria,
                 'id_familia' => $activo->id_familia,
+                'id_grupo' => $activo->id_grupo,
                 'nombreActivo' => $activo->descripcion_bien,
                 'descripcionCategoria' => $activo->descripcionCategoria,
                 'descripcionFamilia' => $activo->descripcion_familia,

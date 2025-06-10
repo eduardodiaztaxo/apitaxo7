@@ -47,13 +47,17 @@ class CrudActivoLiteResource extends JsonResource
                     'idAtributo' => 2,
                 ]);
         }
-        
+        $grupoDescripcion = DB::table('dp_grupos')
+        ->where('id_grupo', $this->id_grupo)
+        ->value('descripcion_grupo');
+
         $activo['marca'] = !empty($marcaResult) ? $marcaResult[0]->descripcion : 'Sin marca';
 
         $activo = [];
         $activo['etiqueta'] = $this->etiqueta;
         $activo['categoriaN3'] = $this->categoriaN3;
         $activo['id_familia'] = $this->id_familia;
+        $activo['id_grupo'] = $this->id_grupo;
         $activo['nombreActivo'] = $this->nombre_activo_origen;
         $activo['modelo'] = $this->modelo;
         $activo['serie'] = $this->serie;
@@ -98,8 +102,7 @@ class CrudActivoLiteResource extends JsonResource
         $activo['descripcionCategoria'] = $this->categoria ? $this->categoria->descripcionCategoria : '';
 
         $activo['descripcionFamilia'] = $this->familia ? $this->familia->descripcion_familia : '';
-
-
+        $activo['descripcion_grupo'] = $grupoDescripcion ?? ''; 
         $activo['fotoUrl'] = $this->activoService->getUrlAsset($this->resource, $request->user());
 
 

@@ -4,6 +4,7 @@ namespace App\Http\Resources\V1;
 
 use App\Services\ActivoService;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\DB;
 
 class CrudActivoResource extends JsonResource
 {
@@ -33,6 +34,10 @@ class CrudActivoResource extends JsonResource
     {
         $activo = parent::toArray($request);
 
+         $grupoDescripcion = DB::table('dp_grupos')
+        ->where('id_grupo', $this->id_grupo)
+        ->value('descripcion_grupo');
+
         $activo['idUbicacionGeografica'] = (int)$activo['ubicacionGeografica'];
 
         $activo['codigo_activo'] = $this->codigo_activo;
@@ -48,6 +53,8 @@ class CrudActivoResource extends JsonResource
         $activo['descripcionCategoria'] = $this->categoria ? $this->categoria->descripcionCategoria : '';
 
         $activo['descripcionFamilia'] = $this->familia ? $this->familia->descripcion_familia : '';
+
+        $activo['descripcionGrupo'] = $grupoDescripcion;
 
         $activo['responsable'] = $this->responsable ? $this->responsable->name : null;
 
