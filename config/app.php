@@ -52,7 +52,7 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'http://localhost'),
+    'url' => env('APP_URL', 'https://safin360.taxochile.cl:443'),
 
     'asset_url' => env('ASSET_URL', null),
 
