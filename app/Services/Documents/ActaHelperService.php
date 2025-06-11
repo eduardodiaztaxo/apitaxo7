@@ -70,7 +70,7 @@ class ActaHelperService
                 'marca'             => $asset->marcaRelation->descripcion ?? 'Sin marca',
                 'modelo'            => $asset->modelo,
                 'adicionales'       => $asset->opcional1 ?? 'Sin adicionales',
-                'valor_aprox'       => $asset->valorCompra ? $asset->valorCompra : 1,
+                'valor_aprox'       => number_format($asset->valorCompra ?? 1, 0, ',', '.'),
                 'observacion'       => $asset->opcional3 ?? 'Sin observaciones',
                 'etiqueta'          => $asset->etiqueta,
                 'qr'                => $qrdir

@@ -31,7 +31,7 @@ class AssignResponsibleMail extends Mailable
     {
         $this->paths = $paths;
         $this->solicitud = $solicitud;
-        $this->asunto = 'Asiignación Responsable Activos - N° Solicitud: ' . $solicitud->n_solicitud;
+        $this->asunto = 'Asignación de Responsable - N° Solicitud: ' . $solicitud->n_solicitud;
         $this->observaciones = $observaciones;
     }
 
