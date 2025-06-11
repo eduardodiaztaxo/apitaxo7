@@ -17,6 +17,7 @@ class CrudActivo extends Model
         'marca',
         'modelo',
         'serie',
+        'nombreActivo',
         'responsableN1',
         'apoyaBrazosRuedas',
         'descripcionTipo',
@@ -115,24 +116,19 @@ class CrudActivo extends Model
 
 
 
-    public function marcaRelation()
-    {
-        return $this->belongsTo(IndiceLista::class, 'marca', 'idLista')
-            ->where(function ($query) {
-                $query->where('idAtributo', '=', 2)
-                    ->where('idLista', '=', $this->idIndice)
-                    ->where('id_familia', '=', $this->id_familia);
-            });
-    }
+        public function marcaRelation()
+        {
+            return $this->belongsTo(IndiceLista::class, 'marca', 'idLista')
+                ->where('idAtributo', 2)
+                ->where('id_familia', $this->id_familia);
+        }
 
     public function modeloRelation()
     {
-        return $this->belongsTo(IndiceLista::class, 'marca', 'idLista')
-            ->where(function ($query) {
-                $query->where('idAtributo', '=', 1)
-                    ->where('idLista', '=', $this->idIndice)
+        return $this->belongsTo(IndiceLista::class, 'nombreActivo', 'idLista')
+                   ->where('idAtributo', '=', 1)
                     ->where('id_familia', '=', $this->id_familia);
-            });
+    
     }
 
 
