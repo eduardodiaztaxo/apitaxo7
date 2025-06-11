@@ -35,7 +35,7 @@ class Responsable extends Model
 
     public function cargoRelation()
     {
-        return $this->belongsTo(ResponsableCargo::class, 'Cargo', 'id');
+        return $this->belongsTo(ResponsableCargo::class, 'cargo', 'id');
     }
 
 }
