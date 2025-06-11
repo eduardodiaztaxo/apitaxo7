@@ -19,4 +19,9 @@ class SecScUser extends Model
     ];
 
     public $timestamps = false;
+
+     public function cargo()
+    {
+        return $this->belongsTo(SecUserCargo::class, 'tipoCargo', 'idCargo');
+    }
 }
