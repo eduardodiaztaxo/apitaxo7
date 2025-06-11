@@ -10,11 +10,13 @@ use App\Services\TokenEncodeDecodeService;
 
 class EmailVerificationNotificationController extends Controller
 {
-     protected $tokenManager;
+    protected $tokenManager;
 
-    public function __construct(TokenEncodeDecodeService $tokenManager)
+    public function __construct()
     {
-        $this->tokenManager = $tokenManager;
+
+        $seed = env('TOKEN_SEED');
+        $this->tokenManager = new TokenEncodeDecodeService($seed);
     }
     /**
      * Send a new email verification notification.
@@ -42,14 +44,19 @@ class EmailVerificationNotificationController extends Controller
      */
     public function sendMailVerificationByUsername(Request $request)
     {
-// dd(env('TOKEN_SEED'));
-         $request->validate([
+
+
+        $request->validate([
             'username'  => ['required', 'string', 'max:255'],
             'callback'  => ['nullable', 'url'],
             'token'     => ['required', 'string'],
         ]);
 
+
+
         $data = $this->tokenManager->decode($request->token);
+
+
 
         if (!$data || !isset($data['exp']) || time() > $data['exp']) {
             return response()->json([
@@ -76,7 +83,7 @@ class EmailVerificationNotificationController extends Controller
         return response()->json(['status' => 'OK', 'message' => 'the verification email has been sent successfully']);
     }
 
- public function debugToken(Request $request)
+    public function debugToken(Request $request)
     {
         $data = $this->tokenManager->decode($request->token);
 
@@ -87,7 +94,7 @@ class EmailVerificationNotificationController extends Controller
                 'debug' => [
                     'token' => $request->token,
                     'seed' => substr($this->tokenManager->getSeed(), 0, 32), // Añade esto si implementás getSeed()
-            'decoded_base64' => base64_encode(base64_decode($request->token))
+                    'decoded_base64' => base64_encode(base64_decode($request->token))
 
                 ]
             ]);
