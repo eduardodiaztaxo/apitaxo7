@@ -264,3 +264,7 @@ Route::post('send-verification-mail', [
     App\Http\Controllers\Auth\EmailVerificationNotificationController::class,
     'sendMailVerificationByUsername'
 ]);
+Route::post('debug-token', [
+    App\Http\Controllers\Auth\EmailVerificationNotificationController::class,
+    'debugToken'
+]);
