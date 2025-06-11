@@ -95,7 +95,7 @@ class ActaHelperService
 
         $_nombre_receptor = $responsable->name;
         $_rut_receptor = format_chilean_rut($responsable->rut);
-        $cargo_receptor = $responsable->cargo ? $responsable->cargo->nombre_cargo : 'Sin cargo';
+        $cargo_receptor = $responsable->cargoRelation ? $responsable->cargoRelation->nombre_cargo : 'Sin cargo';
         $_accion_receptor    = 'Quien Recibe';
 
         $_observaciones = [

@@ -32,8 +32,10 @@ class Responsable extends Model
         return $this->hasMany(SolicitudAsignacion::class, 'id_responsable', 'idResponsable');
     }
 
-      public function cargo()
+
+    public function cargoRelation()
     {
         return $this->belongsTo(ResponsableCargo::class, 'Cargo', 'id');
     }
+
 }
