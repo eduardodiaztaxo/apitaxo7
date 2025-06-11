@@ -22,6 +22,7 @@ class CrudActivo extends Model
         'descripcionTipo',
         'observacion',
         'latitud',
+        'id_familia',
         'longitud'
     ];
 
@@ -116,12 +117,22 @@ class CrudActivo extends Model
 
     public function marcaRelation()
     {
-        return $this->belongsTo(IndiceLista::class, 'marca', 'idLista')->where('idAtributo', '=', 2)->where('idIndice', '=', $this->idIndice);
+        return $this->belongsTo(IndiceLista::class, 'marca', 'idLista')
+            ->where(function ($query) {
+                $query->where('idAtributo', '=', 2)
+                    ->where('idLista', '=', $this->idIndice)
+                    ->where('id_familia', '=', $this->id_familia);
+            });
     }
 
     public function modeloRelation()
     {
-        return $this->belongsTo(IndiceLista::class, 'marca', 'idLista')->where('idAtributo', '=', 1)->where('idIndice', '=', $this->idIndice);
+        return $this->belongsTo(IndiceLista::class, 'marca', 'idLista')
+            ->where(function ($query) {
+                $query->where('idAtributo', '=', 1)
+                    ->where('idLista', '=', $this->idIndice)
+                    ->where('id_familia', '=', $this->id_familia);
+            });
     }
 
 
