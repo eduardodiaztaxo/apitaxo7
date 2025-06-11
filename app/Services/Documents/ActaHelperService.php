@@ -69,7 +69,6 @@ class ActaHelperService
                 'serie'             => $asset->serie,
                 'marca'             => '',
                 'modelo'            => $asset->modelo,
-                'caracteristicas'   => $asset->capacidadUnidadMedida,
                 'adicionales'       => $asset->opcional1,
                 'valor_aprox'       => $asset->valorCompra ? $asset->valorCompra : 1,
                 'observacion'       => $asset->opcional3,
@@ -84,21 +83,20 @@ class ActaHelperService
 
         $address = $responsable->ubicacionGeografica;
 
-        $_direccion = $address->direccion;
         $_comuna    = $address->comuna()->first()->descripcion;
-        $_telefono = '';
 
         $_fecha = \Carbon\Carbon::parse($solicitud->fecha_mov)->format('d/m/Y');
 
 
         $_nombre_entregador = $user->name;
         $_rut_entregador = format_chilean_rut($user->rut);
-        $cargo_receptor = 'Encargado';
-
+        $cargo_entregador = $user->cargo ? $user->cargo->descripcion : 'Sin cargo';
+        $_accion_quien_entrega  = 'Quien Entrega';
 
         $_nombre_receptor = $responsable->name;
         $_rut_receptor = format_chilean_rut($responsable->rut);
-        $cargo_receptor = 'Responsable';
+        $cargo_receptor = $responsable->cargo ? $responsable->cargo->nombre_cargo : 'Sin cargo';
+        $_accion_receptor    = 'Quien Recibe';
 
         $_observaciones = [
             'Sin observaciones',
@@ -135,11 +133,6 @@ class ActaHelperService
 
 
 
-
-
-
-
-
         $acta->setLogo(public_path('img/logo-safin.png'));
 
         $_txt_parte1 = ', mediante el presente documento se realiza la entrega formal del o los siguiente(s) activos VER ANEXO DE BIENES ASIGNADOS al Responsable: ';
@@ -158,17 +151,16 @@ class ActaHelperService
         $acta->setTxtPDFObservaciones($_txt_pdf_observaciones);
         $acta->setTxtPDFEntrega($_txt_pdf_entrega);
 
-
         $acta->setNumero($_numero);
-        $acta->setDireccion($_direccion);
         $acta->setComuna($_comuna);
-        $acta->setTelefono($_telefono);
         $acta->setFecha($_fecha);
 
         $acta->setNombreQuienEntrega($_nombre_entregador);
+        $acta->setAccionQuienEntrega($_accion_quien_entrega);
         $acta->setRutQuienEntrega($_rut_entregador);
-        $acta->setCargoQuienEntrega('');
+        $acta->setCargoQuienEntrega($cargo_entregador);
         $acta->setNombreReceptor($_nombre_receptor);
+        $acta->setAccionReceptor($_accion_receptor);
         $acta->setRutReceptor($_rut_receptor);
         $acta->setCargoReceptor($cargo_receptor);
         $acta->setObservaciones($_observaciones);
@@ -176,10 +168,6 @@ class ActaHelperService
 
         $acta->setPathQuienEntrega($path_quien_entrega);
         $acta->setPathReceptor($path_quien_recive);
-
-
-
-
 
 
 
