@@ -69,40 +69,42 @@ class ActivoService
             return $url;
         }
     
-      public function getUrlAssetInventario($activo, User $user): string
-        {
-            if (!empty($activo->fotoUrl) && is_string_url($activo->fotoUrl)) {
-                return $activo->fotoUrl;
-            }
+//      public function getUrlAssetInventario($activo, User $user): string
+// {
+//     if (!empty($activo->fotoUrl) && is_string_url($activo->fotoUrl)) {
+//         return $activo->fotoUrl;
+//     }
 
-            if (!empty($activo->foto4)) {
-                if (is_string_url($activo->foto4)) {
-                    return $activo->foto4;
-                } elseif ($activo->foto4 === 'img/notavailable.jpg') {
-                    return asset('img/notavailable.jpg');
-                } else {
-                    return asset('storage/' . $activo->foto4);
-                }
-            }
+//     if (!empty($activo->foto4)) {
+//         if (is_string_url($activo->foto4)) {
+//             return $activo->foto4;
+//         } elseif ($activo->foto4 === 'img/notavailable.jpg') {
+//             return asset('img/notavailable.jpg');
+//         } else {
+//             return asset('storage/' . $activo->foto4);
+//         }
+//     }
 
-    $url = asset('img/notavailable.jpg');
+//     // 🔍 Obtener desde la relación
+//     if ($activo->imagen && is_string_url($activo->imagen->url_imagen)) {
+//         return $activo->imagen->url_imagen;
+//     }
 
-    $proyecto_id = $user->proyecto_id;
-    $nombre_cliente = $user->nombre_cliente;
-    $numero_etiqueta = $activo->etiqueta ?? '';
+//     // Fallback
+//     $proyecto_id = $user->proyecto_id;
+//     $etiqueta = $activo->etiqueta ?? '';
 
-    $url_levanta_1 = "https://files.taxochile.cl/PROCESADAS/{$proyecto_id}/{$proyecto_id}_{$numero_etiqueta}.PNG";
-    $url_levanta_2 = "https://files.taxochile.cl/PROCESADAS/{$proyecto_id}/{$proyecto_id}_{$numero_etiqueta}.png";
+//     $url1 = "https://files.taxochile.cl/PROCESADAS/{$proyecto_id}/{$proyecto_id}_{$etiqueta}.PNG";
+//     $url2 = "https://files.taxochile.cl/PROCESADAS/{$proyecto_id}/{$proyecto_id}_{$etiqueta}.png";
 
-    $url2 = $this->urlCheck($url_levanta_1);
-    $url2a = $this->urlCheck($url_levanta_2);
+//     if ($this->urlCheck($url1)) {
+//         return $url1;
+//     } elseif ($this->urlCheck($url2)) {
+//         return $url2;
+//     }
 
-    if ($url2 || $url2a) {
-        $url = $url_levanta_1;
-    }
-
-    return $url;
-}
+//     return asset('img/notavailable.jpg');
+// }
 
 protected function urlCheck($url)
 {

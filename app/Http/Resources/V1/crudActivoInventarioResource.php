@@ -3,6 +3,7 @@
 namespace App\Http\Resources\V1;
 
 use App\Services\ActivoService;
+use App\Models\Inventario;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -98,9 +99,12 @@ class crudActivoInventarioResource extends JsonResource
 
         $activo['fotoUrl'] = null;
 
-        if ($request->user()) {
-            $activo['fotoUrl'] = $this->activoService->getUrlAssetInventario($this->resource, $request->user());
-        }
+        // En tu controlador o wherever lo traes
+        $activos = Inventario::with('imagen')->where(...)->get();
+
+       $activo['fotoUrl'] = $this->imagen && !empty($this->imagen->url_imagen)
+    ? $this->imagen->url_imagen
+    : asset('img/notavailable.jpg');
 
 
         return $activo;
