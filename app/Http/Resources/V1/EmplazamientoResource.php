@@ -97,7 +97,7 @@ class EmplazamientoResource extends JsonResource
             'nombre' => $this->descripcionUbicacion,
             'idAgenda' => $this->idAgenda,
             'idUbicacionN2' => $this->idUbicacionN2,
-            'num_activos' => 1,
+            'num_activos' => 0,
             'num_activos_cats_by_cycle' => 0,
             'ciclo_auditoria' => $this->ciclo_auditoria,
             'num_categorias' => $this->activos()->select('categoriaN3')->groupBy('categoriaN3')->get()->count(),
