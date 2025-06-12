@@ -34,9 +34,9 @@ class CrudActivoResource extends JsonResource
     {
         $activo = parent::toArray($request);
 
-         $grupoDescripcion = DB::table('dp_grupos')
-        ->where('id_grupo', $this->id_grupo)
-        ->value('descripcion_grupo');
+        $grupoDescripcion = DB::table('dp_grupos')
+            ->where('id_grupo', $this->id_grupo)
+            ->value('descripcion_grupo');
 
         $activo['idUbicacionGeografica'] = (int)$activo['ubicacionGeografica'];
 
@@ -46,7 +46,7 @@ class CrudActivoResource extends JsonResource
 
         $activo['nombreActivo'] = $this->nombre_activo_origen;
 
-        $activo['marca'] = $this->marcaRelation->descripcion;
+        $activo['marca'] = $this->marcaRelation ? $this->marcaRelation->descripcion : '';
 
         $activo['estadoBien'] = $this->estadoBienRelation ? $this->estadoBienRelation->descripcion : '';
 
