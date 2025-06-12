@@ -90,24 +90,37 @@ class InventariosResource extends JsonResource
             ->select('descripcion')
             ->first();
     
-        $firstImageUrl = "https://api.taxochile.cl/img/notavailable.jpg";
-    
-        if (!empty($img->url_imagen)) {
-            $folderPath = str_replace('http://apitaxo7.cl/storage/', '', $img->url_imagen);
-            $localFolderPath = public_path('storage/' . $folderPath);
-    
-            if (is_dir($localFolderPath)) {
-                $files = scandir($localFolderPath);
-    
-                $imageFiles = array_filter($files, function ($file) {
-                    return in_array(strtolower(pathinfo($file, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png']);
-                });
-    
-                if (!empty($imageFiles)) {
-                    $firstImageUrl = asset('storage/' . $folderPath . '/' . reset($imageFiles));
-                }
+        $foto = DB::table('inv_inventario')
+            ->leftJoin('categoria_n3', 'inv_inventario.id_familia', '=', 'categoria_n3.id_familia')
+            ->leftJoin('dp_familias', 'inv_inventario.id_familia', '=', 'dp_familias.id_familia')
+            ->leftJoin('inv_imagenes', 'inv_inventario.id_img', '=', 'inv_imagenes.id_img')
+            ->where('inv_inventario.codigoUbicacion', 31116)
+            ->where('inv_inventario.id_ciclo', 25)
+            ->first(['inv_imagenes.url_imagen']);
+
+            if ($foto == null) {
+                return asset('img/notavailable.jpg');
             }
-        }
+
+         
+        // $firstImageUrl = "https://api.taxochile.cl/img/notavailable.jpg";
+    
+        // if (!empty($img->url_imagen)) {
+        //     $folderPath = str_replace('http://apitaxo7.cl/storage/', '', $img->url_imagen);
+        //     $localFolderPath = public_path('storage/' . $folderPath);
+    
+        //     if (is_dir($localFolderPath)) {
+        //         $files = scandir($localFolderPath);
+    
+        //         $imageFiles = array_filter($files, function ($file) {
+        //             return in_array(strtolower(pathinfo($file, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png']);
+        //         });
+    
+        //         if (!empty($imageFiles)) {
+        //             $firstImageUrl = asset('storage/' . $folderPath . '/' . reset($imageFiles));
+        //         }
+        //     }
+        // }
     
         return [
             'nombreActivo'         => $activo->descripcion_bien,
@@ -120,8 +133,8 @@ class InventariosResource extends JsonResource
             'descripcionFamilia'  => $descFamilia->descripcion_familia ?? 'Sin Registros',
             'etiqueta'             => $activo->etiqueta,
             'responsable'          => $activo->responsable ?? 'Sin Registros',
-            'fotoUrl'              => $firstImageUrl,
-            'foto4'                => $firstImageUrl,
+            'fotoUrl'              => $foto->url_imagen ?? asset('img/notavailable.jpg'),
+            'foto4'                => $foto->url_imagen ?? asset('img/notavailable.jpg'),
             'emplazamiento'        => [
                 'nombre' => $subEmplazamiento->descripcionUbicacion ?? 'No disponible',
                 'zone_address' => [

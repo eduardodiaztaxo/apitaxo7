@@ -3,7 +3,6 @@
 namespace App\Http\Resources\V1;
 
 use App\Services\ActivoService;
-use App\Models\Inventario;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -99,21 +98,10 @@ class crudActivoInventarioResource extends JsonResource
 
         $activo['fotoUrl'] = null;
 
-        
+        if ($request->user()) {
+            $activo['fotoUrl'] = $this->activoService->getUrlAssetInventario($this->resource, $request->user());
+        }
 
-$url = DB::table('inv_inventario')
-    ->select('inv_imagenes.url_imagen')
-    ->leftJoin('categoria_n3', 'inv_inventario.id_familia', '=', 'categoria_n3.id_familia')
-    ->leftJoin('dp_familias', 'inv_inventario.id_familia', '=', 'dp_familias.id_familia')
-    ->leftJoin('inv_imagenes', 'inv_inventario.id_img', '=', 'inv_imagenes.id_img')
-    ->where('inv_inventario.codigoUbicacion', $this->ubicacionOrganicaN2)
-    ->where('inv_inventario.id_ciclo', $this->cycle_id)
-    ->value('url_imagen');
-
-
-$activo['fotoUrl'] = !empty($url) && filter_var($url, FILTER_VALIDATE_URL)
-    ? $url
-    : asset('img/notavailable.jpg');
 
         return $activo;
     }

@@ -69,42 +69,22 @@ class ActivoService
             return $url;
         }
     
-//      public function getUrlAssetInventario($activo, User $user): string
-// {
-//     if (!empty($activo->fotoUrl) && is_string_url($activo->fotoUrl)) {
-//         return $activo->fotoUrl;
-//     }
+      public function getUrlAssetInventario($activo, User $user): string
+        {
+            $foto = DB::table('inv_inventario')
+            ->leftJoin('categoria_n3', 'inv_inventario.id_familia', '=', 'categoria_n3.id_familia')
+            ->leftJoin('dp_familias', 'inv_inventario.id_familia', '=', 'dp_familias.id_familia')
+            ->leftJoin('inv_imagenes', 'inv_inventario.id_img', '=', 'inv_imagenes.id_img')
+            ->where('inv_inventario.codigoUbicacion', 31116)
+            ->where('inv_inventario.id_ciclo', 25)
+            ->first(['inv_imagenes.url_imagen']);
 
-//     if (!empty($activo->foto4)) {
-//         if (is_string_url($activo->foto4)) {
-//             return $activo->foto4;
-//         } elseif ($activo->foto4 === 'img/notavailable.jpg') {
-//             return asset('img/notavailable.jpg');
-//         } else {
-//             return asset('storage/' . $activo->foto4);
-//         }
-//     }
+            if ($foto == null) {
+                return asset('img/notavailable.jpg');
+            }
 
-//     // 🔍 Obtener desde la relación
-//     if ($activo->imagen && is_string_url($activo->imagen->url_imagen)) {
-//         return $activo->imagen->url_imagen;
-//     }
-
-//     // Fallback
-//     $proyecto_id = $user->proyecto_id;
-//     $etiqueta = $activo->etiqueta ?? '';
-
-//     $url1 = "https://files.taxochile.cl/PROCESADAS/{$proyecto_id}/{$proyecto_id}_{$etiqueta}.PNG";
-//     $url2 = "https://files.taxochile.cl/PROCESADAS/{$proyecto_id}/{$proyecto_id}_{$etiqueta}.png";
-
-//     if ($this->urlCheck($url1)) {
-//         return $url1;
-//     } elseif ($this->urlCheck($url2)) {
-//         return $url2;
-//     }
-
-//     return asset('img/notavailable.jpg');
-// }
+            return $foto->url_imagen;
+        }
 
 protected function urlCheck($url)
 {
