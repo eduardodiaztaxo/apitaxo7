@@ -6,9 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Http\Request;
+use App\Services\TokenEncodeDecodeService;
 
 class EmailVerificationNotificationController extends Controller
 {
+    protected $tokenManager;
+
+    public function __construct()
+    {
+
+        $seed = env('TOKEN_SEED');
+        $this->tokenManager = new TokenEncodeDecodeService($seed);
+    }
     /**
      * Send a new email verification notification.
      *
@@ -36,9 +45,25 @@ class EmailVerificationNotificationController extends Controller
     public function sendMailVerificationByUsername(Request $request)
     {
 
+
         $request->validate([
-            'username' => ['required', 'string', 'max:255'],
+            'username'  => ['required', 'string', 'max:255'],
+            'callback'  => ['nullable', 'url'],
+            'token'     => ['required', 'string'],
         ]);
+
+
+
+        $data = $this->tokenManager->decode($request->token);
+
+
+
+        if (!$data || !isset($data['exp']) || time() > $data['exp']) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Token inválido o expirado'
+            ], 401);
+        }
 
         $user = User::where('name', $request->username)->first();
 
@@ -56,5 +81,25 @@ class EmailVerificationNotificationController extends Controller
         $user->sendEmailVerificationNotification($callback);
 
         return response()->json(['status' => 'OK', 'message' => 'the verification email has been sent successfully']);
+    }
+
+    public function debugToken(Request $request)
+    {
+        $data = $this->tokenManager->decode($request->token);
+
+        if (!$data) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Token inválido o malformado',
+                'debug' => [
+                    'token' => $request->token,
+                    'seed' => substr($this->tokenManager->getSeed(), 0, 32), // Añade esto si implementás getSeed()
+                    'decoded_base64' => base64_encode(base64_decode($request->token))
+
+                ]
+            ]);
+        }
+
+        return response()->json(['status' => 'ok', 'data' => $data]);
     }
 }
