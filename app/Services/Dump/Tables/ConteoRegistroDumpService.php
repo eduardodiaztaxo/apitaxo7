@@ -24,11 +24,11 @@ class ConteoRegistroDumpService implements DumpSQLiteInterface
         $this->cycle = $cycle;
     }
 
-        public function runFromController(): void
+    public function runFromController(): void
     {
         $this->createTable();
 
-        $Registros = \App\Models\InvConteoRegistro::where('ciclo_id', $this->cycle)->get();
+        $Registros = \App\Models\InvConteoRegistro::where('ciclo_id', $this->cycle)->where('status', 1)->get();
 
         $this->insert($Registros->toArray());
     }
@@ -43,9 +43,9 @@ class ConteoRegistroDumpService implements DumpSQLiteInterface
                 etiqueta TEXT,
                 status INTEGER,
                 audit_status INTEGER,
-                cod_zona INTEGER,
-                cod_emplazamiento INTEGER,
-                cod_subemplazamiento INTEGER,
+                cod_zona TEXT,
+                cod_emplazamiento TEXT,
+                cod_subemplazamiento TEXT,
                 user_id INTEGER,
                 created_at TEXT,
                 updated_at TEXT
