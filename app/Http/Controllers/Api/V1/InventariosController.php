@@ -104,46 +104,41 @@ class InventariosController extends Controller
 
    
     public function ImageByEtiqueta(Request $request, $etiqueta) {
-        $request->validate([
-            'imagenes.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
-        ]);
-    
-        $userFolder = "customers/" . $request->user()->nombre_cliente . "/images/inventario/" . $etiqueta . "/" . now()->format('Y-m-d');
-    
-        if (!Storage::exists($userFolder)) {
-            Storage::makeDirectory($userFolder);
-        }
-    
-        // Verificar si la carpeta ya está registrada en la base de datos
-        $existingFolder = Inv_imagenes::where('etiqueta', $etiqueta)
-            ->where('url_imagen', $userFolder)
-            ->first();
-    
-        // Si no existe, la guardamos UNA SOLA VEZ
-        if (!$existingFolder) {
-            $img = new Inv_imagenes();
-            $img->etiqueta = $etiqueta;
-            $img->url_imagen = asset('storage/' . $path);
-            $img->save();
-        }
-    
-        $paths = [];
-    
-        // Guardar imágenes en la carpeta, pero sin duplicar la carpeta en la BD
-        foreach ($request->file('imagenes') as $file) {
-            $imageName = $etiqueta . '_' . uniqid();
-            $path = $this->imageService->optimizeImageinv($file, $userFolder, $imageName);
-    
-            $paths[] = [
-                'path' => $path,
-                'url'  => asset('storage/' . $path),
-            ];
-        }
-    
-        return response()->json([
-            'status'    => 'OK',
-            'paths'     => $paths,
-            'folderUrl' => asset('storage/' . $userFolder)
-        ], 201);
+    $request->validate([
+        'imagenes.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
+    ]);
+
+    $userFolder = "customers/" . $request->user()->nombre_cliente . "/images/inventario/" . $etiqueta . "/" . now()->format('Y-m-d');
+
+    if (!Storage::exists($userFolder)) {
+        Storage::makeDirectory($userFolder);
     }
+
+    $paths = [];
+
+    foreach ($request->file('imagenes') as $file) {
+        $imageName = $etiqueta . '_' . uniqid();
+        $path = $this->imageService->optimizeImageinv($file, $userFolder, $imageName);
+
+        $fullUrl = asset('storage/' . $path);
+
+        // Guarda cada imagen con su URL completa
+        $img = new Inv_imagenes();
+        $img->etiqueta = $etiqueta;
+        $img->url_imagen = $fullUrl;
+        $img->save();
+
+        $paths[] = [
+            'path' => $path,
+            'url'  => $fullUrl,
+        ];
+    }
+
+    return response()->json([
+        'status'    => 'OK',
+        'paths'     => $paths,
+        'folderUrl' => asset('storage/' . $userFolder)
+    ], 201);
+}
+
 }    
