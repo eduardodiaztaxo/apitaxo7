@@ -123,7 +123,7 @@ class InventariosController extends Controller
         if (!$existingFolder) {
             $img = new Inv_imagenes();
             $img->etiqueta = $etiqueta;
-            $img->url_imagen = asset('storage/' . $userFolder);
+            $img->url_imagen = asset('storage/' . $path);
             $img->save();
         }
     
