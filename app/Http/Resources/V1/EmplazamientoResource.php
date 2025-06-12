@@ -4,6 +4,7 @@ namespace App\Http\Resources\V1;
 
 use Illuminate\Support\Facades\DB;
 use App\Http\Resources\V1\CrudActivoLiteResource;
+use App\Http\Resources\V1\crudActivoInventarioResource;
 use App\Models\InvConteoRegistro;
 use App\Models\Inv_ciclos_categorias;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -46,11 +47,17 @@ class EmplazamientoResource extends JsonResource
             ->leftJoin('dp_familias', 'inv_inventario.id_familia', '=', 'dp_familias.id_familia')
             ->leftJoin('inv_imagenes', 'inv_inventario.id_img', '=', 'inv_imagenes.id_img')
             ->where('inv_inventario.codigoUbicacion', $this->idUbicacionN2)
+            ->where('inv_inventario.id_ciclo', $this->cycle_id)
             ->select(
                 'inv_inventario.etiqueta',
                 'categoria_n3.codigoCategoria',
                 'inv_inventario.id_familia',
+                'inv_inventario.id_grupo',
                 'inv_inventario.descripcion_bien',
+                'inv_inventario.modelo',
+                'inv_inventario.serie',
+                'inv_inventario.descripcion_marca',
+                'inv_inventario.codigoUbicacion',
                 'categoria_n3.descripcionCategoria',
                 'dp_familias.descripcion_familia',
                 'inv_imagenes.url_imagen'
@@ -78,12 +85,18 @@ class EmplazamientoResource extends JsonResource
                 }
             }
 
-            return [
+      return (object)[
                 'etiqueta' => $activo->etiqueta,
                 'categoriaN3' => $activo->codigoCategoria,
                 'id_familia' => $activo->id_familia,
                 'id_grupo' => $activo->id_grupo,
                 'nombreActivo' => $activo->descripcion_bien,
+                'modelo' => $activo->modelo ?? '',
+                'serie' => $activo->serie ?? '',
+                'marca' => $activo->descripcion_marca ?? null,
+                'ubicacionOrganicaN2' => $activo->codigoUbicacion,
+                'categoria' => null, 
+                'familia' => null,   
                 'descripcionCategoria' => $activo->descripcionCategoria,
                 'descripcionFamilia' => $activo->descripcion_familia,
                 'fotoUrl' => $firstImageUrl,
@@ -98,6 +111,7 @@ class EmplazamientoResource extends JsonResource
             'idAgenda' => $this->idAgenda,
             'idUbicacionN2' => $this->idUbicacionN2,
             'num_activos' => 0,
+            'num_activos_inv' => $activosInventario->count(),
             'num_activos_cats_by_cycle' => 0,
             'ciclo_auditoria' => $this->ciclo_auditoria,
             'num_categorias' => $this->activos()->select('categoriaN3')->groupBy('categoriaN3')->get()->count(),
@@ -116,36 +130,50 @@ class EmplazamientoResource extends JsonResource
                 ->values()
                 ->toArray();
 
-     $activosFinales = [];
-
             if (isset($this->cycle_id) && $this->cycle_id) {
-                // Activos por ciclo
-                $activosCiclo = $this->activos_with_cats_by_cycle($this->cycle_id, $this->idAgenda)
+                $activosByCycle = $this->activos_with_cats_by_cycle($this->cycle_id, $this->idAgenda)
                     ->whereIn('crud_activos.id_grupo', $categorias)
                     ->get()
                     ->map(function ($activo) {
                         return (new CrudActivoLiteResource($activo, $this->cycle_id, $this->idAgenda))->toArray(request());
+                    });
+
+                $emplazamiento['num_activos'] = $activosByCycle->count();
+
+                // Verificar si está vacío
+                if ($activosByCycle->isEmpty()) {
+
+                       $idsGrupos = DB::select("
+                SELECT 
+                    dp_grupos.descripcion_grupo,
+                    dp_familias.descripcion_familia,
+                    dp_familias.id_grupo,
+                    dp_familias.id_familia
+                FROM dp_grupos
+                INNER JOIN dp_familias 
+                    ON dp_grupos.id_grupo = dp_familias.id_grupo
+                LEFT JOIN inv_ciclos_categorias 
+                    ON inv_ciclos_categorias.id_familia = dp_familias.id_familia
+                AND inv_ciclos_categorias.id_grupo = dp_familias.id_grupo
+                AND inv_ciclos_categorias.idCiclo = ?
+                WHERE IFNULL(inv_ciclos_categorias.id_familia, '0') <> '0'
+                ORDER BY dp_grupos.descripcion_grupo, dp_familias.descripcion_familia
+            ", [$this->cycle_id]);
+
+            $ids = collect($idsGrupos)->pluck('id_grupo')->unique()->values()->toArray();
+
+                    $activosInventarioFiltrados = $activosInventario->whereIn('id_grupo', $ids);
+
+                    $activosInventarioArray = $activosInventarioFiltrados->map(function ($activo) {
+                        return (new crudActivoInventarioResource($activo))->toArray(request());
                     })->toArray();
 
-                $activosFinales = array_merge($activosFinales, $activosCiclo);
+                    $emplazamiento['activos'] = $activosInventarioArray;
+                    $emplazamiento['num_activos'] = count($emplazamiento['activos']);
+                } else {
+                    $emplazamiento['activos'] = $activosByCycle;
+                }
             }
-
-            // Activos sin ciclo (de la colección base) y activos inventario
-            $activosCollectionFiltrados = $activosCollection->whereIn('id_grupo', $categorias);
-            $activosInventarioFiltrados = $activosInventario->whereIn('id_grupo', $categorias);
-
-            $activosCollectionArray = $activosCollectionFiltrados->map(function ($activo) {
-                return (new CrudActivoLiteResource($activo))->toArray(request());
-            })->toArray();
-
-            $activosInventarioArray = $activosInventarioFiltrados->map(function ($activo) {
-                return (new CrudActivoLiteResource($activo))->toArray(request());
-            })->toArray();
-
-            $activosFinales = array_merge($activosFinales, $activosCollectionArray, $activosInventarioArray);
-
-            $emplazamiento['activos'] = $activosFinales;
-            $emplazamiento['num_activos'] = count($activosFinales);
         }
 
         if (isset($this->cycle_id) && $this->cycle_id) {

@@ -69,6 +69,40 @@ class ActivoService
             return $url;
         }
     
+      public function getUrlAssetInventario($activo, User $user): string
+        {
+            if (!empty($activo->fotoUrl) && is_string_url($activo->fotoUrl)) {
+                return $activo->fotoUrl;
+            }
+
+            if (!empty($activo->foto4)) {
+                if (is_string_url($activo->foto4)) {
+                    return $activo->foto4;
+                } elseif ($activo->foto4 === 'img/notavailable.jpg') {
+                    return asset('img/notavailable.jpg');
+                } else {
+                    return asset('storage/' . $activo->foto4);
+                }
+            }
+
+    $url = asset('img/notavailable.jpg');
+
+    $proyecto_id = $user->proyecto_id;
+    $nombre_cliente = $user->nombre_cliente;
+    $numero_etiqueta = $activo->etiqueta ?? '';
+
+    $url_levanta_1 = "https://files.taxochile.cl/PROCESADAS/{$proyecto_id}/{$proyecto_id}_{$numero_etiqueta}.PNG";
+    $url_levanta_2 = "https://files.taxochile.cl/PROCESADAS/{$proyecto_id}/{$proyecto_id}_{$numero_etiqueta}.png";
+
+    $url2 = $this->urlCheck($url_levanta_1);
+    $url2a = $this->urlCheck($url_levanta_2);
+
+    if ($url2 || $url2a) {
+        $url = $url_levanta_1;
+    }
+
+    return $url;
+}
 
 protected function urlCheck($url)
 {

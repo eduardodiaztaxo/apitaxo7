@@ -20,6 +20,7 @@ class InventariosResource extends JsonResource
                 'descripcion_bien',
                 'etiqueta',
                 'id_familia',
+                'id_grupo',
                 'descripcion_marca',
                 'modelo',
                 'serie',
@@ -40,6 +41,13 @@ class InventariosResource extends JsonResource
             ->where('id_familia', $activo->id_familia)
             ->select('descripcion_familia')
             ->first();
+
+
+        $descGrupo = DB::table('dp_grupos')
+            ->where('id_grupo', $activo->id_grupo)
+            ->select('descripcion_grupo')
+            ->first();
+    
     
         $img = DB::table('inv_imagenes')
             ->where('id_img', $activo->id_img)
@@ -108,6 +116,8 @@ class InventariosResource extends JsonResource
             'modelo'               => $activo->modelo ?: 'Sin Registros',
             'serie'                => $activo->serie ?: 'Sin Registros',
             'estadoBien'           => $estadoBien,
+            'descripcionGrupo'    => $descGrupo->descripcion_grupo ?? 'Sin Registros',
+            'descripcionFamilia'  => $descFamilia->descripcion_familia ?? 'Sin Registros',
             'etiqueta'             => $activo->etiqueta,
             'responsable'          => $activo->responsable ?? 'Sin Registros',
             'fotoUrl'              => $firstImageUrl,
