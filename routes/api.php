@@ -102,9 +102,9 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('grupo/{ciclo}', [DatosActivosController::class, 'grupo']);
 
-    Route::get('familia/{codigo_grupo}', [DatosActivosController::class, 'familia']);
+    Route::get('familia/{codigo_grupo}/{ciclo}', [DatosActivosController::class, 'familia']);
 
-    Route::get('bienes_marcas/{id_familia}', [DatosActivosController::class, 'bienes_Marcas']);
+    Route::get('bienes_marcas/{id_familia}/{ciclo}', [DatosActivosController::class, 'bienes_Marcas']);
 
     Route::get('bienes_grupo_familia/{idCiclo}', [DatosActivosController::class, 'bienesGrupoFamilia']);
 

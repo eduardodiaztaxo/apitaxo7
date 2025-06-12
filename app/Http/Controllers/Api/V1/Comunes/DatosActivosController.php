@@ -54,71 +54,150 @@ class DatosActivosController extends Controller
 
         return response()->json($collection, 200);
     }
-    public function grupo($ciclo)
-    {
-        $idsGrupos = Inv_ciclos_categorias::where('idCiclo', $ciclo)->pluck('id_grupo')->toArray();
-    
-        $grupos = Grupo::whereIn('id_grupo', $idsGrupos)->get();
-    
-        return response()->json($grupos, 200);
-    }
+        public function grupo($ciclo)
+        {
+            $idsGrupos = DB::select("
+                SELECT 
+                    dp_grupos.descripcion_grupo,
+                    dp_familias.descripcion_familia,
+                    dp_familias.id_grupo,
+                    dp_familias.id_familia
+                FROM dp_grupos
+                INNER JOIN dp_familias 
+                    ON dp_grupos.id_grupo = dp_familias.id_grupo
+                LEFT JOIN inv_ciclos_categorias 
+                    ON inv_ciclos_categorias.id_familia = dp_familias.id_familia
+                AND inv_ciclos_categorias.id_grupo = dp_familias.id_grupo
+                AND inv_ciclos_categorias.idCiclo = ?
+                WHERE IFNULL(inv_ciclos_categorias.id_familia, '0') <> '0'
+                ORDER BY dp_grupos.descripcion_grupo, dp_familias.descripcion_familia
+            ", [$ciclo]);
 
-    public function familia($codigo_grupo)
+            $ids = collect($idsGrupos)->pluck('id_grupo')->unique()->values()->toArray();
+
+            $grupos = Grupo::whereIn('id_grupo', $ids)->get();
+
+            return response()->json($grupos, 200);
+        }
+
+
+    public function familia($codigo_grupo, $ciclo)
     {
-        
-        $collection = Familia::where('id_grupo', $codigo_grupo)->get();
+          $idsFamilia = DB::select("
+                SELECT 
+                    dp_grupos.descripcion_grupo,
+                    dp_familias.descripcion_familia,
+                    dp_familias.id_grupo,
+                    dp_familias.id_familia
+                FROM dp_grupos
+                INNER JOIN dp_familias 
+                    ON dp_grupos.id_grupo = dp_familias.id_grupo
+                LEFT JOIN inv_ciclos_categorias 
+                    ON inv_ciclos_categorias.id_familia = dp_familias.id_familia
+                AND inv_ciclos_categorias.id_grupo = dp_familias.id_grupo
+                AND inv_ciclos_categorias.idCiclo = ?
+                AND inv_ciclos_categorias.id_grupo = ?
+                WHERE IFNULL(inv_ciclos_categorias.id_familia, '0') <> '0'
+                ORDER BY dp_grupos.descripcion_grupo, dp_familias.descripcion_familia
+            ", [$ciclo, $codigo_grupo]);
+
+            $ids = collect($idsFamilia)->pluck('id_familia')->unique()->values()->toArray();
+
+        $collection = Familia::where('id_grupo', $codigo_grupo)->whereIn('id_familia', $ids)->get();
 
         return response()->json($collection, 200);
     }
-    public function bienesGrupoFamilia($idCiclo)
-    {
-       
-        $idsGrupos = Inv_ciclos_categorias::where('idCiclo', $idCiclo)->pluck('id_grupo')->toArray();
-    
-      
-        $familias = Familia::select(
-                'dp_familias.id_familia',
-                'dp_familias.descripcion_familia',
-                'dp_familias.id_grupo',
-                'dp_grupos.descripcion_grupo'
-            )
-            ->leftJoin('dp_grupos', 'dp_familias.id_grupo', '=', 'dp_grupos.id_grupo')
-            ->whereIn('dp_familias.id_grupo', $idsGrupos)
-            ->get();
-    
-  
-        $idsfamilia = $familias->pluck('id_familia')->toArray();
-    
-        if (empty($idsfamilia)) {
-            return response()->json([], 200);
-        }
-    
-  
-        $sql = "
-            SELECT * FROM (
-                SELECT * FROM inv_bienes_nuevos WHERE idAtributo = 1 AND id_familia IN (" . implode(',', $idsfamilia) . ")
-                UNION ALL
-                SELECT * FROM indices_listas WHERE idAtributo = 1 AND id_familia IN (" . implode(',', $idsfamilia) . ")
-            ) AS resultado
-        ";
-    
-        $bienes = DB::select($sql);
-    
-    
-        $bienes = collect($bienes)
-            ->filter(function ($bien) use ($familias) {
-                return $familias->where('id_familia', $bien->id_familia)->isNotEmpty();
-            })
-            ->map(function ($bien) use ($familias) {
-                $familia = $familias->where('id_familia', $bien->id_familia)->first();
-                $bien->descripcion_familia = $familia->descripcion_familia;
-                $bien->id_grupo = $familia->id_grupo;
-                $bien->descripcion_grupo = $familia->descripcion_grupo;
-                return $bien;
-            });
-    
-        return response()->json($bienes->values(), 200); 
+ public function bienesGrupoFamilia($idCiclo)
+{
+    // Paso 1: Obtener familias con estado ≠ 0
+    $familias = DB::select("
+        SELECT 
+            dp_grupos.descripcion_grupo,
+            dp_familias.descripcion_familia,
+            dp_familias.id_grupo,
+            dp_familias.id_familia
+        FROM dp_grupos
+        INNER JOIN dp_familias 
+            ON dp_grupos.id_grupo = dp_familias.id_grupo
+        LEFT JOIN inv_ciclos_categorias 
+            ON inv_ciclos_categorias.id_familia = dp_familias.id_familia
+           AND inv_ciclos_categorias.id_grupo = dp_familias.id_grupo
+           AND inv_ciclos_categorias.idCiclo = ?
+        WHERE IFNULL(inv_ciclos_categorias.id_familia, '0') <> '0'
+        ORDER BY dp_grupos.descripcion_grupo, dp_familias.descripcion_familia
+    ", [$idCiclo]);
+
+    // Convertimos a colección para facilitar manipulación
+    $familias = collect($familias);
+
+    // Paso 2: Extraer IDs de familia
+    $idsFamilia = $familias->pluck('id_familia')->all();
+
+    if (empty($idsFamilia)) {
+        return response()->json([], 200);
     }
+
+    // Paso 3: Consulta bienes
+    $in = implode(',', $idsFamilia);
+    $bienesRaw = DB::select("
+       SELECT * FROM (
+    SELECT 
+        idLista,
+        idAtributo,
+        idIndice,
+        idProyecto,
+        descripcion,
+        observacion,
+        listaRapida,
+        creadoPor,
+        modificadoPor,
+        fechaCreacion,
+        fechaModificacion,
+        estado,
+        foto,
+        id_familia,
+        ciclo_inventario
+    FROM inv_bienes_nuevos
+    WHERE idAtributo = 1 AND id_familia IN ($in)
+
+    UNION ALL
+
+    SELECT 
+        idLista,
+        idAtributo,
+        idIndice,
+        idProyecto,
+        descripcion,
+        observacion,
+        listaRapida,
+        creadoPor,
+        modificadoPor,
+        fechaCreacion,
+        fechaModificacion,
+        estado,
+        foto,
+        id_familia,
+        ciclo_inventario
+    FROM indices_listas
+    WHERE idAtributo = 1 AND id_familia IN ($in)
+) AS resultado;
+ ");
+
+    // Paso 4: Enriquecer los bienes con info de grupo y familia
+    $bienes = collect($bienesRaw)
+        ->map(function ($bien) use ($familias) {
+            $familia = $familias->firstWhere('id_familia', $bien->id_familia);
+            if ($familia) {
+                $bien->descripcion_familia = $familia->descripcion_familia;
+                $bien->descripcion_grupo = $familia->descripcion_grupo;
+                $bien->id_grupo = $familia->id_grupo;
+            }
+            return $bien;
+        });
+
+    return response()->json($bienes->values(), 200);
+}
+
     
     
     public function buscarGrupoFamilia($id_familia)
@@ -141,12 +220,14 @@ class DatosActivosController extends Controller
             'grupo' => $grupo[0]
         ], 200);
     }
-    public function bienes_Marcas($id_familia)
+    public function bienes_Marcas($id_familia, $ciclo)
     {
         $marcas = DB::table('inv_marcas_nuevos')
                     ->where('id_familia', $id_familia)
+                    ->where('ciclo_inventario', $ciclo)
                     ->get();
     
+                    
         $indices = DB::table('indices_listas')
                     ->where('id_familia', $id_familia)
                     ->where('idAtributo', 2)
