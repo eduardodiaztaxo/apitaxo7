@@ -116,30 +116,36 @@ class EmplazamientoResource extends JsonResource
                 ->values()
                 ->toArray();
 
-      if (isset($this->cycle_id) && $this->cycle_id) {
-            $emplazamiento['activos'] = $this->activos_with_cats_by_cycle($this->cycle_id, $this->idAgenda)
-                ->whereIn('crud_activos.id_grupo', $categorias)
-                ->get()
-                ->map(function ($activo) {
-                    return (new CrudActivoLiteResource($activo, $this->cycle_id, $this->idAgenda))->toArray(request());
-                });
+     $activosFinales = [];
 
-            $emplazamiento['num_activos'] = count($emplazamiento['activos']);
-            } else {
-                $activosCollectionFiltrados = $activosCollection->whereIn('id_grupo', $categorias);
-                $activosInventarioFiltrados = $activosInventario->whereIn('id_grupo', $categorias);
+            if (isset($this->cycle_id) && $this->cycle_id) {
+                // Activos por ciclo
+                $activosCiclo = $this->activos_with_cats_by_cycle($this->cycle_id, $this->idAgenda)
+                    ->whereIn('crud_activos.id_grupo', $categorias)
+                    ->get()
+                    ->map(function ($activo) {
+                        return (new CrudActivoLiteResource($activo, $this->cycle_id, $this->idAgenda))->toArray(request());
+                    })->toArray();
 
-                $activosCollectionArray = $activosCollectionFiltrados->map(function ($activo) {
-                    return (new CrudActivoLiteResource($activo))->toArray(request());
-                })->toArray();
-
-                $activosInventarioArray = $activosInventarioFiltrados->map(function ($activo) {
-                    return (new CrudActivoLiteResource($activo))->toArray(request());
-                })->toArray();
-
-                $emplazamiento['activos'] = array_merge($activosCollectionArray, $activosInventarioArray);
-                $emplazamiento['num_activos'] = count($emplazamiento['activos']);
+                $activosFinales = array_merge($activosFinales, $activosCiclo);
             }
+
+            // Activos sin ciclo (de la colección base) y activos inventario
+            $activosCollectionFiltrados = $activosCollection->whereIn('id_grupo', $categorias);
+            $activosInventarioFiltrados = $activosInventario->whereIn('id_grupo', $categorias);
+
+            $activosCollectionArray = $activosCollectionFiltrados->map(function ($activo) {
+                return (new CrudActivoLiteResource($activo))->toArray(request());
+            })->toArray();
+
+            $activosInventarioArray = $activosInventarioFiltrados->map(function ($activo) {
+                return (new CrudActivoLiteResource($activo))->toArray(request());
+            })->toArray();
+
+            $activosFinales = array_merge($activosFinales, $activosCollectionArray, $activosInventarioArray);
+
+            $emplazamiento['activos'] = $activosFinales;
+            $emplazamiento['num_activos'] = count($activosFinales);
         }
 
         if (isset($this->cycle_id) && $this->cycle_id) {
