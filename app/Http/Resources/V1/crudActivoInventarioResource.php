@@ -58,42 +58,25 @@ class crudActivoInventarioResource extends JsonResource
         $activo['categoriaN3'] = $this->categoriaN3;
         $activo['id_familia'] = $this->id_familia;
         $activo['id_grupo'] = $this->id_grupo;
-       $activo['nombreActivo'] = $this->descripcion_bien ?? '';
+        $activo['nombreActivo'] = $this->nombreActivo;
         $activo['modelo'] = $this->modelo;
         $activo['serie'] = $this->serie;
         $activo['marca'] = !empty($marcaResult) ? $marcaResult[0]->descripcion : ''; 
        
         $activo['ubicacionOrganicaN2'] = $this->ubicacionOrganicaN2;
-        
-        $auditStatus = DB::table('inv_conteo_registro')
-        ->where('etiqueta', $this->etiqueta)
-        ->where('cod_emplazamiento', $this->ubicacionOrganicaN2)
-        ->where('ciclo_id', $this->cycle_id)
-        ->where('punto_id', $this->idAgenda)
-        ->value('audit_status');
+       
 
-        $activo['id_ciclo'] = $this->cycle_id;
-        $activo['id_agenda'] = $this->idAgenda;
-        
-
-    if (is_null($auditStatus)) {
-        $auditStatus = DB::table('inv_conteo_registro')
-            ->where('etiqueta', $this->etiqueta)
-            ->where('cod_emplazamiento', $this->ubicacionOrganicaN2)
-            ->where('ciclo_id', $this->cycle_id)
-            ->where('punto_id', $this->idAgenda)
-            ->value('audit_status');
-    }
+        $activo['id_ciclo'] = $this->id_ciclo;
+        $activo['id_inventario'] = $this->id_inventario;
     
-
-    $activo['audit_status'] = 0;
+        $activo['audit_status'] = 0;
     
         $activo['audit_status_name'] = '';
 
 
         $activo['descripcionCategoria'] = $this->categoria ? $this->categoria->descripcionCategoria : '';
 
-        $activo['descripcionFamilia'] = $this->familia ? $this->familia->descripcion_familia : '';
+        $activo['descripcionFamilia'] = $this->descripcionFamilia;
         $activo['descripcion_grupo'] = $grupoDescripcion ?? ''; 
 
         $activo['fotoUrl'] = null;

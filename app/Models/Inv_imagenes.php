@@ -7,4 +7,7 @@ class Inv_imagenes extends Model
 {
     use HasFactory;
     protected $table = 'inv_imagenes';
+    protected $primaryKey = 'idLista';  
+    public $incrementing = true;
+    public $timestamps = true; 
 }

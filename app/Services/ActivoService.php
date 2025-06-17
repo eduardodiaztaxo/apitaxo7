@@ -69,22 +69,20 @@ class ActivoService
             return $url;
         }
     
-      public function getUrlAssetInventario($activo, User $user): string
-        {
-            $foto = DB::table('inv_inventario')
-            ->leftJoin('categoria_n3', 'inv_inventario.id_familia', '=', 'categoria_n3.id_familia')
-            ->leftJoin('dp_familias', 'inv_inventario.id_familia', '=', 'dp_familias.id_familia')
-            ->leftJoin('inv_imagenes', 'inv_inventario.id_img', '=', 'inv_imagenes.id_img')
-            ->where('inv_inventario.codigoUbicacion', 31116)
-            ->where('inv_inventario.id_ciclo', 25)
-            ->first(['inv_imagenes.url_imagen']);
+   public function getUrlAssetInventario($activo, User $user): string
+{
+    $foto = DB::table('inv_imagenes')
+        ->where('etiqueta', $activo->etiqueta)
+        ->orderByDesc('id_img') 
+        ->first(['url_imagen']);
 
-            if ($foto == null) {
-                return asset('img/notavailable.jpg');
-            }
+    if ($foto == null) {
+        return asset('img/notavailable.jpg');
+    }
 
-            return $foto->url_imagen;
-        }
+    return $foto->url_imagen;
+}
+
 
 protected function urlCheck($url)
 {

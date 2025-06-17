@@ -42,13 +42,15 @@ class EmplazamientoResource extends JsonResource
         ) as crud_activos_pictures'), 'crud_activos_pictures.id_activo', '=', 'crud_activos.idActivo')
         ->get();
 
-        $activosInventario = DB::table('inv_inventario')
+            $activosInventario = DB::table('inv_inventario')
             ->leftJoin('categoria_n3', 'inv_inventario.id_familia', '=', 'categoria_n3.id_familia')
             ->leftJoin('dp_familias', 'inv_inventario.id_familia', '=', 'dp_familias.id_familia')
             ->leftJoin('inv_imagenes', 'inv_inventario.id_img', '=', 'inv_imagenes.id_img')
             ->where('inv_inventario.codigoUbicacion', $this->idUbicacionN2)
             ->where('inv_inventario.id_ciclo', $this->cycle_id)
             ->select(
+                'inv_inventario.id_ciclo',
+                'inv_inventario.id_inventario',
                 'inv_inventario.etiqueta',
                 'categoria_n3.codigoCategoria',
                 'inv_inventario.id_familia',
@@ -60,9 +62,25 @@ class EmplazamientoResource extends JsonResource
                 'inv_inventario.codigoUbicacion',
                 'categoria_n3.descripcionCategoria',
                 'dp_familias.descripcion_familia',
-                'inv_imagenes.url_imagen'
+                DB::raw('MIN(inv_imagenes.url_imagen) as url_imagen')
+            )
+            ->groupBy(
+                'inv_inventario.id_ciclo',
+                'inv_inventario.id_inventario',
+                'inv_inventario.etiqueta',
+                'categoria_n3.codigoCategoria',
+                'inv_inventario.id_familia',
+                'inv_inventario.id_grupo',
+                'inv_inventario.descripcion_bien',
+                'inv_inventario.modelo',
+                'inv_inventario.serie',
+                'inv_inventario.descripcion_marca',
+                'inv_inventario.codigoUbicacion',
+                'categoria_n3.descripcionCategoria',
+                'dp_familias.descripcion_familia'
             )
             ->get();
+
 
         $activosInventario = $activosInventario->map(function ($activo) {
             $firstImageUrl = "https://api.taxochile.cl/img/notavailable.jpg"; // URL por defecto
@@ -86,11 +104,13 @@ class EmplazamientoResource extends JsonResource
             }
 
       return (object)[
+                'id_ciclo' => $this->cycle_id,
+                'id_inventario' => $activo->id_inventario,
                 'etiqueta' => $activo->etiqueta,
                 'categoriaN3' => $activo->codigoCategoria,
                 'id_familia' => $activo->id_familia,
                 'id_grupo' => $activo->id_grupo,
-                'nombreActivo' => $activo->descripcion_bien,
+                'nombreActivo' => $activo->descripcion_bien, 
                 'modelo' => $activo->modelo ?? '',
                 'serie' => $activo->serie ?? '',
                 'marca' => $activo->descripcion_marca ?? null,
