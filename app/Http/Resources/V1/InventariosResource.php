@@ -98,6 +98,12 @@ class InventariosResource extends JsonResource
         ->first(['url_imagen']);
 
         $fotoUrl = $foto->url_imagen ?? asset('img/notavailable.jpg');
+
+        $imagenes = DB::table('inv_imagenes')
+        ->where('etiqueta', $activo->etiqueta)
+        ->orderByDesc('id_img')
+        ->pluck('url_imagen') // devuelve array de strings
+        ->toArray();
     
         return [
             'id_inventario'        => $activo->id_inventario,
@@ -112,6 +118,7 @@ class InventariosResource extends JsonResource
             'descripcionFamilia'  => $descFamilia->descripcion_familia ?? 'Sin Registros',
             'etiqueta'             => $activo->etiqueta,
             'responsable'          => $activo->responsable ?? 'Sin Registros',
+            'imagenes'             => $imagenes ?? [],
             'fotoUrl'              => $fotoUrl,
             'foto4'                => $fotoUrl,
             'emplazamiento'        => [

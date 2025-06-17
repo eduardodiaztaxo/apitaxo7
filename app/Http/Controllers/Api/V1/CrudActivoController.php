@@ -235,16 +235,22 @@ class CrudActivoController extends Controller
         $path = $this->imageService->optimizeImageinv($file, $userFolder, $imageName);
         $fullUrl = asset('storage/' . $path);
 
-        $ultimaImagen = Inv_imagenes::where('etiqueta', $etiqueta)->orderByDesc('id_img')->first();
+         if ($request->oldImageUrl) {
+            // Buscar la imagen que coincida con oldImageUrl y actualizarla
+            $imagenExistente = Inv_imagenes::where('etiqueta', $etiqueta)
+                ->where('url_imagen', $request->oldImageUrl)
+                ->first();
 
-        if ($ultimaImagen) {
-            $ultimaImagen->url_imagen = $fullUrl;
-            $ultimaImagen->save();
-               return response()->json([
-            'status' => 'OK',
-            'path' => $path,
-            'url' => $fullUrl
-        ], 201);
+            if ($imagenExistente) {
+                $imagenExistente->url_imagen = $fullUrl;
+                $imagenExistente->save();
+
+                return response()->json([
+                    'status' => 'OK',
+                    'message' => 'Imagen existente actualizada',
+                    'url' => $fullUrl
+                ], 200);
+            }
         }
     }
 
