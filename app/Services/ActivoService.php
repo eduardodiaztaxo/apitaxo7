@@ -69,6 +69,20 @@ class ActivoService
             return $url;
         }
     
+   public function getUrlAssetInventario($activo, User $user): string
+{
+    $foto = DB::table('inv_imagenes')
+        ->where('etiqueta', $activo->etiqueta)
+        ->orderByDesc('id_img') 
+        ->first(['url_imagen']);
+
+    if ($foto == null) {
+        return asset('img/notavailable.jpg');
+    }
+
+    return $foto->url_imagen;
+}
+
 
 protected function urlCheck($url)
 {

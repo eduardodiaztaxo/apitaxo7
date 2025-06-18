@@ -71,4 +71,10 @@ public function marcasDisponibles()
         // INNER JOIN indices_listas ON categoria_n3.idIndice = indices_listas.idIndice AND indices_listas.idAtributo = 2
         // WHERE etiqueta = 'AF100001'"
     }
+
+    
+public function imagen()
+{
+    return $this->belongsTo(Inv_imagenes::class, 'id_img', 'id_img');
+}
 }

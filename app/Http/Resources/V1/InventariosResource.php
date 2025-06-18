@@ -17,9 +17,12 @@ class InventariosResource extends JsonResource
         $activosInventario = DB::table('inv_inventario')
             ->where('etiqueta', $this->etiqueta)
             ->select(
+                'id_inventario',
+                'id_ciclo',
                 'descripcion_bien',
                 'etiqueta',
                 'id_familia',
+                'id_grupo',
                 'descripcion_marca',
                 'modelo',
                 'serie',
@@ -40,6 +43,13 @@ class InventariosResource extends JsonResource
             ->where('id_familia', $activo->id_familia)
             ->select('descripcion_familia')
             ->first();
+
+
+        $descGrupo = DB::table('dp_grupos')
+            ->where('id_grupo', $activo->id_grupo)
+            ->select('descripcion_grupo')
+            ->first();
+    
     
         $img = DB::table('inv_imagenes')
             ->where('id_img', $activo->id_img)
@@ -81,37 +91,36 @@ class InventariosResource extends JsonResource
             ->where('idComuna', $direccion->comuna)
             ->select('descripcion')
             ->first();
-    
-        $firstImageUrl = "https://api.taxochile.cl/img/notavailable.jpg";
-    
-        if (!empty($img->url_imagen)) {
-            $folderPath = str_replace('http://apitaxo7.cl/storage/', '', $img->url_imagen);
-            $localFolderPath = public_path('storage/' . $folderPath);
-    
-            if (is_dir($localFolderPath)) {
-                $files = scandir($localFolderPath);
-    
-                $imageFiles = array_filter($files, function ($file) {
-                    return in_array(strtolower(pathinfo($file, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png']);
-                });
-    
-                if (!empty($imageFiles)) {
-                    $firstImageUrl = asset('storage/' . $folderPath . '/' . reset($imageFiles));
-                }
-            }
-        }
+
+         $foto = DB::table('inv_imagenes')
+        ->where('etiqueta', $activo->etiqueta)
+        ->orderByDesc('id_img') 
+        ->first(['url_imagen']);
+
+        $fotoUrl = $foto->url_imagen ?? asset('img/notavailable.jpg');
+
+        $imagenes = DB::table('inv_imagenes')
+        ->where('etiqueta', $activo->etiqueta)
+        ->orderByDesc('id_img')
+        ->pluck('url_imagen') // devuelve array de strings
+        ->toArray();
     
         return [
+            'id_inventario'        => $activo->id_inventario,
+            'cicle_id'             => $activo->id_ciclo,
             'nombreActivo'         => $activo->descripcion_bien,
             'descripcionCategoria' => $descFamilia->descripcion_familia ?? 'Desconocida',
             'marca'                => $activo->descripcion_marca ?: 'Sin Registros',
             'modelo'               => $activo->modelo ?: 'Sin Registros',
             'serie'                => $activo->serie ?: 'Sin Registros',
             'estadoBien'           => $estadoBien,
+            'descripcionGrupo'    => $descGrupo->descripcion_grupo ?? 'Sin Registros',
+            'descripcionFamilia'  => $descFamilia->descripcion_familia ?? 'Sin Registros',
             'etiqueta'             => $activo->etiqueta,
             'responsable'          => $activo->responsable ?? 'Sin Registros',
-            'fotoUrl'              => $firstImageUrl,
-            'foto4'                => $firstImageUrl,
+            'imagenes'             => $imagenes ?? [],
+            'fotoUrl'              => $fotoUrl,
+            'foto4'                => $fotoUrl,
             'emplazamiento'        => [
                 'nombre' => $subEmplazamiento->descripcionUbicacion ?? 'No disponible',
                 'zone_address' => [

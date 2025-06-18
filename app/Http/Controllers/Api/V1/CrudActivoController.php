@@ -10,6 +10,7 @@ use App\Models\CategoriaN1;
 use App\Models\CategoriaN2;
 use App\Models\InvCiclo;
 use App\Models\User;
+use App\Models\Inv_imagenes;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\Inventario;
@@ -213,22 +214,45 @@ class CrudActivoController extends Controller
 
 
         if (!$idActivo_Documento) {
+        $idActivo_Inventario = Inventario::where('etiqueta', '=', $etiqueta)->value('id_inventario');
+
+        if (!$idActivo_Inventario) {
             return response()->json([
-                "message" => "Not Found",
-                "status"  => "error"
+                'message' => 'Not Found',
+                'status' => 'error'
             ], 404);
         }
 
-        // if (!$activo) {
-        //     return response()->json([
-        //         "message" => "Not Found",
-        //         "status"  => "error"
-        //     ], 404);
-        // }
+        // --- Si es activo de Inventario: subimos imagen a carpeta inventario ---
+        $userFolder = "customers/" . $request->user()->nombre_cliente . "/images/inventario/" . $etiqueta . "/" . now()->format('Y-m-d');
 
-        // if ($activo->foto4)
-        //     $this->imageService->deleteImage($activo->foto4);
+        if (!Storage::exists($userFolder)) {
+            Storage::makeDirectory($userFolder);
+        }
 
+        $file = $request->file('imagen');
+        $imageName = $etiqueta . '_' . uniqid();
+        $path = $this->imageService->optimizeImageinv($file, $userFolder, $imageName);
+        $fullUrl = asset('storage/' . $path);
+
+         if ($request->oldImageUrl) {
+            // Buscar la imagen que coincida con oldImageUrl y actualizarla
+            $imagenExistente = Inv_imagenes::where('etiqueta', $etiqueta)
+                ->where('url_imagen', $request->oldImageUrl)
+                ->first();
+
+            if ($imagenExistente) {
+                $imagenExistente->url_imagen = $fullUrl;
+                $imagenExistente->save();
+
+                return response()->json([
+                    'status' => 'OK',
+                    'message' => 'Imagen existente actualizada',
+                    'url' => $fullUrl
+                ], 200);
+            }
+        }
+    }
 
     $filename = '9999_' . $etiqueta;
     $origen = 'SAFIN_APP';
