@@ -7,5 +7,5 @@ class IndiceListaForma extends Model
 {
     use HasFactory;
 
-    protected $table = 'ind_list_formas_por_familia';
+    protected $table = 'ind_list_formas_por_grupo';
 }

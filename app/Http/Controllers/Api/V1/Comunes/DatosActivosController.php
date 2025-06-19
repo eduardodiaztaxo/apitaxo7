@@ -43,17 +43,7 @@ class DatosActivosController extends Controller
         return response()->json($collection, 200);
     }
 
-    public function estadosInventario($id_grupo){
 
-        $collection = IndiceLista13::select('indices_listas_13.*', 
-        'inv_atributos.id_validacion AS configuracion_estado'
-    )
-        ->join('inv_atributos', 'indices_listas_13.id_atributo', '=', 'inv_atributos.id_atributo')
-        ->where('inv_atributos.id_grupo', $id_grupo)
-        ->get();
-
-        return response()->json($collection, 200);
-    }
         public function grupo($ciclo)
         {
             $idsGrupos = DB::select("
@@ -239,96 +229,51 @@ class DatosActivosController extends Controller
         return response()->json($resultado, 200);
     }
     
-public function indiceColores($id_grupo)
+public function indiceColores()
 {
-    $collection = IndiceListaColores::select(
-            'ind_list_colores.*', 
-            'inv_atributos.id_validacion AS configuracion_color'
-        )
-        ->join('inv_atributos', 'ind_list_colores.id_atributo', '=', 'inv_atributos.id_atributo')
-        ->where('inv_atributos.id_grupo', $id_grupo)
-        ->get();
-    
-    return response()->json($collection, 200);
+    $collection = IndiceListaColores::all();
+        return response()->json($collection, 200);
 }
 
-    public function estadosOperacional($id_grupo){
+    public function estadosOperacional(){
 
-        $collection = IndiceListaOperacional::select(
-            'ind_list_estados_operacionales.*', 
-            'inv_atributos.id_validacion AS configuracion_op'
-        )
-        ->join('inv_atributos', 'ind_list_estados_operacionales.id_atributo', '=', 'inv_atributos.id_atributo')
-        ->where('inv_atributos.id_grupo', $id_grupo)
-        ->get();
-    
-        return response()->json($collection, 200);
-    }
-    public function tipoTrabajo($id_grupo){
-
-        $collection = IndiceListaTipoTrabajo::select(
-            'ind_list_tipo_trabajo.*', 
-            'inv_atributos.id_validacion AS configuracion_tipo'
-        )
-        ->join('inv_atributos', 'ind_list_tipo_trabajo.id_atributo', '=', 'inv_atributos.id_atributo')
-        ->where('inv_atributos.id_grupo', $id_grupo)
-        ->get();
-    
-        return response()->json($collection, 200);
-    }
-    public function cargaTrabajo($id_grupo){
-
-        $collection = IndiceListaCargaTrabajo::select(
-            'ind_list_carga_trabajo.*', 
-            'inv_atributos.id_validacion AS configuracion_carga'
-        )
-        ->join('inv_atributos', 'ind_list_carga_trabajo.id_atributo', '=', 'inv_atributos.id_atributo')
-        ->where('inv_atributos.id_grupo', $id_grupo)
-        ->get();
-    
+        $collection = IndiceListaOperacional::all();
         return response()->json($collection, 200);
     }
 
-    public function estadoConservacion($id_grupo){
+    public function tipoTrabajo(){
 
-        $collection = IndiceListaConservacion::select(
-            'ind_list_estados_conservacion.*', 
-            'inv_atributos.id_validacion AS configuracion_cons'
-        )
-        ->join('inv_atributos', 'ind_list_estados_conservacion.id_atributo', '=', 'inv_atributos.id_atributo')
-        ->where('inv_atributos.id_grupo', $id_grupo)
-        ->get();
-    
+         $collection = IndiceListaTipoTrabajo::all();
         return response()->json($collection, 200);
     }
 
-    public function condicionAmbiental($id_grupo){
+    public function cargaTrabajo(){
 
-        $collection = IndiceListaCondicionAmbiental::select(
-            'ind_list_condicion_Ambiental.*', 
-            'inv_atributos.id_validacion AS configuracion_amb'
-        )
-        ->join('inv_atributos', 'ind_list_condicion_Ambiental.id_atributo', '=', 'inv_atributos.id_atributo')
-        ->where('inv_atributos.id_grupo', $id_grupo)
-        ->get();
-    
-    
+        $collection = IndiceListaCargaTrabajo::all();
+        return response()->json($collection, 200);
+        
+    }
+
+    public function estadoConservacion(){
+        
+        $collection = IndiceListaConservacion::all();
         return response()->json($collection, 200);
     }
-    public function material($id_familia, $id_grupo)
-{
-    $collection = IndiceListaMaterial::select(
-            'ind_list_materiales_por_familia.*', 
-            'inv_atributos.id_validacion AS configuracion_mat'
-        )
-        ->from('ind_list_materiales_por_familia')
-        ->join('inv_atributos', 'ind_list_materiales_por_familia.id_atributo', '=', 'inv_atributos.id_atributo')
-        ->where('ind_list_materiales_por_familia.id_familia', $id_familia)
-        ->where('inv_atributos.id_grupo', $id_grupo)
-        ->get();
-    
-    return response()->json($collection, 200);
-}
+
+    public function condicionAmbiental(){
+
+         $collection = IndiceListaCondicionAmbiental::all();
+        return response()->json($collection, 200);
+    }
+
+     public function material($id_grupo)
+    {
+        $collection = IndiceListaMaterial::where('id_grupo', $id_grupo)
+            ->get();
+
+        return response()->json($collection);
+    }
+
     /**
      * Se busca el forma por familia.
      *
@@ -338,19 +283,12 @@ public function indiceColores($id_grupo)
      */
 
 
-    public function forma($id_familia, $id_grupo){
+    public function forma($id_grupo)
+    {
+        $collection = IndiceListaForma::where('id_grupo', $id_grupo)
+            ->get();
 
-        $collection = IndiceListaForma::select(
-            'ind_list_formas_por_familia.*', 
-            'inv_atributos.id_validacion AS configuracion_forma'
-        )
-        ->from('ind_list_formas_por_familia')
-        ->join('inv_atributos', 'ind_list_formas_por_familia.id_atributo', '=', 'inv_atributos.id_atributo')
-        ->where('ind_list_formas_por_familia.id_familia', $id_familia)
-        ->where('inv_atributos.id_grupo', $id_grupo)
-        ->get();
-
-        return response()->json($collection, 200);
+        return response()->json($collection);
     }
 
     /**
