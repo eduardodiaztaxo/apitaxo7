@@ -7,7 +7,7 @@ use App\Services\Dump\Tables\DumpSQLiteInterface;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use PDO;
 
-class MaterialDumpService implements DumpSQLiteInterface
+class ConfiguracionDumpService implements DumpSQLiteInterface
 {
 
 
@@ -16,11 +16,16 @@ class MaterialDumpService implements DumpSQLiteInterface
      */
     protected $pdo = null;
 
+    /**
+     * @var int codigo_grupo string
+     */
 
- public function __construct(PDO $pdo)
+    protected $codigo_grupo = '';
+
+ public function __construct(PDO $pdo, string $codigo_grupo = '')
 {
     $this->pdo = $pdo;
-
+    $this->codigo_grupo = $codigo_grupo;
 }
     /**
      * Run the assets dump from the controller.
@@ -39,7 +44,7 @@ class MaterialDumpService implements DumpSQLiteInterface
 
         $datsdActivosCtrl = new DatosActivosController();
 
-       $response = $datsdActivosCtrl->material();
+       $response = $datsdActivosCtrl->configuracion($this->codigo_grupo);
 
         $jsonContent = $response->getContent();
 
@@ -67,10 +72,14 @@ class MaterialDumpService implements DumpSQLiteInterface
 
         // Create "assets" table
         $this->pdo->exec("
-            CREATE TABLE IF NOT EXISTS material (
-                idLista INTEGER PRIMARY KEY,
+            CREATE TABLE IF NOT EXISTS configuracion (
+                id_lista INTEGER PRIMARY KEY,
                 id_atributo INTEGER NOT NULL,
-                material TEXT NOT NULL
+                id_validacion INTEGER NOT NULL,
+                id_tipo_dato INTEGER NOT NULL,
+                valor_minimo INTEGER NOT NULL,
+                valor_maximo INTEGER NOT NULL,
+                tipo_etiqueta TEXT NOT NULL
             );
         ");
     }
@@ -81,29 +90,40 @@ class MaterialDumpService implements DumpSQLiteInterface
      * @param \Illuminate\Http\Resources\Json\AnonymousResourceCollection $cycles Array of cycle objects to insert.
      * @return void
      */
-    public function insert(array|AnonymousResourceCollection $materiales): void
+    public function insert(array|AnonymousResourceCollection $config): void
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            INSERT INTO material (
-                idLista,
+            INSERT INTO configuracion (
+                id_lista,
                 id_atributo,
-                material
+                id_validacion,
+                id_tipo_dato,
+                valor_minimo,
+                valor_maximo,
+                tipo_etiqueta
             )
             VALUES (
-               :idLista,
+               :id_lista,
                :id_atributo,
-               :material
-               
+               :id_validacion,
+               :id_tipo_dato,
+               :valor_minimo,
+               :valor_maximo,
+               :tipo_etiqueta      
             )
         ");
 
-        foreach ($materiales as $m) {
+        foreach ($config as $conf) {
 
             $stmt->execute([
-                ':idLista' => $m->idLista,
-                ':id_atributo' => $m->id_atributo,
-                ':material' => $m->material
+                ':id_lista' => $conf->id_lista,
+                ':id_atributo' => $conf->id_atributo,
+                ':id_validacion' => $conf->id_validacion,
+                ':id_tipo_dato' => $conf->id_tipo_dato,
+                ':valor_minimo' => $conf->valor_minimo,
+                ':valor_maximo' => $conf->valor_maximo,
+                ':tipo_etiqueta' => $conf->tipo_etiqueta
             ]);
         }
     }

@@ -7,7 +7,7 @@ use App\Services\Dump\Tables\DumpSQLiteInterface;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use PDO;
 
-class MaterialDumpService implements DumpSQLiteInterface
+class CondicionAmbientalDumpService implements DumpSQLiteInterface
 {
 
 
@@ -39,7 +39,7 @@ class MaterialDumpService implements DumpSQLiteInterface
 
         $datsdActivosCtrl = new DatosActivosController();
 
-       $response = $datsdActivosCtrl->material();
+       $response = $datsdActivosCtrl->condicionAmbiental();
 
         $jsonContent = $response->getContent();
 
@@ -67,10 +67,10 @@ class MaterialDumpService implements DumpSQLiteInterface
 
         // Create "assets" table
         $this->pdo->exec("
-            CREATE TABLE IF NOT EXISTS material (
+            CREATE TABLE IF NOT EXISTS ambiental (
                 idLista INTEGER PRIMARY KEY,
                 id_atributo INTEGER NOT NULL,
-                material TEXT NOT NULL
+                descripcion TEXT NOT NULL
             );
         ");
     }
@@ -81,29 +81,29 @@ class MaterialDumpService implements DumpSQLiteInterface
      * @param \Illuminate\Http\Resources\Json\AnonymousResourceCollection $cycles Array of cycle objects to insert.
      * @return void
      */
-    public function insert(array|AnonymousResourceCollection $materiales): void
+    public function insert(array|AnonymousResourceCollection $ambi): void
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            INSERT INTO material (
+            INSERT INTO ambiental (
                 idLista,
                 id_atributo,
-                material
+                descripcion
             )
             VALUES (
                :idLista,
                :id_atributo,
-               :material
+               :descripcion
                
             )
         ");
 
-        foreach ($materiales as $m) {
+        foreach ($ambi as $an) {
 
             $stmt->execute([
-                ':idLista' => $m->idLista,
-                ':id_atributo' => $m->id_atributo,
-                ':material' => $m->material
+                ':idLista' => $an->idLista,
+                ':id_atributo' => $an->id_atributo,
+                ':descripcion' => $an->descripcion
             ]);
         }
     }

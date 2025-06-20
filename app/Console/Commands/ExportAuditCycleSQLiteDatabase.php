@@ -42,6 +42,10 @@ class ExportAuditCycleSQLiteDatabase extends Command
 
     protected $cycle = 0;
 
+    protected $codigo_grupo = '';
+
+    protected $id_familia = 0;
+
     /**
      * Create a new command instance.
      *
@@ -110,6 +114,23 @@ class ExportAuditCycleSQLiteDatabase extends Command
         $this->setCyclesCategoriasByCycle();
         $this->setConteoRegistroByCycle();
         $this->setSubZonesByCycle();
+        
+        $this->setBienesInventario();
+        $this->setBieneGrupoFamilia();
+        $this->setCargaTrabajo();
+        $this->setColores();
+        $this->setCondicionAmbiental();
+        $this->setConfiguracion();
+        $this->setEstadoConservacion();
+        $this->setFamilia();
+        $this->setForma();
+        $this->setGrupo();
+        $this->setInventario();
+        $this->setMarca();
+        $this->setMarcaInv();
+        $this->setMaterial();
+        $this->setOperacional();
+        $this->setTipoTrabajo();
         // $this->setCyclesPuntosByCycle();
 
 
@@ -227,6 +248,152 @@ class ExportAuditCycleSQLiteDatabase extends Command
         ))->runFromController();
 
         $this->info('Subzonas insertadas en SQLite DB.');
+    }
+
+       private function setBienesInventario()
+    {
+        (new BienesInventarioDumpService(
+            $this->pdo
+        ))->runFromController();
+
+        $this->info('bienes insertadas en SQLite DB.');
+    }
+
+    private function setBieneGrupoFamilia()
+    {
+        (new BienGrupoFamiliaDumpService(
+          $this->pdo,
+          $this->cycle
+        ))->runFromController();
+
+        $this->info('bgf insertadas en SQLite DB.');
+    }
+ 
+    private function setCargaTrabajo()
+    {
+        (new CargaTrabajoDumpService(
+          $this->pdo
+        ))->runFromController();
+
+        $this->info('carga insertadas en SQLite DB.');
+    }
+
+    private function setColores()
+    {
+        (new ColoresDumpService(
+          $this->pdo
+        ))->runFromController();
+
+        $this->info('colores insertadas en SQLite DB.');
+    }
+
+    private function setCondicionAmbiental()
+    {
+        (new CondicionAmbientalDumpService(
+          $this->pdo
+        ))->runFromController();
+
+        $this->info('condicion ambiental insertadas en SQLite DB.');
+    }
+ 
+    private function setConfiguracion()
+    {
+        (new ConfiguracionDumpService(
+          $this->pdo,
+          $this->codigo_grupo
+        ))->runFromController();
+
+        $this->info('configuracion insertadas en SQLite DB.');
+    }
+    private function setEstadoConservacion()
+    {
+        (new EstadoConservacionDumpService(
+          $this->pdo
+        ))->runFromController();
+
+        $this->info('estado conservacion insertadas en SQLite DB.');
+    }
+ 
+    private function setFamilia()
+    {
+        (new FamiliaDumpService(
+        $this->pdo,
+        $this->cycle,
+        $this->codigo_grupo
+        ))->runFromController();
+
+        $this->info('familia insertadas en SQLite DB.');
+    }
+    private function setForma()
+    {
+        (new FormasDumpService(
+        $this->pdo
+        ))->runFromController();
+
+        $this->info('forma insertadas en SQLite DB.');
+    }
+ 
+    private function setGrupo()
+    {
+        (new GruposDumpService(
+        $this->pdo,
+         $this->cycle
+        ))->runFromController();
+
+        $this->info('grupo insertadas en SQLite DB.');
+    }
+    private function setInventario()
+    {
+        (new InventarioDumpService(
+        $this->pdo
+        ))->runFromController();
+
+        $this->info('inventario insertadas en SQLite DB.');
+    }
+
+    private function setMarca()
+    {
+        (new MarcasDumpService(
+        $this->pdo,
+        $this->cycle,
+        $this->id_familia
+        ))->runFromController();
+
+        $this->info('marca insertadas en SQLite DB.');
+    }
+    private function setMarcaInv()
+    {
+        (new MarcasInventarioDumpService(
+        $this->pdo
+        ))->runFromController();
+
+        $this->info('marcaInv insertadas en SQLite DB.');
+    }
+ 
+    private function setMaterial()
+    {
+        (new MaterialDumpService(
+        $this->pdo
+        ))->runFromController();
+
+        $this->info('material insertadas en SQLite DB.');
+    }
+     private function setOperacional()
+    {
+        (new OperacionalDumpService(
+        $this->pdo
+        ))->runFromController();
+
+        $this->info('operacional insertadas en SQLite DB.');
+    }
+ 
+     private function setTipoTrabajo()
+    {
+        (new TipoTrabajoDumpService(
+        $this->pdo
+        ))->runFromController();
+
+        $this->info('tipotrabajo insertadas en SQLite DB.');
     }
     // private function setCyclesPuntosByCycle()
     // {

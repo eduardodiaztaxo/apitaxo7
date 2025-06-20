@@ -7,7 +7,7 @@ use App\Services\Dump\Tables\DumpSQLiteInterface;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use PDO;
 
-class MaterialDumpService implements DumpSQLiteInterface
+class TipoTrabajoDumpService implements DumpSQLiteInterface
 {
 
 
@@ -39,7 +39,7 @@ class MaterialDumpService implements DumpSQLiteInterface
 
         $datsdActivosCtrl = new DatosActivosController();
 
-       $response = $datsdActivosCtrl->material();
+       $response = $datsdActivosCtrl->tipoTrabajo();
 
         $jsonContent = $response->getContent();
 
@@ -67,10 +67,10 @@ class MaterialDumpService implements DumpSQLiteInterface
 
         // Create "assets" table
         $this->pdo->exec("
-            CREATE TABLE IF NOT EXISTS material (
+            CREATE TABLE IF NOT EXISTS tipoTrabajo (
                 idLista INTEGER PRIMARY KEY,
                 id_atributo INTEGER NOT NULL,
-                material TEXT NOT NULL
+                descripcion TEXT NOT NULL
             );
         ");
     }
@@ -81,29 +81,29 @@ class MaterialDumpService implements DumpSQLiteInterface
      * @param \Illuminate\Http\Resources\Json\AnonymousResourceCollection $cycles Array of cycle objects to insert.
      * @return void
      */
-    public function insert(array|AnonymousResourceCollection $materiales): void
+    public function insert(array|AnonymousResourceCollection $tipo): void
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            INSERT INTO material (
+            INSERT INTO tipoTrabajo (
                 idLista,
                 id_atributo,
-                material
+                descripcion
             )
             VALUES (
                :idLista,
                :id_atributo,
-               :material
+               :descripcion
                
             )
         ");
 
-        foreach ($materiales as $m) {
+        foreach ($tipo as $t) {
 
             $stmt->execute([
-                ':idLista' => $m->idLista,
-                ':id_atributo' => $m->id_atributo,
-                ':material' => $m->material
+                ':idLista' => $t->idLista,
+                ':id_atributo' => $t->id_atributo,
+                ':descripcion' => $t->descripcion
             ]);
         }
     }

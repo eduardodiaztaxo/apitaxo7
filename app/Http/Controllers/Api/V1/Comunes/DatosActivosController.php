@@ -266,12 +266,10 @@ public function indiceColores()
         return response()->json($collection, 200);
     }
 
-     public function material($id_grupo)
+     public function material()
     {
-        $collection = IndiceListaMaterial::where('id_grupo', $id_grupo)
-            ->get();
-
-        return response()->json($collection);
+        $collection = IndiceListaMaterial::all();
+        return response()->json($collection, 200);
     }
 
     /**
@@ -283,13 +281,12 @@ public function indiceColores()
      */
 
 
-    public function forma($id_grupo)
+    public function forma()
     {
-        $collection = IndiceListaForma::where('id_grupo', $id_grupo)
-            ->get();
-
-        return response()->json($collection);
+        $collection = IndiceListaForma::all();
+        return response()->json($collection, 200);
     }
+
 
     /**
      * create bienes nuevos.

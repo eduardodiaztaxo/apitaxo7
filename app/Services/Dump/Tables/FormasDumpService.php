@@ -16,7 +16,6 @@ class MaterialDumpService implements DumpSQLiteInterface
      */
     protected $pdo = null;
 
-
  public function __construct(PDO $pdo)
 {
     $this->pdo = $pdo;
@@ -39,7 +38,7 @@ class MaterialDumpService implements DumpSQLiteInterface
 
         $datsdActivosCtrl = new DatosActivosController();
 
-       $response = $datsdActivosCtrl->material();
+       $response = $datsdActivosCtrl->forma();
 
         $jsonContent = $response->getContent();
 
@@ -67,10 +66,10 @@ class MaterialDumpService implements DumpSQLiteInterface
 
         // Create "assets" table
         $this->pdo->exec("
-            CREATE TABLE IF NOT EXISTS material (
+            CREATE TABLE IF NOT EXISTS formas (
                 idLista INTEGER PRIMARY KEY,
                 id_atributo INTEGER NOT NULL,
-                material TEXT NOT NULL
+                forma TEXT NOT NULL
             );
         ");
     }
@@ -81,29 +80,29 @@ class MaterialDumpService implements DumpSQLiteInterface
      * @param \Illuminate\Http\Resources\Json\AnonymousResourceCollection $cycles Array of cycle objects to insert.
      * @return void
      */
-    public function insert(array|AnonymousResourceCollection $materiales): void
+    public function insert(array|AnonymousResourceCollection $formas): void
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            INSERT INTO material (
+            INSERT INTO formas (
                 idLista,
                 id_atributo,
-                material
+                forma
             )
             VALUES (
                :idLista,
                :id_atributo,
-               :material
+               :forma
                
             )
         ");
 
-        foreach ($materiales as $m) {
+        foreach ($formas as $f) {
 
             $stmt->execute([
-                ':idLista' => $m->idLista,
-                ':id_atributo' => $m->id_atributo,
-                ':material' => $m->material
+                ':idLista' => $f->idLista,
+                ':id_atributo' => $f->id_atributo,
+                ':forma' => $f->forma
             ]);
         }
     }
