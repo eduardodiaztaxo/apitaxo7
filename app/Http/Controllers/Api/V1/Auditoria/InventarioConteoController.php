@@ -31,6 +31,11 @@ class InventarioConteoController extends Controller
             $request->merge(['items' => json_encode($request->items)]);
         }
 
+        // If cycle_id is present but ciclo_id is not, merge cycle_id as ciclo_id
+        if (!$request->has('ciclo_id') && $request->has('cycle_id')) {
+            $request->merge(['ciclo_id' => $request->idCiclo]);
+        }
+
 
         $request->validate([
             'items'   => 'required|json',
@@ -112,9 +117,15 @@ class InventarioConteoController extends Controller
         }
 
 
+        // If cycle_id is present but ciclo_id is not, merge cycle_id as ciclo_id
+        if (!$request->has('ciclo_id') && $request->has('cycle_id')) {
+            $request->merge(['ciclo_id' => $request->idCiclo]);
+        }
+
         $request->validate([
             'items'             => 'required|json',
             'ciclo_id'          => 'required|integer|exists:inv_ciclos,idCiclo',
+
             'emplazamiento_id'  => 'required|integer|exists:ubicaciones_n2,idUbicacionN2',
         ]);
 
@@ -214,10 +225,16 @@ class InventarioConteoController extends Controller
             $request->merge(['items' => json_encode($request->items)]);
         }
 
+        // If cycle_id is present but ciclo_id is not, merge cycle_id as ciclo_id
+        if (!$request->has('ciclo_id') && $request->has('cycle_id')) {
+            $request->merge(['ciclo_id' => $request->idCiclo]);
+        }
+
         // Validaciones básicas
         $request->validate([
             'items'             => 'required|json',
             'ciclo_id'          => 'required|integer|exists:inv_ciclos,idCiclo',
+
             'emplazamiento_id'  => 'required|integer|exists:ubicaciones_n2,idUbicacionN2',
         ]);
 
@@ -327,6 +344,11 @@ class InventarioConteoController extends Controller
             $request->merge(['items' => json_encode($request->items)]);
         }
 
+        // If cycle_id is present but ciclo_id is not, merge cycle_id as ciclo_id
+        if (!$request->has('ciclo_id') && $request->has('cycle_id')) {
+            $request->merge(['ciclo_id' => $request->idCiclo]);
+        }
+
 
         $request->validate([
             'items'             => 'required|json',
@@ -430,6 +452,11 @@ class InventarioConteoController extends Controller
             $request->merge(['items' => json_encode($request->items)]);
         }
 
+        // If cycle_id is present but ciclo_id is not, merge cycle_id as ciclo_id
+        if (!$request->has('ciclo_id') && $request->has('cycle_id')) {
+            $request->merge(['ciclo_id' => $request->idCiclo]);
+        }
+
 
         $request->validate([
             'items'             => 'required|json',
@@ -524,6 +551,11 @@ class InventarioConteoController extends Controller
 
         if ($request->items) {
             $request->merge(['items' => json_encode($request->items)]);
+        }
+
+        // If cycle_id is present but ciclo_id is not, merge cycle_id as ciclo_id
+        if (!$request->has('ciclo_id') && $request->has('cycle_id')) {
+            $request->merge(['ciclo_id' => $request->idCiclo]);
         }
 
 
