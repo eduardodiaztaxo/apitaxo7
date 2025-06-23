@@ -33,7 +33,8 @@ class InventarioConteoController extends Controller
 
         // If cycle_id is present but ciclo_id is not, merge cycle_id as ciclo_id
         if (!$request->has('ciclo_id') && $request->has('cycle_id')) {
-            $request->merge(['ciclo_id' => $request->idCiclo]);
+
+            $request->merge(['ciclo_id' => $request->cycle_id]);
         }
 
 
@@ -119,7 +120,8 @@ class InventarioConteoController extends Controller
 
         // If cycle_id is present but ciclo_id is not, merge cycle_id as ciclo_id
         if (!$request->has('ciclo_id') && $request->has('cycle_id')) {
-            $request->merge(['ciclo_id' => $request->idCiclo]);
+
+            $request->merge(['ciclo_id' => $request->cycle_id]);
         }
 
         $request->validate([
@@ -227,7 +229,8 @@ class InventarioConteoController extends Controller
 
         // If cycle_id is present but ciclo_id is not, merge cycle_id as ciclo_id
         if (!$request->has('ciclo_id') && $request->has('cycle_id')) {
-            $request->merge(['ciclo_id' => $request->idCiclo]);
+
+            $request->merge(['ciclo_id' => $request->cycle_id]);
         }
 
         // Validaciones básicas
@@ -346,7 +349,8 @@ class InventarioConteoController extends Controller
 
         // If cycle_id is present but ciclo_id is not, merge cycle_id as ciclo_id
         if (!$request->has('ciclo_id') && $request->has('cycle_id')) {
-            $request->merge(['ciclo_id' => $request->idCiclo]);
+
+            $request->merge(['ciclo_id' => $request->cycle_id]);
         }
 
 
@@ -454,7 +458,8 @@ class InventarioConteoController extends Controller
 
         // If cycle_id is present but ciclo_id is not, merge cycle_id as ciclo_id
         if (!$request->has('ciclo_id') && $request->has('cycle_id')) {
-            $request->merge(['ciclo_id' => $request->idCiclo]);
+
+            $request->merge(['ciclo_id' => $request->cycle_id]);
         }
 
 
@@ -555,7 +560,8 @@ class InventarioConteoController extends Controller
 
         // If cycle_id is present but ciclo_id is not, merge cycle_id as ciclo_id
         if (!$request->has('ciclo_id') && $request->has('cycle_id')) {
-            $request->merge(['ciclo_id' => $request->idCiclo]);
+
+            $request->merge(['ciclo_id' => $request->cycle_id]);
         }
 
 
