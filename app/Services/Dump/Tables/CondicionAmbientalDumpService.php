@@ -80,7 +80,7 @@ class CondicionAmbientalDumpService implements DumpSQLiteInterface
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            INSERT INTO ambiental (
+             REPLACE INTO ambiental (
                 idLista,
                 descripcion
             )

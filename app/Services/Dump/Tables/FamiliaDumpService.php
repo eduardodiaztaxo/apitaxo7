@@ -2,7 +2,7 @@
 
 namespace App\Services\Dump\Tables;
 
-use App\Http\Controllers\Api\V1\Comunes\DatosActivosController;
+use App\Http\Controllers\Api\V1\InventariosOfflineController;
 use App\Services\Dump\Tables\DumpSQLiteInterface;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use PDO;
@@ -44,9 +44,9 @@ class FamiliaDumpService implements DumpSQLiteInterface
         $request = new \Illuminate\Http\Request();
         $request->setMethod('GET');
 
-        $datsdActivosCtrl = new DatosActivosController();
+        $datsdActivosCtrl = new InventariosOfflineController();
 
-       $response = $datsdActivosCtrl->familia($this->cycle, $this->codigo_grupo);
+        $response = $datsdActivosCtrl->familia($this->cycle, [$this->codigo_grupo]);
 
         $jsonContent = $response->getContent();
 
@@ -92,7 +92,7 @@ class FamiliaDumpService implements DumpSQLiteInterface
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            INSERT INTO familias (
+            REPLACE INTO familias (
                 id_familia,
                 id_grupo,
                 codigo_familia,

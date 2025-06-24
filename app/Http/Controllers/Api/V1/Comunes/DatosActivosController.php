@@ -200,7 +200,7 @@ class DatosActivosController extends Controller
     public function buscarGrupoFamilia($id_familia)
     {
         $sql = "
-          SELECT descripcion_familia, id_grupo  FROM dp_familias WHERE id_familia = $id_familia
+          SELECT descripcion_familia, id_grupo FROM dp_familias WHERE id_familia = $id_familia
         ";
     
         $result = DB::select($sql);
@@ -235,7 +235,7 @@ class DatosActivosController extends Controller
     
         return response()->json($resultado, 200);
     }
-    
+
 public function indiceColores()
 {
     $collection = IndiceListaColores::all();

@@ -4,6 +4,8 @@ namespace App\Services\Dump\Tables;
 
 use App\Services\Dump\Tables\DumpSQLiteInterface;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use App\Http\Controllers\Api\V1\InventariosOfflineController; 
+
 use PDO;
 
 
@@ -11,20 +13,42 @@ class InventarioDumpService
 {
     protected PDO $pdo;
 
-    public function __construct(PDO $pdo)
+    protected $cycle = 0;
+
+    public function __construct(PDO $pdo, int $cycle = 0)
     {
         $this->pdo = $pdo;
-    }
 
+        $this->cycle = $cycle;
+
+    }
     /**
      * Crea la tabla bienesInventario si no existe.
      */
-      public function runFromController(): void
+       public function runFromController(): void
     {
 
         $this->createTable();
 
+        $request = new \Illuminate\Http\Request();
+        $request->setMethod('GET');
+
+        $datsdActivosCtrl = new InventariosOfflineController();
+
+        $response = $datsdActivosCtrl->inventarioPorCicloOfflineInventario($this->cycle);
+
+        $jsonContent = $response->getContent();
+
+        $data = json_decode($jsonContent);
+
+        if (isset($data->status) && $data->status !== 'OK') {
+            return;
+        }
+
+
+        $this->insert($data);
     }
+
     public function createTable(): void
     {
         $this->pdo->exec("
@@ -57,7 +81,113 @@ class InventarioDumpService
                 observacion TEXT NOT NULL,
                 latitud TEXT NOT NULL,
                 longitud TEXT NOT NULL
+            );
+        ");
+    }
+
+    /**
+     *
+     * @param \Illuminate\Http\Resources\Json\AnonymousResourceCollection $cycles Array of cycle objects to insert.
+     * @return void
+     */
+    public function insert(array|AnonymousResourceCollection $invt): void
+    {
+        // Insertar datos
+        $stmt = $this->pdo->prepare("
+             REPLACE INTO inventario (
+                id_inventario,
+                id_grupo,
+                id_familia,
+                descripcion_bien,
+                descripcion_marca,
+                idForma,
+                idMaterial,
+                etiqueta,
+                modelo,
+                serie,
+                capacidad,
+                estado,
+                color,
+                tipo_trabajo,
+                carga_trabajo,
+                estado_operacional,
+                estado_conservacion,
+                condicion_Ambiental,
+                cantidad_img,
+                id_img,
+                id_ciclo,
+                codigoUbicacion,
+                codigoUbicacion_N1,
+                responsable,
+                descripcionTipo,
+                observacion,
+                latitud,
+                longitud
+            )
+            VALUES (
+                :id_invetario,
+                :id_grupo,
+                :id_familia,
+                :descripcion_bien,
+                :descripcion_marca,
+                :idForma,
+                :idMaterial,
+                :etiqueta,
+                :modelo,
+                :serie,
+                :capacidad,
+                :estado,
+                :color,
+                :tipo_trabajo,
+                :carga_trabajo,
+                :estado_operacional,
+                :estado_conservacion,
+                :condicion_Ambiental,
+                :cantidad_img,
+                :id_img,
+                :id_ciclo,
+                :codigoUbicacion,
+                :codigoUbicacion_N1,
+                :responsable,
+                :descripcionTipo,
+                :observacion,
+                :latitud,
+                :longitud
             )
         ");
+
+        foreach ($invt as $i) {
+
+            $stmt->execute([
+                ':id_invetario' => $i->id_inventario ?? 0,
+                ':id_grupo' => $i->id_grupo ?? 0,
+                ':id_familia' => $i->id_familia ?? 0,
+                ':descripcion_bien' => $i->descripcion_bien ?? '',
+                ':descripcion_marca' => $i->descripcion_marca ?? '',
+                ':idForma' => $i->idForma ?? 0,
+                ':idMaterial' => $i->idMaterial ?? 0,
+                ':etiqueta' => $i->etiqueta ?? '',
+                ':modelo' => $i->modelo ?? '',
+                ':serie' => $i->serie ?? '',
+                ':capacidad' => $i->capacidad ?? '',
+                ':estado' => $i->estado ?? 0,
+                ':color' => $i->color ?? 0,
+                ':tipo_trabajo' => $i->tipo_trabajo ?? 0,
+                ':carga_trabajo' => $i->carga_trabajo ?? 0,
+                ':estado_operacional' => $i->estado_operacional ?? 0,
+                ':estado_conservacion' => $i->estado_conservacion ?? 0,
+                ':condicion_Ambiental' => $i->condicion_Ambiental ?? 0,
+                ':cantidad_img' => $i->cantidad_img ?? 0,
+                ':id_img' => $i->id_img ?? '',
+                ':id_ciclo' => $i->id_ciclo ?? 0,
+                ':codigoUbicacion' => $i->codigoUbicacion ?? 0,
+                ':codigoUbicacion_N1' => $i->codigoUbicacion_N1 ?? 0,
+                ':responsable' => $i->responsable ?? '',
+                ':descripcionTipo' => $i->descripcionTipo ?? '',
+                ':observacion' => $i->observacion ?? '',
+                ':latitud' => $i->latitud ?? '',
+                ':longitud' => $i->longitud ?? '',
+            ]);
+        }
     }
 }

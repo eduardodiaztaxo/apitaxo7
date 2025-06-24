@@ -2,7 +2,7 @@
 
 namespace App\Services\Dump\Tables;
 
-use App\Http\Controllers\Api\V1\Comunes\DatosActivosController;
+use App\Http\Controllers\Api\V1\InventariosOfflineController;
 use App\Services\Dump\Tables\DumpSQLiteInterface;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use PDO;
@@ -21,15 +21,12 @@ class MarcasDumpService implements DumpSQLiteInterface
      */
     protected $cycle = 0;
 
-    protected $id_familia = 0;
-
-    public function __construct(PDO $pdo, int $cycle = 0, int $id_familia = 0)
+    public function __construct(PDO $pdo, int $cycle = 0)
     {
         $this->pdo = $pdo;
 
         $this->cycle = $cycle;
 
-        $this->id_familia = $id_familia;
     }
 
     /**
@@ -47,9 +44,9 @@ class MarcasDumpService implements DumpSQLiteInterface
         $request = new \Illuminate\Http\Request();
         $request->setMethod('GET');
 
-        $datsdActivosCtrl = new DatosActivosController();
+        $datsdActivosCtrl = new InventariosOfflineController();
 
-        $response = $datsdActivosCtrl->bienes_Marcas($this->cycle, $this->id_familia);
+        $response = $datsdActivosCtrl->MarcasPorCicloOfflineInventario($this->cycle);
 
         $jsonContent = $response->getContent();
 
@@ -94,14 +91,14 @@ class MarcasDumpService implements DumpSQLiteInterface
     public function insert(array|AnonymousResourceCollection $marca): void
     {
         // Insertar datos
-        $stmt = $this->pdo->prepare("
-            INSERT INTO marcas (
-             idLista,
-             idAtributo,
-             idIndice,
-             id_familia,
-             descripcion,
-             ciclo_inventario
+       $stmt = $this->pdo->prepare("
+            REPLACE INTO marcas (
+                idLista,
+                idAtributo,
+                idIndice,
+                id_familia,
+                descripcion,
+                ciclo_inventario
             )
             VALUES (
                 :idLista,
@@ -112,6 +109,7 @@ class MarcasDumpService implements DumpSQLiteInterface
                 :ciclo_inventario
             )
         ");
+
 
         foreach ($marca as $m) {
 

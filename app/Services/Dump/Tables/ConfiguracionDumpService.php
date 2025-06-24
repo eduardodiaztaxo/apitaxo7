@@ -2,10 +2,9 @@
 
 namespace App\Services\Dump\Tables;
 
-use App\Http\Controllers\Api\V1\InventariosController;
+use App\Http\Controllers\Api\V1\InventariosOfflineController;
 use App\Services\Dump\Tables\DumpSQLiteInterface;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use App\Services\ImageService;
 use PDO;
 
 class ConfiguracionDumpService implements DumpSQLiteInterface
@@ -43,11 +42,9 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
         $request = new \Illuminate\Http\Request();
         $request->setMethod('GET');
 
-        $imageService = new ImageService(); 
+        $datsdActivosCtrl = new InventariosOfflineController();
 
-        $datsdActivosCtrl = new InventariosController($imageService);
-
-        $response = $datsdActivosCtrl->configuracion($this->codigo_grupo);
+        $response = $datsdActivosCtrl->configuracionOffline([$this->codigo_grupo]);
 
         $jsonContent = $response->getContent();
 
@@ -73,6 +70,7 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
 {
     $this->pdo->exec("
         CREATE TABLE IF NOT EXISTS configuracion (
+            id_grupo INTEGER,
             conf_marca INTEGER,
             conf_modelo INTEGER,
             tipo_dato_mod INTEGER,
@@ -114,7 +112,8 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            INSERT INTO configuracion (
+            REPLACE INTO configuracion (
+                id_grupo,
                 conf_marca,
                 conf_modelo,
                 tipo_dato_mod,
@@ -144,6 +143,7 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
                 conf_longitud
             )
             VALUES (
+                :id_grupo,
                 :conf_marca,
                 :conf_modelo,
                 :tipo_dato_mod,
@@ -177,6 +177,7 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
         foreach ($config as $conf) {
 
             $stmt->execute([
+                ':id_grupo' => $conf->id_grupo,
                 ':conf_marca' => $conf->conf_marca,
                 ':conf_modelo' => $conf->conf_modelo,
                 ':tipo_dato_mod' => $conf->tipo_dato_mod,

@@ -81,7 +81,7 @@ class ColoresDumpService implements DumpSQLiteInterface
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            INSERT INTO colores (
+             REPLACE INTO colores (
                 idLista,
                 descripcion
             )

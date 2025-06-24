@@ -47,8 +47,7 @@ class ExportAuditCycleSQLiteDatabase extends Command
      *
      * @var string
      */
-    protected $signature = 'command:export-for-offline-auditing-sqlite {--connection=} {--cycle=}';
-
+     protected $signature = 'command:export-for-offline-auditing-sqlite {--connection=} {--cycle=}';
     /**
      * The console command description.
      *
@@ -61,8 +60,6 @@ class ExportAuditCycleSQLiteDatabase extends Command
     protected $cycle = 0;
 
     protected $codigo_grupo = '';
-
-    protected $id_familia = 0;
 
     /**
      * Create a new command instance.
@@ -98,25 +95,43 @@ class ExportAuditCycleSQLiteDatabase extends Command
             return 1;
         }
 
-
-
         DB::setDefaultConnection($conn_field);
 
+        $tipoCiclo = DB::table('inv_ciclos')
+        ->where('idCiclo', $this->cycle)
+        ->value('idTipoCiclo');
+
+        if (!$tipoCiclo) {
+            $this->error('No se encontró el ciclo con el ID especificado.');
+            return 1;
+        }
+
+         if ($tipoCiclo == 1) {
+            $grupos = DB::table('inv_ciclos_categorias')
+                ->where('idCiclo', $this->cycle)
+                ->select('id_grupo')
+                ->distinct()
+                ->pluck('id_grupo');
+
+            if ($grupos->isEmpty()) {
+                $this->error('No se encontraron grupos asociados al ciclo.');
+                return 1;
+            }
+
+            $this->codigo_grupo = $grupos->implode(',');
+
+            $this->info('Código grupo(s) usado(s): ' . $this->codigo_grupo);
+        }
+
         $relativePath = 'app/db-dumps/' . $conn_field . '/output_audit_cycle_' . $this->cycle . '_database.db';
-
         $relativeZipPath = str_replace('.db', '.zip', $relativePath);
-
-
         $sqlitePath = storage_path($relativePath);
 
-        $pdoServ = new SQLiteConnService(
-            $sqlitePath
-        );
+        $pdoServ = new SQLiteConnService($sqlitePath);
 
         if ($pdoServ->deleteDB()) {
             $this->warn('output_database.db file deleted.');
         }
-
 
         $pdoServ->createSQLiteDatabase();
         $this->pdo = $pdoServ->getCurrentConn();
@@ -128,11 +143,11 @@ class ExportAuditCycleSQLiteDatabase extends Command
         $this->setZonesByCycle();
         $this->setEmplazamientosByCycle();
         $this->setAssetsByCycle();
-
         $this->setCyclesCategoriasByCycle();
         $this->setConteoRegistroByCycle();
         $this->setSubZonesByCycle();
         
+        if ($tipoCiclo == 1) {
         $this->setBienesInventario();
         $this->setBieneGrupoFamilia();
         $this->setCargaTrabajo();
@@ -150,20 +165,16 @@ class ExportAuditCycleSQLiteDatabase extends Command
         $this->setOperacional();
         $this->setTipoTrabajo();
         $this->setEstado();
+        }
         // $this->setCyclesPuntosByCycle();
 
 
         $style = new OutputFormatterStyle('white', 'green', array('bold', 'blink'));
-
         $this->output->getFormatter()->setStyle('success', $style);
-
         $this->output->writeln('<success>SQLite DB created successfully</success>');
-
-
 
         $zipServ = new \App\Services\Dump\SQLiteZipService($sqlitePath);
         $zipServ->createZipArchive();
-
 
         DB::delete('DELETE FROM db_audits_dumps 
         WHERE cycle_id = ? AND `status` = ? ', [$this->cycle, 1]);
@@ -180,13 +191,8 @@ class ExportAuditCycleSQLiteDatabase extends Command
         return 0;
     }
 
-
-
-
     private function setCyclesSQLite()
     {
-
-
         (new CyclesDumpService(
             $this->pdo,
             $this->cycle
@@ -194,7 +200,6 @@ class ExportAuditCycleSQLiteDatabase extends Command
 
         $this->info('Cycles inserted in the SQLite DB.');
     }
-
 
     private function setAddressByCycle()
     {
@@ -364,7 +369,8 @@ class ExportAuditCycleSQLiteDatabase extends Command
     private function setInventario()
     {
         (new InventarioDumpService(
-        $this->pdo
+        $this->pdo,
+        $this->cycle
         ))->runFromController();
 
         $this->info('inventario insertadas en SQLite DB.');
@@ -374,8 +380,7 @@ class ExportAuditCycleSQLiteDatabase extends Command
     {
         (new MarcasDumpService(
         $this->pdo,
-        $this->cycle,
-        $this->id_familia
+        $this->cycle
         ))->runFromController();
 
         $this->info('marca insertadas en SQLite DB.');

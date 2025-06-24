@@ -81,7 +81,7 @@ class MaterialDumpService implements DumpSQLiteInterface
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            INSERT INTO material (
+             REPLACE INTO material (
                 idLista,
                 material
             )

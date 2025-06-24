@@ -49,7 +49,6 @@ class EstadoConservacionDumpService implements DumpSQLiteInterface
             return;
         }
 
-
         $this->insert($data);
     }
 
@@ -80,7 +79,7 @@ class EstadoConservacionDumpService implements DumpSQLiteInterface
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            INSERT INTO conservacion (
+            REPLACE INTO conservacion (
                 idLista,
                 descripcion
             )

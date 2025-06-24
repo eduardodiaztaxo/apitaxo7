@@ -95,7 +95,7 @@ class BienGrupoFamiliaDumpService implements DumpSQLiteInterface
     {
 
         $stmt = $this->pdo->prepare("
-            INSERT INTO BienGrupoFamilia (
+             REPLACE INTO BienGrupoFamilia (
              idLista,
              idAtributo,
              idIndice,

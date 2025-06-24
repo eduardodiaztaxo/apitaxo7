@@ -80,7 +80,7 @@ class TipoTrabajoDumpService implements DumpSQLiteInterface
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            INSERT INTO tipoTrabajo (
+            REPLACE INTO tipoTrabajo (
                 idLista,
                 descripcion
             )
