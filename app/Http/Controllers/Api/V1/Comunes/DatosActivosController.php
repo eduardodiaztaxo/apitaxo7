@@ -18,6 +18,7 @@ use App\Models\IndiceListaConservacion;
 use App\Models\IndiceListaCondicionAmbiental;
 use App\Models\IndiceListaMaterial;
 use App\Models\IndiceListaForma;
+use App\Models\IndiceListaEstado;
 use App\Models\Inv_ciclos_categorias;
 use Illuminate\Support\Facades\DB;
 
@@ -40,6 +41,12 @@ class DatosActivosController extends Controller
     public function estadosBienes()
     {
         $collection = IndiceLista13::all();
+        return response()->json($collection, 200);
+    }
+
+     public function estadosInventario()
+    {
+        $collection = IndiceListaEstado::all();
         return response()->json($collection, 200);
     }
 

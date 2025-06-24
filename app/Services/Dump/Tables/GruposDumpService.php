@@ -30,9 +30,9 @@ class GruposDumpService implements DumpSQLiteInterface
     }
 
     /**
-     * Run the assets dump from the controller.
+     * Run dump from the controller.
      *
-     * This method creates the ciclos table and inserts assets data into it from controller.
+     * This method creates the ciclos table and inserts data into it from controller.
      *
      * @return void
      */
@@ -63,7 +63,6 @@ class GruposDumpService implements DumpSQLiteInterface
 
 
     /**
-     * Create the assets table if it does not exist.
      *
      * This method creates the assets table with the specified columns and their data types.
      *
@@ -71,9 +70,6 @@ class GruposDumpService implements DumpSQLiteInterface
      */
     public function createTable(): void
     {
-
-
-        // Create "assets" table
         $this->pdo->exec("
             CREATE TABLE IF NOT EXISTS grupos (
                 id_grupo INTEGER PRIMARY KEY,
@@ -85,7 +81,6 @@ class GruposDumpService implements DumpSQLiteInterface
     }
 
     /**
-     * Insert assets into the assets table.
      *
      * @param \Illuminate\Http\Resources\Json\AnonymousResourceCollection $cycles Array of cycle objects to insert.
      * @return void
@@ -102,8 +97,7 @@ class GruposDumpService implements DumpSQLiteInterface
             VALUES (
                 :id_grupo,
                 :codigo_grupo,
-                :descripcion_grupo
-               
+                :descripcion_grupo  
             )
         ");
 

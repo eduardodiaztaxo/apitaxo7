@@ -7,7 +7,7 @@ use App\Services\Dump\Tables\DumpSQLiteInterface;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use PDO;
 
-class MarcasDumpService implements DumpSQLiteInterface
+class EstadoDumpService implements DumpSQLiteInterface
 {
 
 
@@ -16,22 +16,11 @@ class MarcasDumpService implements DumpSQLiteInterface
      */
     protected $pdo = null;
 
-    /**
-     * @var int Cycle number
-     */
-    protected $cycle = 0;
+ public function __construct(PDO $pdo)
+{
+    $this->pdo = $pdo;
 
-    protected $id_familia = 0;
-
-    public function __construct(PDO $pdo, int $cycle = 0, int $id_familia = 0)
-    {
-        $this->pdo = $pdo;
-
-        $this->cycle = $cycle;
-
-        $this->id_familia = $id_familia;
-    }
-
+}
     /**
      * Run dump from the controller.
      *
@@ -49,11 +38,10 @@ class MarcasDumpService implements DumpSQLiteInterface
 
         $datsdActivosCtrl = new DatosActivosController();
 
-        $response = $datsdActivosCtrl->bienes_Marcas($this->cycle, $this->id_familia);
+       $response = $datsdActivosCtrl->estadosInventario();
 
         $jsonContent = $response->getContent();
 
-        // Decodificar el JSON a un arreglo asociativo
         $data = json_decode($jsonContent);
 
         if (isset($data->status) && $data->status !== 'OK') {
@@ -75,13 +63,9 @@ class MarcasDumpService implements DumpSQLiteInterface
     public function createTable(): void
     {
         $this->pdo->exec("
-            CREATE TABLE IF NOT EXISTS marcas (
+            CREATE TABLE IF NOT EXISTS estado (
                 idLista INTEGER PRIMARY KEY,
-                idAtributo INTEGER DEFAULT 0,
-                idIndice INTEGER DEFAULT 0,
-                id_familia INTEGER DEFAULT 0,
-                descripcion TEXT,
-                ciclo_inventario INTEGER DEFAULT 0
+                descripcion TEXT NOT NULL
             );
         ");
     }
@@ -91,37 +75,26 @@ class MarcasDumpService implements DumpSQLiteInterface
      * @param \Illuminate\Http\Resources\Json\AnonymousResourceCollection $cycles Array of cycle objects to insert.
      * @return void
      */
-    public function insert(array|AnonymousResourceCollection $marca): void
+    public function insert(array|AnonymousResourceCollection $estado): void
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            INSERT INTO marcas (
-             idLista,
-             idAtributo,
-             idIndice,
-             id_familia,
-             descripcion,
-             ciclo_inventario
+            INSERT INTO estado (
+                idLista,
+                descripcion
             )
             VALUES (
-                :idLista,
-                :idAtributo,
-                :idIndice,
-                :id_familia,
-                :descripcion,
-                :ciclo_inventario
+               :idLista,
+               :descripcion
+               
             )
         ");
 
-        foreach ($marca as $m) {
+        foreach ($estado as $est) {
 
             $stmt->execute([
-                ':idLista' => $m->idLista,
-                ':idAtributo' => $m->idAtributo,
-                ':idIndice' => $m->idIndice,
-                ':id_familia' => $m->id_familia,
-                ':descripcion' => $m->descripcion,
-                ':ciclo_inventario' => $m->ciclo_inventario
+                ':idLista' => $est->idLista,
+                ':descripcion' => $est->descripcion
             ]);
         }
     }

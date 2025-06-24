@@ -19,6 +19,12 @@ class InventarioDumpService
     /**
      * Crea la tabla bienesInventario si no existe.
      */
+      public function runFromController(): void
+    {
+
+        $this->createTable();
+
+    }
     public function createTable(): void
     {
         $this->pdo->exec("

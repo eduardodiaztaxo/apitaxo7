@@ -15,6 +15,24 @@ use App\Services\Dump\Tables\ConteoRegistroDumpService;
 use App\Services\Dump\Tables\SubZonesDumpService;
 use App\Services\Dump\Tables\EmplazamientosDumpService;
 use App\Services\Dump\Tables\ZonesDumpService;
+use App\Services\Dump\Tables\BienesInventarioDumpService;
+use App\Services\Dump\Tables\BienGrupoFamiliaDumpService;
+use App\Services\Dump\Tables\CargaTrabajoDumpService;
+use App\Services\Dump\Tables\ColoresDumpService;
+use App\Services\Dump\Tables\CondicionAmbientalDumpService;
+use App\Services\Dump\Tables\ConfiguracionDumpService;
+use App\Services\Dump\Tables\EstadoConservacionDumpService;
+use App\Services\Dump\Tables\FamiliaDumpService;
+use App\Services\Dump\Tables\FormasDumpService;
+use App\Services\Dump\Tables\GruposDumpService;
+use App\Services\Dump\Tables\InventarioDumpService;
+use App\Services\Dump\Tables\MarcasDumpService;
+use App\Services\Dump\Tables\MarcasInventarioDumpService;
+use App\Services\Dump\Tables\MaterialDumpService;
+use App\Services\Dump\Tables\OperacionalDumpService;
+use App\Services\Dump\Tables\TipoTrabajoDumpService;
+use App\Services\Dump\Tables\EstadoDumpService;
+
 use Illuminate\Console\Command;
 
 
@@ -131,6 +149,7 @@ class ExportAuditCycleSQLiteDatabase extends Command
         $this->setMaterial();
         $this->setOperacional();
         $this->setTipoTrabajo();
+        $this->setEstado();
         // $this->setCyclesPuntosByCycle();
 
 
@@ -395,6 +414,16 @@ class ExportAuditCycleSQLiteDatabase extends Command
 
         $this->info('tipotrabajo insertadas en SQLite DB.');
     }
+
+ private function setEstado()
+    {
+        (new EstadoDumpService(
+        $this->pdo
+        ))->runFromController();
+
+        $this->info('Estados insertadas en SQLite DB.');
+    }
+    
     // private function setCyclesPuntosByCycle()
     // {
     //     (new CyclesPuntoDumpService(

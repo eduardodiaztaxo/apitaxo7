@@ -7,7 +7,7 @@ use App\Services\Dump\Tables\DumpSQLiteInterface;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use PDO;
 
-class MaterialDumpService implements DumpSQLiteInterface
+class FormasDumpService implements DumpSQLiteInterface
 {
 
 
@@ -22,9 +22,9 @@ class MaterialDumpService implements DumpSQLiteInterface
 
 }
     /**
-     * Run the assets dump from the controller.
+     * Run dump from the controller.
      *
-     * This method creates the ciclos table and inserts assets data into it from controller.
+     * This method creates the ciclos table and inserts data into it from controller.
      *
      * @return void
      */
@@ -54,28 +54,23 @@ class MaterialDumpService implements DumpSQLiteInterface
 
 
     /**
-     * Create the assets table if it does not exist.
+     * Create table if it does not exist.
      *
-     * This method creates the assets table with the specified columns and their data types.
+     * This method creates table with the specified columns and their data types.
      *
      * @return void
      */
     public function createTable(): void
     {
-
-
-        // Create "assets" table
         $this->pdo->exec("
             CREATE TABLE IF NOT EXISTS formas (
                 idLista INTEGER PRIMARY KEY,
-                id_atributo INTEGER NOT NULL,
                 forma TEXT NOT NULL
             );
         ");
     }
 
     /**
-     * Insert assets into the assets table.
      *
      * @param \Illuminate\Http\Resources\Json\AnonymousResourceCollection $cycles Array of cycle objects to insert.
      * @return void
@@ -86,12 +81,10 @@ class MaterialDumpService implements DumpSQLiteInterface
         $stmt = $this->pdo->prepare("
             INSERT INTO formas (
                 idLista,
-                id_atributo,
                 forma
             )
             VALUES (
                :idLista,
-               :id_atributo,
                :forma
                
             )
@@ -101,7 +94,6 @@ class MaterialDumpService implements DumpSQLiteInterface
 
             $stmt->execute([
                 ':idLista' => $f->idLista,
-                ':id_atributo' => $f->id_atributo,
                 ':forma' => $f->forma
             ]);
         }

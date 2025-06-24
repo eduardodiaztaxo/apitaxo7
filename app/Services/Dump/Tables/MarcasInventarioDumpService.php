@@ -15,7 +15,13 @@ class MarcasInventarioDumpService
     {
         $this->pdo = $pdo;
     }
+    public function runFromController(): void
+    {
 
+        $this->createTable();
+
+    }
+    
     public function createTable(): void
     {
         $this->pdo->exec("

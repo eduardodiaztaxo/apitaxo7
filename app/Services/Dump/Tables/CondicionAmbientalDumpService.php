@@ -23,9 +23,9 @@ class CondicionAmbientalDumpService implements DumpSQLiteInterface
 
 }
     /**
-     * Run the assets dump from the controller.
+     * Run dump from the controller.
      *
-     * This method creates the ciclos table and inserts assets data into it from controller.
+     * This method creates the ciclos table and inserts data into it from controller.
      *
      * @return void
      */
@@ -55,28 +55,23 @@ class CondicionAmbientalDumpService implements DumpSQLiteInterface
 
 
     /**
-     * Create the assets table if it does not exist.
+     * Create table if it does not exist.
      *
-     * This method creates the assets table with the specified columns and their data types.
+     * This method creates table with the specified columns and their data types.
      *
      * @return void
      */
     public function createTable(): void
     {
-
-
-        // Create "assets" table
         $this->pdo->exec("
             CREATE TABLE IF NOT EXISTS ambiental (
                 idLista INTEGER PRIMARY KEY,
-                id_atributo INTEGER NOT NULL,
                 descripcion TEXT NOT NULL
             );
         ");
     }
 
     /**
-     * Insert assets into the assets table.
      *
      * @param \Illuminate\Http\Resources\Json\AnonymousResourceCollection $cycles Array of cycle objects to insert.
      * @return void
@@ -87,14 +82,11 @@ class CondicionAmbientalDumpService implements DumpSQLiteInterface
         $stmt = $this->pdo->prepare("
             INSERT INTO ambiental (
                 idLista,
-                id_atributo,
                 descripcion
             )
             VALUES (
                :idLista,
-               :id_atributo,
                :descripcion
-               
             )
         ");
 
@@ -102,7 +94,6 @@ class CondicionAmbientalDumpService implements DumpSQLiteInterface
 
             $stmt->execute([
                 ':idLista' => $an->idLista,
-                ':id_atributo' => $an->id_atributo,
                 ':descripcion' => $an->descripcion
             ]);
         }

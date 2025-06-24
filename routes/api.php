@@ -98,7 +98,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('estados-bienes', [DatosActivosController::class, 'estadosBienes']);
 
-    Route::get('estados-inv/{id_grupo}', [DatosActivosController::class, 'estadosInventario']);
+    Route::get('estados-inv', [DatosActivosController::class, 'estadosInventario']);
 
     Route::get('grupo/{ciclo}', [DatosActivosController::class, 'grupo']);
 

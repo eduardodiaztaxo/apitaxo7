@@ -23,9 +23,9 @@ class CargaTrabajoDumpService implements DumpSQLiteInterface
 
 }
     /**
-     * Run the assets dump from the controller.
+     * Run dump from the controller.
      *
-     * This method creates the ciclos table and inserts assets data into it from controller.
+     * This method creates the ciclos table and inserts data into it from controller.
      *
      * @return void
      */
@@ -55,46 +55,37 @@ class CargaTrabajoDumpService implements DumpSQLiteInterface
 
 
     /**
-     * Create the assets table if it does not exist.
+     * Create table if it does not exist.
      *
-     * This method creates the assets table with the specified columns and their data types.
+     * This method creates table with the specified columns and their data types.
      *
      * @return void
      */
     public function createTable(): void
     {
-
-
-        // Create "assets" table
         $this->pdo->exec("
             CREATE TABLE IF NOT EXISTS cargaTrabajo (
                 idLista INTEGER PRIMARY KEY,
-                id_atributo INTEGER NOT NULL,
                 descripcion TEXT NOT NULL
             );
         ");
     }
 
     /**
-     * Insert assets into the assets table.
      *
      * @param \Illuminate\Http\Resources\Json\AnonymousResourceCollection $cycles Array of cycle objects to insert.
      * @return void
      */
     public function insert(array|AnonymousResourceCollection $carga): void
     {
-        // Insertar datos
         $stmt = $this->pdo->prepare("
             INSERT INTO cargaTrabajo (
                 idLista,
-                id_atributo,
                 descripcion
             )
             VALUES (
                :idLista,
-               :id_atributo,
-               :descripcion
-               
+               :descripcion  
             )
         ");
 
@@ -102,7 +93,6 @@ class CargaTrabajoDumpService implements DumpSQLiteInterface
 
             $stmt->execute([
                 ':idLista' => $ca->idLista,
-                ':id_atributo' => $ca->id_atributo,
                 ':descripcion' => $ca->descripcion
             ]);
         }
