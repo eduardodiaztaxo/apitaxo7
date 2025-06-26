@@ -28,7 +28,7 @@ class InventariosResource extends JsonResource
                 'serie',
                 'estado',
                 'responsable',
-                'codigoUbicacion',
+                'idUbicacionN2',
                 'id_img'
             )
             ->get();
@@ -61,7 +61,7 @@ class InventariosResource extends JsonResource
             ->value('descripcion');
 
         $subEmplazamiento = DB::table('ubicaciones_n2')
-            ->where('idUbicacionN2', $activo->codigoUbicacion)
+            ->where('idUbicacionN2', $activo->idUbicacionN2)
             ->select('descripcionUbicacion', 'codigoUbicacion', 'idAgenda')
             ->first();
         if (!$subEmplazamiento) {

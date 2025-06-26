@@ -46,7 +46,7 @@ class EmplazamientoResource extends JsonResource
             ->leftJoin('categoria_n3', 'inv_inventario.id_familia', '=', 'categoria_n3.id_familia')
             ->leftJoin('dp_familias', 'inv_inventario.id_familia', '=', 'dp_familias.id_familia')
             ->leftJoin('inv_imagenes', 'inv_inventario.id_img', '=', 'inv_imagenes.id_img')
-            ->where('inv_inventario.codigoUbicacion', $this->idUbicacionN2)
+            ->where('inv_inventario.idUbicacionN2', $this->idUbicacionN2)
             ->where('inv_inventario.id_ciclo', $this->cycle_id)
             ->select(
                 'inv_inventario.id_ciclo',
@@ -59,7 +59,7 @@ class EmplazamientoResource extends JsonResource
                 'inv_inventario.modelo',
                 'inv_inventario.serie',
                 'inv_inventario.descripcion_marca',
-                'inv_inventario.codigoUbicacion',
+                'inv_inventario.idUbicacionN2',
                 'categoria_n3.descripcionCategoria',
                 'dp_familias.descripcion_familia',
                 DB::raw('MIN(inv_imagenes.url_imagen) as url_imagen')
@@ -75,7 +75,7 @@ class EmplazamientoResource extends JsonResource
                 'inv_inventario.modelo',
                 'inv_inventario.serie',
                 'inv_inventario.descripcion_marca',
-                'inv_inventario.codigoUbicacion',
+                'inv_inventario.idUbicacionN2',
                 'categoria_n3.descripcionCategoria',
                 'dp_familias.descripcion_familia'
             )
@@ -114,7 +114,7 @@ class EmplazamientoResource extends JsonResource
                 'modelo' => $activo->modelo ?? '',
                 'serie' => $activo->serie ?? '',
                 'marca' => $activo->descripcion_marca ?? null,
-                'ubicacionOrganicaN2' => $activo->codigoUbicacion,
+                'ubicacionOrganicaN2' => $activo->idUbicacionN2,
                 'categoria' => null, 
                 'familia' => null,   
                 'descripcionCategoria' => $activo->descripcionCategoria,
