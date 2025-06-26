@@ -80,7 +80,8 @@ class InventarioDumpService
                 descripcionTipo TEXT NOT NULL,
                 observacion TEXT NOT NULL,
                 latitud TEXT NOT NULL,
-                longitud TEXT NOT NULL
+                longitud TEXT NOT NULL,
+                offline INTEGER NOT NULL
             );
         ");
     }
@@ -122,7 +123,8 @@ class InventarioDumpService
                 descripcionTipo,
                 observacion,
                 latitud,
-                longitud
+                longitud,
+                offline
             )
             VALUES (
                 :id_invetario,
@@ -152,7 +154,8 @@ class InventarioDumpService
                 :descripcionTipo,
                 :observacion,
                 :latitud,
-                :longitud
+                :longitud,
+                :offline
             )
         ");
 
@@ -187,6 +190,7 @@ class InventarioDumpService
                 ':observacion' => $i->observacion ?? '',
                 ':latitud' => $i->latitud ?? '',
                 ':longitud' => $i->longitud ?? '',
+                ':offline' => $i->offline ?? 0
             ]);
         }
     }
