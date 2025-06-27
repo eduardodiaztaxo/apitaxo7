@@ -98,34 +98,11 @@ class InvCiclo extends Model
             })
             ->where('inv_ciclos.idCiclo', '=', $this->idCiclo);
 
-
-
-
-
-
-
         return $queryBuilder;
     }
 
  public function emplazamientos_with_cats_inv($idCiclo)
 {
-
-//     $idsAgenda = DB::table('ubicaciones_n1')
-//         ->join('inv_inventario', 'ubicaciones_n1.codigoUbicacion', '=', 'inv_inventario.codigoUbicacion_N1')
-//         ->distinct()
-//         ->pluck('ubicaciones_n1.idAgenda')
-//         ->filter()
-//         ->unique()
-//         ->values();
-
-//    $queryBuilder = Emplazamiento::select('ubicaciones_n2.*')
-//     ->distinct()
-//     ->join('inv_ciclos_puntos', 'ubicaciones_n2.idAgenda', '=', 'inv_ciclos_puntos.idPunto')
-//     ->join('inv_ciclos', 'inv_ciclos.idCiclo', '=', 'inv_ciclos_puntos.idCiclo')
-//     ->join('inv_ciclos_categorias', 'inv_ciclos.idCiclo', '=', 'inv_ciclos_categorias.idCiclo')
-//     ->where('inv_ciclos.idCiclo', '=', $idCiclo)
-//     ->whereIn('inv_ciclos_puntos.idPunto', $idsAgenda);
-
         $queryBuilder = Emplazamiento::select('ubicaciones_n2.*')
             ->distinct()
             ->join('inv_ciclos_puntos', 'ubicaciones_n2.idAgenda', 'inv_ciclos_puntos.idPunto')
