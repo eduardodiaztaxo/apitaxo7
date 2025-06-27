@@ -21,17 +21,17 @@ class EmplazamientoResource extends JsonResource
     public function toArray($request)
     {
 
-      $activosCollection = $this->activos()
-        ->select(
-            'crud_activos.etiqueta',
-            'crud_activos.categoriaN3',
-            'crud_activos.id_familia',
-            'crud_activos.id_grupo',
-            'crud_activos.nombreActivo',
-            'crud_activos.idIndice',
-            DB::raw("COALESCE(CONCAT(crud_activos_pictures.url_picture, '/', crud_activos_pictures.picture), 'https://api.taxochile.cl/img/notavailable.jpg') AS foto4")
-        )
-        ->leftJoin(DB::raw('(
+        $activosCollection = $this->activos()
+            ->select(
+                'crud_activos.etiqueta',
+                'crud_activos.categoriaN3',
+                'crud_activos.id_familia',
+                'crud_activos.id_grupo',
+                'crud_activos.nombreActivo',
+                'crud_activos.idIndice',
+                DB::raw("COALESCE(CONCAT(crud_activos_pictures.url_picture, '/', crud_activos_pictures.picture), 'https://api.taxochile.cl/img/notavailable.jpg') AS foto4")
+            )
+            ->leftJoin(DB::raw('(
             SELECT id_foto, id_activo, url_picture, picture
             FROM crud_activos_pictures
             WHERE (id_foto, id_activo) IN (
@@ -40,9 +40,9 @@ class EmplazamientoResource extends JsonResource
                 GROUP BY id_activo
             )
         ) as crud_activos_pictures'), 'crud_activos_pictures.id_activo', '=', 'crud_activos.idActivo')
-        ->get();
+            ->get();
 
-            $activosInventario = DB::table('inv_inventario')
+        $activosInventario = DB::table('inv_inventario')
             ->leftJoin('categoria_n3', 'inv_inventario.id_familia', '=', 'categoria_n3.id_familia')
             ->leftJoin('dp_familias', 'inv_inventario.id_familia', '=', 'dp_familias.id_familia')
             ->leftJoin('inv_imagenes', 'inv_inventario.id_img', '=', 'inv_imagenes.id_img')
@@ -103,20 +103,20 @@ class EmplazamientoResource extends JsonResource
                 }
             }
 
-      return (object)[
+            return (object)[
                 'id_ciclo' => $this->cycle_id,
                 'id_inventario' => $activo->id_inventario,
                 'etiqueta' => $activo->etiqueta,
                 'categoriaN3' => $activo->codigoCategoria,
                 'id_familia' => $activo->id_familia,
                 'id_grupo' => $activo->id_grupo,
-                'nombreActivo' => $activo->descripcion_bien, 
+                'nombreActivo' => $activo->descripcion_bien,
                 'modelo' => $activo->modelo ?? '',
                 'serie' => $activo->serie ?? '',
                 'marca' => $activo->descripcion_marca ?? null,
                 'ubicacionOrganicaN2' => $activo->idUbicacionN2,
-                'categoria' => null, 
-                'familia' => null,   
+                'categoria' => null,
+                'familia' => null,
                 'descripcionCategoria' => $activo->descripcionCategoria,
                 'descripcionFamilia' => $activo->descripcion_familia,
                 'fotoUrl' => $firstImageUrl,
@@ -163,7 +163,7 @@ class EmplazamientoResource extends JsonResource
                 // Verificar si está vacío
                 if ($activosByCycle->isEmpty()) {
 
-                       $idsGrupos = DB::select("
+                    $idsGrupos = DB::select("
                 SELECT 
                     dp_grupos.descripcion_grupo,
                     dp_familias.descripcion_familia,
@@ -180,7 +180,7 @@ class EmplazamientoResource extends JsonResource
                 ORDER BY dp_grupos.descripcion_grupo, dp_familias.descripcion_familia
             ", [$this->cycle_id]);
 
-            $ids = collect($idsGrupos)->pluck('id_grupo')->unique()->values()->toArray();
+                    $ids = collect($idsGrupos)->pluck('id_grupo')->unique()->values()->toArray();
 
                     $activosInventarioFiltrados = $activosInventario->whereIn('id_grupo', $ids);
 
