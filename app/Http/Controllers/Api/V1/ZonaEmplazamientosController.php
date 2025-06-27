@@ -105,11 +105,7 @@ class ZonaEmplazamientosController extends Controller
     public function showAllEmplaByCycleCats(Request $request, int $ciclo)
     {
 
-        
-
         $cicloObj = InvCiclo::find($ciclo);
-
-        dd($cicloObj->emplazamientos_with_cats_inv($ciclo)->toSql());
 
         if (!$cicloObj) {
             return response()->json(['status' => 'NOK', 'message' => 'Ciclo no encontrado', 'code' => 404], 404);
@@ -117,17 +113,14 @@ class ZonaEmplazamientosController extends Controller
 
         $emplazamientos = $cicloObj->emplazamientos_with_cats()->get();
 
-        
-            if ($emplazamientos->isEmpty()) {
+        if ($emplazamientos->isEmpty()) {
                 $emplazamientos = $cicloObj->emplazamientos_with_cats_inv($ciclo)->get();
 
             }
 
-
         foreach ($emplazamientos as $emplazamiento) {
             $emplazamiento->cycle_id = $ciclo;
         }
-
 
         return response()->json(EmplazamientoResource::collection($emplazamientos), 200);
     }
