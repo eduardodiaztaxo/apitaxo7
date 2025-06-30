@@ -38,13 +38,9 @@ class DatosActivosController extends Controller
         return response()->json($collection, 200);
     }
 
-    public function estadosBienes()
-    {
-        $collection = IndiceLista13::all();
-        return response()->json($collection, 200);
-    }
 
-     public function estadosInventario()
+
+     public function estados()
     {
         $collection = IndiceListaEstado::all();
         return response()->json($collection, 200);

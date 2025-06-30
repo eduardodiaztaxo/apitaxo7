@@ -38,7 +38,7 @@ class EstadoDumpService implements DumpSQLiteInterface
 
         $datsdActivosCtrl = new DatosActivosController();
 
-       $response = $datsdActivosCtrl->estadosInventario();
+       $response = $datsdActivosCtrl->estados();
 
         $jsonContent = $response->getContent();
 

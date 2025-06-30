@@ -145,6 +145,8 @@ class ExportAuditCycleSQLiteDatabase extends Command
         $this->setCyclesCategoriasByCycle();
         $this->setConteoRegistroByCycle();
         // $this->setSubZonesByCycle();
+        $this->setAssetsByCycle();
+
         
         if ($tipoCiclo == 1) {
         $this->setBienesInventario();
@@ -164,8 +166,6 @@ class ExportAuditCycleSQLiteDatabase extends Command
         $this->setOperacional();
         $this->setTipoTrabajo();
         $this->setEstado();
-        }else{
-            $this->setAssetsByCycle();
         }
         // $this->setCyclesPuntosByCycle();
 
