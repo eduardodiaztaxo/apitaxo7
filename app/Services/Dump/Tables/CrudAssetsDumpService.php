@@ -128,6 +128,7 @@ class CrudAssetsDumpService implements DumpSQLiteInterface
                 ubicacionOrganicaN2 TEXT,
                 latitud TEXT,
                 longitud TEXT,
+                descripcionTipo TEXT NOT NULL,
                 status_scan_id INTEGER,
                 status_scan_name TEXT,
                 status_scan_extra_class TEXT
@@ -191,6 +192,7 @@ class CrudAssetsDumpService implements DumpSQLiteInterface
                 ubicacionOrganicaN2,
                 latitud,
                 longitud,
+                descripcionTipo,
                 status_scan_id,
                 status_scan_name,
                 status_scan_extra_class
@@ -240,6 +242,7 @@ class CrudAssetsDumpService implements DumpSQLiteInterface
                 :ubicacionOrganicaN2,
                 :latitud,
                 :longitud,
+                :descripcionTipo,
                 :status_scan_id,
                 :status_scan_name,
                 :status_scan_extra_class
@@ -298,6 +301,7 @@ class CrudAssetsDumpService implements DumpSQLiteInterface
                 ':ubicacionOrganicaN2' => $asset->ubicacionOrganicaN2,
                 ':latitud' => $asset->latitud,
                 ':longitud' => $asset->longitud,
+                ':descripcionTipo' => $asset->descripcionTipo,
                 ':status_scan_id' => isset($asset->status_scan_id) ? $asset->status_scan_id : 0,
                 ':status_scan_name' => isset($asset->status_scan_name) ? $asset->status_scan_name : '',
                 ':status_scan_extra_class' => isset($asset->status_scan_extra_class) ? $asset->status_scan_extra_class : ''
