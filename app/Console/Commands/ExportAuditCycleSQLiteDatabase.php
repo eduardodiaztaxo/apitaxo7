@@ -32,6 +32,7 @@ use App\Services\Dump\Tables\MaterialDumpService;
 use App\Services\Dump\Tables\OperacionalDumpService;
 use App\Services\Dump\Tables\TipoTrabajoDumpService;
 use App\Services\Dump\Tables\EstadoDumpService;
+use App\Services\Dump\Tables\ResponsableDumpService;
 
 use Illuminate\Console\Command;
 
@@ -145,6 +146,13 @@ class ExportAuditCycleSQLiteDatabase extends Command
         $this->setCyclesCategoriasByCycle();
         $this->setConteoRegistroByCycle();
         // $this->setSubZonesByCycle();
+        $this->setAssetsByCycle();
+        $this->setResponsable();
+        $this->setInventario();
+        $this->setMarca();
+        $this->setEstado();
+        $this->setGrupo();
+        $this->setFamilia();
         
         if ($tipoCiclo == 1) {
         $this->setBienesInventario();
@@ -157,15 +165,10 @@ class ExportAuditCycleSQLiteDatabase extends Command
         $this->setFamilia();
         $this->setForma();
         $this->setGrupo();
-        $this->setInventario();
-        $this->setMarca();
         $this->setMarcaInv();
         $this->setMaterial();
         $this->setOperacional();
         $this->setTipoTrabajo();
-        $this->setEstado();
-        }else{
-            $this->setAssetsByCycle();
         }
         // $this->setCyclesPuntosByCycle();
 
@@ -428,6 +431,17 @@ class ExportAuditCycleSQLiteDatabase extends Command
         ))->runFromController();
 
         $this->info('Estados insertadas en SQLite DB.');
+    }
+
+        private function setResponsable()
+    {
+
+        (new ResponsableDumpService(
+            $this->pdo
+        ))->runFromController();
+
+
+        $this->info('Responsables inserted in SQLite DB.');
     }
     
     // private function setCyclesPuntosByCycle()

@@ -2,12 +2,12 @@
 
 namespace App\Services\Dump\Tables;
 
-use App\Http\Controllers\Api\V1\Comunes\DatosActivosController;
+use App\Http\Controllers\Api\V1\InventariosOfflineController;
 use App\Services\Dump\Tables\DumpSQLiteInterface;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use PDO;
 
-class EstadoDumpService implements DumpSQLiteInterface
+class ResponsableDumpService implements DumpSQLiteInterface
 {
 
 
@@ -36,20 +36,15 @@ class EstadoDumpService implements DumpSQLiteInterface
         $request = new \Illuminate\Http\Request();
         $request->setMethod('GET');
 
-        $datsdActivosCtrl = new DatosActivosController();
+        $datsdActivosCtrl = new InventariosOfflineController();
 
-       $response = $datsdActivosCtrl->estados();
+       $response = $datsdActivosCtrl->responsables();
 
         $jsonContent = $response->getContent();
 
-        $data = json_decode($jsonContent);
+        $data = json_decode($jsonContent, true);
+        $this->insert($data['data']); 
 
-        if (isset($data->status) && $data->status !== 'OK') {
-            return;
-        }
-
-
-        $this->insert($data);
     }
 
 
@@ -62,9 +57,10 @@ class EstadoDumpService implements DumpSQLiteInterface
      */
     public function createTable(): void
     {
+
         $this->pdo->exec("
-            CREATE TABLE IF NOT EXISTS estado (
-                idLista INTEGER PRIMARY KEY,
+            CREATE TABLE IF NOT EXISTS responsable (
+                idResponsable INTEGER PRIMARY KEY,
                 descripcion TEXT NOT NULL
             );
         ");
@@ -75,26 +71,26 @@ class EstadoDumpService implements DumpSQLiteInterface
      * @param \Illuminate\Http\Resources\Json\AnonymousResourceCollection $cycles Array of cycle objects to insert.
      * @return void
      */
-    public function insert(array|AnonymousResourceCollection $estado): void
+    public function insert(array|AnonymousResourceCollection $resp): void
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            REPLACE INTO estado (
-                idLista,
+            REPLACE INTO responsable (
+                idResponsable,
                 descripcion
             )
             VALUES (
-               :idLista,
+               :idResponsable,
                :descripcion
                
             )
         ");
 
-        foreach ($estado as $est) {
-
+       
+        foreach ($resp as $res) {
             $stmt->execute([
-                ':idLista' => $est->idLista,
-                ':descripcion' => $est->descripcion
+                ':idResponsable' => $res['idResponsable'],  
+                ':descripcion' => $res['descripcion']    
             ]);
         }
     }

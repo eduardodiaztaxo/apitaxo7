@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Inv_imagenes;
 use App\Models\Familia;
+use App\Models\Responsable;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Intervention\Image\Facades\Image;
@@ -27,6 +28,13 @@ public function inventarioPorCicloOfflineInventario($ciclo){
                     
         return response()->json($collection, 200);
 }
+
+ public function responsables()
+{
+    $collection = Responsable::paginate(100); 
+    return response()->json($collection, 200);
+}
+
     
 public function familia(int $ciclo, array $codigo_grupos)
 {

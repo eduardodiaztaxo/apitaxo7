@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api\V1;
+
 use Illuminate\Http\Request;
 use App\Models\Inventario;
 use App\Models\User;
@@ -17,69 +18,69 @@ class InventariosController extends Controller
 {
     private $imageService;
 
-    public function __construct( ImageService $imageService)
+    public function __construct(ImageService $imageService)
     {
         $this->imageService  = $imageService;
-    } 
+    }
     public function getNombre()
     {
         $user = Auth::user();
         $usuario = $user->name;
         $responsable = DB::table('sec_users')->where('login', $usuario)->value('name');
         return $responsable;
-
     }
-    public function createinventario(Request $request){
+    public function createinventario(Request $request)
+    {
         $request->validate([
             'id_grupo'              => 'required|string',
             'id_familia'            => 'required|string',
-            'etiqueta'              => 'required|string', 
+            'etiqueta'              => 'required|string',
             'id_ciclo'              => 'required|exists:inv_ciclos,idCiclo',
             'codigoUbicacion'       => 'required',
         ]);
-    
+
         $etiquetaInventario = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta)->value('etiqueta');
         $etiquetaUnicaCrudActivo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta)->value('etiqueta');
-    
+
         if ($etiquetaInventario || $etiquetaUnicaCrudActivo) {
             return response('La etiqueta ya existe', 400);
         }
 
-        if($request->idUbicacionN2 > 0 && $request->codigoUbicacion_N1 > 0){
+        if ($request->idUbicacionN2 > 0 && $request->codigoUbicacion_N1 > 0) {
             $codigoUbicacion_N1 = $request->codigoUbicacion_N1;
             $idUbicacionN2 = $request->idUbicacionN2;
-        }else{
+        } else {
             $codigoUbicacion_N1 = null;
             if (!empty($request->codigoUbicacion)) {
                 $codigoUbicacion_N1 = substr(strval($request->codigoUbicacion), 0, 2);
             }
             $idUbicacionN2 = DB::table('ubicaciones_n2')
-            ->where('codigoUbicacion', $request->codigoUbicacion)
-             ->value('idUbicacionN2');
+                ->where('codigoUbicacion', $request->codigoUbicacion)
+                ->value('idUbicacionN2');
         }
-           
+
         if ($request->cloneFichaDetalle == "true") {
             $imagenes = DB::table('inv_imagenes')
-                ->where('id_img', $request->id_img_clone) 
+                ->where('id_img', $request->id_img_clone)
                 ->get();
-        
-        $url_img = DB::table('inv_imagenes')->max('id_img') + 1;
 
-        foreach ($imagenes as $img) {
-            DB::table('inv_imagenes')->insert([
-                'id_img'     => $url_img,
-                'etiqueta'   => $request->etiqueta,
-                'url_imagen' => $img->url_imagen,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
-        }else{
+            $url_img = DB::table('inv_imagenes')->max('id_img') + 1;
+
+            foreach ($imagenes as $img) {
+                DB::table('inv_imagenes')->insert([
+                    'id_img'     => $url_img,
+                    'etiqueta'   => $request->etiqueta,
+                    'url_imagen' => $img->url_imagen,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        } else {
 
             $id_img = DB::table('inv_imagenes')
-            ->where('etiqueta', $request->etiqueta)
-            ->orderBy('id_img', 'desc')
-            ->value('id_img');
+                ->where('etiqueta', $request->etiqueta)
+                ->orderBy('id_img', 'desc')
+                ->value('id_img');
             $url_img = $id_img ?? null;
         }
 
@@ -104,19 +105,20 @@ class InventariosController extends Controller
         $inventario->estado_conservacion = intval($request->estado_conservacion ?? null);
         $inventario->condicion_ambiental = intval($request->condicion_ambiental ?? null);
         $inventario->cantidad_img        = $request->cantidad_img;
-        $inventario->id_img              = $url_img;  
+        $inventario->id_img              = $url_img;
         $inventario->id_ciclo            = $request->id_ciclo;
-        $inventario->codigoUbicacion     = $idUbicacionN2;
+        $inventario->idUbicacionN2     = $idUbicacionN2;
         $inventario->codigoUbicacion_N1  = $codigoUbicacion_N1;
         $inventario->responsable         = $this->getNombre();
         $inventario->save();
-    
+
         return response()->json($inventario, 201);
     }
-    
 
-   public function configuracion($id_grupo) {
-    $sql = "SELECT 
+
+    public function configuracion($id_grupo)
+    {
+        $sql = "SELECT 
                 COALESCE(MAX(CASE WHEN id_atributo = 2 THEN id_validacion END), 0) AS conf_marca,
                 COALESCE(MAX(CASE WHEN id_atributo = 3 THEN id_validacion END), 0) AS conf_modelo,
                 COALESCE(MAX(CASE WHEN id_atributo = 3 THEN id_tipo_dato END), 0) AS tipo_dato_mod,
@@ -147,54 +149,55 @@ class InventariosController extends Controller
             FROM inv_atributos 
             WHERE id_grupo = ?";
 
-    $validacion = DB::select($sql, [$id_grupo]);
+        $validacion = DB::select($sql, [$id_grupo]);
 
-    return response()->json($validacion, 200);
-}
-
-
-   
-    public function ImageByEtiqueta(Request $request, $etiqueta) {
-    $request->validate([
-        'imagenes.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
-    ]);
-
-    $userFolder = "customers/" . $request->user()->nombre_cliente . "/images/inventario/" . $etiqueta . "/" . now()->format('Y-m-d');
-
-    if (!Storage::exists($userFolder)) {
-        Storage::makeDirectory($userFolder);
+        return response()->json($validacion, 200);
     }
 
-    $paths = [];
-    $id_img = DB::table('inv_imagenes')->max('id_img') + 1;
-    foreach ($request->file('imagenes') as $file) {
-        $imageName = $etiqueta . '_' . uniqid();
-        $path = $this->imageService->optimizeImageinv($file, $userFolder, $imageName);
 
-        $fullUrl = asset('storage/' . $path);
 
-        $img = new Inv_imagenes();
-        $img->etiqueta = $etiqueta;
-        $img->id_img = $id_img;
-        $img->url_imagen = $fullUrl;
-        $img->save();
+    public function ImageByEtiqueta(Request $request, $etiqueta)
+    {
+        $request->validate([
+            'imagenes.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
+        ]);
 
-        $paths[] = [
-            'path' => $path,
-            'url'  => $fullUrl,
-        ];
+        $userFolder = "customers/" . $request->user()->nombre_cliente . "/images/inventario/" . $etiqueta . "/" . now()->format('Y-m-d');
+
+        if (!Storage::exists($userFolder)) {
+            Storage::makeDirectory($userFolder);
+        }
+
+        $paths = [];
+        $id_img = DB::table('inv_imagenes')->max('id_img') + 1;
+        foreach ($request->file('imagenes') as $file) {
+            $imageName = $etiqueta . '_' . uniqid();
+            $path = $this->imageService->optimizeImageinv($file, $userFolder, $imageName);
+
+            $fullUrl = asset('storage/' . $path);
+
+            $img = new Inv_imagenes();
+            $img->etiqueta = $etiqueta;
+            $img->id_img = $id_img;
+            $img->url_imagen = $fullUrl;
+            $img->save();
+
+            $paths[] = [
+                'path' => $path,
+                'url'  => $fullUrl,
+            ];
+        }
+
+        return response()->json([
+            'status'    => 'OK',
+            'paths'     => $paths,
+            'folderUrl' => asset('storage/' . $userFolder),
+            'id_img'    => $id_img
+        ], 201);
     }
-
-    return response()->json([
-        'status'    => 'OK',
-        'paths'     => $paths,
-        'folderUrl' => asset('storage/' . $userFolder),
-        'id_img'    => $id_img
-    ], 201);
-}
-public function showData($id_inventario, $id_ciclo)
-{
-    $sql = "
+    public function showData($id_inventario, $id_ciclo)
+    {
+        $sql = "
         SELECT 
             inv.*, 
             grupos.descripcion_grupo, 
@@ -206,10 +209,8 @@ public function showData($id_inventario, $id_ciclo)
           AND inv.id_ciclo = ?
     ";
 
-    $data = DB::select($sql, [$id_inventario, $id_ciclo]);
+        $data = DB::select($sql, [$id_inventario, $id_ciclo]);
 
-    return response()->json($data, 200);
+        return response()->json($data, 200);
+    }
 }
-
-
-}    

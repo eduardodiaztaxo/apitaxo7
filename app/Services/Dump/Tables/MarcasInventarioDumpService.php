@@ -26,7 +26,7 @@ class MarcasInventarioDumpService
     {
         $this->pdo->exec("
             CREATE TABLE IF NOT EXISTS marcasInventario (
-                idLista INTEGER PRIMARY KEY,
+                idLista INTEGER PRIMARY KEY AUTOINCREMENT,
                 idIndice INTEGER NOT NULL,
                 descripcion TEXT NOT NULL,
                 observacion TEXT NOT NULL,
