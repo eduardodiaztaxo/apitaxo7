@@ -100,7 +100,7 @@ public function runFromController(): void
     public function insert(array|AnonymousResourceCollection $subzones): void
     {
         $stmt = $this->pdo->prepare("
-             REPLACE INTO subzonas (
+            INSERT INTO subzonas (
                 idUbicacionN2,
                 idProyecto,
                 idAgenda,

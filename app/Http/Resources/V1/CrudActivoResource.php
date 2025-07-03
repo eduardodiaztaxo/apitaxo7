@@ -54,6 +54,8 @@ class CrudActivoResource extends JsonResource
 
         $activo['descripcionFamilia'] = $this->familia ? $this->familia->descripcion_familia : '';
 
+        $activo['id_familia'] = $this->id_familia ? $this->id_familia : '';
+
         $activo['descripcionGrupo'] = $grupoDescripcion;
 
         $activo['responsable'] = $this->responsable ? $this->responsable->name : null;

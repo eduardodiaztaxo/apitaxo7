@@ -95,7 +95,7 @@ class InventarioDumpService
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-             REPLACE INTO inventario (
+            INSERT INTO inventario (
                 id_inventario,
                 id_grupo,
                 id_familia,

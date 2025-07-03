@@ -116,6 +116,7 @@ class InventariosResource extends JsonResource
             'estadoBien'           => $estadoBien,
             'descripcionGrupo'    => $descGrupo->descripcion_grupo ?? 'Sin Registros',
             'descripcionFamilia'  => $descFamilia->descripcion_familia ?? 'Sin Registros',
+            'id_familia'           => $activo->id_familia,
             'etiqueta'             => $activo->etiqueta,
             'responsable'          => $activo->responsable ?? 'Sin Registros',
             'imagenes'             => $imagenes ?? [],

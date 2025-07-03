@@ -79,7 +79,7 @@ class CargaTrabajoDumpService implements DumpSQLiteInterface
     public function insert(array|AnonymousResourceCollection $carga): void
     {
         $stmt = $this->pdo->prepare("
-            REPLACE INTO cargaTrabajo (
+           INSERT INTO cargaTrabajo (
                 idLista,
                 descripcion
             )

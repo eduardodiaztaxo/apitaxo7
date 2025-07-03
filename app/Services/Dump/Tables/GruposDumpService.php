@@ -89,7 +89,7 @@ class GruposDumpService implements DumpSQLiteInterface
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            REPLACE INTO grupos (
+            INSERT OR IGNORE INTO grupos (
                 id_grupo,
                 codigo_grupo,
                 descripcion_grupo

@@ -81,7 +81,7 @@ class OperacionalDumpService implements DumpSQLiteInterface
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            REPLACE INTO operacional (
+            INSERT INTO operacional (
                 idLista,
                 descripcion
             )
