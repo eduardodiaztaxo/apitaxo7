@@ -62,7 +62,8 @@ class EmailVerificationNotificationController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Token inválido o expirado',
-                'data' => $data
+                'data' => $data,
+                'time' => time()
             ], 401);
         }
 
