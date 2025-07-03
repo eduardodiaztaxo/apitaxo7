@@ -107,7 +107,7 @@ class InventariosController extends Controller
         $inventario->cantidad_img        = $request->cantidad_img;
         $inventario->id_img              = $url_img;
         $inventario->id_ciclo            = $request->id_ciclo;
-        $inventario->codigoUbicacion     = $idUbicacionN2;
+        $inventario->idUbicacionN2     = $idUbicacionN2;
         $inventario->codigoUbicacion_N1  = $codigoUbicacion_N1;
         $inventario->responsable         = $this->getNombre();
         $inventario->save();
