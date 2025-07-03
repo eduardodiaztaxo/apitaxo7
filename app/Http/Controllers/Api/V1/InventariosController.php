@@ -8,11 +8,13 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Inv_imagenes;
 use App\Http\Controllers\Controller;
+use App\Models\CrudActivo;
 use Illuminate\Support\Facades\DB;
 use Intervention\Image\Facades\Image;
 use App\Services\ImageService;
+use DateTime;
 use Illuminate\Support\Facades\Storage;
-
+use Illuminate\Support\Facades\Validator;
 
 class InventariosController extends Controller
 {
@@ -212,5 +214,131 @@ class InventariosController extends Controller
         $data = DB::select($sql, [$id_inventario, $id_ciclo]);
 
         return response()->json($data, 200);
+    }
+
+
+
+    /**
+     * Store newly created resources in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function storeInventoryMultiple(Request $request)
+    {
+
+        $request->validate([
+            'items'   => 'required|json',
+            'zipfile' => 'required|file|mimes:zip'
+        ]);
+
+
+        $items = json_decode($request->items);
+
+        $assets = [];
+        $errors = [];
+
+        foreach ($items as $key => $item) {
+
+            if (isset($item->adicionales)) {
+                $item->adicionales = json_encode($item->adicionales);
+            }
+
+            $validator = Validator::make((array)$item, $this->rules());
+
+            if ($validator->fails()) {
+
+                $errors[] = ['index' => $key, 'errors' => $validator->errors()->get("*")];
+            } else if (empty($errors)) {
+
+
+                $activo = [
+
+                    'id_grupo' => $item->id_grupo,
+                    'id_familia' => $item->id_familia,
+                    'descripcion_bien' => $item->descripcion_bien,
+                    'descripcion_marca' => $item->descripcion_marca,
+                    'idForma' => $item->idForma,
+                    'idMaterial' => $item->idMaterial,
+                    'etiqueta' => $item->etiqueta,
+                    'modelo' => $item->modelo,
+                    'serie' => $item->serie,
+                    'capacidad' => $item->capacidad,
+                    'estado' => $item->estado,
+                    'color' => $item->color,
+                    'tipo_trabajo' => $item->tipo_trabajo,
+                    'carga_trabajo' => $item->carga_trabajo,
+                    'estado_operacional' => $item->estado_operacional,
+                    'estado_conservacion' => $item->estado_conservacion,
+                    'condicion_Ambiental' => $item->condicion_Ambiental,
+                    'cantidad_img' => $item->cantidad_img,
+                    'id_img' => $item->id_img,
+                    'id_ciclo' => $item->id_ciclo,
+                    'idUbicacionN2' => $item->idUbicacionN2,
+                    'codigoUbicacion_N1' => $item->codigoUbicacion_N1,
+                    'responsable' => $item->responsable,
+                    'latitud' => $item->latitud,
+                    'longitud' => $item->longitud
+
+                ];
+
+                $assets[] = $activo;
+            }
+        }
+
+        if (!empty($errors)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'There are some items with errors, fix them and try again',
+                'errors' => $errors
+            ], 422);
+        } else {
+
+            $failed = [];
+            $saved = [];
+
+            foreach ($assets as $activo) {
+
+
+
+                $existsInv = Inventario::where('etiqueta', '=', $activo['etiqueta'])->first();
+                $existsCrud = CrudActivo::where('etiqueta', '=', $activo['etiqueta'])->first();
+                if (!$existsInv && !$existsCrud) {
+                    $asset = Inventario::create($activo);
+                    $saved[] = $asset->etiqueta;
+                } else {
+                    $failed[] = $activo['etiqueta'];
+                }
+            }
+
+            //$assets = RespActivo::insert($assets);
+
+            return response()->json([
+                'status' => 'OK',
+                'message' => 'items created sucssessfuly',
+                'data' => [
+                    'fails' => count($failed),
+                    'saved' => count($saved),
+                    'failed_tags' => $failed
+                ]
+            ]);
+        }
+    }
+
+
+
+
+
+
+    protected function rules()
+    {
+
+        return [
+            'id_grupo'              => 'required|string',
+            'id_familia'            => 'required|string',
+            'etiqueta'              => 'required|string',
+            'id_ciclo'              => 'required|exists:inv_ciclos,idCiclo',
+            'codigoUbicacion'       => 'required',
+        ];
     }
 }
