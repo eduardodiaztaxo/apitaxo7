@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Inv_imagenes;
 use App\Http\Controllers\Controller;
 use App\Models\CrudActivo;
+use App\Models\InvCiclo;
 use Illuminate\Support\Facades\DB;
 use Intervention\Image\Facades\Image;
 use App\Services\ImageService;
@@ -217,6 +218,27 @@ class InventariosController extends Controller
     }
 
 
+    public function getFromServerToLocalDevice(int $ciclo, Request $request)
+    {
+        $request->merge(['ciclo_id'         => $ciclo]);
+
+
+
+        $request->validate([
+            'ciclo_id'          => 'required|integer|exists:inv_ciclos,idCiclo',
+        ]);
+
+
+
+
+        $data = DB::select("SELECT *, 0 AS `offline` FROM inv_inventario WHERE ciclo_id = ? ", [
+            $ciclo
+        ]);
+
+        return response()->json(['status' => 'OK', 'data' => $data]);
+    }
+
+
 
     /**
      * Store newly created resources in storage.
@@ -224,31 +246,45 @@ class InventariosController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function storeInventoryMultiple(Request $request)
+    public function storeInventoryMultiple(int $ciclo, Request $request)
     {
 
+        //validate zip file and items as json
         $request->validate([
             'items'   => 'required|json',
             'zipfile' => 'required|file|mimes:zip'
         ]);
 
 
-        $items = json_decode($request->items);
+        $cycleObj = InvCiclo::find($ciclo);
 
+        if (!$cycleObj) {
+            return response()->json([
+                'status' => 'error',
+                'code' => 404,
+                'message' => 'No existe ciclo'
+            ], 404);
+        }
+
+
+        //items to inventory
         $assets = [];
+
+        //items with errors
         $errors = [];
+
+        $images = [];
+
+        $items = json_decode($request->items);
 
         foreach ($items as $key => $item) {
 
-            if (isset($item->adicionales)) {
-                $item->adicionales = json_encode($item->adicionales);
-            }
 
             $validator = Validator::make((array)$item, $this->rules());
 
             if ($validator->fails()) {
 
-                $errors[] = ['index' => $key, 'errors' => $validator->errors()->get("*")];
+                $errors[] = ['index' => $key, 'etiqueta' => $item->etiqueta, 'errors' => $validator->errors()->get("*")];
             } else if (empty($errors)) {
 
 
@@ -273,7 +309,7 @@ class InventariosController extends Controller
                     'condicion_Ambiental' => $item->condicion_Ambiental,
                     'cantidad_img' => $item->cantidad_img,
                     'id_img' => $item->id_img,
-                    'id_ciclo' => $item->id_ciclo,
+                    'id_ciclo' => $ciclo,
                     'idUbicacionN2' => $item->idUbicacionN2,
                     'codigoUbicacion_N1' => $item->codigoUbicacion_N1,
                     'responsable' => $item->responsable,
@@ -283,6 +319,11 @@ class InventariosController extends Controller
                 ];
 
                 $assets[] = $activo;
+
+                $images[] = [
+                    'etiqueta' => $item->etiqueta,
+                    'images' => $item->images
+                ];
             }
         }
 
@@ -292,37 +333,142 @@ class InventariosController extends Controller
                 'message' => 'There are some items with errors, fix them and try again',
                 'errors' => $errors
             ], 422);
-        } else {
-
-            $failed = [];
-            $saved = [];
-
-            foreach ($assets as $activo) {
+        }
 
 
 
-                $existsInv = Inventario::where('etiqueta', '=', $activo['etiqueta'])->first();
-                $existsCrud = CrudActivo::where('etiqueta', '=', $activo['etiqueta'])->first();
-                if (!$existsInv && !$existsCrud) {
-                    $asset = Inventario::create($activo);
-                    $saved[] = $asset->etiqueta;
-                } else {
-                    $failed[] = $activo['etiqueta'];
+
+
+
+        $userFolder = "customers/" . $request->user()->nombre_cliente . "/images/inventario/temp/";
+
+
+        $zip = new \ZipArchive;
+
+        $open = $zip->open($request->file('zipfile')->getRealPath()) === TRUE;
+
+
+        if ($open !== TRUE) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unable to open zip file'
+            ], 400);
+        }
+
+
+
+        $extractPath = $userFolder . 'zip_' . time();
+
+
+        if (!Storage::exists($extractPath)) {
+            Storage::makeDirectory($extractPath);
+        }
+
+        $zip->extractTo($extractPath);
+        $zip->close();
+
+        // Obtener todos los paths de los archivos extraídos
+        $files = [];
+        $rii = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($extractPath));
+
+
+        $customkey = 0;
+
+        foreach ($rii as $file) {
+
+            if ($file->isFile()) {
+
+
+                $uploadedFile = new \Illuminate\Http\UploadedFile(
+                    $file->getPathname(),
+                    $file->getFilename(),
+                    mime_content_type($file->getPathname()),
+                    null,
+                    true
+                );
+
+
+                $files[$customkey] = [
+                    'file' => $uploadedFile,
+                    'filename' => $file->getFilename(),
+                    'etiquetas' =>  []
+                ];
+
+                foreach ($images as $key => $img) {
+                    foreach ($img['images'] as $path) {
+                        $filename = basename($path);
+                        if ($filename == $file->getFilename()) {
+                            $files[$customkey]['etiquetas'][] = $img['etiqueta'];
+                        }
+                    }
+                }
+
+                $customkey++;
+            }
+        }
+
+
+
+        $failed = [];
+        $saved = [];
+
+        foreach ($assets as $activo) {
+
+
+
+            $existsInv = Inventario::where('etiqueta', '=', $activo['etiqueta'])->first();
+            $existsCrud = CrudActivo::where('etiqueta', '=', $activo['etiqueta'])->first();
+            if (!$existsInv && !$existsCrud) {
+                $asset = Inventario::create($activo);
+                $saved[] = $asset->etiqueta;
+            } else {
+                $failed[] = $activo['etiqueta'];
+            }
+        }
+
+
+
+        $paths = [];
+
+
+        foreach ($files as $file) {
+
+            if (count($file['etiquetas']) > 0) {
+
+
+
+                $userFolder = "customers/" . $request->user()->nombre_cliente . "/images/inventario/" . $file['etiquetas'][0] . "/" . now()->format('Y-m-d');
+
+                $path = $this->imageService->optimizeImageinv($file['file'], $userFolder, $file['filename']);
+
+                $paths[] = $path;
+
+                $fullUrl = asset('storage/' . $path);
+
+                foreach ($file['etiquetas'] as $etiqueta) {
+                    $id_img = DB::table('inv_imagenes')->max('id_img') + 1;
+                    $img = new Inv_imagenes();
+                    $img->etiqueta = $etiqueta;
+                    $img->id_img = $id_img;
+                    $img->url_imagen = $fullUrl;
+                    $img->save();
                 }
             }
-
-            //$assets = RespActivo::insert($assets);
-
-            return response()->json([
-                'status' => 'OK',
-                'message' => 'items created sucssessfuly',
-                'data' => [
-                    'fails' => count($failed),
-                    'saved' => count($saved),
-                    'failed_tags' => $failed
-                ]
-            ]);
         }
+
+        //delete temp directory
+        Storage::deleteDirectory($extractPath);
+
+        return response()->json([
+            'status' => 'OK',
+            'message' => 'items created sucssessfuly',
+            'data' => [
+                'fails' => count($failed),
+                'saved' => count($saved),
+                'found_files' => count($paths),
+                'failed_tags' => $failed
+            ]
+        ]);
     }
 
 

@@ -134,7 +134,11 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::put('inventario/image/{etiqueta}', [InventariosController::class, 'ImageByEtiqueta']);
 
+    Route::put('inventario/{ciclo}/procesar-varios', [InventariosController::class, 'storeInventoryMultiple']);
+
     Route::get('inventarioData/{in_inventario}/{id_ciclo}', [InventariosController::class, 'showData']);
+
+    Route::get('inventario/ciclos/{ciclo}/inventario-todo', [InventariosController::class, 'getFromServerToLocalDevice']);
 
     Route::get('localizacion/{etiqueta}', [CrudActivoController::class, 'localizacion']);
 
