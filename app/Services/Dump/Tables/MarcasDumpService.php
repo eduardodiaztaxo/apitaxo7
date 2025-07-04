@@ -48,10 +48,11 @@ class MarcasDumpService implements DumpSQLiteInterface
 
         $response = $datsdActivosCtrl->MarcasPorCicloOfflineInventario($this->cycle);
 
-        $jsonContent = $response->getContent();
-
+       $jsonContent = $response->getContent();
+       
         // Decodificar el JSON a un arreglo asociativo
         $data = json_decode($jsonContent);
+// dd(count($data));
 
         if (isset($data->status) && $data->status !== 'OK') {
             return;
@@ -60,7 +61,6 @@ class MarcasDumpService implements DumpSQLiteInterface
 
         $this->insert($data);
     }
-
 
     /**
      * Create table if it does not exist.
@@ -73,7 +73,7 @@ class MarcasDumpService implements DumpSQLiteInterface
     {
         $this->pdo->exec("
             CREATE TABLE IF NOT EXISTS marcas (
-                idLista INTEGER PRIMARY KEY,
+                idLista INTEGER DEFAULT 0,
                 idAtributo INTEGER DEFAULT 0,
                 idIndice INTEGER DEFAULT 0,
                 id_familia INTEGER DEFAULT 0,
@@ -88,27 +88,27 @@ class MarcasDumpService implements DumpSQLiteInterface
      * @param \Illuminate\Http\Resources\Json\AnonymousResourceCollection $cycles Array of cycle objects to insert.
      * @return void
      */
-    public function insert(array|AnonymousResourceCollection $marca): void
+  public function insert(array|AnonymousResourceCollection $marca): void
     {
-        // Insertar datos
-       $stmt = $this->pdo->prepare("
-            REPLACE INTO marcas (
-                idLista,
-                idAtributo,
-                idIndice,
-                id_familia,
-                descripcion,
-                ciclo_inventario
-            )
-            VALUES (
-                :idLista,
-                :idAtributo,
-                :idIndice,
-                :id_familia,
-                :descripcion,
-                :ciclo_inventario
-            )
-        ");
+        $stmt = $this->pdo->prepare("
+    INSERT INTO marcas (
+        idLista,
+        idAtributo,
+        idIndice,
+        id_familia,
+        descripcion,
+        ciclo_inventario
+    )
+    VALUES (
+        :idLista,
+        :idAtributo,
+        :idIndice,
+        :id_familia,
+        :descripcion,
+        :ciclo_inventario
+    )
+");
+
 
 
         foreach ($marca as $m) {

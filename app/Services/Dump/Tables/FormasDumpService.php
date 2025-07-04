@@ -79,7 +79,7 @@ class FormasDumpService implements DumpSQLiteInterface
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            REPLACE INTO formas (
+            INSERT INTO formas (
                 idLista,
                 forma
             )

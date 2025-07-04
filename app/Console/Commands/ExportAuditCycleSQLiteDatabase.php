@@ -148,7 +148,11 @@ class ExportAuditCycleSQLiteDatabase extends Command
         // $this->setSubZonesByCycle();
         $this->setAssetsByCycle();
         $this->setResponsable();
-
+        $this->setInventario();
+        $this->setMarca();
+        $this->setEstado();
+        $this->setGrupo();
+        $this->setFamilia();
         
         if ($tipoCiclo == 1) {
         $this->setBienesInventario();
@@ -161,13 +165,10 @@ class ExportAuditCycleSQLiteDatabase extends Command
         $this->setFamilia();
         $this->setForma();
         $this->setGrupo();
-        $this->setInventario();
-        $this->setMarca();
         $this->setMarcaInv();
         $this->setMaterial();
         $this->setOperacional();
         $this->setTipoTrabajo();
-        $this->setEstado();
         }
         // $this->setCyclesPuntosByCycle();
 

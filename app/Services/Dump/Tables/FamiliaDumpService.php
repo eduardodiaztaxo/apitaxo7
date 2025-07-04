@@ -91,8 +91,8 @@ class FamiliaDumpService implements DumpSQLiteInterface
     public function insert(array|AnonymousResourceCollection $familias): void
     {
         // Insertar datos
-        $stmt = $this->pdo->prepare("
-            REPLACE INTO familias (
+       $stmt = $this->pdo->prepare("
+            INSERT OR IGNORE INTO familias (
                 id_familia,
                 id_grupo,
                 codigo_familia,
@@ -103,7 +103,6 @@ class FamiliaDumpService implements DumpSQLiteInterface
                 :id_grupo,
                 :codigo_familia,
                 :descripcion_familia
-               
             )
         ");
 

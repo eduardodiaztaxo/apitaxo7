@@ -75,7 +75,7 @@ class ResponsableDumpService implements DumpSQLiteInterface
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            REPLACE INTO responsable (
+            INSERT INTO responsable (
                 idResponsable,
                 descripcion
             )

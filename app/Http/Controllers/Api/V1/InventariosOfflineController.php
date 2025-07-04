@@ -88,6 +88,7 @@ public function familia(int $ciclo, array $codigo_grupos)
 }
 
 
+
     public function MarcasPorCicloOfflineInventario($ciclo)
     {
         $marcas = DB::table('inv_marcas_nuevos')

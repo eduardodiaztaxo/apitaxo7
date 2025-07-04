@@ -30,46 +30,16 @@ class Inventario extends Model
 public function marcasDisponibles()
     {
 
-
-
-        // $queryBuilder = IndiceLista::select('indices_listas.*')
-        //     ->join('categoria_n3', function (JoinClause $join) {
-        //         $join->on('indices_listas.idIndice', '=', 'categoria_n3.idIndice');
-        //     })
-        //     ->join('crud_activos', 'categoria_n3.codigoCategoria', '=', 'crud_activos.categoriaN3')
-        //     ->where('indices_listas.idAtributo', '=', '2')
-        //     ->where('crud_activos.etiqueta', '=', $this->etiqueta);
-
-        //se agrego las nuevas tablas
-
         $queryBuilder = IndiceLista::select('indices_listas.*')
-        ->join('categoria_n3', function (JoinClause $join) {
-            $join->on('indices_listas.idIndice', '=', 'categoria_n3.idIndice');
-        })
-        ->join('inv_marcas_nuevos', function (JoinClause $join) {
-            $join->on('indices_listas.idIndice', '=', 'inv_marcas_nuevos.idIndice');
-        })
-
-        ->where('inv_marcas_nuevos.idAtributo', '=', '2')
-        ->where('indices_listas.idAtributo', '=', '2')
-        ->where('indices_listas.id_familia', '=', $this->id_familia);   
-
+            ->join('categoria_n3', function (JoinClause $join) {
+                $join->on('indices_listas.idIndice', '=', 'categoria_n3.idIndice');
+            })
+            ->join('inv_inventario', 'categoria_n3.idIndice', '=', 'inv_inventario.id_familia')
+            ->where('indices_listas.idAtributo', '=', '2')
+            ->where('inv_inventario.etiqueta', '=', $this->etiqueta);
 
 
         return $queryBuilder;
-
-
-
-
-        // "SELECT
-        // categoria_n3.idIndice, 
-        // crud_activos.categoriaN3,
-        // indices_listas.idLista,
-        // indices_listas.descripcion 
-        // FROM crud_activos 
-        // INNER JOIN categoria_n3 ON crud_activos.categoriaN3 = categoria_n3.codigoCategoria
-        // INNER JOIN indices_listas ON categoria_n3.idIndice = indices_listas.idIndice AND indices_listas.idAtributo = 2
-        // WHERE etiqueta = 'AF100001'"
     }
 
     

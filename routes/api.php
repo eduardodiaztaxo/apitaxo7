@@ -145,6 +145,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('marcas-disponibles/{etiqueta}', [CrudActivoController::class, 'marcasDisponibles']);
 
     Route::get('ciclos', [CiclosController::class, 'index']);
+    
 
     Route::get('ciclos/{ciclo}', [CiclosController::class, 'show']);
 
@@ -215,6 +216,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('auditorias/ciclos/{ciclos}/conteo-por-zona/{zona}', [InventarioConteoController::class, 'showConteoByZone']);
 
     Route::get('auditorias/ciclos/{ciclos}/conteo-por-punto/{punto}', [InventarioConteoController::class, 'showConteoByAddress']);
+
+    Route::get('auditorias/ciclos/{ciclos}/conteo-todo', [InventarioConteoController::class, 'showAllConteo']);
 
     Route::delete('auditorias/ciclos/{ciclos}/conteo-por-punto/{punto}/delete-sobrantes', [InventarioConteoController::class, 'deleteSobrantesConteoByAddress']);
 

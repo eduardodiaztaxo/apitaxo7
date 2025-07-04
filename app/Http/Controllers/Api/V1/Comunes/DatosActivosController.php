@@ -306,6 +306,7 @@ public function indiceColores()
             'observacion'       => 'required|string',
             'idAtributo'        => 'required|exists:indices_listas,idAtributo',
             'id_familia'        => 'required|exists:dp_familias,id_familia',
+            'id_grupo'          => 'required|exists:dp_grupos,id_grupo',
             'ciclo_inventario'  => 'required|exists:inv_ciclos,idCiclo'     
         ]);
     
@@ -334,6 +335,7 @@ public function indiceColores()
         $bienes->observacion = $request->observacion;
         $bienes->idAtributo  = $request->idAtributo;
         $bienes->id_familia  = $request->id_familia;
+        $bienes->id_grupo    = $request->id_grupo;
         $bienes->ciclo_inventario = $request->ciclo_inventario;
         $bienes->save();
     

@@ -112,7 +112,7 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            REPLACE INTO configuracion (
+            INSERT INTO configuracion (
                 id_grupo,
                 conf_marca,
                 conf_modelo,
