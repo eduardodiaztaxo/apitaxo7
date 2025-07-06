@@ -364,12 +364,16 @@ class InventariosController extends Controller
             Storage::makeDirectory($extractPath);
         }
 
-        $zip->extractTo($extractPath);
+        $fullExtractPath = Storage::path($extractPath);
+
+        $zip->extractTo($fullExtractPath);
         $zip->close();
+
+
 
         // Obtener todos los paths de los archivos extraídos
         $files = [];
-        $rii = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($extractPath));
+        $rii = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($fullExtractPath));
 
 
         $customkey = 0;
@@ -439,6 +443,10 @@ class InventariosController extends Controller
 
                 $userFolder = "customers/" . $request->user()->nombre_cliente . "/images/inventario/" . $file['etiquetas'][0] . "/" . now()->format('Y-m-d');
 
+                // if (!Storage::exists($userFolder)) {
+                //     Storage::makeDirectory($userFolder);
+                // }
+
                 $path = $this->imageService->optimizeImageinv($file['file'], $userFolder, $file['filename']);
 
                 $paths[] = $path;
@@ -456,8 +464,15 @@ class InventariosController extends Controller
             }
         }
 
-        //delete temp directory
-        Storage::deleteDirectory($extractPath);
+        // Eliminar todos los archivos antes de borrar el directorio
+        if (Storage::exists($extractPath)) {
+            $allFiles = Storage::allFiles($extractPath);
+            foreach ($allFiles as $filePath) {
+                Storage::delete($filePath);
+            }
+            Storage::deleteDirectory($extractPath);
+        }
+
 
         return response()->json([
             'status' => 'OK',
@@ -480,11 +495,12 @@ class InventariosController extends Controller
     {
 
         return [
-            'id_grupo'              => 'required|string',
-            'id_familia'            => 'required|string',
+
+            'id_grupo'              => 'required|integer',
+            'id_familia'            => 'required|integer',
             'etiqueta'              => 'required|string',
-            'id_ciclo'              => 'required|exists:inv_ciclos,idCiclo',
-            'codigoUbicacion'       => 'required',
+            'id_ciclo'              => 'required|exists:inv_ciclos,idCiclo'
+
         ];
     }
 }

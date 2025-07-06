@@ -17,17 +17,38 @@ class Inventario extends Model
 
 
     protected $fillable = [
+        'id_grupo',
+        'id_familia',
+        'descripcion_bien',
         'descripcion_marca',
+        'idForma',
+        'idMaterial',
+        'etiqueta',
         'modelo',
         'serie',
-        'responsable',
+        'capacidad',
         'estado',
-        'descripcionTipo',
-        'observacion',
+        'color',
+        'tipo_trabajo',
+        'carga_trabajo',
+        'estado_operacional',
+        'estado_conservacion',
+        'condicion_Ambiental',
+        'cantidad_img',
+        'id_img',
+        'id_ciclo',
+        'idUbicacionN2',
+        'codigoUbicacion_N1',
+        'responsable',
         'latitud',
         'longitud',
+
+
+        'descripcionTipo',
+        'observacion',
+
     ];
-public function marcasDisponibles()
+    public function marcasDisponibles()
     {
 
         $queryBuilder = IndiceLista::select('indices_listas.*')
@@ -42,9 +63,9 @@ public function marcasDisponibles()
         return $queryBuilder;
     }
 
-    
-public function imagen()
-{
-    return $this->belongsTo(Inv_imagenes::class, 'id_img', 'id_img');
-}
+
+    public function imagen()
+    {
+        return $this->belongsTo(Inv_imagenes::class, 'id_img', 'id_img');
+    }
 }

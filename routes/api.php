@@ -134,7 +134,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::put('inventario/image/{etiqueta}', [InventariosController::class, 'ImageByEtiqueta']);
 
-    Route::put('inventario/{ciclo}/procesar-varios', [InventariosController::class, 'storeInventoryMultiple']);
+    Route::post('inventario/{ciclo}/procesar-varios', [InventariosController::class, 'storeInventoryMultiple']);
 
     Route::get('inventarioData/{in_inventario}/{id_ciclo}', [InventariosController::class, 'showData']);
 
@@ -145,7 +145,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('marcas-disponibles/{etiqueta}', [CrudActivoController::class, 'marcasDisponibles']);
 
     Route::get('ciclos', [CiclosController::class, 'index']);
-    
+
 
     Route::get('ciclos/{ciclo}', [CiclosController::class, 'show']);
 

@@ -70,7 +70,7 @@ class ImageService
         return Storage::disk('public')->delete($path);
     }
 
-    
+
     public function optimizeImageinv(UploadedFile $uploadedImage, string $subdir, string $imageName): string
     {
 
