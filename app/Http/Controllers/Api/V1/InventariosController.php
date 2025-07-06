@@ -229,10 +229,13 @@ class InventariosController extends Controller
         ]);
 
 
+        $from_id = $request->from_id ? $request->from_id : 0;
 
 
-        $data = DB::select("SELECT *, 0 AS `offline` FROM inv_inventario WHERE ciclo_id = ? ", [
-            $ciclo
+
+        $data = DB::select("SELECT *, 0 AS `offline` FROM inv_inventario WHERE id_ciclo = ? AND id_inventario > ? ", [
+            $ciclo,
+            $from_id
         ]);
 
         return response()->json(['status' => 'OK', 'data' => $data]);
