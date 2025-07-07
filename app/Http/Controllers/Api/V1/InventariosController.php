@@ -419,15 +419,53 @@ class InventariosController extends Controller
         $failed = [];
         $saved = [];
 
+        $imagesCollection = collect($images);
+
         foreach ($assets as $activo) {
 
 
 
             $existsInv = Inventario::where('etiqueta', '=', $activo['etiqueta'])->first();
             $existsCrud = CrudActivo::where('etiqueta', '=', $activo['etiqueta'])->first();
+
             if (!$existsInv && !$existsCrud) {
                 $asset = Inventario::create($activo);
                 $saved[] = $asset->etiqueta;
+
+
+                $imgsAndTag = $imagesCollection->firstWhere('etiqueta', $asset->etiqueta);
+
+
+
+
+                //Clonar Imágenes
+                if (
+                    $asset->id_img && $asset->id_img > 0 &&
+                    (!$imgsAndTag['images'] || count($imgsAndTag['images']) === 0)
+                ) {
+
+
+                    $imagenes = DB::table('inv_imagenes')
+                        ->where('id_img', $asset->id_img)
+                        ->get();
+
+                    $newIDImg = DB::table('inv_imagenes')->max('id_img') + 1;
+
+                    //new id image
+                    $asset->id_img = $newIDImg;
+
+                    $asset->save();
+
+                    foreach ($imagenes as $img) {
+                        DB::table('inv_imagenes')->insert([
+                            'id_img'     => $newIDImg,
+                            'etiqueta'   => $asset->etiqueta,
+                            'url_imagen' => $img->url_imagen,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    }
+                }
             } else {
                 $failed[] = $activo['etiqueta'];
             }
@@ -435,8 +473,26 @@ class InventariosController extends Controller
 
 
 
-        $paths = [];
 
+
+        $id_img = DB::table('inv_imagenes')->max('id_img') + 1;
+
+        $idsi = [];
+
+        foreach ($files as $file) {
+
+            if (count($file['etiquetas']) > 0) {
+
+                foreach ($file['etiquetas'] as $etiqueta) {
+                    if (!isset($idsi[$etiqueta])) {
+                        $idsi[$etiqueta] = $id_img;
+                        $id_img++;
+                    }
+                }
+            }
+        }
+
+        $paths = [];
 
         foreach ($files as $file) {
 
@@ -456,11 +512,14 @@ class InventariosController extends Controller
 
                 $fullUrl = asset('storage/' . $path);
 
+
+
                 foreach ($file['etiquetas'] as $etiqueta) {
-                    $id_img = DB::table('inv_imagenes')->max('id_img') + 1;
+
                     $img = new Inv_imagenes();
                     $img->etiqueta = $etiqueta;
-                    $img->id_img = $id_img;
+                    //ojo si es que existe otro proceso en paralelo
+                    $img->id_img = $idsi[$etiqueta];
                     $img->url_imagen = $fullUrl;
                     $img->save();
                 }
