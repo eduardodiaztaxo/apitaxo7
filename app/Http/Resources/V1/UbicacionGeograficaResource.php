@@ -6,6 +6,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use App\Models\CiclosPunto;
 use App\Models\InvConteoRegistro;
 use App\Models\Inventario;
+use App\Models\ZonaPunto;
 use App\Models\PuntosEstados;
 use Illuminate\Support\Facades\Auth;
 
