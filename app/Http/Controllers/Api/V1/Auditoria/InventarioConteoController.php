@@ -879,7 +879,7 @@ class InventarioConteoController extends Controller
     {
 
         if ($request->cycle_id) {
-            $request->merge(['ciclo_id', $request->cycle_id]);
+            $request->merge(['ciclo_id' => $request->cycle_id]);
         }
 
         $request->validate([
