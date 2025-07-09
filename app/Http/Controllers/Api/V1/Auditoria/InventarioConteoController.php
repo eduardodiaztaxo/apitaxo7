@@ -878,7 +878,9 @@ class InventarioConteoController extends Controller
     public function resetConteoByEmplazamiento(Request $request)
     {
 
-
+        if ($request->cycle_id) {
+            $request->merge(['ciclo_id', $request->cycle_id]);
+        }
 
         $request->validate([
             'ciclo_id'          => 'required|integer|exists:inv_ciclos,idCiclo',
