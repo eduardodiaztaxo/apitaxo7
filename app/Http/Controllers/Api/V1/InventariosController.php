@@ -32,6 +32,21 @@ class InventariosController extends Controller
         $responsable = DB::table('sec_users')->where('login', $usuario)->value('name');
         return $responsable;
     }
+
+public function getIdResponsable()
+{
+    $usuario = Auth::user()->name;
+
+    $nombre = DB::table('sec_users')
+        ->where('login', $usuario)
+        ->value('name');
+
+     $idResponsable = DB::table('responsables')
+        ->where('name', $nombre) 
+        ->value('idResponsable');
+
+    return $idResponsable;
+}
     public function createinventario(Request $request)
     {
         $request->validate([
@@ -91,7 +106,9 @@ class InventariosController extends Controller
         $inventario->id_grupo            = $request->id_grupo;
         $inventario->id_familia          = $request->id_familia;
         $inventario->descripcion_bien    = $request->descripcion_bien;
+        $inventario->id_bien             = intval($request->id_bien ?? null);
         $inventario->descripcion_marca   = $request->descripcion_marca ?? 'null';
+        $inventario->id_marca            = intval($request->id_marca ?? null);
         $inventario->idForma             = intval($request->idForma ?? null);
         $inventario->idMaterial          = intval($request->idMaterial ?? null);
         $inventario->etiqueta            = $request->etiqueta;
@@ -110,9 +127,10 @@ class InventariosController extends Controller
         $inventario->cantidad_img        = $request->cantidad_img;
         $inventario->id_img              = $url_img;
         $inventario->id_ciclo            = $request->id_ciclo;
-        $inventario->idUbicacionN2     = $idUbicacionN2;
+        $inventario->idUbicacionN2       = $idUbicacionN2;
         $inventario->codigoUbicacion_N1  = $codigoUbicacion_N1;
         $inventario->responsable         = $this->getNombre();
+        $inventario->idResponsable       = $this->getIdResponsable();
         $inventario->save();
 
         return response()->json($inventario, 201);

@@ -337,6 +337,23 @@ class CrudActivoController extends Controller
         $responsable = DB::table('sec_users')->where('login', $usuario)->value('name');
         return $responsable;
     }
+
+   public function getIdResponsable()
+{
+    $usuario = Auth::user()->name;
+
+    $nombre = DB::table('sec_users')
+        ->where('login', $usuario)
+        ->value('name');
+
+     $idResponsable = DB::table('responsables')
+        ->where('name', $nombre) 
+        ->value('idResponsable');
+
+    return $idResponsable;
+}
+
+
     public function update(Request $request, $etiqueta)
     {
         $request->validate([
@@ -344,7 +361,6 @@ class CrudActivoController extends Controller
             'descripcion_marca' => 'required',
             'modelo'           =>  'required',
             'serie'            =>  'required',
-            'responsable'      =>  'sometimes|integer|exists:responsables,idResponsable',
             'estado_bien'      =>  'required|exists:ind_list_estado,idLista',
             'descripcionTipo'  =>  'required',
             'observacion'      =>  'required',
@@ -360,9 +376,12 @@ class CrudActivoController extends Controller
 
             if ($activo) {
                 $responsable = $this->getNombre();
+                $idResponsable = $this->getIdResponsable() ?? 0;
 
+    
                 $activo->update([
                     'descripcion_marca' => $request->descripcion_marca,
+                    'id_marca'          => $request->marca,
                     'modelo'            => $request->modelo,
                     'serie'             => $request->serie,
                     'estado'            => $request->estado_bien,
@@ -371,6 +390,7 @@ class CrudActivoController extends Controller
                     'latitud'           => $request->latitud,
                     'longitud'          => $request->longitud,
                     'responsable'       => $responsable,
+                    'idResponsable'     => $idResponsable,
                 ]);
 
                 return response()->json([
@@ -386,10 +406,9 @@ class CrudActivoController extends Controller
             }
         } else {
 
-            if ($request->responsable) {
-                $request->merge(['responsableN1' => $request->responsable]);
-            }
+           $responsable = $this->getIdResponsable();
 
+            $request->merge(['responsableN1' => $responsable]);
             $request->merge(['apoyaBrazosRuedas' => $request->estado_bien]);
 
             $activo->fill($request->only([

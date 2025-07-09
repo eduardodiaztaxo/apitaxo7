@@ -29,6 +29,7 @@ class InventariosResource extends JsonResource
                 'estado',
                 'responsable',
                 'idUbicacionN2',
+                'update_inv',
                 'id_img'
             )
             ->get();
@@ -121,6 +122,7 @@ class InventariosResource extends JsonResource
             'responsable'          => $activo->responsable ?? 'Sin Registros',
             'imagenes'             => $imagenes ?? [],
             'fotoUrl'              => $fotoUrl,
+            'update_inv'           => $activo->update_inv,
             'foto4'                => $fotoUrl,
             'emplazamiento'        => [
                 'nombre' => $subEmplazamiento->descripcionUbicacion ?? 'No disponible',
