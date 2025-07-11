@@ -153,9 +153,16 @@ class LoginController extends Controller
             $expiration = config('sanctum.expiration', null);
             $expires_at = $expiration ? Carbon::now()->addMinutes($expiration) : null;
             $token = $request->user()->createToken($request->name, ['*'], $expires_at);
+            
+            $name = DB::table('users')
+            ->where('id', $user->id)
+            ->pluck(DB::raw("CONCAT(first_name, ' ', last_name)"))
+            ->first();
+
 
             return response()->json([
                 'id_user' => $user->id,
+                'name' => $name,
                 'User' => $user->name,
                 'email' => $user->email,
                 'token' => $token->plainTextToken,

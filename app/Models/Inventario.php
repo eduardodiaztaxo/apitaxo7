@@ -39,6 +39,7 @@ class Inventario extends Model
         'cantidad_img',
         'id_img',
         'id_ciclo',
+        'idUbicacionGeo',
         'idUbicacionN2',
         'codigoUbicacion_N1',
         'responsable',
