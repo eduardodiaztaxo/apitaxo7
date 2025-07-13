@@ -48,7 +48,7 @@ class ExportAuditCycleSQLiteDatabase extends Command
      *
      * @var string
      */
-     protected $signature = 'command:export-for-offline-auditing-sqlite {--connection=} {--cycle=}';
+    protected $signature = 'command:export-for-offline-auditing-sqlite {--connection=} {--cycle=}';
     /**
      * The console command description.
      *
@@ -99,15 +99,15 @@ class ExportAuditCycleSQLiteDatabase extends Command
         DB::setDefaultConnection($conn_field);
 
         $tipoCiclo = DB::table('inv_ciclos')
-        ->where('idCiclo', $this->cycle)
-        ->value('idTipoCiclo');
+            ->where('idCiclo', $this->cycle)
+            ->value('idTipoCiclo');
 
         if (!$tipoCiclo) {
             $this->error('No se encontró el ciclo con el ID especificado.');
             return 1;
         }
 
-         if ($tipoCiclo == 1) {
+        if ($tipoCiclo == 1) {
             $grupos = DB::table('inv_ciclos_categorias')
                 ->where('idCiclo', $this->cycle)
                 ->select('id_grupo')
@@ -153,22 +153,22 @@ class ExportAuditCycleSQLiteDatabase extends Command
         $this->setEstado();
         $this->setGrupo();
         $this->setFamilia();
-        
+
         if ($tipoCiclo == 1) {
-        $this->setBienesInventario();
-        $this->setBieneGrupoFamilia();
-        $this->setCargaTrabajo();
-        $this->setColores();
-        $this->setCondicionAmbiental();
-        $this->setConfiguracion();
-        $this->setEstadoConservacion();
-        $this->setFamilia();
-        $this->setForma();
-        $this->setGrupo();
-        $this->setMarcaInv();
-        $this->setMaterial();
-        $this->setOperacional();
-        $this->setTipoTrabajo();
+            $this->setBienesInventario();
+            $this->setBieneGrupoFamilia();
+            $this->setCargaTrabajo();
+            $this->setColores();
+            $this->setCondicionAmbiental();
+            $this->setConfiguracion();
+            $this->setEstadoConservacion();
+            $this->setFamilia();
+            $this->setForma();
+            $this->setGrupo();
+            $this->setMarcaInv();
+            $this->setMaterial();
+            $this->setOperacional();
+            $this->setTipoTrabajo();
         }
         // $this->setCyclesPuntosByCycle();
 
@@ -180,15 +180,25 @@ class ExportAuditCycleSQLiteDatabase extends Command
         $zipServ = new \App\Services\Dump\SQLiteZipService($sqlitePath);
         $zipServ->createZipArchive();
 
+        $version = 1;
+
+        $rows = DB::select('SELECT version FROM db_audits_dumps 
+        WHERE cycle_id = ? ', [$this->cycle]);
+
+        if (count($rows) > 0) {
+            $version = $rows[0]->version + 1;
+        }
+
         DB::delete('DELETE FROM db_audits_dumps 
         WHERE cycle_id = ? AND `status` = ? ', [$this->cycle, 1]);
 
         DB::insert('INSERT INTO db_audits_dumps (
             `status`, 
+            `version`,
             `cycle_id`, 
             `path`, 
             `updated_at`, 
-            `created_at`) VALUES (?, ?, ?, ?, ?)', [1, $this->cycle, $relativeZipPath, now(), now()]);
+            `created_at`) VALUES (?, ?, ?, ?, ?, ?)', [1, $version, $this->cycle, $relativeZipPath, now(), now()]);
 
         $this->output->writeln('<success>SQLite DB zipped successfully: ' . $relativeZipPath . '</success>');
 
@@ -278,7 +288,7 @@ class ExportAuditCycleSQLiteDatabase extends Command
         $this->info('Subzonas insertadas en SQLite DB.');
     }
 
-       private function setBienesInventario()
+    private function setBienesInventario()
     {
         (new BienesInventarioDumpService(
             $this->pdo
@@ -290,17 +300,17 @@ class ExportAuditCycleSQLiteDatabase extends Command
     private function setBieneGrupoFamilia()
     {
         (new BienGrupoFamiliaDumpService(
-          $this->pdo,
-          $this->cycle
+            $this->pdo,
+            $this->cycle
         ))->runFromController();
 
         $this->info('bgf insertadas en SQLite DB.');
     }
- 
+
     private function setCargaTrabajo()
     {
         (new CargaTrabajoDumpService(
-          $this->pdo
+            $this->pdo
         ))->runFromController();
 
         $this->info('carga insertadas en SQLite DB.');
@@ -309,7 +319,7 @@ class ExportAuditCycleSQLiteDatabase extends Command
     private function setColores()
     {
         (new ColoresDumpService(
-          $this->pdo
+            $this->pdo
         ))->runFromController();
 
         $this->info('colores insertadas en SQLite DB.');
@@ -318,17 +328,17 @@ class ExportAuditCycleSQLiteDatabase extends Command
     private function setCondicionAmbiental()
     {
         (new CondicionAmbientalDumpService(
-          $this->pdo
+            $this->pdo
         ))->runFromController();
 
         $this->info('condicion ambiental insertadas en SQLite DB.');
     }
- 
+
     private function setConfiguracion()
     {
         (new ConfiguracionDumpService(
-          $this->pdo,
-          $this->codigo_grupo
+            $this->pdo,
+            $this->codigo_grupo
         ))->runFromController();
 
         $this->info('configuracion insertadas en SQLite DB.');
@@ -336,18 +346,18 @@ class ExportAuditCycleSQLiteDatabase extends Command
     private function setEstadoConservacion()
     {
         (new EstadoConservacionDumpService(
-          $this->pdo
+            $this->pdo
         ))->runFromController();
 
         $this->info('estado conservacion insertadas en SQLite DB.');
     }
- 
+
     private function setFamilia()
     {
         (new FamiliaDumpService(
-        $this->pdo,
-        $this->cycle,
-        $this->codigo_grupo
+            $this->pdo,
+            $this->cycle,
+            $this->codigo_grupo
         ))->runFromController();
 
         $this->info('familia insertadas en SQLite DB.');
@@ -355,17 +365,17 @@ class ExportAuditCycleSQLiteDatabase extends Command
     private function setForma()
     {
         (new FormasDumpService(
-        $this->pdo
+            $this->pdo
         ))->runFromController();
 
         $this->info('forma insertadas en SQLite DB.');
     }
- 
+
     private function setGrupo()
     {
         (new GruposDumpService(
-        $this->pdo,
-         $this->cycle
+            $this->pdo,
+            $this->cycle
         ))->runFromController();
 
         $this->info('grupo insertadas en SQLite DB.');
@@ -373,8 +383,8 @@ class ExportAuditCycleSQLiteDatabase extends Command
     private function setInventario()
     {
         (new InventarioDumpService(
-        $this->pdo,
-        $this->cycle
+            $this->pdo,
+            $this->cycle
         ))->runFromController();
 
         $this->info('inventario insertadas en SQLite DB.');
@@ -383,8 +393,8 @@ class ExportAuditCycleSQLiteDatabase extends Command
     private function setMarca()
     {
         (new MarcasDumpService(
-        $this->pdo,
-        $this->cycle
+            $this->pdo,
+            $this->cycle
         ))->runFromController();
 
         $this->info('marca insertadas en SQLite DB.');
@@ -392,48 +402,48 @@ class ExportAuditCycleSQLiteDatabase extends Command
     private function setMarcaInv()
     {
         (new MarcasInventarioDumpService(
-        $this->pdo
+            $this->pdo
         ))->runFromController();
 
         $this->info('marcaInv insertadas en SQLite DB.');
     }
- 
+
     private function setMaterial()
     {
         (new MaterialDumpService(
-        $this->pdo
+            $this->pdo
         ))->runFromController();
 
         $this->info('material insertadas en SQLite DB.');
     }
-     private function setOperacional()
+    private function setOperacional()
     {
         (new OperacionalDumpService(
-        $this->pdo
+            $this->pdo
         ))->runFromController();
 
         $this->info('operacional insertadas en SQLite DB.');
     }
- 
-     private function setTipoTrabajo()
+
+    private function setTipoTrabajo()
     {
         (new TipoTrabajoDumpService(
-        $this->pdo
+            $this->pdo
         ))->runFromController();
 
         $this->info('tipotrabajo insertadas en SQLite DB.');
     }
 
- private function setEstado()
+    private function setEstado()
     {
         (new EstadoDumpService(
-        $this->pdo
+            $this->pdo
         ))->runFromController();
 
         $this->info('Estados insertadas en SQLite DB.');
     }
 
-        private function setResponsable()
+    private function setResponsable()
     {
 
         (new ResponsableDumpService(
@@ -443,7 +453,7 @@ class ExportAuditCycleSQLiteDatabase extends Command
 
         $this->info('Responsables inserted in SQLite DB.');
     }
-    
+
     // private function setCyclesPuntosByCycle()
     // {
     //     (new CyclesPuntoDumpService(

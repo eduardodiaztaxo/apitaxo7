@@ -23,23 +23,23 @@ class InvCicloResource extends JsonResource
         $numAudithFaltante = InvConteoRegistro::Where('ciclo_id', $this->idCiclo)->where('audit_status', 2)->where('status', 1)->count();
         $assetsCycle = $this->activos_with_cats()->count() + $this->activos_with_cats_inv()->count();
 
-    return [
-        'idCiclo'       => $this->idCiclo,
-        'status'        => $this->estadoCiclo,
-        'tipoCiclo'     => $this->idTipoCiclo,
-        'status_name'   => $estadoDescripcion ?? 'Desconocido',
-        'title'         => $this->descripcion,
-        'date'          => $this->fechaInicio,
-        'date_end'      => $this->fechaTermino,
-        'assets_cycle'  => $assetsCycle,
-        'assets_count'  => $this->audit_activos_address_cats()->count(),
-        'puntos_count'  => $this->puntos()->count(),
-        'audith_count'  => $numAudith,
-        'audith_sobrante'  => $numAudithSobrante,
-        'audith_faltante'  => $assetsCycle - $numAudith,
-        // 'audith_faltante'  => $numAudithFaltante,
-        'offline_db'    => $this->dump()->count()
-    ];
-        
+        return [
+            'idCiclo'       => $this->idCiclo,
+            'status'        => $this->estadoCiclo,
+            'tipoCiclo'     => $this->idTipoCiclo,
+            'status_name'   => $estadoDescripcion ?? 'Desconocido',
+            'title'         => $this->descripcion,
+            'date'          => $this->fechaInicio,
+            'date_end'      => $this->fechaTermino,
+            'assets_cycle'  => $assetsCycle,
+            'assets_count'  => $this->audit_activos_address_cats()->count(),
+            'puntos_count'  => $this->puntos()->count(),
+            'audith_count'  => $numAudith,
+            'audith_sobrante'  => $numAudithSobrante,
+            'audith_faltante'  => $assetsCycle - $numAudith,
+            // 'audith_faltante'  => $numAudithFaltante,
+            'offline_db'    => $this->dump()->where('status', 1)->count(),
+            'offline_db_version' => $this->dump()->where('status', 1)->latest()->first()?->version ?? 'N/A',
+        ];
     }
 }
