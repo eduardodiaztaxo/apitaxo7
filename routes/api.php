@@ -236,6 +236,11 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
     Route::get('my-user-info', [UserController::class, 'show']);
 
     Route::post('users/register-signature', [UserController::class, 'registerSignature']);
+
+    Route::post('logout', [
+        App\Http\Controllers\Api\LoginController::class,
+        'logout'
+    ]);
 });
 
 

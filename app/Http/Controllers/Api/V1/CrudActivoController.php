@@ -345,7 +345,7 @@ class CrudActivoController extends Controller
             'modelo'           =>  'required',
             'serie'            =>  'required',
             'responsable'      =>  'sometimes|integer|exists:responsables,idResponsable',
-            'estado_bien'      =>  'required|exists:indices_listas_13,idLista',
+            'estado_bien'      =>  'required|exists:ind_list_estado,idLista',
             'descripcionTipo'  =>  'required',
             'observacion'      =>  'required',
             'latitud'          =>  'required',

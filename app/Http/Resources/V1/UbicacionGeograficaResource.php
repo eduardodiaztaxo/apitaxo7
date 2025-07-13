@@ -6,6 +6,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use App\Models\CiclosPunto;
 use App\Models\InvConteoRegistro;
 use App\Models\Inventario;
+use App\Models\ZonaPunto;
 use App\Models\PuntosEstados;
 use Illuminate\Support\Facades\Auth;
 
@@ -92,13 +93,18 @@ class UbicacionGeograficaResource extends JsonResource
             'zonas_punto'   => $zonas_punto,
             'num_activos'   => $this->activos()->get()->count(),
             'num_activos_cats_by_cycle' => 0,
+            'num_activos_inv_cats_by_cycle' => 0,
             'num_cats_by_cycle' => 0
         ];
 
         if (isset($this->cycle_id) && $this->cycle_id) {
 
+            $codigoUbicacion = ZonaPunto::where('idAgenda', '=', $this->idUbicacionGeo)
+            ->pluck('codigoUbicacion')
+            ->toArray();
 
-            $address['num_activos_cats_by_cycle'] = $this->activos_with_cats_by_cycle($this->cycle_id)->count() + $this->activos_with_cats_inv_by_cycle($this->cycle_id)->count();
+            $address['num_activos_cats_by_cycle'] = $this->activos_with_cats_by_cycle($this->cycle_id)->count();
+            $address['num_activos_inv_cats_by_cycle'] = $this->activos_with_cats_inv_by_cycle($this->cycle_id, $codigoUbicacion)->count();
 
             $coll = $this->cats_by_cycle($this->cycle_id);
 
@@ -161,11 +167,11 @@ class UbicacionGeograficaResource extends JsonResource
         return $address;
     }
 
-    public function activos_with_cats_inv_by_cycle($cycle_id)
-    {
-        $queryBuilder = Inventario::select('inv_inventario.*')
-            ->where('inv_inventario.id_ciclo', '=', $cycle_id);
+    public function activos_with_cats_inv_by_cycle($cycle_id, $codigoUbicacion)
+        {
+            return Inventario::select('inv_inventario.*')
+                ->where('inv_inventario.id_ciclo', '=', $cycle_id)
+                ->whereIn('codigoUbicacion_N1', $codigoUbicacion);
+        }
 
-        return $queryBuilder;
-    }
 }

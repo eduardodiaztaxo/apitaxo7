@@ -202,4 +202,16 @@ class LoginController extends Controller
             'pass' => \Illuminate\Support\Facades\Hash::make($request->password)
         ], 401);
     }
+
+    public function logout(Request $request)
+    {
+
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json([
+            'status' => 'OK',
+            'message' => 'Logged out successfully',
+
+        ], 200);
+    }
 }
