@@ -32,7 +32,24 @@ class InventariosController extends Controller
         $responsable = DB::table('sec_users')->where('login', $usuario)->value('name');
         return $responsable;
     }
-    public function createinventario(Request $request)
+
+public function getIdResponsable()
+{
+    $usuario = Auth::user()->name;
+
+    $nombre = DB::table('sec_users')
+        ->where('login', $usuario)
+        ->value('name');
+
+     $idResponsable = DB::table('responsables')
+        ->where('name', $nombre) 
+        ->value('idResponsable');
+
+    return $idResponsable;
+}
+
+
+public function createinventario(Request $request)
     {
         $request->validate([
             'id_grupo'              => 'required|string',
@@ -61,6 +78,10 @@ class InventariosController extends Controller
                 ->where('codigoUbicacion', $request->codigoUbicacion)
                 ->value('idUbicacionN2');
         }
+
+        $idUbicacionGeo = DB::table('ubicaciones_n2')
+            ->where('idUbicacionN2',  $idUbicacionN2 )
+            ->value('idAgenda');
 
         if ($request->cloneFichaDetalle == "true") {
             $imagenes = DB::table('inv_imagenes')
@@ -91,7 +112,9 @@ class InventariosController extends Controller
         $inventario->id_grupo            = $request->id_grupo;
         $inventario->id_familia          = $request->id_familia;
         $inventario->descripcion_bien    = $request->descripcion_bien;
+        $inventario->id_bien             = intval($request->id_bien ?? null);
         $inventario->descripcion_marca   = $request->descripcion_marca ?? 'null';
+        $inventario->id_marca            = intval($request->id_marca ?? null);
         $inventario->idForma             = intval($request->idForma ?? null);
         $inventario->idMaterial          = intval($request->idMaterial ?? null);
         $inventario->etiqueta            = $request->etiqueta;
@@ -110,13 +133,60 @@ class InventariosController extends Controller
         $inventario->cantidad_img        = $request->cantidad_img;
         $inventario->id_img              = $url_img;
         $inventario->id_ciclo            = $request->id_ciclo;
-        $inventario->idUbicacionN2     = $idUbicacionN2;
+        $inventario->idUbicacionGeo      = $idUbicacionGeo;
+        $inventario->idUbicacionN2       = $idUbicacionN2;
         $inventario->codigoUbicacion_N1  = $codigoUbicacion_N1;
         $inventario->responsable         = $this->getNombre();
+        $inventario->idResponsable       = $this->getIdResponsable();
         $inventario->save();
 
         return response()->json($inventario, 201);
     }
+
+
+   public function updateinventario(Request $request)
+{
+   $request->validate([
+    'id_grupo'   => 'required|integer',
+    'id_familia' => 'required|integer',
+    'etiqueta'   => 'required|string',
+    'id_ciclo'   => 'required|integer|exists:inv_ciclos,idCiclo',
+]);
+
+    $id_img = DB::table('inv_imagenes')
+        ->where('etiqueta', $request->etiqueta)
+        ->orderBy('id_img', 'desc')
+        ->value('id_img');
+
+    $url_img = $id_img ?? null;
+
+    Inventario::where('etiqueta', $request->etiqueta)->update([
+        'idForma'             => intval($request->idForma ?? null),
+        'idMaterial'          => intval($request->idMaterial ?? null),
+        'latitud'             => $request->latitud ?? null,
+        'longitud'            => $request->longitud ?? null,
+        'capacidad'           => intval($request->capacidad ?? null),
+        'estado'              => intval($request->estado ?? null),
+        'color'               => intval($request->color ?? null),
+        'tipo_trabajo'        => intval($request->tipo_trabajo ?? null),
+        'carga_trabajo'       => intval($request->carga_trabajo ?? null),
+        'estado_operacional'  => intval($request->estado_operacional ?? null),
+        'estado_conservacion' => intval($request->estado_conservacion ?? null),
+        'condicion_ambiental' => intval($request->condicion_ambiental ?? null),
+        'cantidad_img'        => $request->cantidad_img,
+        'id_img'              => $url_img,
+        'responsable'         => $this->getNombre(),
+        'idResponsable'       => $this->getIdResponsable(),
+        'update_inv'          => 0
+    ]);
+
+    $inventarioActualizado = Inventario::where('etiqueta', $request->etiqueta)->first();
+
+    return response()->json([
+        'message'    => 'Inventario actualizado con éxito',
+        'inventario' => $inventarioActualizado
+    ], 200);
+}
 
 
     public function configuracion($id_grupo)

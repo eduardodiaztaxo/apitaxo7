@@ -61,7 +61,8 @@ class ResponsableDumpService implements DumpSQLiteInterface
         $this->pdo->exec("
             CREATE TABLE IF NOT EXISTS responsable (
                 idResponsable INTEGER PRIMARY KEY,
-                descripcion TEXT NOT NULL
+                descripcion TEXT NOT NULL,
+                mail TEXT NOT NULL
             );
         ");
     }
@@ -77,12 +78,13 @@ class ResponsableDumpService implements DumpSQLiteInterface
         $stmt = $this->pdo->prepare("
             INSERT INTO responsable (
                 idResponsable,
-                descripcion
+                descripcion,
+                mail
             )
             VALUES (
                :idResponsable,
-               :descripcion
-               
+               :descripcion,
+               :mail
             )
         ");
 
@@ -90,7 +92,8 @@ class ResponsableDumpService implements DumpSQLiteInterface
         foreach ($resp as $res) {
             $stmt->execute([
                 ':idResponsable' => $res['idResponsable'],  
-                ':descripcion' => $res['descripcion']    
+                ':descripcion' => $res['descripcion'] ,
+                ':mail' => $res['mail'],
             ]);
         }
     }

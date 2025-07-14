@@ -128,6 +128,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::post('create-marcas', [DatosActivosController::class, 'createMarcas']);
 
+    Route::post('update-inventario', [InventariosController::class, 'updateinventario']);
+
     Route::post('create-inventario', [InventariosController::class, 'createinventario']);
 
     Route::get('configuracion/{id_grupo}', [InventariosController::class, 'configuracion']);
