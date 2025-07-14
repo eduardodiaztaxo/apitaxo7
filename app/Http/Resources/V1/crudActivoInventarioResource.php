@@ -51,8 +51,11 @@ class crudActivoInventarioResource extends JsonResource
         ->where('id_grupo', $this->id_grupo)
         ->value('descripcion_grupo');
 
-        $activo['marca'] = !empty($marcaResult) ? $marcaResult[0]->descripcion : 'Sin marca';
+         $familiaDescripcion = DB::table('dp_familias')
+        ->where('id_familia', $this->id_familia)
+        ->value('descripcion_familia');
 
+        $activo['marca'] = !empty($marcaResult) ? $marcaResult[0]->descripcion : 'Sin marca';
         $activo = [];
         $activo['etiqueta'] = $this->etiqueta;
         $activo['categoriaN3'] = $this->categoriaN3;
@@ -62,23 +65,15 @@ class crudActivoInventarioResource extends JsonResource
         $activo['modelo'] = $this->modelo;
         $activo['serie'] = $this->serie;
         $activo['marca'] = !empty($marcaResult) ? $marcaResult[0]->descripcion : ''; 
-       
         $activo['ubicacionOrganicaN2'] = $this->ubicacionOrganicaN2;
-       
-
+        $activo['update_inv'] = $this->update_inv;
         $activo['id_ciclo'] = $this->id_ciclo;
         $activo['id_inventario'] = $this->id_inventario;
-    
         $activo['audit_status'] = 0;
-    
         $activo['audit_status_name'] = '';
-
-
         $activo['descripcionCategoria'] = $this->categoria ? $this->categoria->descripcionCategoria : '';
-
-        $activo['descripcionFamilia'] = $this->descripcionFamilia;
+        $activo['descripcionFamilia'] = $familiaDescripcion ?? '';
         $activo['descripcion_grupo'] = $grupoDescripcion ?? ''; 
-
         $activo['fotoUrl'] = null;
 
         if ($request->user()) {

@@ -57,7 +57,9 @@ class InventarioDumpService
                 id_grupo INTEGER NOT NULL,
                 id_familia INTEGER NOT NULL,
                 descripcion_bien TEXT NOT NULL,
+                id_bien INTEGER NOT NULL,
                 descripcion_marca TEXT NOT NULL,
+                id_marca INTEGER NOT NULL,
                 idForma INTEGER NOT NULL,
                 idMaterial INTEGER NOT NULL,
                 etiqueta TEXT NOT NULL,
@@ -74,14 +76,17 @@ class InventarioDumpService
                 cantidad_img INTEGER NOT NULL,
                 id_img TEXT NOT NULL,
                 id_ciclo INTEGER NOT NULL,
+                idUbicacionGeo INTEGER NOT NULL,
                 idUbicacionN2 TEXT NOT NULL,
                 codigoUbicacion_N1 TEXT NOT NULL,
                 responsable TEXT NOT NULL,
+                idResponsable INTEGER NOT NULL,
                 descripcionTipo TEXT NOT NULL,
                 observacion TEXT NOT NULL,
                 latitud TEXT NOT NULL,
                 longitud TEXT NOT NULL,
-                offline INTEGER NOT NULL
+                offline INTEGER NOT NULL,
+                update_inv INTEGER NOT NULL
             );
         ");
     }
@@ -100,7 +105,9 @@ class InventarioDumpService
                 id_grupo,
                 id_familia,
                 descripcion_bien,
+                id_bien,
                 descripcion_marca,
+                id_marca,
                 idForma,
                 idMaterial,
                 etiqueta,
@@ -117,21 +124,26 @@ class InventarioDumpService
                 cantidad_img,
                 id_img,
                 id_ciclo,
+                idUbicacionGeo,
                 idUbicacionN2,
                 codigoUbicacion_N1,
                 responsable,
+                idResponsable,
                 descripcionTipo,
                 observacion,
                 latitud,
                 longitud,
-                offline
+                offline,
+                update_inv
             )
             VALUES (
                 :id_invetario,
                 :id_grupo,
                 :id_familia,
                 :descripcion_bien,
+                :id_bien,
                 :descripcion_marca,
+                :id_marca,
                 :idForma,
                 :idMaterial,
                 :etiqueta,
@@ -148,14 +160,17 @@ class InventarioDumpService
                 :cantidad_img,
                 :id_img,
                 :id_ciclo,
+                :idUbicacionGeo,
                 :idUbicacionN2,
                 :codigoUbicacion_N1,
                 :responsable,
+                :idResponsable,
                 :descripcionTipo,
                 :observacion,
                 :latitud,
                 :longitud,
-                :offline
+                :offline,
+                :update_inv
             )
         ");
 
@@ -166,7 +181,9 @@ class InventarioDumpService
                 ':id_grupo' => $i->id_grupo ?? 0,
                 ':id_familia' => $i->id_familia ?? 0,
                 ':descripcion_bien' => $i->descripcion_bien ?? '',
+                ':id_bien' => $i->id_bien ?? 0,
                 ':descripcion_marca' => $i->descripcion_marca ?? '',
+                ':id_marca' => $i->id_marca ?? 0,
                 ':idForma' => $i->idForma ?? 0,
                 ':idMaterial' => $i->idMaterial ?? 0,
                 ':etiqueta' => $i->etiqueta ?? '',
@@ -183,14 +200,17 @@ class InventarioDumpService
                 ':cantidad_img' => $i->cantidad_img ?? 0,
                 ':id_img' => $i->id_img ?? '',
                 ':id_ciclo' => $i->id_ciclo ?? 0,
+                ':idUbicacionGeo' => $i->idUbicacionGeo ?? 0,
                 ':idUbicacionN2' => $i->idUbicacionN2 ?? 0,
                 ':codigoUbicacion_N1' => $i->codigoUbicacion_N1 ?? 0,
                 ':responsable' => $i->responsable ?? '',
+                ':idResponsable' => $i->idResponsable ?? 0,
                 ':descripcionTipo' => $i->descripcionTipo ?? '',
                 ':observacion' => $i->observacion ?? '',
                 ':latitud' => $i->latitud ?? '',
                 ':longitud' => $i->longitud ?? '',
-                ':offline' => $i->offline ?? 0
+                ':offline' => $i->offline ?? 0,
+                ':update_inv' => $i->update_inv ?? 0
             ]);
         }
     }

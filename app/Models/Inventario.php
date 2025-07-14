@@ -20,7 +20,9 @@ class Inventario extends Model
         'id_grupo',
         'id_familia',
         'descripcion_bien',
+        'id_bien',
         'descripcion_marca',
+        'id_marca',
         'idForma',
         'idMaterial',
         'etiqueta',
@@ -37,15 +39,16 @@ class Inventario extends Model
         'cantidad_img',
         'id_img',
         'id_ciclo',
+        'idUbicacionGeo',
         'idUbicacionN2',
         'codigoUbicacion_N1',
         'responsable',
+        'idResponsable',
         'latitud',
         'longitud',
-
-
         'descripcionTipo',
         'observacion',
+        'update_inv',
 
     ];
     public function marcasDisponibles()

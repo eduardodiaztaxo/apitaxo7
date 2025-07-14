@@ -44,7 +44,6 @@ class EmplazamientoResource extends JsonResource
 
         $activosInventario = DB::table('inv_inventario')
             ->leftJoin('categoria_n3', 'inv_inventario.id_familia', '=', 'categoria_n3.id_familia')
-            ->leftJoin('dp_familias', 'inv_inventario.id_familia', '=', 'dp_familias.id_familia')
             ->leftJoin('inv_imagenes', 'inv_inventario.id_img', '=', 'inv_imagenes.id_img')
             ->where('inv_inventario.idUbicacionN2', $this->idUbicacionN2)
             ->where('inv_inventario.id_ciclo', $this->cycle_id)
@@ -60,8 +59,8 @@ class EmplazamientoResource extends JsonResource
                 'inv_inventario.serie',
                 'inv_inventario.descripcion_marca',
                 'inv_inventario.idUbicacionN2',
+                'inv_inventario.update_inv',
                 'categoria_n3.descripcionCategoria',
-                'dp_familias.descripcion_familia',
                 DB::raw('MIN(inv_imagenes.url_imagen) as url_imagen')
             )
             ->groupBy(
@@ -76,8 +75,8 @@ class EmplazamientoResource extends JsonResource
                 'inv_inventario.serie',
                 'inv_inventario.descripcion_marca',
                 'inv_inventario.idUbicacionN2',
-                'categoria_n3.descripcionCategoria',
-                'dp_familias.descripcion_familia'
+                'inv_inventario.update_inv',
+                'categoria_n3.descripcionCategoria'
             )
             ->get();
 
@@ -102,6 +101,9 @@ class EmplazamientoResource extends JsonResource
                     }
                 }
             }
+         $familiaDescripcion = DB::table('dp_familias')
+        ->where('id_familia', $this->id_familia)
+        ->value('descripcion_familia');
 
             return (object)[
                 'id_ciclo' => $this->cycle_id,
@@ -115,10 +117,11 @@ class EmplazamientoResource extends JsonResource
                 'serie' => $activo->serie ?? '',
                 'marca' => $activo->descripcion_marca ?? null,
                 'ubicacionOrganicaN2' => $activo->idUbicacionN2,
+                'update_inv' => $activo->update_inv,
                 'categoria' => null,
                 'familia' => null,
                 'descripcionCategoria' => $activo->descripcionCategoria,
-                'descripcionFamilia' => $activo->descripcion_familia,
+                'descripcionFamilia' => $familiaDescripcion ?? null,
                 'fotoUrl' => $firstImageUrl,
             ];
         });
