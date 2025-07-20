@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\V1\ZonaController;
 use App\Http\Controllers\Api\V1\ZonaEmplazamientosController;
 use App\Http\Controllers\Api\V1\ZonasActivosController;
 use App\Http\Controllers\Api\V1\InventariosController;
+use App\Http\Controllers\Api\V1\Maps\MapPolygonController;
 use App\Http\Controllers\Api\V1\Responsible\AssignResponsibleController;
 use App\Http\Controllers\Api\V1\ResponsibleController;
 use App\Http\Controllers\Api\V1\UbicacionesActivosController;
@@ -229,7 +230,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::post('auditorias/reset-conteo-punto', [InventarioConteoController::class, 'resetConteoByAddress']);
 
-    //
+    //Maps
+    Route::apiResource('maps/areas', MapPolygonController::class)->only(['index', 'store', 'update', 'destroy']);
 });
 
 
