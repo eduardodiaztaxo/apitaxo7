@@ -63,6 +63,7 @@ class InventarioDumpService
                 idForma INTEGER NOT NULL,
                 idMaterial INTEGER NOT NULL,
                 etiqueta TEXT NOT NULL,
+                etiqueta_padre TEXT NOT NULL,
                 modelo TEXT NOT NULL,
                 serie TEXT NOT NULL,
                 capacidad TEXT NOT NULL,
@@ -86,7 +87,8 @@ class InventarioDumpService
                 latitud TEXT NOT NULL,
                 longitud TEXT NOT NULL,
                 offline INTEGER NOT NULL,
-                update_inv INTEGER NOT NULL
+                update_inv INTEGER NOT NULL,
+                crud_activo_estado INTEGER NOT NULL
             );
         ");
     }
@@ -111,6 +113,7 @@ class InventarioDumpService
                 idForma,
                 idMaterial,
                 etiqueta,
+                etiqueta_padre,
                 modelo,
                 serie,
                 capacidad,
@@ -134,7 +137,8 @@ class InventarioDumpService
                 latitud,
                 longitud,
                 offline,
-                update_inv
+                update_inv,
+                crud_activo_estado
             )
             VALUES (
                 :id_invetario,
@@ -147,6 +151,7 @@ class InventarioDumpService
                 :idForma,
                 :idMaterial,
                 :etiqueta,
+                :etiqueta_padre,
                 :modelo,
                 :serie,
                 :capacidad,
@@ -170,7 +175,8 @@ class InventarioDumpService
                 :latitud,
                 :longitud,
                 :offline,
-                :update_inv
+                :update_inv,
+                :crud_activo_estado
             )
         ");
 
@@ -187,6 +193,7 @@ class InventarioDumpService
                 ':idForma' => $i->idForma ?? 0,
                 ':idMaterial' => $i->idMaterial ?? 0,
                 ':etiqueta' => $i->etiqueta ?? '',
+                ':etiqueta_padre' => $i->etiqueta_padre ?? '',
                 ':modelo' => $i->modelo ?? '',
                 ':serie' => $i->serie ?? '',
                 ':capacidad' => $i->capacidad ?? '',
@@ -210,7 +217,8 @@ class InventarioDumpService
                 ':latitud' => $i->latitud ?? '',
                 ':longitud' => $i->longitud ?? '',
                 ':offline' => $i->offline ?? 0,
-                ':update_inv' => $i->update_inv ?? 0
+                ':update_inv' => $i->update_inv ?? 0,
+                ':crud_activo_estado' => $i->crud_activo_estado ?? 0
             ]);
         }
     }

@@ -223,32 +223,50 @@ class CrudActivoController extends Controller
             ], 404);
         }
 
+        DB::table('inv_inventario')
+        ->where('id_inventario', '=', $idActivo_Inventario)
+        ->update([
+            'crud_activo_estado' => 3
+        ]);
         // --- Si es activo de Inventario: subimos imagen a carpeta inventario ---
-        $userFolder = "customers/" . $request->user()->nombre_cliente . "/images/inventario/" . $etiqueta . "/" . now()->format('Y-m-d');
+        // $userFolder = "customers/" . $request->user()->nombre_cliente . "/images/inventario/" . $etiqueta . "/" . now()->format('Y-m-d');
 
-        if (!Storage::exists($userFolder)) {
-            Storage::makeDirectory($userFolder);
-        }
+        // if (!Storage::exists($userFolder)) {
+        //     Storage::makeDirectory($userFolder);
+        // }
 
-        $file = $request->file('imagen');
-        $imageName = $etiqueta . '_' . uniqid();
-        $path = $this->imageService->optimizeImageinv($file, $userFolder, $imageName);
-        $fullUrl = asset('storage/' . $path);
+    $filename = '9999_' . $etiqueta;
+    $origen = 'SAFIN_APP_INVENTARIO';
+    $file = $request->file('imagen'); 
+    $namefile = $filename . '.jpg'; ;
+    $path = $file->storeAs(
+    PictureSafinService::getImgSubdir($request->user()->nombre_cliente), 
+    $namefile, 
+    'taxoImages'
+        );
+
+    $url = Storage::disk('taxoImages')->url($path);
+    $url_pict = dirname($url) . '/';
+        // $imageName = $etiqueta . '_' . uniqid();
+        // $path = $this->imageService->optimizeImageinv($file, $userFolder, $imageName);
+        // $fullUrl = asset('storage/' . $path);
 
          if ($request->oldImageUrl) {
-            // Buscar la imagen que coincida con oldImageUrl y actualizarla
             $imagenExistente = Inv_imagenes::where('etiqueta', $etiqueta)
                 ->where('url_imagen', $request->oldImageUrl)
                 ->first();
 
             if ($imagenExistente) {
-                $imagenExistente->url_imagen = $fullUrl;
+                $imagenExistente->url_imagen = $url_pict;
+                $imagenExistente->origen = $origen;
+                $imagenExistente->picture = $filename.'.jpg';
+                $imagenExistente->updated_at = now();
                 $imagenExistente->save();
 
                 return response()->json([
                     'status' => 'OK',
                     'message' => 'Imagen existente actualizada',
-                    'url' => $fullUrl
+                    'url' => $url_pict
                 ], 200);
             }
         }
@@ -391,6 +409,7 @@ class CrudActivoController extends Controller
                     'longitud'          => $request->longitud,
                     'responsable'       => $responsable,
                     'idResponsable'     => $idResponsable,
+                    'crud_activo_estado' => 3
                 ]);
 
                 return response()->json([

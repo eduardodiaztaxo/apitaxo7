@@ -97,7 +97,8 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
             lench_Max_etiqueta INTEGER,
             tipo_etiqueta TEXT,
             conf_latitud INTEGER,
-            conf_longitud INTEGER
+            conf_longitud INTEGER,
+            conf_padre INTEGER
         )
     ");
 }
@@ -140,7 +141,8 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
                 lench_Max_etiqueta,
                 tipo_etiqueta,
                 conf_latitud,
-                conf_longitud
+                conf_longitud,
+                conf_padre
             )
             VALUES (
                 :id_grupo,
@@ -170,7 +172,8 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
                 :lench_Max_etiqueta,
                 :tipo_etiqueta,
                 :conf_latitud,
-                :conf_longitud
+                :conf_longitud,
+                :conf_padre
             )
         ");
 
@@ -204,7 +207,8 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
                 ':lench_Max_etiqueta' => $conf->lench_Max_etiqueta,
                 ':tipo_etiqueta' => $conf->tipo_etiqueta,
                 ':conf_latitud' => $conf->conf_latitud,
-                ':conf_longitud' => $conf->conf_longitud
+                ':conf_longitud' => $conf->conf_longitud,
+                ':conf_padre' => $conf->conf_padre
             ]);
         }
     }
