@@ -146,7 +146,8 @@ class InvCiclo extends Model
                 $join->on('inv_ciclos.idCiclo', '=', 'inv_ciclos_categorias.idCiclo')
                     ->on('crud_activos.id_familia', '=', 'inv_ciclos_categorias.id_familia');
             })
-            ->where('inv_ciclos.idCiclo', '=', $this->idCiclo);
+            ->where('inv_ciclos.idCiclo', '=', $this->idCiclo)
+            ->where('crud_activos.tipoCambio', '!=', 200); //Inventario
 
 
 
