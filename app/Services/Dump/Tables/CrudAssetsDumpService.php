@@ -87,7 +87,7 @@ class CrudAssetsDumpService implements DumpSQLiteInterface
                 idActivo INTEGER PRIMARY KEY,
                 usuario TEXT NOT NULL,
                 tipoAlta TEXT NOT NULL,
-                categoriaN3 TEXT NOT NULL,
+                categoriaN3 TEXT,
                 id_familia INTEGER NOT NULL,
                 id_grupo INTEGER NOT NULL,
                 descripcionCategoria TEXT NOT NULL,
