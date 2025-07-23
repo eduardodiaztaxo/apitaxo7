@@ -36,11 +36,6 @@ class Emplazamiento extends Model
 
     public function activos_with_cats_by_cycle($cycle_id)
     {
-
-
-
-
-
         $queryBuilder = CrudActivo::select('crud_activos.*')->join('inv_ciclos_puntos', 'crud_activos.ubicacionGeografica', 'inv_ciclos_puntos.idPunto')
             ->join('inv_ciclos', 'inv_ciclos.idCiclo', '=', 'inv_ciclos_puntos.idCiclo')
             ->join('inv_ciclos_categorias', function (JoinClause $join) {
@@ -50,9 +45,8 @@ class Emplazamiento extends Model
             ->where('inv_ciclos.idCiclo', '=', $cycle_id)
             ->where('inv_ciclos_puntos.idPunto', '=', $this->idAgenda)
             ->where('crud_activos.ubicacionOrganicaN2', '=', $this->codigoUbicacion)
-            ->where('crud_activos.ubicacionGeografica', '=', $this->idAgenda);
-
-
+            ->where('crud_activos.ubicacionGeografica', '=', $this->idAgenda)
+            ->where('crud_activos.tipoCambio', '!=', 200); //Inventario
 
 
         // $sql = "SELECT 
