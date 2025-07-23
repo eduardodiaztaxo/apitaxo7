@@ -26,6 +26,7 @@ class Inventario extends Model
         'idForma',
         'idMaterial',
         'etiqueta',
+        'etiqueta_padre',
         'modelo',
         'serie',
         'capacidad',
@@ -49,6 +50,7 @@ class Inventario extends Model
         'descripcionTipo',
         'observacion',
         'update_inv',
+        'crud_activo_estado',
 
     ];
     public function marcasDisponibles()

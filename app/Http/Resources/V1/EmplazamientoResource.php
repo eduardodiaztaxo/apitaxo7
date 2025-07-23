@@ -40,7 +40,8 @@ class EmplazamientoResource extends JsonResource
                 GROUP BY id_activo
             )
         ) as crud_activos_pictures'), 'crud_activos_pictures.id_activo', '=', 'crud_activos.idActivo')
-            ->get();
+        ->where('crud_activos.tipoCambio', '!=', 200)
+        ->get();
 
         $activosInventario = DB::table('inv_inventario')
             ->leftJoin('categoria_n3', 'inv_inventario.id_familia', '=', 'categoria_n3.id_familia')

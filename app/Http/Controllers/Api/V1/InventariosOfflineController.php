@@ -142,7 +142,9 @@ public function familia(int $ciclo, array $codigo_grupos)
                         COALESCE(MAX(CASE WHEN id_atributo = 22 THEN valor_maximo END), 0) AS lench_Max_etiqueta,
                         COALESCE(MAX(CASE WHEN id_atributo = 22 THEN tipo_etiqueta END), '') AS tipo_etiqueta,
                         COALESCE(MAX(CASE WHEN id_atributo = 23 THEN id_validacion END), 0) AS conf_latitud,
-                        COALESCE(MAX(CASE WHEN id_atributo = 24 THEN id_validacion END), 0) AS conf_longitud
+                        COALESCE(MAX(CASE WHEN id_atributo = 24 THEN id_validacion END), 0) AS conf_longitud,
+                        COALESCE(MAX(CASE WHEN id_atributo = 25 THEN id_validacion END), 0) AS conf_padre
+                        
                     FROM inv_atributos 
                     WHERE id_grupo = ?";
 

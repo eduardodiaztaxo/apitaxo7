@@ -13,6 +13,7 @@ use App\Models\InvCiclo;
 use Illuminate\Support\Facades\DB;
 use Intervention\Image\Facades\Image;
 use App\Services\ImageService;
+use App\Services\Imagenes\PictureSafinService;
 use DateTime;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -59,12 +60,29 @@ public function createinventario(Request $request)
             'codigoUbicacion'       => 'required',
         ]);
 
-        $etiquetaInventario = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta)->value('etiqueta');
-        $etiquetaUnicaCrudActivo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta)->value('etiqueta');
+       $existeEtiqueta = false;
 
-        if ($etiquetaInventario || $etiquetaUnicaCrudActivo) {
-            return response('La etiqueta ya existe', 400);
+
+    $etiquetaInventario = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta)->value('etiqueta');
+    $etiquetaUnicaCrudActivo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta)->value('etiqueta');
+
+    if ($etiquetaInventario || $etiquetaUnicaCrudActivo) {
+        $existeEtiqueta = true;
+    }
+
+    if (!empty($request->etiqueta_padre)) {
+        $etiquetaInventarioHijo = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
+        $etiquetaCrudActivoHijo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
+
+        if ($etiquetaInventarioHijo || $etiquetaCrudActivoHijo) {
+            $existeEtiqueta = true;
         }
+    }
+
+    if ($existeEtiqueta) {
+        return response('La etiqueta ya existe', 400);
+    }
+
 
         if ($request->idUbicacionN2 > 0 && $request->codigoUbicacion_N1 > 0) {
             $codigoUbicacion_N1 = $request->codigoUbicacion_N1;
@@ -89,14 +107,18 @@ public function createinventario(Request $request)
                 ->get();
 
             $url_img = DB::table('inv_imagenes')->max('id_img') + 1;
+            $origen = 'SAFIN_APP';
+            $filename = '9999_' . $request->etiqueta;
 
             foreach ($imagenes as $img) {
                 DB::table('inv_imagenes')->insert([
                     'id_img'     => $url_img,
                     'etiqueta'   => $request->etiqueta,
+                    'origen'     => $origen,
+                    'picture'    => $filename.'.jpg',
                     'url_imagen' => $img->url_imagen,
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'url_picture' => $img->url_picture,
+                    'created_at' => now()
                 ]);
             }
         } else {
@@ -106,6 +128,12 @@ public function createinventario(Request $request)
                 ->orderBy('id_img', 'desc')
                 ->value('id_img');
             $url_img = $id_img ?? null;
+        }
+
+        if (intval($request->padre) === 1) {
+            $etiquetaPadre = $request->etiqueta;
+        }elseif (intval($request->padre) === 2) {
+            $etiquetaPadre = $request->etiqueta_padre;
         }
 
         $inventario = new Inventario();
@@ -138,6 +166,7 @@ public function createinventario(Request $request)
         $inventario->codigoUbicacion_N1  = $codigoUbicacion_N1;
         $inventario->responsable         = $this->getNombre();
         $inventario->idResponsable       = $this->getIdResponsable();
+        $inventario->etiqueta_padre      = $etiquetaPadre ?? 'Sin Padre';
         $inventario->save();
 
         return response()->json($inventario, 201);
@@ -160,6 +189,12 @@ public function createinventario(Request $request)
 
     $url_img = $id_img ?? null;
 
+     if (intval($request->padre) === 1) {
+            $etiquetaPadre = $request->etiqueta;
+        }elseif (intval($request->padre) === 2) {
+            $etiquetaPadre = $request->etiqueta_padre;
+        }
+
     Inventario::where('etiqueta', $request->etiqueta)->update([
         'idForma'             => intval($request->idForma ?? null),
         'idMaterial'          => intval($request->idMaterial ?? null),
@@ -177,6 +212,7 @@ public function createinventario(Request $request)
         'id_img'              => $url_img,
         'responsable'         => $this->getNombre(),
         'idResponsable'       => $this->getIdResponsable(),
+        'etiqueta_padre'      => $etiquetaPadre ?? 'Sin Padre',
         'update_inv'          => 0
     ]);
 
@@ -218,7 +254,9 @@ public function createinventario(Request $request)
                 COALESCE(MAX(CASE WHEN id_atributo = 22 THEN valor_maximo END), 0) AS lench_Max_etiqueta,
                 COALESCE(MAX(CASE WHEN id_atributo = 22 THEN tipo_etiqueta END), 0) AS tipo_etiqueta,
                 COALESCE(MAX(CASE WHEN id_atributo = 23 THEN id_validacion END), 0) AS conf_latitud,
-                COALESCE(MAX(CASE WHEN id_atributo = 24 THEN id_validacion END), 0) AS conf_longitud
+                COALESCE(MAX(CASE WHEN id_atributo = 24 THEN id_validacion END), 0) AS conf_longitud,
+                COALESCE(MAX(CASE WHEN id_atributo = 25 THEN id_validacion END), 0) AS conf_padre
+    
             FROM inv_atributos 
             WHERE id_grupo = ?";
 
@@ -229,45 +267,51 @@ public function createinventario(Request $request)
 
 
 
-    public function ImageByEtiqueta(Request $request, $etiqueta)
-    {
-        $request->validate([
-            'imagenes.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
-        ]);
+   public function ImageByEtiqueta(Request $request, $etiqueta)
+{
+    $request->validate([
+        'imagenes.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
+    ]);
+    
+    $origen = 'SAFIN_APP';
+    $id_img = DB::table('inv_imagenes')->max('id_img') + 1;
+    $paths = [];
 
-        $userFolder = "customers/" . $request->user()->nombre_cliente . "/images/inventario/" . $etiqueta . "/" . now()->format('Y-m-d');
+    foreach ($request->file('imagenes') as $index => $file) {
+        $filename = '9999_' . $etiqueta . '_' . $index . '.jpg';
 
-        if (!Storage::exists($userFolder)) {
-            Storage::makeDirectory($userFolder);
-        }
+        $path = $file->storeAs(
+            PictureSafinService::getImgSubdir($request->user()->nombre_cliente),
+            $filename,
+            'taxoImages'
+        );
 
-        $paths = [];
-        $id_img = DB::table('inv_imagenes')->max('id_img') + 1;
-        foreach ($request->file('imagenes') as $file) {
-            $imageName = $etiqueta . '_' . uniqid();
-            $path = $this->imageService->optimizeImageinv($file, $userFolder, $imageName);
+        $url = Storage::disk('taxoImages')->url($path);
+        $url_pict = dirname($url) . '/';
 
-            $fullUrl = asset('storage/' . $path);
+        $img = new Inv_imagenes();
+        $img->etiqueta = $etiqueta;
+        $img->id_img = $id_img;
+        $img->origen = $origen;
+        $img->picture = $filename;
+        $img->created_at = now();
+        $img->url_imagen =  $url;
+        $img->url_picture = $url_pict;
+        $img->save();
 
-            $img = new Inv_imagenes();
-            $img->etiqueta = $etiqueta;
-            $img->id_img = $id_img;
-            $img->url_imagen = $fullUrl;
-            $img->save();
-
-            $paths[] = [
-                'path' => $path,
-                'url'  => $fullUrl,
-            ];
-        }
-
-        return response()->json([
-            'status'    => 'OK',
-            'paths'     => $paths,
-            'folderUrl' => asset('storage/' . $userFolder),
-            'id_img'    => $id_img
-        ], 201);
+        $paths[] = [
+            'url' => $url_pict,
+            'filename' => $filename
+        ];
     }
+
+    return response()->json([
+        'status'    => 'OK',
+        'paths'     => $paths,
+        'folderUrl' => $url_pict,
+        'id_img'    => $id_img - 1
+    ], 201);
+}
     public function showData($id_inventario, $id_ciclo)
     {
         $sql = "
@@ -413,7 +457,7 @@ public function createinventario(Request $request)
 
 
 
-        $userFolder = "customers/" . $request->user()->nombre_cliente . "/images/inventario/temp/";
+     $userFolder = "customers/" . $request->user()->nombre_cliente . "/images/inventario/temp/";
 
 
         $zip = new \ZipArchive;
@@ -525,12 +569,17 @@ public function createinventario(Request $request)
                     $asset->id_img = $newIDImg;
 
                     $asset->save();
-
+                    $origen = 'SAFIN_APP';
+                    $filename = '9999_' . $asset->etiqueta . '_' . uniqid() . '.jpg';
+                    
                     foreach ($imagenes as $img) {
                         DB::table('inv_imagenes')->insert([
                             'id_img'     => $newIDImg,
+                            'origin'     => $origen,
                             'etiqueta'   => $asset->etiqueta,
+                            'picture'    => $filename.'.jpg',
                             'url_imagen' => $img->url_imagen,
+                            'url_picture'   => $img->url_picture,
                             'created_at' => now(),
                             'updated_at' => now(),
                         ]);
@@ -563,35 +612,37 @@ public function createinventario(Request $request)
         }
 
         $paths = [];
+        $origen = 'SAFIN_APP_OFFLINE'; 
 
         foreach ($files as $file) {
 
             if (count($file['etiquetas']) > 0) {
 
 
-
-                $userFolder = "customers/" . $request->user()->nombre_cliente . "/images/inventario/" . $file['etiquetas'][0] . "/" . now()->format('Y-m-d');
-
-                // if (!Storage::exists($userFolder)) {
-                //     Storage::makeDirectory($userFolder);
-                // }
-
-                $path = $this->imageService->optimizeImageinv($file['file'], $userFolder, $file['filename']);
-
-                $paths[] = $path;
-
-                $fullUrl = asset('storage/' . $path);
-
-
-
                 foreach ($file['etiquetas'] as $etiqueta) {
+                
+                $filename = '9999_' . $etiqueta . '.jpg';
+               
+                $path = $file['file']->storeAs(
+                    PictureSafinService::getImgSubdir($request->user()->nombre_cliente),
+                    $filename,
+                    'taxoImages'
+                );
+
+                $url = Storage::disk('taxoImages')->url($path);
+                $url_pict = dirname($url) . '/';
 
                     $img = new Inv_imagenes();
                     $img->etiqueta = $etiqueta;
+                    $img->origen = $origen;
+                    $img->picture = $filename;
                     //ojo si es que existe otro proceso en paralelo
                     $img->id_img = $idsi[$etiqueta];
-                    $img->url_imagen = $fullUrl;
+                    $img->url_imagen = $url;
+                    $img->url_picture = $url_pict;
                     $img->save();
+
+                    $paths[] = $url; 
                 }
             }
         }
@@ -613,7 +664,8 @@ public function createinventario(Request $request)
                 'fails' => count($failed),
                 'saved' => count($saved),
                 'found_files' => count($paths),
-                'failed_tags' => $failed
+                'failed_tags' => $failed,
+                'image_urls' => $paths
             ]
         ]);
     }
