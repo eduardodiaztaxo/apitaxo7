@@ -207,7 +207,7 @@ class LoginController extends Controller
         $oldAccessToken = $user->tokens()->where('token', User::hashToken($request->token))->first();
 
         // Check if the provided access token is valid
-        if (!$oldAccessToken) {
+        if (!$oldAccessToken || $oldAccessToken->expires_at > $refreshToken->expires_at) {
             return response()->json(['message' => 'Invalid access token'], 401);
         }
 
@@ -265,7 +265,7 @@ class LoginController extends Controller
         $expiration = config('sanctum.refresh_expiration', null);
         $expires_at = $expiration ? Carbon::now()->addMinutes($expiration) : null;
 
-        return RefreshToken::create([
+        RefreshToken::create([
             'user_id' => $user->id,
             'token' => RefreshToken::hashToken($refreshTokenString),
             'expires_at' => $expires_at,
