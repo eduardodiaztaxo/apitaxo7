@@ -31,6 +31,7 @@ class EmplazamientoResource extends JsonResource
                 'crud_activos.idIndice',
                 DB::raw("COALESCE(CONCAT(crud_activos_pictures.url_picture, '/', crud_activos_pictures.picture), 'https://api.taxochile.cl/img/notavailable.jpg') AS foto4")
             )
+             ->where('crud_activos.tipoCambio', '<>', 200) //EXCLUIR tipoCambio INVENTARIO
             ->leftJoin(DB::raw('(
             SELECT id_foto, id_activo, url_picture, picture
             FROM crud_activos_pictures
