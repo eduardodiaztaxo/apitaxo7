@@ -95,7 +95,7 @@ class CrudAssetsDumpService implements DumpSQLiteInterface
                 foto1 TEXT,
                 valorCompra REAL NOT NULL,
                 valorFinal TEXT NOT NULL,
-                fechaCompra TEXT NOT NULL,
+                fechaCompra TEXT,
                 vidaUtil TEXT NOT NULL,
                 fechaActivacion TEXT,
                 cantidad TEXT NOT NULL,
