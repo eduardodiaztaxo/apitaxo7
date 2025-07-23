@@ -92,8 +92,9 @@ class CrudActivoController extends Controller
         }
 
 
-        $activos = $cicloObj->activos_with_cats()->get();
-
+        $activos = $cicloObj->activos_with_cats()
+            ->where('tipoCambio', '!=', 200) //Inventario
+            ->get();
 
         return response()->json(CrudActivoResource::collection($activos), 200);
     }
