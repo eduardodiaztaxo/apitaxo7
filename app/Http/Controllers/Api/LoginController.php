@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Auth\RefreshToken;
 use Illuminate\Http\Request;
 
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+
+use Illuminate\Support\Str;
 
 class LoginController extends Controller
 {
@@ -70,13 +73,15 @@ class LoginController extends Controller
                 }
             }
 
-            $expiration = config('sanctum.expiration', null);
-            $expires_at = $expiration ? Carbon::now()->addMinutes($expiration) : null;
-            $token = $request->user()->createToken($request->name, ['*'], $expires_at);
+
+            $token = $this->createAccessToken($request->user());
+
+            $refreshTokenString = $this->createRefreshToken($user);
 
             return response()->json([
                 'id_user' => $user->id,
                 'token' => $token->plainTextToken,
+                'refresh_token' => $refreshTokenString,
                 'expires_at' => $token->accessToken->expires_at,
                 'permissions' => $formattedPermissions,
                 'message' => 'Success'
@@ -150,15 +155,15 @@ class LoginController extends Controller
                 }
             }
 
-            $expiration = config('sanctum.expiration', null);
-            $expires_at = $expiration ? Carbon::now()->addMinutes($expiration) : null;
-            $token = $request->user()->createToken($request->name, ['*'], $expires_at);
-            
-            $name = DB::table('users')
-            ->where('id', $user->id)
-            ->pluck(DB::raw("CONCAT(first_name, ' ', last_name)"))
-            ->first();
 
+            $token = $this->createAccessToken($request->user());
+
+            $name = DB::table('users')
+                ->where('id', $user->id)
+                ->pluck(DB::raw("CONCAT(first_name, ' ', last_name)"))
+                ->first();
+
+            $refreshTokenString = $this->createRefreshToken($user);
 
             return response()->json([
                 'id_user' => $user->id,
@@ -166,6 +171,7 @@ class LoginController extends Controller
                 'User' => $user->name,
                 'email' => $user->email,
                 'token' => $token->plainTextToken,
+                'refresh_token' => $refreshTokenString,
                 'expires_at' => $token->accessToken->expires_at,
                 'permissions' => $formattedPermissions,
                 'message' => 'Success'
@@ -175,6 +181,53 @@ class LoginController extends Controller
         return response()->json([
             'message' => 'Unauthorized'
         ], 401);
+    }
+
+    public function refreshToken(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'refresh_token' => 'required',
+        ]);
+
+        $hashedToken = RefreshToken::hashToken($$request->refresh_token);
+
+        $refreshToken = RefreshToken::where('token', $hashedToken)->first();
+
+        if (!$refreshToken || $refreshToken->isExpired()) {
+            return response()->json(['message' => 'Invalid or expired refresh token'], 401);
+        }
+
+        $user = $refreshToken->user;
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $oldAccessToken = $user->tokens()->where('token', User::hashToken($request->token))->first();
+
+        // Check if the provided access token is valid
+        if (!$oldAccessToken) {
+            return response()->json(['message' => 'Invalid access token'], 401);
+        }
+
+        // Revoke old refresh token
+        $refreshToken->delete();
+        // Revoke old access token
+        $oldAccessToken->delete();
+
+        // Issue new access + refresh tokens
+        $accessToken = $this->createAccessToken($user);
+
+
+        $newRefreshTokenString = $this->createRefreshToken($user);
+
+        return response()->json([
+            'status' => 'OK',
+            'message' => 'Tokens refreshed successfully',
+            'access_token' => $accessToken->plainTextToken,
+            'refresh_token' => $newRefreshTokenString,
+        ]);
     }
 
     public function validateLogin(Request $request)
@@ -194,6 +247,31 @@ class LoginController extends Controller
             'password' => 'required',
             'name' => 'required'
         ]);
+    }
+
+    private function createAccessToken(User $user)
+    {
+        // Access Token (short-lived)
+        $expiration = config('sanctum.expiration', null);
+        $expires_at = $expiration ? Carbon::now()->addMinutes($expiration) : null;
+        return $user->createToken('access_token', ['*'], $expires_at);
+    }
+
+    private function createRefreshToken(User $user)
+    {
+        // Refresh Token (long-lived)
+        $refreshTokenString = Str::random(64);
+
+        $expiration = config('sanctum.refresh_expiration', null);
+        $expires_at = $expiration ? Carbon::now()->addMinutes($expiration) : null;
+
+        return RefreshToken::create([
+            'user_id' => $user->id,
+            'token' => RefreshToken::hashToken($refreshTokenString),
+            'expires_at' => $expires_at,
+        ]);
+
+        return $refreshTokenString;
     }
 
     public function makePassword(Request $request)

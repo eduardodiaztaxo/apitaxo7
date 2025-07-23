@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1\Maps;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Maps\MapMarkerAssetResource;
 use App\Http\Resources\V1\Maps\MapPolygonalAreaResource;
 use App\Models\Maps\MapPolygonalArea;
 use Illuminate\Http\Request;
@@ -174,7 +175,7 @@ class MapPolygonController extends Controller
 
         $mapArea->update($mapAreaArr);
 
-        return response()->json(MapPolygonalAreaResource::make($mapAreaArr), 200);
+        return response()->json(MapPolygonalAreaResource::make($mapArea), 200);
     }
 
     /**
@@ -189,5 +190,18 @@ class MapPolygonController extends Controller
         return MapPolygonalArea::find($id)->delete() ?
             response()->json(['message' => 'Map area deleted successfully'], 200) :
             response()->json(['error' => 'Map area not found'], 404);
+    }
+
+    public function showMarkers($id)
+    {
+        $mapArea = MapPolygonalArea::find($id);
+
+        if (!$mapArea) {
+            return response()->json(['error' => 'Map area not found'], 404);
+        }
+
+        $markers = $mapArea->markers();
+
+        return response()->json(MapMarkerAssetResource::collection($markers), 200);
     }
 }
