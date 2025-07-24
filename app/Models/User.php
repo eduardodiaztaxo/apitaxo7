@@ -63,15 +63,22 @@ class User extends Authenticatable
     public function createToken(string $name, array $abilities = ['*'], DateTimeInterface $expiresAt = null)
     {
 
+        $plainTextToken = Str::random(40);
         $token = $this->tokens()->create([
             'name' => $name,
-            'token' => hash('sha256', $plainTextToken = Str::random(40)),
+            'token' => self::hashToken($plainTextToken),
             'abilities' => $abilities,
             'expires_at' => $expiresAt,
         ]);
 
         return new NewAccessToken($token, $token->getKey() . '|' . $plainTextToken);
     }
+
+    public static function hashToken($plainTextToken)
+    {
+        return hash('sha256', $plainTextToken);
+    }
+
     public function role()
     {
         return $this->belongsTo(Role::class);

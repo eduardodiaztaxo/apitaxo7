@@ -21,6 +21,8 @@ use App\Http\Controllers\Api\V1\ZonaController;
 use App\Http\Controllers\Api\V1\ZonaEmplazamientosController;
 use App\Http\Controllers\Api\V1\ZonasActivosController;
 use App\Http\Controllers\Api\V1\InventariosController;
+use App\Http\Controllers\Api\V1\Maps\MapMarkerController;
+use App\Http\Controllers\Api\V1\Maps\MapPolygonController;
 use App\Http\Controllers\Api\V1\Responsible\AssignResponsibleController;
 use App\Http\Controllers\Api\V1\ResponsibleController;
 use App\Http\Controllers\Api\V1\UbicacionesActivosController;
@@ -41,6 +43,8 @@ use App\Http\Controllers\Api\V1\UbicacionesActivosController;
 // });
 
 Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(function () {
+
+    Route::get('pin', [App\Http\Controllers\Api\LoginController::class, 'pin']);
 
 
     Route::get('test/connection', [TestConnectionController::class, 'pin']);
@@ -229,7 +233,12 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::post('auditorias/reset-conteo-punto', [InventarioConteoController::class, 'resetConteoByAddress']);
 
-    //
+    //Maps
+    Route::apiResource('maps/areas', MapPolygonController::class)->only(['index', 'store', 'update', 'destroy']);
+
+    Route::apiResource('maps/markers', MapMarkerController::class)->only(['index', 'store', 'update', 'destroy']);
+
+    Route::get('maps/areas/{id}/areas', [MapPolygonController::class, 'showMarkers'])->name('maps.areas.show');
 });
 
 
@@ -262,6 +271,11 @@ Route::post('login', [
 Route::post('login-by-user', [
     App\Http\Controllers\Api\LoginController::class,
     'loginByUser'
+]);
+
+Route::post('refresh-token', [
+    App\Http\Controllers\Api\LoginController::class,
+    'refreshToken'
 ]);
 
 Route::post('recovery', [
