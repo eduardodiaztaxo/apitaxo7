@@ -44,6 +44,8 @@ use App\Http\Controllers\Api\V1\UbicacionesActivosController;
 
 Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(function () {
 
+    Route::get('pin', [App\Http\Controllers\Api\LoginController::class, 'pin']);
+
 
     Route::get('test/connection', [TestConnectionController::class, 'pin']);
 

@@ -76,12 +76,13 @@ class LoginController extends Controller
 
             $token = $this->createAccessToken($request->user());
 
-            $refreshTokenString = $this->createRefreshToken($user);
+            $refreshToken = $this->createRefreshToken($user);
 
             return response()->json([
                 'id_user' => $user->id,
                 'token' => $token->plainTextToken,
-                'refresh_token' => $refreshTokenString,
+                'refresh_token' => $refreshToken['rt_string'],
+                'refresh_expires_at' => $refreshToken['rt_model']->expires_at,
                 'expires_at' => $token->accessToken->expires_at,
                 'permissions' => $formattedPermissions,
                 'message' => 'Success'
@@ -163,7 +164,7 @@ class LoginController extends Controller
                 ->pluck(DB::raw("CONCAT(first_name, ' ', last_name)"))
                 ->first();
 
-            $refreshTokenString = $this->createRefreshToken($user);
+            $refreshToken = $this->createRefreshToken($user);
 
             return response()->json([
                 'id_user' => $user->id,
@@ -171,7 +172,8 @@ class LoginController extends Controller
                 'User' => $user->name,
                 'email' => $user->email,
                 'token' => $token->plainTextToken,
-                'refresh_token' => $refreshTokenString,
+                'refresh_token' => $refreshToken['rt_string'],
+                'refresh_expires_at' => $refreshToken['rt_model']->expires_at,
                 'expires_at' => $token->accessToken->expires_at,
                 'permissions' => $formattedPermissions,
                 'message' => 'Success'
@@ -190,7 +192,7 @@ class LoginController extends Controller
             'refresh_token' => 'required',
         ]);
 
-        $hashedToken = RefreshToken::hashToken($$request->refresh_token);
+        $hashedToken = RefreshToken::hashToken($request->refresh_token);
 
         $refreshToken = RefreshToken::where('token', $hashedToken)->first();
 
@@ -204,7 +206,15 @@ class LoginController extends Controller
             return response()->json(['message' => 'User not found'], 404);
         }
 
-        $oldAccessToken = $user->tokens()->where('token', User::hashToken($request->token))->first();
+        $secondPart = explode('|', $request->token);
+        if (count($secondPart) !== 2) {
+            return response()->json(['message' => 'Invalid access token format'], 401);
+        }
+        // Validate the access token
+        $tokenId = $secondPart[0];
+        $tokenText = $secondPart[1];
+
+        $oldAccessToken = $user->tokens()->where('token', User::hashToken($tokenText))->first();
 
         // Check if the provided access token is valid
         if (!$oldAccessToken || $oldAccessToken->expires_at > $refreshToken->expires_at) {
@@ -227,6 +237,7 @@ class LoginController extends Controller
             'message' => 'Tokens refreshed successfully',
             'access_token' => $accessToken->plainTextToken,
             'refresh_token' => $newRefreshTokenString,
+            'expires_at' => $accessToken->accessToken->expires_at,
         ]);
     }
 
@@ -265,13 +276,16 @@ class LoginController extends Controller
         $expiration = config('sanctum.refresh_expiration', null);
         $expires_at = $expiration ? Carbon::now()->addMinutes($expiration) : null;
 
-        RefreshToken::create([
+        $rt = RefreshToken::create([
             'user_id' => $user->id,
             'token' => RefreshToken::hashToken($refreshTokenString),
             'expires_at' => $expires_at,
         ]);
 
-        return $refreshTokenString;
+        return [
+            'rt_model' => $rt,
+            'rt_string' => $refreshTokenString
+        ];
     }
 
     public function makePassword(Request $request)
@@ -297,6 +311,15 @@ class LoginController extends Controller
             'status' => 'OK',
             'message' => 'Logged out successfully',
 
+        ], 200);
+    }
+
+    public function pin(Request $request)
+    {
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Connected and Authorized!'
         ], 200);
     }
 }
