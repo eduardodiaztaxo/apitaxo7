@@ -29,6 +29,7 @@ class InventariosResource extends JsonResource
                 'estado',
                 'responsable',
                 'idUbicacionN2',
+                'idUbicacionN3',
                 'update_inv',
                 'id_img'
             )
@@ -66,7 +67,10 @@ class InventariosResource extends JsonResource
             ->select('descripcionUbicacion', 'codigoUbicacion', 'idAgenda')
             ->first();
         if (!$subEmplazamiento) {
-            return [];
+            $subEmplazamiento = DB::table('ubicaciones_n3')
+            ->where('idUbicacionN3', $activo->idUbicacionN3)
+            ->select('descripcionUbicacion', 'codigoUbicacion', 'idAgenda')
+            ->first();
         }
     
         $codigoUbicacionN1 = substr($subEmplazamiento->codigoUbicacion, 0, 2);

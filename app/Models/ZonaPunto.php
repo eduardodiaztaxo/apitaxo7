@@ -150,4 +150,7 @@ class ZonaPunto extends Model
     {
         return $this->hasMany(Emplazamiento::class, 'idAgenda', 'idAgenda')->where('codigoUbicacion', 'LIKE', $this->codigoUbicacion . '%');
     }
+
+
+    
 }

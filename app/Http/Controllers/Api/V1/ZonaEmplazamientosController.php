@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\EmplazamientoResource;
+use App\Http\Resources\V1\EmplazamientoNivel3Resource;
 use App\Models\InvCiclo;
 use App\Models\ZonaPunto;
+use App\Models\EmplazamientoN3;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ZonaEmplazamientosController extends Controller
 {
@@ -102,6 +105,38 @@ class ZonaEmplazamientosController extends Controller
     }
 
 
+ public function CycleCatsNivel3(Request $request, int $ciclo, int $zona, int $id)
+    {
+    $zonaObj = EmplazamientoN3::find($id);
+
+        if (!$zonaObj) {
+            return response()->json(['status' => 'NOK', 'message' => 'Zona no encontrada', 'code' => 404], 404);
+        }
+
+
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json(['status' => 'NOK', 'message' => 'Ciclo no encontrado', 'code' => 404], 404);
+        }
+
+
+       $emplaCats = $cicloObj->zoneSubEmplazamientosWithCats($zonaObj)->pluck('idUbicacionN3')->toArray();
+
+
+        if (empty($emplaCats)) {
+            $emplazamientos = $zonaObj->subemplazamientosNivel3()->get();
+        } else {
+            $emplazamientos = $zonaObj->subemplazamientosNivel3()->whereIn('idUbicacionN3', $emplaCats)->get();
+        }
+
+        foreach ($emplazamientos as $emplazamiento) {
+            $emplazamiento->cycle_id = $ciclo;
+        }
+
+
+        return response()->json(EmplazamientoNivel3Resource::collection($emplazamientos), 200);
+    }
     public function showAllEmplaByCycleCats(Request $request, int $ciclo)
     {
 

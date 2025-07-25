@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\JoinClause;
 use App\Models\Inventario;
+use App\Models\EmplazamientoN3;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Model;
+
 
 class InvCiclo extends Model
 {
@@ -79,6 +81,52 @@ class InvCiclo extends Model
             AND inv_ciclos_categorias.id_familia = crud_activos.id_familia
         WHERE inv_ciclos.idCiclo = ? AND crud_activos.ubicacionGeografica = ? AND crud_activos.ubicacionOrganicaN1 = ?
         GROUP BY ubicaciones_n2.idUbicacionN2, crud_activos.ubicacionGeografica, crud_activos.ubicacionOrganicaN2 ";
+
+        return collect(DB::select($sql, [$this->idCiclo, $zona->idAgenda, $zona->codigoUbicacion]));
+    }
+
+
+        public function zoneSubEmplazamientosWithCats(EmplazamientoN3 $zona)
+    {
+        $sql = "
+        SELECT 
+        ubicaciones_n3.idUbicacionN3 AS idUbicacionN3,
+        crud_activos.ubicacionGeografica AS punto,
+        crud_activos.ubicacionOrganicaN3 AS emplazamiento
+    FROM inv_ciclos
+    INNER JOIN inv_ciclos_puntos 
+        ON inv_ciclos.idCiclo = inv_ciclos_puntos.idCiclo
+
+    INNER JOIN ubicaciones_n1 
+        ON inv_ciclos_puntos.idPunto = ubicaciones_n1.idAgenda
+
+    INNER JOIN ubicaciones_n3 
+        ON ubicaciones_n1.idAgenda = ubicaciones_n3.idAgenda 
+        AND ubicaciones_n1.codigoUbicacion = LEFT(ubicaciones_n3.codigoUbicacion, 2)
+
+    -- Aquí agregamos la unión con ubicaciones_n2
+    INNER JOIN ubicaciones_n2 
+        ON ubicaciones_n2.idUbicacionN2 = ubicaciones_n3.idUbicacionN3
+
+    INNER JOIN inv_ciclos_categorias 
+        ON inv_ciclos.idCiclo = inv_ciclos_categorias.idCiclo
+
+    INNER JOIN crud_activos 
+        ON inv_ciclos_puntos.idPunto = crud_activos.ubicacionGeografica
+        AND ubicaciones_n2.codigoUbicacion = crud_activos.ubicacionOrganicaN2
+        AND ubicaciones_n3.codigoUbicacion = crud_activos.ubicacionOrganicaN3
+        AND inv_ciclos_categorias.id_familia = crud_activos.id_familia
+
+    WHERE inv_ciclos.idCiclo = ?
+    AND crud_activos.ubicacionGeografica = ?
+    AND crud_activos.ubicacionOrganicaN3 = ?
+    AND crud_activos.ubicacionOrganicaN3 IS NOT NULL
+
+    GROUP BY 
+        ubicaciones_n3.idUbicacionN3, 
+        crud_activos.ubicacionGeografica, 
+        crud_activos.ubicacionOrganicaN3;
+    ";
 
         return collect(DB::select($sql, [$this->idCiclo, $zona->idAgenda, $zona->codigoUbicacion]));
     }

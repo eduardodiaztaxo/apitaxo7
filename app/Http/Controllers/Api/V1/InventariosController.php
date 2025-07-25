@@ -62,6 +62,11 @@ public function createinventario(Request $request)
 
        $existeEtiqueta = false;
 
+    $Nivel3 = DB::table('ubicaciones_n3')->where('codigoUbicacion', $request->codigoUbicacion)->value('idUbicacionN3');
+
+   if ($Nivel3 != null) {
+        return $this->createinventarioNivel3($request, $Nivel3);
+    }
 
     $etiquetaInventario = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta)->value('etiqueta');
     $etiquetaUnicaCrudActivo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta)->value('etiqueta');
@@ -172,6 +177,117 @@ public function createinventario(Request $request)
         return response()->json($inventario, 201);
     }
 
+  public function  createinventarioNivel3 (Request $request, $Nivel3)
+    {
+        $request->validate([
+            'id_grupo'              => 'required|string',
+            'id_familia'            => 'required|string',
+            'etiqueta'              => 'required|string',
+            'id_ciclo'              => 'required|exists:inv_ciclos,idCiclo',
+            'codigoUbicacion'       => 'required',
+        ]);
+
+       $existeEtiqueta = false;
+
+    $etiquetaInventario = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta)->value('etiqueta');
+    $etiquetaUnicaCrudActivo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta)->value('etiqueta');
+
+    if ($etiquetaInventario || $etiquetaUnicaCrudActivo) {
+        $existeEtiqueta = true;
+    }
+
+    if (!empty($request->etiqueta_padre)) {
+        $etiquetaInventarioHijo = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
+        $etiquetaCrudActivoHijo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
+
+        if ($etiquetaInventarioHijo || $etiquetaCrudActivoHijo) {
+            $existeEtiqueta = true;
+        }
+    }
+
+    if ($existeEtiqueta) {
+        return response('La etiqueta ya existe', 400);
+    }
+
+
+        
+    $idUbicacionN3 = $Nivel3;
+    $idUbicacionGeo = DB::table('ubicaciones_n3')
+            ->where('idUbicacionN3',  $idUbicacionN3 )
+            ->value('idAgenda');
+
+        if ($request->cloneFichaDetalle == "true") {
+            $imagenes = DB::table('inv_imagenes')
+                ->where('id_img', $request->id_img_clone)
+                ->get();
+
+            $url_img = DB::table('inv_imagenes')->max('id_img') + 1;
+            $origen = 'SAFIN_APP';
+            $filename = '9999_' . $request->etiqueta;
+
+            foreach ($imagenes as $img) {
+                DB::table('inv_imagenes')->insert([
+                    'id_img'     => $url_img,
+                    'etiqueta'   => $request->etiqueta,
+                    'origen'     => $origen,
+                    'picture'    => $filename.'.jpg',
+                    'url_imagen' => $img->url_imagen,
+                    'url_picture' => $img->url_picture,
+                    'created_at' => now()
+                ]);
+            }
+        } else {
+
+            $id_img = DB::table('inv_imagenes')
+                ->where('etiqueta', $request->etiqueta)
+                ->orderBy('id_img', 'desc')
+                ->value('id_img');
+            $url_img = $id_img ?? null;
+        }
+
+        if (intval($request->padre) === 1) {
+            $etiquetaPadre = $request->etiqueta;
+        }elseif (intval($request->padre) === 2) {
+            $etiquetaPadre = $request->etiqueta_padre;
+        }
+
+        $inventario = new Inventario();
+        $inventario->id_grupo            = $request->id_grupo;
+        $inventario->id_familia          = $request->id_familia;
+        $inventario->descripcion_bien    = $request->descripcion_bien;
+        $inventario->id_bien             = intval($request->id_bien ?? null);
+        $inventario->descripcion_marca   = $request->descripcion_marca ?? 'null';
+        $inventario->id_marca            = intval($request->id_marca ?? null);
+        $inventario->idForma             = intval($request->idForma ?? null);
+        $inventario->idMaterial          = intval($request->idMaterial ?? null);
+        $inventario->etiqueta            = $request->etiqueta;
+        $inventario->modelo              = $request->modelo ?? 'null';
+        $inventario->serie               = $request->serie ?? 'null';
+        $inventario->latitud             = $request->latitud ?? null;
+        $inventario->longitud            = $request->longitud ?? null;
+        $inventario->capacidad           = intval($request->capacidad ?? null);
+        $inventario->estado              = intval($request->estado ?? null);
+        $inventario->color               = intval($request->color ?? null);
+        $inventario->tipo_trabajo        = intval($request->tipo_trabajo ?? null);
+        $inventario->carga_trabajo       = intval($request->carga_trabajo ?? null);
+        $inventario->estado_operacional  = intval($request->estado_operacional ?? null);
+        $inventario->estado_conservacion = intval($request->estado_conservacion ?? null);
+        $inventario->condicion_ambiental = intval($request->condicion_ambiental ?? null);
+        $inventario->cantidad_img        = $request->cantidad_img;
+        $inventario->id_img              = $url_img;
+        $inventario->id_ciclo            = $request->id_ciclo;
+        $inventario->idUbicacionGeo      = $idUbicacionGeo;
+        $inventario->idUbicacionN2       = 0;
+        $inventario->codigoUbicacion_N1  = 0;
+        $inventario->idUbicacionN3       = $idUbicacionN3;
+        $inventario->codigoUbicacionN3   = $request->codigoUbicacion ?? 0;
+        $inventario->responsable         = $this->getNombre();
+        $inventario->idResponsable       = $this->getIdResponsable();
+        $inventario->etiqueta_padre      = $etiquetaPadre ?? 'Sin Padre';
+        $inventario->save();
+
+        return response()->json($inventario, 201);
+    }
 
    public function updateinventario(Request $request)
 {
@@ -527,8 +643,6 @@ public function createinventario(Request $request)
                 $customkey++;
             }
         }
-
-
 
         $failed = [];
         $saved = [];

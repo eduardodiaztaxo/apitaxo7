@@ -10,7 +10,7 @@ use App\Models\Inv_ciclos_categorias;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
 
-class EmplazamientoResource extends JsonResource
+class EmplazamientoNivel3Resource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -46,7 +46,7 @@ class EmplazamientoResource extends JsonResource
         $activosInventario = DB::table('inv_inventario')
             ->leftJoin('categoria_n3', 'inv_inventario.id_familia', '=', 'categoria_n3.id_familia')
             ->leftJoin('inv_imagenes', 'inv_inventario.id_img', '=', 'inv_imagenes.id_img')
-            ->where('inv_inventario.idUbicacionN2', $this->idUbicacionN2)
+            ->where('inv_inventario.codigoUbicacionN3', $this->codigoUbicacion)
             ->where('inv_inventario.id_ciclo', $this->cycle_id)
             ->select(
                 'inv_inventario.id_ciclo',
@@ -59,7 +59,7 @@ class EmplazamientoResource extends JsonResource
                 'inv_inventario.modelo',
                 'inv_inventario.serie',
                 'inv_inventario.descripcion_marca',
-                'inv_inventario.idUbicacionN2',
+                'inv_inventario.idUbicacionN3',
                 'inv_inventario.update_inv',
                 'categoria_n3.descripcionCategoria',
                 DB::raw('MIN(inv_imagenes.url_imagen) as url_imagen')
@@ -75,7 +75,7 @@ class EmplazamientoResource extends JsonResource
                 'inv_inventario.modelo',
                 'inv_inventario.serie',
                 'inv_inventario.descripcion_marca',
-                'inv_inventario.idUbicacionN2',
+                'inv_inventario.idUbicacionN3',
                 'inv_inventario.update_inv',
                 'categoria_n3.descripcionCategoria'
             )
@@ -117,7 +117,7 @@ class EmplazamientoResource extends JsonResource
                 'modelo' => $activo->modelo ?? '',
                 'serie' => $activo->serie ?? '',
                 'marca' => $activo->descripcion_marca ?? null,
-                'ubicacionOrganicaN2' => $activo->idUbicacionN2,
+                'ubicacionOrganicaN2' => $activo->idUbicacionN3,
                 'update_inv' => $activo->update_inv,
                 'categoria' => null,
                 'familia' => null,
@@ -127,25 +127,22 @@ class EmplazamientoResource extends JsonResource
             ];
         });
 
-        $habilitadoNivel3 = DB::table('inv_ciclos')
-        ->where('idCiclo', $this->cycle_id)
-        ->value('Nivel3');
-
+    
         $emplazamiento = [
-            'id' => $this->idUbicacionN2,
+            'id' => $this->idUbicacionN3,
             'codigo' => $this->codigo,
             'codigoUbicacion' => $this->codigoUbicacion,
             'nombre' => $this->descripcionUbicacion,
             'idAgenda' => $this->idAgenda,
-            'idUbicacionN2' => $this->idUbicacionN2,
-            'habilitadoNivel3' => $habilitadoNivel3,
+            'idUbicacionN2' => $this->idUbicacionN3,
             'num_activos' => 0,
+            'habilitadoNivel3' => 0,
             'num_activos_inv' => $activosInventario->count(),
             'num_activos_cats_by_cycle' => 0,
             'ciclo_auditoria' => $this->ciclo_auditoria,
             'num_categorias' => $this->activos()->select('categoriaN3')->groupBy('categoriaN3')->get()->count(),
             'id_ciclo' => $this->cycle_id,
-            'zone_address' => ZonaPuntoResource::make($this->zonaPunto()->first())
+            'zone_address' => ZonaPuntoResource::make($this->zonaPunto())
         ];
 
         if (isset($this->requirePunto) && $this->requirePunto) {

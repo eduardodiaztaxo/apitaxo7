@@ -167,6 +167,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('ciclos/{ciclo}/zones/{zona}/emplazamientos', [ZonaEmplazamientosController::class, 'showByCycleCats']);
 
+    Route::get('ciclos/{ciclo}/zones/{zona}/Subemplazamientos/{id}', [ZonaEmplazamientosController::class, 'CycleCatsNivel3']);
+
     Route::get('ciclos/{ciclo}/emplazamientos', [ZonaEmplazamientosController::class, 'showAllEmplaByCycleCats']);
 
     Route::get('ciclos/{ciclo}/zones/{zona}', [ZonaController::class, 'showByCycleCats']);
@@ -200,6 +202,10 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::post('emplazamientos/create', [EmplazamientoController::class, 'create']);
 
     Route::post('emplazamientos', [EmplazamientoController::class, 'store']);
+
+    Route::post('Subemplazamientos', [EmplazamientoController::class, 'createSubEmplazamientos']);
+
+    Route::get('emplazamientosN3/{codigoUbicacionN3}', [EmplazamientoController::class, 'showN3']);
 
     Route::get('ciclos/{ciclo}/emplazamientos/{emplazamiento}', [CiclosEmplazamientosController::class, 'show']);
 
