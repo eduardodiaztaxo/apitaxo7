@@ -144,6 +144,55 @@ public function createSubEmplazamientos(Request $request)
     ]);
 }
 
+public function createSubEmplazamientosNivel3(Request $request)
+{
+    $request->validate([
+        'descripcion'      => 'required|string',
+        'agenda_id'        => 'required|exists:ubicaciones_n3,idAgenda',
+        'codigoUbicacion'  => 'required|exists:ubicaciones_n3,codigoUbicacion'
+    ]);
+
+    $baseCodigo = $request->codigoUbicacion; 
+
+    $subCodigos = DB::table('ubicaciones_n4')
+        ->where('codigoUbicacion', 'like', $baseCodigo . '%')
+        ->pluck('codigoUbicacion');
+
+    $maxSecuencia = $subCodigos
+        ->map(function ($codigo) use ($baseCodigo) {
+            return intval(substr($codigo, strlen($baseCodigo), 2));
+        })
+        ->max();
+
+    $nuevoSufijo = str_pad(($maxSecuencia + 1), 2, '0', STR_PAD_LEFT); 
+    $nuevoCodigoUbicacionN3 = $baseCodigo . $nuevoSufijo;
+
+    $data = [
+        'idAgenda'             => $request->agenda_id,
+        'descripcionUbicacion' => $request->descripcion,
+        'codigoUbicacion'      => $nuevoCodigoUbicacionN3,
+        'usuario'              => $request->user()->name,
+        'estado'               => 1,
+        'newApp'               => 1
+    ];
+
+    $empla = EmplazamientoN3::create($data);
+
+    if (!$empla) {
+        return response()->json([
+            'status'  => 'error',
+            'message' => 'No se pudo crear el emplazamiento'
+        ], 422);
+    }
+
+    return response()->json([
+        'status'  => 'OK',
+        'message' => 'Creado exitosamente',
+        'data'    => $empla
+    ]);
+}
+
+
 
     /**
      * check if exists emplazamiento.
