@@ -37,6 +37,11 @@ class Inventario extends Model
         'estado_operacional',
         'estado_conservacion',
         'condicion_Ambiental',
+        /** edualejandro */
+        'eficiencia',
+        'texto_abierto_1',
+        'texto_abierto_2',
+        /** edualejandro */
         'cantidad_img',
         'id_img',
         'id_ciclo',
