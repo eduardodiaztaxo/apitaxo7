@@ -62,10 +62,10 @@ class InventariosController extends Controller
 
         $existeEtiqueta = false;
 
-        $Nivel3 = DB::table('ubicaciones_n3')->where('codigoUbicacion', $request->codigoUbicacion)->value('idUbicacionN3');
+        $Nivel4 = DB::table('ubicaciones_n4')->where('codigoUbicacion', $request->codigoUbicacion)->value('idUbicacionN4');
 
-        if ($Nivel3 != null) {
-            return $this->createinventarioNivel3($request, $Nivel3);
+        if ($Nivel4 != null) {
+            return $this->createinventarioNivel3($request, $Nivel4);
         }
 
         $etiquetaInventario = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta)->value('etiqueta');
@@ -145,30 +145,33 @@ class InventariosController extends Controller
         $inventario->id_grupo            = $request->id_grupo;
         $inventario->id_familia          = $request->id_familia;
         $inventario->descripcion_bien    = $request->descripcion_bien;
-        $inventario->id_bien             = intval($request->id_bien ?? null);
-        $inventario->descripcion_marca   = $request->descripcion_marca ?? 'null';
-        $inventario->id_marca            = intval($request->id_marca ?? null);
-        $inventario->idForma             = intval($request->idForma ?? null);
-        $inventario->idMaterial          = intval($request->idMaterial ?? null);
+        $inventario->id_bien             = intval($request->id_bien ?? 0);
+        $inventario->descripcion_marca   = $request->descripcion_marca ?? '';
+        $inventario->id_marca            = intval($request->id_marca ?? 0);
+        $inventario->idForma             = intval($request->idForma ?? 0);
+        $inventario->idMaterial          = intval($request->idMaterial ?? 0);
         $inventario->etiqueta            = $request->etiqueta;
-        $inventario->modelo              = $request->modelo ?? 'null';
-        $inventario->serie               = $request->serie ?? 'null';
-        $inventario->latitud             = $request->latitud ?? null;
-        $inventario->longitud            = $request->longitud ?? null;
-        $inventario->capacidad           = intval($request->capacidad ?? null);
-        $inventario->estado              = intval($request->estado ?? null);
-        $inventario->color               = intval($request->color ?? null);
-        $inventario->tipo_trabajo        = intval($request->tipo_trabajo ?? null);
-        $inventario->carga_trabajo       = intval($request->carga_trabajo ?? null);
-        $inventario->estado_operacional  = intval($request->estado_operacional ?? null);
-        $inventario->estado_conservacion = intval($request->estado_conservacion ?? null);
-        $inventario->condicion_ambiental = intval($request->condicion_ambiental ?? null);
+        $inventario->modelo              = $request->modelo ?? '';
+        $inventario->serie               = $request->serie ?? '';
+        $inventario->latitud             = $request->latitud ?? 0;
+        $inventario->longitud            = $request->longitud ?? 0;
+        $inventario->capacidad           = intval($request->capacidad ?? 0);
+        $inventario->estado              = intval($request->estado ?? 0);
+        $inventario->color               = intval($request->color ?? 0);
+        $inventario->tipo_trabajo        = intval($request->tipo_trabajo ?? 0);
+        $inventario->carga_trabajo       = intval($request->carga_trabajo ?? 0);
+        $inventario->estado_operacional  = intval($request->estado_operacional ?? 0);
+        $inventario->estado_conservacion = intval($request->estado_conservacion ?? 0);
+        $inventario->condicion_ambiental = intval($request->condicion_ambiental ?? 0);
         $inventario->cantidad_img        = $request->cantidad_img;
         $inventario->id_img              = $url_img;
         $inventario->id_ciclo            = $request->id_ciclo;
         $inventario->idUbicacionGeo      = $idUbicacionGeo;
         $inventario->idUbicacionN2       = $idUbicacionN2;
         $inventario->codigoUbicacion_N1  = $codigoUbicacion_N1;
+        $inventario->idUbicacionN3       = 0;
+        $inventario->codigoUbicacionN4   = 0;
+        $inventario->codigoUbicacionN3   = 0;
         $inventario->responsable         = $this->getNombre();
         $inventario->idResponsable       = $this->getIdResponsable();
         $inventario->etiqueta_padre      = $etiquetaPadre ?? 'Sin Padre';
@@ -182,7 +185,10 @@ class InventariosController extends Controller
         return response()->json($inventario, 201);
     }
 
-    public function  createinventarioNivel3(Request $request, $Nivel3)
+
+
+
+    public function  createinventarioNivel3(Request $request, $Nivel4)
     {
         $request->validate([
             'id_grupo'              => 'required|string',
@@ -215,10 +221,12 @@ class InventariosController extends Controller
         }
 
 
+        $idUbicacionN3 = DB::table('ubicaciones_n3')
+            ->where('codigoUbicacion', '=', substr($request->codigoUbicacion, 0, 6))
+            ->value('idUbicacionN3');
 
-        $idUbicacionN3 = $Nivel3;
-        $idUbicacionGeo = DB::table('ubicaciones_n3')
-            ->where('idUbicacionN3',  $idUbicacionN3)
+        $idUbicacionGeo = DB::table('ubicaciones_n4')
+            ->where('idUbicacionN4',  $Nivel4)
             ->value('idAgenda');
 
         if ($request->cloneFichaDetalle == "true") {
@@ -260,24 +268,24 @@ class InventariosController extends Controller
         $inventario->id_grupo            = $request->id_grupo;
         $inventario->id_familia          = $request->id_familia;
         $inventario->descripcion_bien    = $request->descripcion_bien;
-        $inventario->id_bien             = intval($request->id_bien ?? null);
-        $inventario->descripcion_marca   = $request->descripcion_marca ?? 'null';
-        $inventario->id_marca            = intval($request->id_marca ?? null);
-        $inventario->idForma             = intval($request->idForma ?? null);
-        $inventario->idMaterial          = intval($request->idMaterial ?? null);
+        $inventario->id_bien             = intval($request->id_bien ?? 0);
+        $inventario->descripcion_marca   = $request->descripcion_marca ?? '';
+        $inventario->id_marca            = intval($request->id_marca ?? 0);
+        $inventario->idForma             = intval($request->idForma ?? 0);
+        $inventario->idMaterial          = intval($request->idMaterial ?? 0);
         $inventario->etiqueta            = $request->etiqueta;
-        $inventario->modelo              = $request->modelo ?? 'null';
-        $inventario->serie               = $request->serie ?? 'null';
-        $inventario->latitud             = $request->latitud ?? null;
-        $inventario->longitud            = $request->longitud ?? null;
-        $inventario->capacidad           = intval($request->capacidad ?? null);
-        $inventario->estado              = intval($request->estado ?? null);
-        $inventario->color               = intval($request->color ?? null);
-        $inventario->tipo_trabajo        = intval($request->tipo_trabajo ?? null);
-        $inventario->carga_trabajo       = intval($request->carga_trabajo ?? null);
-        $inventario->estado_operacional  = intval($request->estado_operacional ?? null);
-        $inventario->estado_conservacion = intval($request->estado_conservacion ?? null);
-        $inventario->condicion_ambiental = intval($request->condicion_ambiental ?? null);
+        $inventario->modelo              = $request->modelo ?? '';
+        $inventario->serie               = $request->serie ?? '';
+        $inventario->latitud             = $request->latitud ?? 0;
+        $inventario->longitud            = $request->longitud ?? 0;
+        $inventario->capacidad           = intval($request->capacidad ?? 0);
+        $inventario->estado              = intval($request->estado ?? 0);
+        $inventario->color               = intval($request->color ?? 0);
+        $inventario->tipo_trabajo        = intval($request->tipo_trabajo ?? 0);
+        $inventario->carga_trabajo       = intval($request->carga_trabajo ?? 0);
+        $inventario->estado_operacional  = intval($request->estado_operacional ?? 0);
+        $inventario->estado_conservacion = intval($request->estado_conservacion ?? 0);
+        $inventario->condicion_ambiental = intval($request->condicion_ambiental ?? 0);
         $inventario->cantidad_img        = $request->cantidad_img;
         $inventario->id_img              = $url_img;
         $inventario->id_ciclo            = $request->id_ciclo;
@@ -285,7 +293,8 @@ class InventariosController extends Controller
         $inventario->idUbicacionN2       = 0;
         $inventario->codigoUbicacion_N1  = 0;
         $inventario->idUbicacionN3       = $idUbicacionN3;
-        $inventario->codigoUbicacionN3   = $request->codigoUbicacion ?? 0;
+        $inventario->codigoUbicacionN4   = $request->codigoUbicacion ?? 0;
+        $inventario->codigoUbicacionN3   = substr($request->codigoUbicacion, 0, 6);
         $inventario->responsable         = $this->getNombre();
         $inventario->idResponsable       = $this->getIdResponsable();
         $inventario->etiqueta_padre      = $etiquetaPadre ?? 'Sin Padre';
@@ -298,6 +307,9 @@ class InventariosController extends Controller
 
         return response()->json($inventario, 201);
     }
+
+
+
 
     public function updateinventario(Request $request)
     {

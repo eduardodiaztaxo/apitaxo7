@@ -48,6 +48,8 @@ class Inventario extends Model
         'idUbicacionGeo',
         'idUbicacionN2',
         'codigoUbicacion_N1',
+        'idUbicacionN3',
+        'codigoUbicacionN4',
         'responsable',
         'idResponsable',
         'latitud',
