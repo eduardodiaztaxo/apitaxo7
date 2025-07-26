@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api\V1;
+
 use Illuminate\Http\Request;
 use App\Models\Inventario;
 use App\Models\User;
@@ -21,36 +22,36 @@ class InventariosOfflineController extends Controller
 {
 
 
-    public function __construct()
-    {} 
+    public function __construct() {}
 
-public function inventarioPorCicloOfflineInventario($ciclo){
-    $collection = DB::table('inv_inventario')
-                    ->where('id_ciclo', $ciclo)
-                    ->get();
-                    
+    public function inventarioPorCicloOfflineInventario($ciclo)
+    {
+        $collection = DB::table('inv_inventario')
+            ->where('id_ciclo', $ciclo)
+            ->get();
+
         return response()->json($collection, 200);
-}
-
- public function responsables()
-{
-    $collection = Responsable::paginate(100); 
-    return response()->json($collection, 200);
-}
-
-    
-public function familia(int $ciclo, array $codigo_grupos)
-{
-
-    if (count($codigo_grupos) === 1 && is_string($codigo_grupos[0])) {
-        $codigo_grupos = explode(',', $codigo_grupos[0]);
-        $codigo_grupos = array_map('intval', $codigo_grupos);
     }
-    $resultados = [];
 
-    $placeholders = implode(',', array_fill(0, count($codigo_grupos), '?'));
+    public function responsables()
+    {
+        $collection = Responsable::paginate(100);
+        return response()->json($collection, 200);
+    }
 
-    $sql = "
+
+    public function familia(int $ciclo, array $codigo_grupos)
+    {
+
+        if (count($codigo_grupos) === 1 && is_string($codigo_grupos[0])) {
+            $codigo_grupos = explode(',', $codigo_grupos[0]);
+            $codigo_grupos = array_map('intval', $codigo_grupos);
+        }
+        $resultados = [];
+
+        $placeholders = implode(',', array_fill(0, count($codigo_grupos), '?'));
+
+        $sql = "
         SELECT 
             dp_grupos.descripcion_grupo,
             dp_familias.descripcion_familia,
@@ -68,119 +69,121 @@ public function familia(int $ciclo, array $codigo_grupos)
         ORDER BY dp_grupos.descripcion_grupo, dp_familias.descripcion_familia
     ";
 
-    $params = array_merge([$ciclo], $codigo_grupos);
+        $params = array_merge([$ciclo], $codigo_grupos);
 
-    $idsFamilia = DB::select($sql, $params);
-  
-    foreach ($codigo_grupos as $codigo_grupo) {
-        $ids = collect($idsFamilia)
-                    ->where('id_grupo', $codigo_grupo)
-                    ->pluck('id_familia')
-                    ->unique()
-                    ->values()
-                    ->toArray();
+        $idsFamilia = DB::select($sql, $params);
 
-        $collection = Familia::where('id_grupo', $codigo_grupo)
-                            ->whereIn('id_familia', $ids)
-                            ->get();
+        foreach ($codigo_grupos as $codigo_grupo) {
+            $ids = collect($idsFamilia)
+                ->where('id_grupo', $codigo_grupo)
+                ->pluck('id_familia')
+                ->unique()
+                ->values()
+                ->toArray();
 
-        $resultados = array_merge($resultados, $collection->toArray());
-    }
+            $collection = Familia::where('id_grupo', $codigo_grupo)
+                ->whereIn('id_familia', $ids)
+                ->get();
 
-    return response()->json($resultados, 200);
-}
-
-public function zonasN3($ciclo)
-{
-    // Obtener las zonas N3 relacionadas con el ciclo
-    $n3 = DB::table('ubicaciones_n3 as n3')
-        ->join('inv_ciclos_puntos as p', 'n3.idAgenda', '=', 'p.idPunto')
-        ->where('p.idCiclo', $ciclo)
-        ->select('n3.*', 'p.*') 
-        ->get();
-
-    $result = [];
-
-    foreach ($n3 as $zona) {
-        $num_activos_cats_by_cycleN3 = DB::table('ubicaciones_n3 as n3')
-            ->join('crud_activos as c', 'c.ubicacionOrganicaN3', '=', 'n3.codigoUbicacion')
-            ->where('n3.codigoUbicacion', $zona->codigoUbicacion)
-            ->where('c.tipoCambio', '!=', 700)
-            ->count();
-
-        $num_activos_invN3 = DB::table('ubicaciones_n3 as n3')
-            ->join('inv_inventario as inv', 'inv.codigoUbicacionN3', '=', 'n3.codigoUbicacion')
-            ->where('n3.codigoUbicacion', $zona->codigoUbicacion)
-            ->count();
-
-        $zona->num_activos_invN3 = $num_activos_invN3;
-        $zona->num_activos_cats_by_cycleN3 = $num_activos_cats_by_cycleN3;
-
-        $result[] = $zona;
-    }
-    return response()->json($result, 200);
-}
-
-
-
-  public function CycleCatsNivel3( $ciclo)
-{
-   $zonaObjs = EmplazamientoN4::all(); 
-
-    if ($zonaObjs->isEmpty()) {
-        return response()->json([
-            'status' => 'NOK',
-            'message' => 'Zona no encontrada',
-            'codigoZona' => $zona,
-            'code' => 404
-        ], 404);
-    }
-
-    $cicloObj = InvCiclo::find($ciclo);
-
-    if (!$cicloObj) {
-        return response()->json([
-            'status' => 'NOK',
-            'message' => 'Ciclo no encontrado',
-            'code' => 404
-        ], 404);
-    }
-
-    $emplazamientos = collect();
-
-    foreach ($zonaObjs as $zonaObj) {
-        $emplaCats = $cicloObj->zoneSubEmplazamientosWithCats($zonaObj)->pluck('idUbicacionN4')->toArray();
-
-        $subEmplas = empty($emplaCats)
-            ? $zonaObj->subemplazamientosNivel3()->get()
-            : $zonaObj->subemplazamientosNivel3()->whereIn('idUbicacionN4', $emplaCats)->get();
-
-        foreach ($subEmplas as $sub) {
-            $sub->cycle_id = $ciclo;
-            $emplazamientos->push($sub);
+            $resultados = array_merge($resultados, $collection->toArray());
         }
+
+        return response()->json($resultados, 200);
     }
 
-    return response()->json(EmplazamientoNivel3Resource::collection($emplazamientos), 200);
-}
+
+
+    public function zonasN3($ciclo)
+    {
+        // Obtener las zonas N3 relacionadas con el ciclo
+        $n3 = DB::table('ubicaciones_n3 as n3')
+            ->join('inv_ciclos_puntos as p', 'n3.idAgenda', '=', 'p.idPunto')
+            ->where('p.idCiclo', $ciclo)
+            ->select('n3.*', 'p.*')
+            ->get();
+
+        $result = [];
+
+        foreach ($n3 as $zona) {
+            $num_activos_cats_by_cycleN3 = DB::table('ubicaciones_n3 as n3')
+                ->join('crud_activos as c', 'c.ubicacionOrganicaN3', '=', 'n3.codigoUbicacion')
+                ->where('n3.codigoUbicacion', $zona->codigoUbicacion)
+                ->where('c.tipoCambio', '!=', 700)
+                ->count();
+
+            $num_activos_invN3 = DB::table('ubicaciones_n3 as n3')
+                ->join('inv_inventario as inv', 'inv.codigoUbicacionN3', '=', 'n3.codigoUbicacion')
+                ->where('n3.codigoUbicacion', $zona->codigoUbicacion)
+                ->count();
+
+            $zona->num_activos_invN3 = $num_activos_invN3;
+            $zona->num_activos_cats_by_cycleN3 = $num_activos_cats_by_cycleN3;
+
+            $result[] = $zona;
+        }
+        return response()->json($result, 200);
+    }
+
+
+
+    public function CycleCatsNivel3($ciclo)
+    {
+        $zonaObjs = EmplazamientoN4::all();
+
+        if ($zonaObjs->isEmpty()) {
+            return response()->json([
+                'status' => 'NOK',
+                'message' => 'Zona no encontrada',
+
+                'code' => 404
+            ], 404);
+        }
+
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json([
+                'status' => 'NOK',
+                'message' => 'Ciclo no encontrado',
+                'code' => 404
+            ], 404);
+        }
+
+        $emplazamientos = collect();
+
+        foreach ($zonaObjs as $zonaObj) {
+            $emplaCats = $cicloObj->zoneSubEmplazamientosWithCats($zonaObj)->pluck('idUbicacionN4')->toArray();
+
+            $subEmplas = empty($emplaCats)
+                ? $zonaObj->subemplazamientosNivel3()->get()
+                : $zonaObj->subemplazamientosNivel3()->whereIn('idUbicacionN4', $emplaCats)->get();
+
+            foreach ($subEmplas as $sub) {
+                $sub->cycle_id = $ciclo;
+                $emplazamientos->push($sub);
+            }
+        }
+
+        return response()->json(EmplazamientoNivel3Resource::collection($emplazamientos), 200);
+    }
 
 
 
     public function MarcasPorCicloOfflineInventario($ciclo)
     {
         $marcas = DB::table('inv_marcas_nuevos')
-                    ->where('ciclo_inventario', $ciclo)
-                    ->get();
+            ->where('ciclo_inventario', $ciclo)
+            ->get();
 
         $indices = DB::table('indices_listas')
-                    ->where('idAtributo', 2)
-                    ->get();
+            ->where('idAtributo', 2)
+            ->get();
 
         $resultado = $marcas->concat($indices);
         return response()->json($resultado, 200);
     }
 
-   public function configuracionOffline(array $codigo_grupos)
+    public function configuracionOffline(array $codigo_grupos)
     {
         if (count($codigo_grupos) === 1 && is_string($codigo_grupos[0])) {
             $codigo_grupos = explode(',', $codigo_grupos[0]);
@@ -220,7 +223,25 @@ public function zonasN3($ciclo)
                         COALESCE(MAX(CASE WHEN id_atributo = 22 THEN tipo_etiqueta END), '') AS tipo_etiqueta,
                         COALESCE(MAX(CASE WHEN id_atributo = 23 THEN id_validacion END), 0) AS conf_latitud,
                         COALESCE(MAX(CASE WHEN id_atributo = 24 THEN id_validacion END), 0) AS conf_longitud,
-                        COALESCE(MAX(CASE WHEN id_atributo = 25 THEN id_validacion END), 0) AS conf_padre
+                        COALESCE(MAX(CASE WHEN id_atributo = 25 THEN id_validacion END), 0) AS conf_padre,
+
+                        /** edualejandro */
+                        COALESCE(MAX(CASE WHEN id_atributo = 26 THEN id_validacion END), 0) AS conf_eficiencia,
+                        COALESCE(MAX(CASE WHEN id_atributo = 26 THEN id_tipo_dato END), 0) AS tipo_dato_eficiencia,
+                        COALESCE(MAX(CASE WHEN id_atributo = 26 THEN valor_minimo END), 0) AS lench_Min_eficiencia,
+                        COALESCE(MAX(CASE WHEN id_atributo = 26 THEN valor_maximo END), 0) AS lench_Max_eficiencia,
+                        /** edualejandro */
+                        COALESCE(MAX(CASE WHEN id_atributo = 27 THEN id_validacion END), 0) AS conf_texto_abierto_1,
+                        COALESCE(MAX(CASE WHEN id_atributo = 27 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_1,
+                        COALESCE(MAX(CASE WHEN id_atributo = 27 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_1,
+                        COALESCE(MAX(CASE WHEN id_atributo = 27 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_1,
+                        COALESCE(MAX(CASE WHEN id_atributo = 27 THEN 'Resistencia' ELSE NULL END)) AS label_texto_abierto_1,
+                        /** edualejandro */
+                        COALESCE(MAX(CASE WHEN id_atributo = 28 THEN id_validacion END), 0) AS conf_texto_abierto_2,
+                        COALESCE(MAX(CASE WHEN id_atributo = 28 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_2,
+                        COALESCE(MAX(CASE WHEN id_atributo = 28 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_2,
+                        COALESCE(MAX(CASE WHEN id_atributo = 28 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_2,
+                        COALESCE(MAX(CASE WHEN id_atributo = 28 THEN 'Fuerza' ELSE NULL END)) AS label_texto_abierto_2
                         
                     FROM inv_atributos 
                     WHERE id_grupo = ?";
@@ -228,12 +249,10 @@ public function zonasN3($ciclo)
             $resultado = DB::select($sql, [$id_grupo, $id_grupo]);
 
             if (!empty($resultado)) {
-                $resultados[] = $resultado[0]; 
+                $resultados[] = $resultado[0];
             }
         }
 
         return response()->json($resultados, 200);
     }
-
-
-}    
+}
