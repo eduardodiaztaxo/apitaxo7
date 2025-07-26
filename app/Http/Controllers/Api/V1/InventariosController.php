@@ -397,11 +397,14 @@ class InventariosController extends Controller
                 COALESCE(MAX(CASE WHEN id_atributo = 27 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_1,
                 COALESCE(MAX(CASE WHEN id_atributo = 27 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_1,
                 COALESCE(MAX(CASE WHEN id_atributo = 27 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_1,
+                COALESCE(MAX(CASE WHEN id_atributo = 27 THEN 'Resistencia' ELSE NULL END)) AS label_texto_abierto_1,
                 /** edualejandro */
                 COALESCE(MAX(CASE WHEN id_atributo = 28 THEN id_validacion END), 0) AS conf_texto_abierto_2,
                 COALESCE(MAX(CASE WHEN id_atributo = 28 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_2,
                 COALESCE(MAX(CASE WHEN id_atributo = 28 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_2,
-                COALESCE(MAX(CASE WHEN id_atributo = 28 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_2
+                COALESCE(MAX(CASE WHEN id_atributo = 28 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_2,
+                COALESCE(MAX(CASE WHEN id_atributo = 28 THEN 'Fuerza' ELSE NULL END)) AS label_texto_abierto_2
+
     
             FROM inv_atributos 
             WHERE id_grupo = ?";

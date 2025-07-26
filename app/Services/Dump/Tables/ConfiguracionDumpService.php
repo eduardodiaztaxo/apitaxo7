@@ -22,11 +22,11 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
 
     protected $codigo_grupo = '';
 
- public function __construct(PDO $pdo, string $codigo_grupo = '')
-{
-    $this->pdo = $pdo;
-    $this->codigo_grupo = $codigo_grupo;
-}
+    public function __construct(PDO $pdo, string $codigo_grupo = '')
+    {
+        $this->pdo = $pdo;
+        $this->codigo_grupo = $codigo_grupo;
+    }
     /**
      * Run dump from the controller.
      *
@@ -66,9 +66,9 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
      *
      * @return void
      */
-   public function createTable(): void
-{
-    $this->pdo->exec("
+    public function createTable(): void
+    {
+        $this->pdo->exec("
         CREATE TABLE IF NOT EXISTS configuracion (
             id_grupo INTEGER,
             conf_marca INTEGER,
@@ -98,10 +98,27 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
             tipo_etiqueta TEXT,
             conf_latitud INTEGER,
             conf_longitud INTEGER,
-            conf_padre INTEGER
+            conf_padre INTEGER,
+            -- edualejandro 
+            conf_eficiencia INTEGER,
+            tipo_dato_eficiencia INTEGER,
+            lench_Min_eficiencia INTEGER,
+            lench_Max_eficiencia INTEGER,
+            -- edualejandro
+            conf_texto_abierto_1 INTEGER,
+            tipo_dato_texto_abierto_1 INTEGER,
+            lench_Min_texto_abierto_1 INTEGER,
+            lench_Max_texto_abierto_1 INTEGER,
+            label_texto_abierto_1 TEXT,
+            -- edualejandro
+            conf_texto_abierto_2 INTEGER,
+            tipo_dato_texto_abierto_2 INTEGER,
+            lench_Min_texto_abierto_2 INTEGER,
+            lench_Max_texto_abierto_2 INTEGER,
+            label_texto_abierto_2 TEXT
         )
     ");
-}
+    }
 
 
     /**
@@ -142,7 +159,24 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
                 tipo_etiqueta,
                 conf_latitud,
                 conf_longitud,
-                conf_padre
+                conf_padre,
+                -- edualejandro 
+                conf_eficiencia,
+                tipo_dato_eficiencia,
+                lench_Min_eficiencia,
+                lench_Max_eficiencia,
+                -- edualejandro
+                conf_texto_abierto_1,
+                tipo_dato_texto_abierto_1,
+                lench_Min_texto_abierto_1,
+                lench_Max_texto_abierto_1,
+                label_texto_abierto_1,
+                -- edualejandro
+                conf_texto_abierto_2,
+                tipo_dato_texto_abierto_2,
+                lench_Min_texto_abierto_2,
+                lench_Max_texto_abierto_2,
+                label_texto_abierto_2
             )
             VALUES (
                 :id_grupo,
@@ -173,7 +207,24 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
                 :tipo_etiqueta,
                 :conf_latitud,
                 :conf_longitud,
-                :conf_padre
+                :conf_padre,
+                -- edualejandro
+                :conf_eficiencia,
+                :tipo_dato_eficiencia,
+                :lench_Min_eficiencia,
+                :lench_Max_eficiencia,
+                -- edualejandro
+                :conf_texto_abierto_1,
+                :tipo_dato_texto_abierto_1,
+                :lench_Min_texto_abierto_1,
+                :lench_Max_texto_abierto_1,
+                :label_texto_abierto_1,
+                -- edualejandro
+                :conf_texto_abierto_2,
+                :tipo_dato_texto_abierto_2,
+                :lench_Min_texto_abierto_2,
+                :lench_Max_texto_abierto_2,
+                :label_texto_abierto_2
             )
         ");
 
@@ -208,7 +259,24 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
                 ':tipo_etiqueta' => $conf->tipo_etiqueta,
                 ':conf_latitud' => $conf->conf_latitud,
                 ':conf_longitud' => $conf->conf_longitud,
-                ':conf_padre' => $conf->conf_padre
+                ':conf_padre' => $conf->conf_padre,
+                // edualejandro
+                ':conf_eficiencia' => $conf->conf_eficiencia,
+                ':tipo_dato_eficiencia' => $conf->tipo_dato_eficiencia,
+                ':lench_Min_eficiencia' => $conf->lench_Min_eficiencia,
+                ':lench_Max_eficiencia' => $conf->lench_Max_eficiencia,
+                // edualejandro
+                ':conf_texto_abierto_1' => $conf->conf_texto_abierto_1,
+                ':tipo_dato_texto_abierto_1' => $conf->tipo_dato_texto_abierto_1,
+                ':lench_Min_texto_abierto_1' => $conf->lench_Min_texto_abierto_1,
+                ':lench_Max_texto_abierto_1' => $conf->lench_Max_texto_abierto_1,
+                ':label_texto_abierto_1' => $conf->label_texto_abierto_1,
+                // edualejandro
+                ':conf_texto_abierto_2' => $conf->conf_texto_abierto_2,
+                ':tipo_dato_texto_abierto_2' => $conf->tipo_dato_texto_abierto_2,
+                ':lench_Min_texto_abierto_2' => $conf->lench_Min_texto_abierto_2,
+                ':lench_Max_texto_abierto_2' => $conf->lench_Max_texto_abierto_2,
+                ':label_texto_abierto_2' => $conf->label_texto_abierto_2,
             ]);
         }
     }
