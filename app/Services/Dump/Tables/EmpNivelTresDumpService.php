@@ -3,12 +3,12 @@
 namespace App\Services\Dump\Tables;
 
 
-use App\Http\Controllers\Api\V1\ZonaEmplazamientosController;
+use App\Http\Controllers\Api\V1\InventariosOfflineController;
 use App\Services\Dump\Tables\DumpSQLiteInterface;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use PDO;
 
-class EmplazamientosDumpService implements DumpSQLiteInterface
+class EmpNivelTresDumpService implements DumpSQLiteInterface
 {
 
 
@@ -45,9 +45,9 @@ class EmplazamientosDumpService implements DumpSQLiteInterface
         $request = new \Illuminate\Http\Request();
         $request->setMethod('GET');
 
-        $zonasEmplaCtrl = new ZonaEmplazamientosController();
+        $zonasEmplaCtrl = new InventariosOfflineController();
 
-        $response = $zonasEmplaCtrl->showAllEmplaByCycleCats($request, $this->cycle);
+        $response = $zonasEmplaCtrl->CycleCatsNivel3($this->cycle);
 
         $jsonContent = $response->getContent();
 
@@ -76,7 +76,7 @@ class EmplazamientosDumpService implements DumpSQLiteInterface
 
         // Create "emplazamientos" table
         $this->pdo->exec("
-            CREATE TABLE IF NOT EXISTS emplazamientos (
+            CREATE TABLE IF NOT EXISTS emplazamientosN3 (
                 id INTEGER PRIMARY KEY,
                 codigo TEXT,
                 codigoUbicacion TEXT,
@@ -88,7 +88,8 @@ class EmplazamientosDumpService implements DumpSQLiteInterface
                 ciclo_auditoria INTEGER DEFAULT 0,
                 num_categorias INTEGER DEFAULT 0,
                 num_activos_audit INTEGER DEFAULT 0,
-                habilitadoNivel3 INTIGER DEFAULT 0
+                habilitadoNivel3 INTIGER DEFAULT 0,
+                newApp INTIGER DEFAULT 0
             );
         ");
     }
@@ -103,7 +104,7 @@ class EmplazamientosDumpService implements DumpSQLiteInterface
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            INSERT INTO emplazamientos (
+            INSERT INTO emplazamientosN3 (
                 id,
                 codigo,
                 codigoUbicacion,
@@ -115,7 +116,8 @@ class EmplazamientosDumpService implements DumpSQLiteInterface
                 ciclo_auditoria,
                 num_categorias,
                 num_activos_audit,
-                habilitadoNivel3
+                habilitadoNivel3,
+                newApp
             )
             VALUES (
                 :id,
@@ -129,7 +131,8 @@ class EmplazamientosDumpService implements DumpSQLiteInterface
                 :ciclo_auditoria,
                 :num_categorias,
                 :num_activos_audit,
-                :habilitadoNivel3
+                :habilitadoNivel3,
+                :newApp
             )  
         ");
 
@@ -150,6 +153,7 @@ class EmplazamientosDumpService implements DumpSQLiteInterface
                 ':num_categorias' => $emplazamiento->num_categorias,
                 ':num_activos_audit' => $emplazamiento->num_activos_audit,
                 ':habilitadoNivel3' => $emplazamiento->habilitadoNivel3,
+                ':newApp' => $emplazamiento->newApp,
             ]);
         }
     }

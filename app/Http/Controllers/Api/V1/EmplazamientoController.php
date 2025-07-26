@@ -8,6 +8,7 @@ use App\Http\Resources\V1\EmplazamientoNivel3Resource;
 use App\Models\CrudActivo;
 use App\Models\Emplazamiento;
 use App\Models\EmplazamientoN3;
+use App\Models\EmplazamientoN4;
 use App\Models\ZonaPunto;
 use App\Services\PlaceService;
 use Illuminate\Http\Request;
@@ -167,6 +168,7 @@ public function createSubEmplazamientosNivel3(Request $request)
     $nuevoSufijo = str_pad(($maxSecuencia + 1), 2, '0', STR_PAD_LEFT); 
     $nuevoCodigoUbicacionN3 = $baseCodigo . $nuevoSufijo;
 
+      
     $data = [
         'idAgenda'             => $request->agenda_id,
         'descripcionUbicacion' => $request->descripcion,
@@ -176,7 +178,15 @@ public function createSubEmplazamientosNivel3(Request $request)
         'newApp'               => 1
     ];
 
-    $empla = EmplazamientoN3::create($data);
+      $num_activos_cats_by_cycleN3 = DB::table('crud_activos')
+            ->where('ubicacionOrganicaN4', $nuevoCodigoUbicacionN3)
+            ->count();
+
+        $num_activos_invN3 = DB::table('inv_inventario')
+            ->where('codigoUbicacionN4', $nuevoCodigoUbicacionN3)
+            ->count();
+
+    $empla = EmplazamientoN4::create($data);
 
     if (!$empla) {
         return response()->json([
@@ -188,7 +198,17 @@ public function createSubEmplazamientosNivel3(Request $request)
     return response()->json([
         'status'  => 'OK',
         'message' => 'Creado exitosamente',
-        'data'    => $empla
+        'data'    => [
+            'idAgenda' => $empla->idAgenda,
+            'nombre' => $empla->descripcionUbicacion, 
+            'codigoUbicacion' => $empla->codigoUbicacion,
+            'estado' => $empla->estado,
+            'usuario' => $empla->usuario,
+            'ciclo_auditoria' => 1,
+            'num_activos_cats_by_cycle' => $num_activos_cats_by_cycleN3,
+            'num_activos_inv' => $num_activos_invN3, 
+            'newApp' => $empla->newApp
+        ],
     ]);
 }
 
@@ -224,27 +244,27 @@ public function createSubEmplazamientosNivel3(Request $request)
      * @return \Illuminate\Http\Response
      */
 public function show(int $emplazamiento, int $ciclo)
-{
-    $emplaObj = Emplazamiento::find($emplazamiento);
+    {
+        $emplaObj = Emplazamiento::find($emplazamiento);
 
-    if ($emplaObj) {
-        $resource = EmplazamientoResource::make($emplaObj);
-    } else {
-        $emplaObj = EmplazamientoN3::find($emplazamiento);
+        if ($emplaObj) {
+            $resource = EmplazamientoResource::make($emplaObj);
+        } else {
+            $emplaObj = EmplazamientoN4::find($emplazamiento);
 
-        if (!$emplaObj) {
-            return response()->json(['status' => 'NOK', 'code' => 404], 404);
+            if (!$emplaObj) {
+                return response()->json(['status' => 'NOK', 'code' => 404], 404);
+            }
+
+            $resource = EmplazamientoNivel3Resource::make($emplaObj);
         }
 
-        $resource = EmplazamientoNivel3Resource::make($emplaObj);
+        $emplaObj->requirePunto = 1;
+        $emplaObj->requireActivos = 1;
+        $emplaObj->cycle_id = $ciclo;
+
+        return response()->json($resource);
     }
-
-    $emplaObj->requirePunto = 1;
-    $emplaObj->requireActivos = 1;
-    $emplaObj->cycle_id = $ciclo;
-
-    return response()->json($resource);
-}
 
 
 public function showN3(string $codigoUbicacionN3)
@@ -302,11 +322,17 @@ public function showN3(string $codigoUbicacionN3)
         $emplaObj = Emplazamiento::find($id);
     
         if (!$emplaObj) {
-            return response()->json([
-                'status' => 'NOK',
-                'code' => 404,
-                'message' => 'Emplazamiento no encontrado'
-            ], 404);
+
+             $emplaObj = EmplazamientoN4::find($id);
+
+            if (!$emplaObj) {
+                return response()->json([
+                    'status' => 'NOK',
+                    'code' => 404,
+                    'message' => 'Emplazamiento no encontrado'
+                ], 404);
+            }
+           
         }
 
         $validatedData = $request->validate([
@@ -333,11 +359,14 @@ public function showN3(string $codigoUbicacionN3)
             ], 404);
         }
     
-        return response()->json([
-            'status' => 'OK',
-            'message' => 'Emplazamiento y zona actualizados correctamente',
-            'data' => EmplazamientoResource::make($emplaObj),
-        ], 200);
+      return response()->json([
+                'status' => 'OK',
+                'message' => 'Emplazamiento y zona actualizados correctamente',
+                'data' => $emplaObj instanceof EmplazamientoN4
+                    ? EmplazamientoNivel3Resource::make($emplaObj)
+                    : EmplazamientoResource::make($emplaObj),
+            ], 200);
+
     }
     
     /**

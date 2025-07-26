@@ -46,7 +46,7 @@ class EmplazamientoNivel3Resource extends JsonResource
         $activosInventario = DB::table('inv_inventario')
             ->leftJoin('categoria_n3', 'inv_inventario.id_familia', '=', 'categoria_n3.id_familia')
             ->leftJoin('inv_imagenes', 'inv_inventario.id_img', '=', 'inv_imagenes.id_img')
-            ->where('inv_inventario.codigoUbicacionN3', $this->codigoUbicacion)
+            ->where('inv_inventario.codigoUbicacionN4', $this->codigoUbicacion)
             ->where('inv_inventario.id_ciclo', $this->cycle_id)
             ->select(
                 'inv_inventario.id_ciclo',
@@ -129,12 +129,12 @@ class EmplazamientoNivel3Resource extends JsonResource
 
     
         $emplazamiento = [
-            'id' => $this->idUbicacionN3,
+            'id' => $this->idUbicacionN4,
             'codigo' => $this->codigo,
             'codigoUbicacion' => $this->codigoUbicacion,
             'nombre' => $this->descripcionUbicacion,
             'idAgenda' => $this->idAgenda,
-            'idUbicacionN2' => $this->idUbicacionN3,
+            'idUbicacionN2' => $this->idUbicacionN4,
             'num_activos' => 0,
             'habilitadoNivel3' => 0,
             'num_activos_inv' => $activosInventario->count(),
@@ -142,6 +142,7 @@ class EmplazamientoNivel3Resource extends JsonResource
             'ciclo_auditoria' => $this->ciclo_auditoria,
             'num_categorias' => $this->activos()->select('categoriaN3')->groupBy('categoriaN3')->get()->count(),
             'id_ciclo' => $this->cycle_id,
+            'newApp' => $this->newApp,
             'zone_address' => ZonaPuntoResource::make($this->zonaPunto())
         ];
 

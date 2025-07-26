@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Query\JoinClause;
 use App\Models\Inventario;
-use App\Models\EmplazamientoN3;
+use App\Models\EmplazamientoN4;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 
@@ -86,7 +86,7 @@ class InvCiclo extends Model
     }
 
 
-        public function zoneSubEmplazamientosWithCats(EmplazamientoN3 $zona)
+        public function zoneSubEmplazamientosWithCats(EmplazamientoN4 $zona)
     {
         $sql = "
         SELECT 

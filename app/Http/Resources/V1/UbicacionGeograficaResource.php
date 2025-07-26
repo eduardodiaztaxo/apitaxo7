@@ -104,7 +104,7 @@ class UbicacionGeograficaResource extends JsonResource
             ->toArray();
 
             $address['num_activos_cats_by_cycle'] = $this->activos_with_cats_by_cycle($this->cycle_id)->count();
-            $address['num_activos_inv_cats_by_cycle'] = $this->activos_with_cats_inv_by_cycle($this->cycle_id, $codigoUbicacion)->count();
+            $address['num_activos_inv_cats_by_cycle'] = $this->activos_with_cats_inv_by_cycle($this->cycle_id, $this->idUbicacionGeo)->count();
 
             $coll = $this->cats_by_cycle($this->cycle_id);
 
@@ -167,11 +167,11 @@ class UbicacionGeograficaResource extends JsonResource
         return $address;
     }
 
-    public function activos_with_cats_inv_by_cycle($cycle_id, $codigoUbicacion)
+    public function activos_with_cats_inv_by_cycle($cycle_id, $idUbicacionGeo)
         {
             return Inventario::select('inv_inventario.*')
                 ->where('inv_inventario.id_ciclo', '=', $cycle_id)
-                ->whereIn('codigoUbicacion_N1', $codigoUbicacion);
+                ->where('idUbicacionGeo', $idUbicacionGeo);
         }
 
 }

@@ -33,6 +33,8 @@ use App\Services\Dump\Tables\OperacionalDumpService;
 use App\Services\Dump\Tables\TipoTrabajoDumpService;
 use App\Services\Dump\Tables\EstadoDumpService;
 use App\Services\Dump\Tables\ResponsableDumpService;
+use App\Services\Dump\Tables\EmpNivelTresDumpService;
+use App\Services\Dump\Tables\ZonasNivelTresDumpService;
 
 use Illuminate\Console\Command;
 
@@ -153,6 +155,7 @@ class ExportAuditCycleSQLiteDatabase extends Command
         $this->setEstado();
         $this->setGrupo();
         $this->setFamilia();
+    
 
         if ($tipoCiclo == 1) {
             $this->setBienesInventario();
@@ -169,6 +172,8 @@ class ExportAuditCycleSQLiteDatabase extends Command
             $this->setMaterial();
             $this->setOperacional();
             $this->setTipoTrabajo();
+            $this->setEmplazamientoN3();
+            $this->setZonaN3();
         }
         // $this->setCyclesPuntosByCycle();
 
@@ -454,6 +459,30 @@ class ExportAuditCycleSQLiteDatabase extends Command
         $this->info('Responsables inserted in SQLite DB.');
     }
 
+     private function setEmplazamientoN3()
+    {
+
+        (new EmpNivelTresDumpService(
+            $this->pdo,
+            $this->cycle
+        ))->runFromController();
+
+
+        $this->info('EmpN3 inserted in SQLite DB.');
+    }
+
+  private function setZonaN3()
+    {
+
+        (new ZonasNivelTresDumpService(
+            $this->pdo,
+            $this->cycle
+        ))->runFromController();
+
+
+        $this->info('ZonaN3 inserted in SQLite DB.');
+    }
+    
     // private function setCyclesPuntosByCycle()
     // {
     //     (new CyclesPuntoDumpService(
