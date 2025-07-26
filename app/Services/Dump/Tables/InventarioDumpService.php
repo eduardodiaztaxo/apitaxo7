@@ -4,7 +4,7 @@ namespace App\Services\Dump\Tables;
 
 use App\Services\Dump\Tables\DumpSQLiteInterface;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use App\Http\Controllers\Api\V1\InventariosOfflineController; 
+use App\Http\Controllers\Api\V1\InventariosOfflineController;
 
 use PDO;
 
@@ -20,12 +20,11 @@ class InventarioDumpService
         $this->pdo = $pdo;
 
         $this->cycle = $cycle;
-
     }
     /**
      * Crea la tabla bienesInventario si no existe.
      */
-       public function runFromController(): void
+    public function runFromController(): void
     {
 
         $this->createTable();
@@ -51,6 +50,7 @@ class InventarioDumpService
 
     public function createTable(): void
     {
+
         $this->pdo->exec("
             CREATE TABLE IF NOT EXISTS inventario (
                 id_inventario INTEGER PRIMARY KEY,
@@ -91,7 +91,11 @@ class InventarioDumpService
                 longitud TEXT NOT NULL,
                 offline INTEGER NOT NULL,
                 update_inv INTEGER NOT NULL,
-                crud_activo_estado INTEGER NOT NULL
+                crud_activo_estado INTEGER NOT NULL,
+                -- edualejandro
+                eficiencia TEXT,
+                texto_abierto_1 TEXT,
+                texto_abierto_2 TEXT
             );
         ");
     }
@@ -144,7 +148,11 @@ class InventarioDumpService
                 longitud,
                 offline,
                 update_inv,
-                crud_activo_estado
+                crud_activo_estado,
+                -- edualejandro
+                eficiencia,
+                texto_abierto_1,
+                texto_abierto_2
             )
             VALUES (
                 :id_invetario,
@@ -185,7 +193,11 @@ class InventarioDumpService
                 :longitud,
                 :offline,
                 :update_inv,
-                :crud_activo_estado
+                :crud_activo_estado,
+                -- edualejandro
+                :eficiencia,
+                :texto_abierto_1,
+                :texto_abierto_2
             )
         ");
 
@@ -230,7 +242,11 @@ class InventarioDumpService
                 ':longitud' => $i->longitud ?? '',
                 ':offline' => $i->offline ?? 0,
                 ':update_inv' => $i->update_inv ?? 0,
-                ':crud_activo_estado' => $i->crud_activo_estado ?? 0
+                ':crud_activo_estado' => $i->crud_activo_estado ?? 0,
+                // edualejandro
+                ':eficiencia' => $i->eficiencia ?? null,
+                ':texto_abierto_1' => $i->texto_abierto_1 ?? null,
+                ':texto_abierto_2' => $i->texto_abierto_2 ?? null
             ]);
         }
     }

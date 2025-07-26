@@ -34,23 +34,23 @@ class InventariosController extends Controller
         return $responsable;
     }
 
-public function getIdResponsable()
-{
-    $usuario = Auth::user()->name;
+    public function getIdResponsable()
+    {
+        $usuario = Auth::user()->name;
 
-    $nombre = DB::table('sec_users')
-        ->where('login', $usuario)
-        ->value('name');
+        $nombre = DB::table('sec_users')
+            ->where('login', $usuario)
+            ->value('name');
 
-     $idResponsable = DB::table('responsables')
-        ->where('name', $nombre) 
-        ->value('idResponsable');
+        $idResponsable = DB::table('responsables')
+            ->where('name', $nombre)
+            ->value('idResponsable');
 
-    return $idResponsable;
-}
+        return $idResponsable;
+    }
 
 
-public function createinventario(Request $request)
+    public function createinventario(Request $request)
     {
         $request->validate([
             'id_grupo'              => 'required|string',
@@ -60,33 +60,41 @@ public function createinventario(Request $request)
             'codigoUbicacion'       => 'required',
         ]);
 
-       $existeEtiqueta = false;
+        $existeEtiqueta = false;
 
+<<<<<<< HEAD
     $Nivel4 = DB::table('ubicaciones_n4')->where('codigoUbicacion', $request->codigoUbicacion)->value('idUbicacionN4');
 
    if ($Nivel4 != null) {
         return $this->createinventarioNivel3($request, $Nivel4);
     }
+=======
+        $Nivel3 = DB::table('ubicaciones_n3')->where('codigoUbicacion', $request->codigoUbicacion)->value('idUbicacionN3');
 
-    $etiquetaInventario = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta)->value('etiqueta');
-    $etiquetaUnicaCrudActivo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta)->value('etiqueta');
+        if ($Nivel3 != null) {
+            return $this->createinventarioNivel3($request, $Nivel3);
+        }
+>>>>>>> 2dcfb3650f33541f1b980097e2d37859b4fc7450
 
-    if ($etiquetaInventario || $etiquetaUnicaCrudActivo) {
-        $existeEtiqueta = true;
-    }
+        $etiquetaInventario = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta)->value('etiqueta');
+        $etiquetaUnicaCrudActivo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta)->value('etiqueta');
 
-    if (!empty($request->etiqueta_padre)) {
-        $etiquetaInventarioHijo = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
-        $etiquetaCrudActivoHijo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
-
-        if ($etiquetaInventarioHijo || $etiquetaCrudActivoHijo) {
+        if ($etiquetaInventario || $etiquetaUnicaCrudActivo) {
             $existeEtiqueta = true;
         }
-    }
 
-    if ($existeEtiqueta) {
-        return response('La etiqueta ya existe', 400);
-    }
+        if (!empty($request->etiqueta_padre)) {
+            $etiquetaInventarioHijo = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
+            $etiquetaCrudActivoHijo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
+
+            if ($etiquetaInventarioHijo || $etiquetaCrudActivoHijo) {
+                $existeEtiqueta = true;
+            }
+        }
+
+        if ($existeEtiqueta) {
+            return response('La etiqueta ya existe', 400);
+        }
 
 
         if ($request->idUbicacionN2 > 0 && $request->codigoUbicacion_N1 > 0) {
@@ -103,7 +111,7 @@ public function createinventario(Request $request)
         }
 
         $idUbicacionGeo = DB::table('ubicaciones_n2')
-            ->where('idUbicacionN2',  $idUbicacionN2 )
+            ->where('idUbicacionN2',  $idUbicacionN2)
             ->value('idAgenda');
 
         if ($request->cloneFichaDetalle == "true") {
@@ -120,7 +128,7 @@ public function createinventario(Request $request)
                     'id_img'     => $url_img,
                     'etiqueta'   => $request->etiqueta,
                     'origen'     => $origen,
-                    'picture'    => $filename.'.jpg',
+                    'picture'    => $filename . '.jpg',
                     'url_imagen' => $img->url_imagen,
                     'url_picture' => $img->url_picture,
                     'created_at' => now()
@@ -137,7 +145,7 @@ public function createinventario(Request $request)
 
         if (intval($request->padre) === 1) {
             $etiquetaPadre = $request->etiqueta;
-        }elseif (intval($request->padre) === 2) {
+        } elseif (intval($request->padre) === 2) {
             $etiquetaPadre = $request->etiqueta_padre;
         }
 
@@ -175,15 +183,24 @@ public function createinventario(Request $request)
         $inventario->responsable         = $this->getNombre();
         $inventario->idResponsable       = $this->getIdResponsable();
         $inventario->etiqueta_padre      = $etiquetaPadre ?? 'Sin Padre';
+        /** edualejandro */
+        $inventario->eficiencia          = $request->eficiencia ?? null;
+        $inventario->texto_abierto_1     = $request->texto_abierto_1 ?? null;
+        $inventario->texto_abierto_2     = $request->texto_abierto_2 ?? null;
+
         $inventario->save();
 
         return response()->json($inventario, 201);
     }
 
+<<<<<<< HEAD
 
 
 
   public function  createinventarioNivel3 (Request $request, $Nivel4)
+=======
+    public function  createinventarioNivel3(Request $request, $Nivel3)
+>>>>>>> 2dcfb3650f33541f1b980097e2d37859b4fc7450
     {
         $request->validate([
             'id_grupo'              => 'required|string',
@@ -193,35 +210,42 @@ public function createinventario(Request $request)
             'codigoUbicacion'       => 'required',
         ]);
 
-       $existeEtiqueta = false;
+        $existeEtiqueta = false;
 
-    $etiquetaInventario = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta)->value('etiqueta');
-    $etiquetaUnicaCrudActivo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta)->value('etiqueta');
+        $etiquetaInventario = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta)->value('etiqueta');
+        $etiquetaUnicaCrudActivo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta)->value('etiqueta');
 
-    if ($etiquetaInventario || $etiquetaUnicaCrudActivo) {
-        $existeEtiqueta = true;
-    }
-
-    if (!empty($request->etiqueta_padre)) {
-        $etiquetaInventarioHijo = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
-        $etiquetaCrudActivoHijo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
-
-        if ($etiquetaInventarioHijo || $etiquetaCrudActivoHijo) {
+        if ($etiquetaInventario || $etiquetaUnicaCrudActivo) {
             $existeEtiqueta = true;
         }
-    }
 
-    if ($existeEtiqueta) {
-        return response('La etiqueta ya existe', 400);
-    }
+        if (!empty($request->etiqueta_padre)) {
+            $etiquetaInventarioHijo = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
+            $etiquetaCrudActivoHijo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
+
+            if ($etiquetaInventarioHijo || $etiquetaCrudActivoHijo) {
+                $existeEtiqueta = true;
+            }
+        }
+
+        if ($existeEtiqueta) {
+            return response('La etiqueta ya existe', 400);
+        }
 
 
+<<<<<<< HEAD
 $idUbicacionN3 = DB::table('ubicaciones_n3')
     ->where('codigoUbicacion', '=', substr($request->codigoUbicacion, 0, 6))
     ->value('idUbicacionN3');
 
     $idUbicacionGeo = DB::table('ubicaciones_n4')
             ->where('idUbicacionN4',  $Nivel4 )
+=======
+
+        $idUbicacionN3 = $Nivel3;
+        $idUbicacionGeo = DB::table('ubicaciones_n3')
+            ->where('idUbicacionN3',  $idUbicacionN3)
+>>>>>>> 2dcfb3650f33541f1b980097e2d37859b4fc7450
             ->value('idAgenda');
 
         if ($request->cloneFichaDetalle == "true") {
@@ -238,7 +262,7 @@ $idUbicacionN3 = DB::table('ubicaciones_n3')
                     'id_img'     => $url_img,
                     'etiqueta'   => $request->etiqueta,
                     'origen'     => $origen,
-                    'picture'    => $filename.'.jpg',
+                    'picture'    => $filename . '.jpg',
                     'url_imagen' => $img->url_imagen,
                     'url_picture' => $img->url_picture,
                     'created_at' => now()
@@ -255,7 +279,7 @@ $idUbicacionN3 = DB::table('ubicaciones_n3')
 
         if (intval($request->padre) === 1) {
             $etiquetaPadre = $request->etiqueta;
-        }elseif (intval($request->padre) === 2) {
+        } elseif (intval($request->padre) === 2) {
             $etiquetaPadre = $request->etiqueta_padre;
         }
 
@@ -293,11 +317,17 @@ $idUbicacionN3 = DB::table('ubicaciones_n3')
         $inventario->responsable         = $this->getNombre();
         $inventario->idResponsable       = $this->getIdResponsable();
         $inventario->etiqueta_padre      = $etiquetaPadre ?? 'Sin Padre';
+        /** edualejandro */
+        $inventario->eficiencia          = $request->eficiencia ?? null;
+        $inventario->texto_abierto_1     = $request->texto_abierto_1 ?? null;
+        $inventario->texto_abierto_2     = $request->texto_abierto_2 ?? null;
+
         $inventario->save();
 
         return response()->json($inventario, 201);
     }
 
+<<<<<<< HEAD
 
 
 
@@ -309,48 +339,62 @@ $idUbicacionN3 = DB::table('ubicaciones_n3')
     'etiqueta'   => 'required|string',
     'id_ciclo'   => 'required|integer|exists:inv_ciclos,idCiclo',
 ]);
+=======
+    public function updateinventario(Request $request)
+    {
+        $request->validate([
+            'id_grupo'   => 'required|integer',
+            'id_familia' => 'required|integer',
+            'etiqueta'   => 'required|string',
+            'id_ciclo'   => 'required|integer|exists:inv_ciclos,idCiclo',
+        ]);
+>>>>>>> 2dcfb3650f33541f1b980097e2d37859b4fc7450
 
-    $id_img = DB::table('inv_imagenes')
-        ->where('etiqueta', $request->etiqueta)
-        ->orderBy('id_img', 'desc')
-        ->value('id_img');
+        $id_img = DB::table('inv_imagenes')
+            ->where('etiqueta', $request->etiqueta)
+            ->orderBy('id_img', 'desc')
+            ->value('id_img');
 
-    $url_img = $id_img ?? null;
+        $url_img = $id_img ?? null;
 
-     if (intval($request->padre) === 1) {
+        if (intval($request->padre) === 1) {
             $etiquetaPadre = $request->etiqueta;
-        }elseif (intval($request->padre) === 2) {
+        } elseif (intval($request->padre) === 2) {
             $etiquetaPadre = $request->etiqueta_padre;
         }
 
-    Inventario::where('etiqueta', $request->etiqueta)->update([
-        'idForma'             => intval($request->idForma ?? null),
-        'idMaterial'          => intval($request->idMaterial ?? null),
-        'latitud'             => $request->latitud ?? null,
-        'longitud'            => $request->longitud ?? null,
-        'capacidad'           => intval($request->capacidad ?? null),
-        'estado'              => intval($request->estado ?? null),
-        'color'               => intval($request->color ?? null),
-        'tipo_trabajo'        => intval($request->tipo_trabajo ?? null),
-        'carga_trabajo'       => intval($request->carga_trabajo ?? null),
-        'estado_operacional'  => intval($request->estado_operacional ?? null),
-        'estado_conservacion' => intval($request->estado_conservacion ?? null),
-        'condicion_ambiental' => intval($request->condicion_ambiental ?? null),
-        'cantidad_img'        => $request->cantidad_img,
-        'id_img'              => $url_img,
-        'responsable'         => $this->getNombre(),
-        'idResponsable'       => $this->getIdResponsable(),
-        'etiqueta_padre'      => $etiquetaPadre ?? 'Sin Padre',
-        'update_inv'          => 0
-    ]);
+        Inventario::where('etiqueta', $request->etiqueta)->update([
+            'idForma'             => intval($request->idForma ?? null),
+            'idMaterial'          => intval($request->idMaterial ?? null),
+            'latitud'             => $request->latitud ?? null,
+            'longitud'            => $request->longitud ?? null,
+            'capacidad'           => intval($request->capacidad ?? null),
+            'estado'              => intval($request->estado ?? null),
+            'color'               => intval($request->color ?? null),
+            'tipo_trabajo'        => intval($request->tipo_trabajo ?? null),
+            'carga_trabajo'       => intval($request->carga_trabajo ?? null),
+            'estado_operacional'  => intval($request->estado_operacional ?? null),
+            'estado_conservacion' => intval($request->estado_conservacion ?? null),
+            'condicion_ambiental' => intval($request->condicion_ambiental ?? null),
+            'cantidad_img'        => $request->cantidad_img,
+            'id_img'              => $url_img,
+            'responsable'         => $this->getNombre(),
+            'idResponsable'       => $this->getIdResponsable(),
+            'etiqueta_padre'      => $etiquetaPadre ?? 'Sin Padre',
+            'update_inv'          => 0,
+            /** edualejandro */
+            'eficiencia'            => $request->eficiencia ?? null,
+            'texto_abierto_1'       => $request->texto_abierto_1 ?? null,
+            'texto_abierto_2'       => $request->texto_abierto_2 ?? null,
+        ]);
 
-    $inventarioActualizado = Inventario::where('etiqueta', $request->etiqueta)->first();
+        $inventarioActualizado = Inventario::where('etiqueta', $request->etiqueta)->first();
 
-    return response()->json([
-        'message'    => 'Inventario actualizado con éxito',
-        'inventario' => $inventarioActualizado
-    ], 200);
-}
+        return response()->json([
+            'message'    => 'Inventario actualizado con éxito',
+            'inventario' => $inventarioActualizado
+        ], 200);
+    }
 
 
     public function configuracion($id_grupo)
@@ -383,7 +427,23 @@ $idUbicacionN3 = DB::table('ubicaciones_n3')
                 COALESCE(MAX(CASE WHEN id_atributo = 22 THEN tipo_etiqueta END), 0) AS tipo_etiqueta,
                 COALESCE(MAX(CASE WHEN id_atributo = 23 THEN id_validacion END), 0) AS conf_latitud,
                 COALESCE(MAX(CASE WHEN id_atributo = 24 THEN id_validacion END), 0) AS conf_longitud,
-                COALESCE(MAX(CASE WHEN id_atributo = 25 THEN id_validacion END), 0) AS conf_padre
+                COALESCE(MAX(CASE WHEN id_atributo = 25 THEN id_validacion END), 0) AS conf_padre,
+
+                /** edualejandro */
+                COALESCE(MAX(CASE WHEN id_atributo = 26 THEN id_validacion END), 0) AS conf_eficiencia,
+                COALESCE(MAX(CASE WHEN id_atributo = 26 THEN id_tipo_dato END), 0) AS tipo_dato_eficiencia,
+                COALESCE(MAX(CASE WHEN id_atributo = 26 THEN valor_minimo END), 0) AS lench_Min_eficiencia,
+                COALESCE(MAX(CASE WHEN id_atributo = 26 THEN valor_maximo END), 0) AS lench_Max_eficiencia,
+                /** edualejandro */
+                COALESCE(MAX(CASE WHEN id_atributo = 27 THEN id_validacion END), 0) AS conf_texto_abierto_1,
+                COALESCE(MAX(CASE WHEN id_atributo = 27 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_1,
+                COALESCE(MAX(CASE WHEN id_atributo = 27 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_1,
+                COALESCE(MAX(CASE WHEN id_atributo = 27 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_1,
+                /** edualejandro */
+                COALESCE(MAX(CASE WHEN id_atributo = 28 THEN id_validacion END), 0) AS conf_texto_abierto_2,
+                COALESCE(MAX(CASE WHEN id_atributo = 28 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_2,
+                COALESCE(MAX(CASE WHEN id_atributo = 28 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_2,
+                COALESCE(MAX(CASE WHEN id_atributo = 28 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_2
     
             FROM inv_atributos 
             WHERE id_grupo = ?";
@@ -395,51 +455,51 @@ $idUbicacionN3 = DB::table('ubicaciones_n3')
 
 
 
-   public function ImageByEtiqueta(Request $request, $etiqueta)
-{
-    $request->validate([
-        'imagenes.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
-    ]);
-    
-    $origen = 'SAFIN_APP';
-    $id_img = DB::table('inv_imagenes')->max('id_img') + 1;
-    $paths = [];
+    public function ImageByEtiqueta(Request $request, $etiqueta)
+    {
+        $request->validate([
+            'imagenes.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
+        ]);
 
-    foreach ($request->file('imagenes') as $index => $file) {
-        $filename = '9999_' . $etiqueta . '_' . $index . '.jpg';
+        $origen = 'SAFIN_APP';
+        $id_img = DB::table('inv_imagenes')->max('id_img') + 1;
+        $paths = [];
 
-        $path = $file->storeAs(
-            PictureSafinService::getImgSubdir($request->user()->nombre_cliente),
-            $filename,
-            'taxoImages'
-        );
+        foreach ($request->file('imagenes') as $index => $file) {
+            $filename = '9999_' . $etiqueta . '_' . $index . '.jpg';
 
-        $url = Storage::disk('taxoImages')->url($path);
-        $url_pict = dirname($url) . '/';
+            $path = $file->storeAs(
+                PictureSafinService::getImgSubdir($request->user()->nombre_cliente),
+                $filename,
+                'taxoImages'
+            );
 
-        $img = new Inv_imagenes();
-        $img->etiqueta = $etiqueta;
-        $img->id_img = $id_img;
-        $img->origen = $origen;
-        $img->picture = $filename;
-        $img->created_at = now();
-        $img->url_imagen =  $url;
-        $img->url_picture = $url_pict;
-        $img->save();
+            $url = Storage::disk('taxoImages')->url($path);
+            $url_pict = dirname($url) . '/';
 
-        $paths[] = [
-            'url' => $url_pict,
-            'filename' => $filename
-        ];
+            $img = new Inv_imagenes();
+            $img->etiqueta = $etiqueta;
+            $img->id_img = $id_img;
+            $img->origen = $origen;
+            $img->picture = $filename;
+            $img->created_at = now();
+            $img->url_imagen =  $url;
+            $img->url_picture = $url_pict;
+            $img->save();
+
+            $paths[] = [
+                'url' => $url_pict,
+                'filename' => $filename
+            ];
+        }
+
+        return response()->json([
+            'status'    => 'OK',
+            'paths'     => $paths,
+            'folderUrl' => $url_pict,
+            'id_img'    => $id_img - 1
+        ], 201);
     }
-
-    return response()->json([
-        'status'    => 'OK',
-        'paths'     => $paths,
-        'folderUrl' => $url_pict,
-        'id_img'    => $id_img - 1
-    ], 201);
-}
     public function showData($id_inventario, $id_ciclo)
     {
         $sql = "
@@ -559,7 +619,12 @@ $idUbicacionN3 = DB::table('ubicaciones_n3')
                     'codigoUbicacion_N1' => $item->codigoUbicacion_N1,
                     'responsable' => $item->responsable,
                     'latitud' => $item->latitud,
-                    'longitud' => $item->longitud
+                    'longitud' => $item->longitud,
+                    /** falta campos */
+                    /** edualejandro */
+                    'eficiencia'            => $request->eficiencia ?? null,
+                    'texto_abierto_1'       => $request->texto_abierto_1 ?? null,
+                    'texto_abierto_2'       => $request->texto_abierto_2 ?? null,
 
                 ];
 
@@ -585,7 +650,7 @@ $idUbicacionN3 = DB::table('ubicaciones_n3')
 
 
 
-     $userFolder = "customers/" . $request->user()->nombre_cliente . "/images/inventario/temp/";
+        $userFolder = "customers/" . $request->user()->nombre_cliente . "/images/inventario/temp/";
 
 
         $zip = new \ZipArchive;
@@ -697,13 +762,13 @@ $idUbicacionN3 = DB::table('ubicaciones_n3')
                     $asset->save();
                     $origen = 'SAFIN_APP';
                     $filename = '9999_' . $asset->etiqueta . '_' . uniqid() . '.jpg';
-                    
+
                     foreach ($imagenes as $img) {
                         DB::table('inv_imagenes')->insert([
                             'id_img'     => $newIDImg,
                             'origin'     => $origen,
                             'etiqueta'   => $asset->etiqueta,
-                            'picture'    => $filename.'.jpg',
+                            'picture'    => $filename . '.jpg',
                             'url_imagen' => $img->url_imagen,
                             'url_picture'   => $img->url_picture,
                             'created_at' => now(),
@@ -738,7 +803,7 @@ $idUbicacionN3 = DB::table('ubicaciones_n3')
         }
 
         $paths = [];
-        $origen = 'SAFIN_APP_OFFLINE'; 
+        $origen = 'SAFIN_APP_OFFLINE';
 
         foreach ($files as $file) {
 
@@ -746,17 +811,17 @@ $idUbicacionN3 = DB::table('ubicaciones_n3')
 
 
                 foreach ($file['etiquetas'] as $etiqueta) {
-                
-                $filename = '9999_' . $etiqueta . '.jpg';
-               
-                $path = $file['file']->storeAs(
-                    PictureSafinService::getImgSubdir($request->user()->nombre_cliente),
-                    $filename,
-                    'taxoImages'
-                );
 
-                $url = Storage::disk('taxoImages')->url($path);
-                $url_pict = dirname($url) . '/';
+                    $filename = '9999_' . $etiqueta . '.jpg';
+
+                    $path = $file['file']->storeAs(
+                        PictureSafinService::getImgSubdir($request->user()->nombre_cliente),
+                        $filename,
+                        'taxoImages'
+                    );
+
+                    $url = Storage::disk('taxoImages')->url($path);
+                    $url_pict = dirname($url) . '/';
 
                     $img = new Inv_imagenes();
                     $img->etiqueta = $etiqueta;
@@ -768,7 +833,7 @@ $idUbicacionN3 = DB::table('ubicaciones_n3')
                     $img->url_picture = $url_pict;
                     $img->save();
 
-                    $paths[] = $url; 
+                    $paths[] = $url;
                 }
             }
         }
