@@ -62,19 +62,11 @@ class InventariosController extends Controller
 
         $existeEtiqueta = false;
 
-<<<<<<< HEAD
     $Nivel4 = DB::table('ubicaciones_n4')->where('codigoUbicacion', $request->codigoUbicacion)->value('idUbicacionN4');
 
    if ($Nivel4 != null) {
         return $this->createinventarioNivel3($request, $Nivel4);
     }
-=======
-        $Nivel3 = DB::table('ubicaciones_n3')->where('codigoUbicacion', $request->codigoUbicacion)->value('idUbicacionN3');
-
-        if ($Nivel3 != null) {
-            return $this->createinventarioNivel3($request, $Nivel3);
-        }
->>>>>>> 2dcfb3650f33541f1b980097e2d37859b4fc7450
 
         $etiquetaInventario = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta)->value('etiqueta');
         $etiquetaUnicaCrudActivo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta)->value('etiqueta');
@@ -193,14 +185,10 @@ class InventariosController extends Controller
         return response()->json($inventario, 201);
     }
 
-<<<<<<< HEAD
 
 
 
   public function  createinventarioNivel3 (Request $request, $Nivel4)
-=======
-    public function  createinventarioNivel3(Request $request, $Nivel3)
->>>>>>> 2dcfb3650f33541f1b980097e2d37859b4fc7450
     {
         $request->validate([
             'id_grupo'              => 'required|string',
@@ -233,19 +221,12 @@ class InventariosController extends Controller
         }
 
 
-<<<<<<< HEAD
 $idUbicacionN3 = DB::table('ubicaciones_n3')
     ->where('codigoUbicacion', '=', substr($request->codigoUbicacion, 0, 6))
     ->value('idUbicacionN3');
 
     $idUbicacionGeo = DB::table('ubicaciones_n4')
             ->where('idUbicacionN4',  $Nivel4 )
-=======
-
-        $idUbicacionN3 = $Nivel3;
-        $idUbicacionGeo = DB::table('ubicaciones_n3')
-            ->where('idUbicacionN3',  $idUbicacionN3)
->>>>>>> 2dcfb3650f33541f1b980097e2d37859b4fc7450
             ->value('idAgenda');
 
         if ($request->cloneFichaDetalle == "true") {
@@ -327,7 +308,6 @@ $idUbicacionN3 = DB::table('ubicaciones_n3')
         return response()->json($inventario, 201);
     }
 
-<<<<<<< HEAD
 
 
 
@@ -339,16 +319,6 @@ $idUbicacionN3 = DB::table('ubicaciones_n3')
     'etiqueta'   => 'required|string',
     'id_ciclo'   => 'required|integer|exists:inv_ciclos,idCiclo',
 ]);
-=======
-    public function updateinventario(Request $request)
-    {
-        $request->validate([
-            'id_grupo'   => 'required|integer',
-            'id_familia' => 'required|integer',
-            'etiqueta'   => 'required|string',
-            'id_ciclo'   => 'required|integer|exists:inv_ciclos,idCiclo',
-        ]);
->>>>>>> 2dcfb3650f33541f1b980097e2d37859b4fc7450
 
         $id_img = DB::table('inv_imagenes')
             ->where('etiqueta', $request->etiqueta)
