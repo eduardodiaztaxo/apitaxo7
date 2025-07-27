@@ -62,11 +62,11 @@ class InventariosController extends Controller
 
         $existeEtiqueta = false;
 
-    $Nivel4 = DB::table('ubicaciones_n4')->where('codigoUbicacion', $request->codigoUbicacion)->value('idUbicacionN4');
+        $Nivel4 = DB::table('ubicaciones_n4')->where('codigoUbicacion', $request->codigoUbicacion)->value('idUbicacionN4');
 
-   if ($Nivel4 != null) {
-        return $this->createinventarioNivel3($request, $Nivel4);
-    }
+        if ($Nivel4 != null) {
+            return $this->createinventarioNivel3($request, $Nivel4);
+        }
 
         $etiquetaInventario = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta)->value('etiqueta');
         $etiquetaUnicaCrudActivo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta)->value('etiqueta');
@@ -188,7 +188,7 @@ class InventariosController extends Controller
 
 
 
-  public function  createinventarioNivel3 (Request $request, $Nivel4)
+    public function  createinventarioNivel3(Request $request, $Nivel4)
     {
         $request->validate([
             'id_grupo'              => 'required|string',
@@ -221,12 +221,12 @@ class InventariosController extends Controller
         }
 
 
-$idUbicacionN3 = DB::table('ubicaciones_n3')
-    ->where('codigoUbicacion', '=', substr($request->codigoUbicacion, 0, 6))
-    ->value('idUbicacionN3');
+        $idUbicacionN3 = DB::table('ubicaciones_n3')
+            ->where('codigoUbicacion', '=', substr($request->codigoUbicacion, 0, 6))
+            ->value('idUbicacionN3');
 
-    $idUbicacionGeo = DB::table('ubicaciones_n4')
-            ->where('idUbicacionN4',  $Nivel4 )
+        $idUbicacionGeo = DB::table('ubicaciones_n4')
+            ->where('idUbicacionN4',  $Nivel4)
             ->value('idAgenda');
 
         if ($request->cloneFichaDetalle == "true") {
@@ -311,14 +311,14 @@ $idUbicacionN3 = DB::table('ubicaciones_n3')
 
 
 
-   public function updateinventario(Request $request)
-{
-   $request->validate([
-    'id_grupo'   => 'required|integer',
-    'id_familia' => 'required|integer',
-    'etiqueta'   => 'required|string',
-    'id_ciclo'   => 'required|integer|exists:inv_ciclos,idCiclo',
-]);
+    public function updateinventario(Request $request)
+    {
+        $request->validate([
+            'id_grupo'   => 'required|integer',
+            'id_familia' => 'required|integer',
+            'etiqueta'   => 'required|string',
+            'id_ciclo'   => 'required|integer|exists:inv_ciclos,idCiclo',
+        ]);
 
         $id_img = DB::table('inv_imagenes')
             ->where('etiqueta', $request->etiqueta)
@@ -588,8 +588,12 @@ $idUbicacionN3 = DB::table('ubicaciones_n3')
                     'cantidad_img' => $item->cantidad_img,
                     'id_img' => $item->id_img,
                     'id_ciclo' => $ciclo,
+                    'idUbicacionGeo' => $item->idUbicacionGeo,
                     'idUbicacionN2' => $item->idUbicacionN2,
                     'codigoUbicacion_N1' => $item->codigoUbicacion_N1,
+                    'codigoUbicacionN3' => $item->codigoUbicacionN3,
+                    'idUbicacionN3' => $item->idUbicacionN3,
+                    'codigoUbicacionN4' => $item->codigoUbicacionN4,
                     'responsable' => $item->responsable,
                     'latitud' => $item->latitud,
                     'longitud' => $item->longitud,
