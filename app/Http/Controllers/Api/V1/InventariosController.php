@@ -614,6 +614,7 @@ class InventariosController extends Controller
                     'idMaterial' => $item->idMaterial,
                     'etiqueta' => $item->etiqueta,
                     'etiqueta_padre' => $item->etiqueta_padre,
+                    'id_marca' => $item->id_marca,
                     'modelo' => $item->modelo,
                     'serie' => $item->serie,
                     'capacidad' => $item->capacidad,
