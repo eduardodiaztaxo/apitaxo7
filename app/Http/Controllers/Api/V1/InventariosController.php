@@ -571,10 +571,12 @@ class InventariosController extends Controller
                     'id_grupo' => $item->id_grupo,
                     'id_familia' => $item->id_familia,
                     'descripcion_bien' => $item->descripcion_bien,
+                    'id_bien' => $item->id_bien,
                     'descripcion_marca' => $item->descripcion_marca,
                     'idForma' => $item->idForma,
                     'idMaterial' => $item->idMaterial,
                     'etiqueta' => $item->etiqueta,
+                    'etiqueta_padre' => $item->etiqueta_padre,
                     'modelo' => $item->modelo,
                     'serie' => $item->serie,
                     'capacidad' => $item->capacidad,
@@ -595,13 +597,16 @@ class InventariosController extends Controller
                     'idUbicacionN3' => $item->idUbicacionN3,
                     'codigoUbicacionN4' => $item->codigoUbicacionN4,
                     'responsable' => $item->responsable,
+                    'idResponsable' => $item->idResponsable,
                     'latitud' => $item->latitud,
                     'longitud' => $item->longitud,
+                    'crud_activo_estado' => $item->crud_activo_estado,
+                    'update_inv' => $item->update_inv,
                     /** falta campos */
                     /** edualejandro */
-                    'eficiencia'            => $request->eficiencia ?? null,
-                    'texto_abierto_1'       => $request->texto_abierto_1 ?? null,
-                    'texto_abierto_2'       => $request->texto_abierto_2 ?? null,
+                    'eficiencia'            => $item->eficiencia ?? null,
+                    'texto_abierto_1'       => $item->texto_abierto_1 ?? null,
+                    'texto_abierto_2'       => $item->texto_abierto_2 ?? null,
 
                 ];
 
@@ -782,14 +787,14 @@ class InventariosController extends Controller
         $paths = [];
         $origen = 'SAFIN_APP_OFFLINE';
 
-        foreach ($files as $file) {
+        foreach ($files as $filekey => $file) {
 
             if (count($file['etiquetas']) > 0) {
 
 
                 foreach ($file['etiquetas'] as $etiqueta) {
 
-                    $filename = '9999_' . $etiqueta . '.jpg';
+                    $filename = '9999_' . $etiqueta . '_' . $filekey . '.jpg';
 
                     $path = $file['file']->storeAs(
                         PictureSafinService::getImgSubdir($request->user()->nombre_cliente),
