@@ -243,28 +243,36 @@ public function createSubEmplazamientosNivel3(Request $request)
      * @param  int  $emplazamiento_id
      * @return \Illuminate\Http\Response
      */
-public function show(int $emplazamiento, int $ciclo)
-    {
-        $emplaObj = Emplazamiento::find($emplazamiento);
 
-        if ($emplaObj) {
-            $resource = EmplazamientoResource::make($emplaObj);
-        } else {
-            $emplaObj = EmplazamientoN4::find($emplazamiento);
 
-            if (!$emplaObj) {
-                return response()->json(['status' => 'NOK', 'code' => 404], 404);
-            }
+ public function show(int $emplazamiento, int $ciclo, string $zona_id)
+{
+    // Buscar nivel 2
+    $emplaObj = Emplazamiento::where('idUbicacionN2', $emplazamiento)
+        ->where('codigoUbicacion', $zona_id)
+        ->first();
 
-            $resource = EmplazamientoNivel3Resource::make($emplaObj);
+    if ($emplaObj) {
+        $resource = EmplazamientoResource::make($emplaObj);
+    } else {
+        //buscar en el nivel 3
+        $emplaObj = EmplazamientoN4::where('idUbicacionN4', $emplazamiento)
+            ->where('codigoUbicacion', 'LIKE', '%' . $zona_id . '%')
+            ->first();
+
+        if (!$emplaObj) {
+            return response()->json(['status' => 'NOK', 'code' => 404], 404);
         }
 
-        $emplaObj->requirePunto = 1;
-        $emplaObj->requireActivos = 1;
-        $emplaObj->cycle_id = $ciclo;
-
-        return response()->json($resource);
+        $resource = EmplazamientoNivel3Resource::make($emplaObj);
     }
+
+    $emplaObj->requirePunto = 1;
+    $emplaObj->requireActivos = 1;
+    $emplaObj->cycle_id = $ciclo;
+
+    return response()->json($resource);
+}
 
 
 public function showN3(string $codigoUbicacionN3)

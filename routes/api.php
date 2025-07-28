@@ -199,7 +199,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('ciclos/{ciclo}/puntos/{punto}', [CiclosUbicacionesController::class, 'showAll']);
 
-    Route::get('emplazamientos/{emplazamiento}/{ciclo}', [EmplazamientoController::class, 'show']);
+    Route::get('emplazamientos/{emplazamiento}/{ciclo}/{zona_id}', [EmplazamientoController::class, 'show']);
 
     Route::put('emplazamientos/{id}', [EmplazamientoController::class, 'update']);
 

@@ -109,14 +109,9 @@ class ZonaEmplazamientosController extends Controller
 {
     $zonaObjs = EmplazamientoN4::where('codigoUbicacion', 'LIKE', $zona . '%')->get();
 
-    if ($zonaObjs->isEmpty()) {
-        return response()->json([
-            'status' => 'NOK',
-            'message' => 'Zona no encontrada',
-            'codigoZona' => $zona,
-            'code' => 404
-        ], 404);
-    }
+ if ($zonaObjs->isEmpty()) {
+    return response()->json([], 200);
+}
 
     $cicloObj = InvCiclo::find($ciclo);
 
