@@ -95,7 +95,10 @@ class InventarioDumpService
                 -- edualejandro
                 eficiencia TEXT,
                 texto_abierto_1 TEXT,
-                texto_abierto_2 TEXT
+                texto_abierto_2 TEXT,
+                texto_abierto_3 TEXT,
+                texto_abierto_4 TEXT,
+                texto_abierto_5 TEXT
             );
         ");
     }
@@ -152,7 +155,10 @@ class InventarioDumpService
                 -- edualejandro
                 eficiencia,
                 texto_abierto_1,
-                texto_abierto_2
+                texto_abierto_2,
+                texto_abierto_3,
+                texto_abierto_4,
+                texto_abierto_5
             )
             VALUES (
                 :id_invetario,
@@ -197,7 +203,10 @@ class InventarioDumpService
                 -- edualejandro
                 :eficiencia,
                 :texto_abierto_1,
-                :texto_abierto_2
+                :texto_abierto_2,
+                :texto_abierto_3,
+                :texto_abierto_4,
+                :texto_abierto_5
             )
         ");
 
@@ -246,7 +255,10 @@ class InventarioDumpService
                 // edualejandro
                 ':eficiencia' => $i->eficiencia ?? null,
                 ':texto_abierto_1' => $i->texto_abierto_1 ?? null,
-                ':texto_abierto_2' => $i->texto_abierto_2 ?? null
+                ':texto_abierto_2' => $i->texto_abierto_2 ?? null,
+                ':texto_abierto_3' => $i->texto_abierto_3 ?? null,
+                ':texto_abierto_4' => $i->texto_abierto_4 ?? null,
+                ':texto_abierto_5' => $i->texto_abierto_5 ?? null
             ]);
         }
     }

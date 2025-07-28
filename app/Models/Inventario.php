@@ -41,6 +41,9 @@ class Inventario extends Model
         'eficiencia',
         'texto_abierto_1',
         'texto_abierto_2',
+        'texto_abierto_3',
+        'texto_abierto_4',
+        'texto_abierto_5',
         /** edualejandro */
         'cantidad_img',
         'id_img',
