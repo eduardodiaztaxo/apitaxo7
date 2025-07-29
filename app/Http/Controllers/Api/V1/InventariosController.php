@@ -58,11 +58,14 @@ class InventariosController extends Controller
             'etiqueta'              => 'required|string',
             'id_ciclo'              => 'required|exists:inv_ciclos,idCiclo',
             'codigoUbicacion'       => 'required',
+            'idAgenda'              => 'required'
         ]);
 
         $existeEtiqueta = false;
 
-        $Nivel4 = DB::table('ubicaciones_n4')->where('codigoUbicacion', $request->codigoUbicacion)->value('idUbicacionN4');
+        $idAgenda = $request->idAgenda;
+
+        $Nivel4 = DB::table('ubicaciones_n4')->where('codigoUbicacion', $request->codigoUbicacion)->where('idAgenda', $idAgenda)->value('idUbicacionN4');
 
         if ($Nivel4 != null) {
             return $this->createinventarioNivel3($request, $Nivel4);
@@ -102,9 +105,7 @@ class InventariosController extends Controller
                 ->value('idUbicacionN2');
         }
 
-        $idUbicacionGeo = DB::table('ubicaciones_n2')
-            ->where('idUbicacionN2',  $idUbicacionN2)
-            ->value('idAgenda');
+        $idUbicacionGeo = $idAgenda;
 
         if ($request->cloneFichaDetalle == "true") {
             $imagenes = DB::table('inv_imagenes')
