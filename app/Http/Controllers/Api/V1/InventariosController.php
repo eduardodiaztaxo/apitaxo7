@@ -90,16 +90,24 @@ class InventariosController extends Controller
 
 
         if ($request->idUbicacionN2 > 0 && $request->codigoUbicacion_N1 > 0) {
+            //Nivel2
             $codigoUbicacion_N1 = $request->codigoUbicacion_N1;
             $idUbicacionN2 = $request->idUbicacionN2;
+            $codigoUbicacion_N2 = DB::table('ubicaciones_n2')
+            ->where('idUbicacionN2',  $idUbicacionN2)
+            ->value('codigoUbicacion');
+
         } else {
+
             $codigoUbicacion_N1 = null;
             if (!empty($request->codigoUbicacion)) {
+
                 $codigoUbicacion_N1 = substr(strval($request->codigoUbicacion), 0, 2);
             }
             $idUbicacionN2 = DB::table('ubicaciones_n2')
                 ->where('codigoUbicacion', $request->codigoUbicacion)
                 ->value('idUbicacionN2');
+             $codigoUbicacion_N2 = $request->codigoUbicacion;
         }
 
         $idUbicacionGeo = DB::table('ubicaciones_n2')
@@ -141,6 +149,7 @@ class InventariosController extends Controller
             $etiquetaPadre = $request->etiqueta_padre;
         }
 
+
         $inventario = new Inventario();
         $inventario->id_grupo            = $request->id_grupo;
         $inventario->id_familia          = $request->id_familia;
@@ -168,6 +177,7 @@ class InventariosController extends Controller
         $inventario->id_ciclo            = $request->id_ciclo;
         $inventario->idUbicacionGeo      = $idUbicacionGeo;
         $inventario->idUbicacionN2       = $idUbicacionN2;
+        $inventario->codigoUbicacion_N2  = $codigoUbicacion_N2;
         $inventario->codigoUbicacion_N1  = $codigoUbicacion_N1;
         $inventario->idUbicacionN3       = 0;
         $inventario->codigoUbicacionN4   = 0;
@@ -294,6 +304,7 @@ class InventariosController extends Controller
         $inventario->id_ciclo            = $request->id_ciclo;
         $inventario->idUbicacionGeo      = $idUbicacionGeo;
         $inventario->idUbicacionN2       = 0;
+        $inventario->codigoUbicacion_N2  = 0;
         $inventario->codigoUbicacion_N1  = 0;
         $inventario->idUbicacionN3       = $idUbicacionN3;
         $inventario->codigoUbicacionN4   = $request->codigoUbicacion ?? 0;
