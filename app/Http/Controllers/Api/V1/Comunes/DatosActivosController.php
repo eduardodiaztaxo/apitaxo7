@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api\V1\Comunes;
+
 use App\Http\Controllers\Controller;
 use App\Models\IndiceLista;
 use App\Models\Inventario_bienes;
@@ -40,16 +41,16 @@ class DatosActivosController extends Controller
 
 
 
-     public function estados()
+    public function estados()
     {
         $collection = IndiceListaEstado::all();
         return response()->json($collection, 200);
     }
 
 
-        public function grupo($ciclo)
-        {
-            $idsGrupos = DB::select("
+    public function grupo($ciclo)
+    {
+        $idsGrupos = DB::select("
                 SELECT 
                     dp_grupos.descripcion_grupo,
                     dp_familias.descripcion_familia,
@@ -66,17 +67,17 @@ class DatosActivosController extends Controller
                 ORDER BY dp_grupos.descripcion_grupo, dp_familias.descripcion_familia
             ", [$ciclo]);
 
-            $ids = collect($idsGrupos)->pluck('id_grupo')->unique()->values()->toArray();
+        $ids = collect($idsGrupos)->pluck('id_grupo')->unique()->values()->toArray();
 
-            $grupos = Grupo::whereIn('id_grupo', $ids)->get();
+        $grupos = Grupo::whereIn('id_grupo', $ids)->get();
 
-            return response()->json($grupos, 200);
-        }
+        return response()->json($grupos, 200);
+    }
 
 
     public function familia($codigo_grupo, $ciclo)
     {
-          $idsFamilia = DB::select("
+        $idsFamilia = DB::select("
                 SELECT 
                     dp_grupos.descripcion_grupo,
                     dp_familias.descripcion_familia,
@@ -94,16 +95,16 @@ class DatosActivosController extends Controller
                 ORDER BY dp_grupos.descripcion_grupo, dp_familias.descripcion_familia
             ", [$ciclo, $codigo_grupo]);
 
-            $ids = collect($idsFamilia)->pluck('id_familia')->unique()->values()->toArray();
+        $ids = collect($idsFamilia)->pluck('id_familia')->unique()->values()->toArray();
 
         $collection = Familia::where('id_grupo', $codigo_grupo)->whereIn('id_familia', $ids)->get();
 
         return response()->json($collection, 200);
     }
- public function bienesGrupoFamilia($idCiclo)
-{
-    // Paso 1: Obtener familias con estado ≠ 0
-    $familias = DB::select("
+    public function bienesGrupoFamilia($idCiclo)
+    {
+        // Paso 1: Obtener familias con estado ≠ 0
+        $familias = DB::select("
         SELECT 
             dp_grupos.descripcion_grupo,
             dp_familias.descripcion_familia,
@@ -120,19 +121,19 @@ class DatosActivosController extends Controller
         ORDER BY dp_grupos.descripcion_grupo, dp_familias.descripcion_familia
     ", [$idCiclo]);
 
-    // Convertimos a colección para facilitar manipulación
-    $familias = collect($familias);
+        // Convertimos a colección para facilitar manipulación
+        $familias = collect($familias);
 
-    // Paso 2: Extraer IDs de familia
-    $idsFamilia = $familias->pluck('id_familia')->all();
+        // Paso 2: Extraer IDs de familia
+        $idsFamilia = $familias->pluck('id_familia')->all();
 
-    if (empty($idsFamilia)) {
-        return response()->json([], 200);
-    }
+        if (empty($idsFamilia)) {
+            return response()->json([], 200);
+        }
 
-    // Paso 3: Consulta bienes
-    $in = implode(',', $idsFamilia);
-    $bienesRaw = DB::select("
+        // Paso 3: Consulta bienes
+        $in = implode(',', $idsFamilia);
+        $bienesRaw = DB::select("
        SELECT * FROM (
     SELECT 
         idLista,
@@ -176,39 +177,39 @@ class DatosActivosController extends Controller
 ) AS resultado;
  ");
 
-    // Paso 4: Enriquecer los bienes con info de grupo y familia
-    $bienes = collect($bienesRaw)
-        ->map(function ($bien) use ($familias) {
-            $familia = $familias->firstWhere('id_familia', $bien->id_familia);
-            if ($familia) {
-                $bien->descripcion_familia = $familia->descripcion_familia;
-                $bien->descripcion_grupo = $familia->descripcion_grupo;
-                $bien->id_grupo = $familia->id_grupo;
-            }
-            return $bien;
-        });
+        // Paso 4: Enriquecer los bienes con info de grupo y familia
+        $bienes = collect($bienesRaw)
+            ->map(function ($bien) use ($familias) {
+                $familia = $familias->firstWhere('id_familia', $bien->id_familia);
+                if ($familia) {
+                    $bien->descripcion_familia = $familia->descripcion_familia;
+                    $bien->descripcion_grupo = $familia->descripcion_grupo;
+                    $bien->id_grupo = $familia->id_grupo;
+                }
+                return $bien;
+            });
 
-    return response()->json($bienes->values(), 200);
-}
+        return response()->json($bienes->values(), 200);
+    }
 
-    
-    
+
+
     public function buscarGrupoFamilia($id_familia)
     {
         $sql = "
           SELECT descripcion_familia, id_grupo FROM dp_familias WHERE id_familia = $id_familia
         ";
-    
+
         $result = DB::select($sql);
-    
+
         $id_grupo = $result[0]->id_grupo;
-    
+
         $sql = "
           SELECT * FROM dp_grupos WHERE id_grupo = $id_grupo
         ";
-    
+
         $grupo = DB::select($sql);
-    
+
         return response()->json([
             'grupo' => $grupo[0]
         ], 200);
@@ -216,60 +217,64 @@ class DatosActivosController extends Controller
     public function bienes_Marcas($id_familia, $ciclo)
     {
         $marcas = DB::table('inv_marcas_nuevos')
-                    ->where('id_familia', $id_familia)
-                    ->where('ciclo_inventario', $ciclo)
-                    ->get();
-    
-                    
+            ->where('id_familia', $id_familia)
+            ->where('ciclo_inventario', $ciclo)
+            ->get();
+
+
         $indices = DB::table('indices_listas')
-                    ->where('id_familia', $id_familia)
-                    ->where('idAtributo', 2)
-                    ->get();
-    
+            ->where('id_familia', $id_familia)
+            ->where('idAtributo', 2)
+            ->get();
+
         // Unir ambas colecciones
         $resultado = $marcas->concat($indices);
-    
+
         return response()->json($resultado, 200);
     }
 
-public function indiceColores()
-{
-    $collection = IndiceListaColores::all();
+    public function indiceColores()
+    {
+        $collection = IndiceListaColores::all();
         return response()->json($collection, 200);
-}
+    }
 
-    public function estadosOperacional(){
+    public function estadosOperacional()
+    {
 
         $collection = IndiceListaOperacional::all();
         return response()->json($collection, 200);
     }
 
-    public function tipoTrabajo(){
+    public function tipoTrabajo()
+    {
 
-         $collection = IndiceListaTipoTrabajo::all();
+        $collection = IndiceListaTipoTrabajo::all();
         return response()->json($collection, 200);
     }
 
-    public function cargaTrabajo(){
+    public function cargaTrabajo()
+    {
 
         $collection = IndiceListaCargaTrabajo::all();
         return response()->json($collection, 200);
-        
     }
 
-    public function estadoConservacion(){
-        
+    public function estadoConservacion()
+    {
+
         $collection = IndiceListaConservacion::all();
         return response()->json($collection, 200);
     }
 
-    public function condicionAmbiental(){
+    public function condicionAmbiental()
+    {
 
-         $collection = IndiceListaCondicionAmbiental::all();
+        $collection = IndiceListaCondicionAmbiental::all();
         return response()->json($collection, 200);
     }
 
-     public function material()
+    public function material()
     {
         $collection = IndiceListaMaterial::all();
         return response()->json($collection, 200);
@@ -300,28 +305,29 @@ public function indiceColores()
      * @return \Illuminate\Http\Response
      */
 
-    public function createBienes(Request $request){
+    public function createBienes(Request $request)
+    {
         $request->validate([
             'descripcion'       => 'required|string',
             'observacion'       => 'required|string',
             'idAtributo'        => 'required|exists:indices_listas,idAtributo',
             'id_familia'        => 'required|exists:dp_familias,id_familia',
             'id_grupo'          => 'required|exists:dp_grupos,id_grupo',
-            'ciclo_inventario'  => 'required|exists:inv_ciclos,idCiclo'     
+            'ciclo_inventario'  => 'required|exists:inv_ciclos,idCiclo'
         ]);
-    
+
         $sql  = "SELECT * FROM inv_bienes_nuevos WHERE idIndice = $request->id_familia AND idAtributo = $request->idAtributo";
-    
+
         $indice = DB::selectOne($sql);
-    
+
         $maxListaIndicelista = Indicelista::where('idAtributo', $request->idAtributo)
-        ->where('idIndice', $request->id_familia)
-        ->max('idLista');
-    
+            ->where('idIndice', $request->id_familia)
+            ->max('idLista');
+
         $maxListaMarcasNuevos = Inventario_bienes::where('idAtributo', $request->idAtributo)
-        ->where('id_familia', $request->id_familia)
-        ->max('idLista');
-    
+            ->where('id_familia', $request->id_familia)
+            ->max('idLista');
+
         if ($maxListaIndicelista === null && $maxListaMarcasNuevos === null) {
             $newIdLista = 1;
         } else {
@@ -338,11 +344,11 @@ public function indiceColores()
         $bienes->id_grupo    = $request->id_grupo;
         $bienes->ciclo_inventario = $request->ciclo_inventario;
         $bienes->save();
-    
+
         return response()->json($bienes, 201);
     }
 
-     /**
+    /**
      * create marcas nuevas.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -350,27 +356,32 @@ public function indiceColores()
      * @param \Illuminate\Http\Indicelista se busca maximo idLista
      * @return \Illuminate\Http\Response
      */
-    public function createMarcas(Request $request){
+    public function createMarcas(Request $request)
+    {
         $request->validate([
             'descripcion'       => 'required|string',
-            'observacion'       => 'required|string',
+
             'idAtributo'        => 'required|exists:indices_listas,idAtributo',
             'id_familia'        => 'required|exists:dp_familias,id_familia',
-            'ciclo_inventario'  => 'required|exists:inv_ciclos,idCiclo'       
+            'ciclo_inventario'  => 'required|exists:inv_ciclos,idCiclo'
         ]);
-    
+
+        if (!$request->observacion) {
+            $request->merge(['observacion' => 'Sin Observación']);
+        }
+
         $sql  = "SELECT * FROM inv_marcas_nuevos WHERE idIndice = $request->id_familia AND idAtributo = $request->idAtributo";
-    
+
         $indice = DB::selectOne($sql);
-    
+
         $maxListaIndicelista = Indicelista::where('idAtributo', $request->idAtributo)
-        ->where('idIndice', $request->id_familia)
-        ->max('idLista');
-    
+            ->where('idIndice', $request->id_familia)
+            ->max('idLista');
+
         $maxListaMarcasNuevos = Inventario_marcas::where('idAtributo', $request->idAtributo)
-        ->where('id_familia', $request->id_familia)
-        ->max('idLista');
-    
+            ->where('id_familia', $request->id_familia)
+            ->max('idLista');
+
         if ($maxListaIndicelista === null && $maxListaMarcasNuevos === null) {
             $newIdLista = 1;
         } else {
@@ -387,7 +398,7 @@ public function indiceColores()
         $marcas->id_familia  = $request->id_familia;
         $marcas->ciclo_inventario = $request->ciclo_inventario;
         $marcas->save();
-    
+
         return response()->json($marcas, 201);
     }
 }
