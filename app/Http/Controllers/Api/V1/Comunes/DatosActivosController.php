@@ -309,12 +309,16 @@ class DatosActivosController extends Controller
     {
         $request->validate([
             'descripcion'       => 'required|string',
-            'observacion'       => 'required|string',
+
             'idAtributo'        => 'required|exists:indices_listas,idAtributo',
             'id_familia'        => 'required|exists:dp_familias,id_familia',
             'id_grupo'          => 'required|exists:dp_grupos,id_grupo',
             'ciclo_inventario'  => 'required|exists:inv_ciclos,idCiclo'
         ]);
+
+        if (!$request->observacion) {
+            $request->merge(['observacion' => 'Sin observación',]);
+        }
 
         $sql  = "SELECT * FROM inv_bienes_nuevos WHERE idIndice = $request->id_familia AND idAtributo = $request->idAtributo";
 
