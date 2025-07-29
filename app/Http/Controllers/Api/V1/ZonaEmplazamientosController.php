@@ -108,6 +108,7 @@ class ZonaEmplazamientosController extends Controller
     public function CycleCatsNivel3(Request $request, int $ciclo, string $zona, int $agenda_id)
     {
         $zonaObjs = EmplazamientoN4::where('codigoUbicacion', 'LIKE', $zona . '%')->where('idAgenda', '=', $agenda_id)->get();
+        dd($zonaObjs);
 
         if ($zonaObjs->isEmpty()) {
             return response()->json([], 200);
