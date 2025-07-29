@@ -800,7 +800,7 @@ class InventariosController extends Controller
                     foreach ($imagenes as $img) {
                         DB::table('inv_imagenes')->insert([
                             'id_img'     => $newIDImg,
-                            'origin'     => $origen,
+                            'origen'     => $origen,
                             'etiqueta'   => $asset->etiqueta,
                             'picture'    => $filename . '.jpg',
                             'url_imagen' => $img->url_imagen,
