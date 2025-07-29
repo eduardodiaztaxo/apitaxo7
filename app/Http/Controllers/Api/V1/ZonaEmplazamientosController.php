@@ -107,8 +107,10 @@ class ZonaEmplazamientosController extends Controller
 
     public function CycleCatsNivel3(Request $request, int $ciclo, string $zona, int $agenda_id)
     {
+
+
         $zonaObjs = EmplazamientoN4::where('codigoUbicacion', 'LIKE', $zona . '%')->where('idAgenda', '=', $agenda_id)->get();
-        dd($zonaObjs);
+
 
         if ($zonaObjs->isEmpty()) {
             return response()->json([], 200);
@@ -129,6 +131,8 @@ class ZonaEmplazamientosController extends Controller
         foreach ($zonaObjs as $zonaObj) {
             $emplaCats = $cicloObj->zoneSubEmplazamientosWithCats($zonaObj)->pluck('idUbicacionN4')->toArray();
 
+
+
             $subEmplas = empty($emplaCats)
                 ? $zonaObj->subemplazamientosNivel3()->get()
                 : $zonaObj->subemplazamientosNivel3()->whereIn('idUbicacionN4', $emplaCats)->get();
@@ -138,6 +142,8 @@ class ZonaEmplazamientosController extends Controller
                 $emplazamientos->push($sub);
             }
         }
+
+
 
         return response()->json(EmplazamientoNivel3Resource::collection($emplazamientos), 200);
     }
