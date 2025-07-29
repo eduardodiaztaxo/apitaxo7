@@ -50,6 +50,7 @@ class Inventario extends Model
         'id_ciclo',
         'idUbicacionGeo',
         'idUbicacionN2',
+        'codigoUbicacion_N2',
         'codigoUbicacion_N1',
         'idUbicacionN3',
         'codigoUbicacionN4',
