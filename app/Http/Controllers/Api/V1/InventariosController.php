@@ -97,9 +97,8 @@ class InventariosController extends Controller
             $codigoUbicacion_N1 = $request->codigoUbicacion_N1;
             $idUbicacionN2 = $request->idUbicacionN2;
             $codigoUbicacion_N2 = DB::table('ubicaciones_n2')
-            ->where('idUbicacionN2',  $idUbicacionN2)
-            ->value('codigoUbicacion');
-
+                ->where('idUbicacionN2',  $idUbicacionN2)
+                ->value('codigoUbicacion');
         } else {
 
             $codigoUbicacion_N1 = null;
@@ -109,8 +108,9 @@ class InventariosController extends Controller
             }
             $idUbicacionN2 = DB::table('ubicaciones_n2')
                 ->where('codigoUbicacion', $request->codigoUbicacion)
+                ->where('idAgenda', $idAgenda)
                 ->value('idUbicacionN2');
-             $codigoUbicacion_N2 = $request->codigoUbicacion;
+            $codigoUbicacion_N2 = $request->codigoUbicacion;
         }
 
         $idUbicacionGeo = $idAgenda;
