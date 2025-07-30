@@ -129,6 +129,7 @@ class ZonaEmplazamientosController extends Controller
         $emplazamientos = collect();
 
         foreach ($zonaObjs as $zonaObj) {
+            //codigo repetido
             $emplaCats = $cicloObj->zoneSubEmplazamientosWithCats($zonaObj)->pluck('idUbicacionN4')->toArray();
 
 
