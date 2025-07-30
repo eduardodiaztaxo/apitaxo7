@@ -129,12 +129,12 @@ class EmplazamientoNivel3Resource extends JsonResource
 
     
         $emplazamiento = [
-            'id' => $this->idUbicacionN4,
+            'id' => $this->idUbicacionN3,
             'codigo' => $this->codigo,
             'codigoUbicacion' => $this->codigoUbicacion,
             'nombre' => $this->descripcionUbicacion,
             'idAgenda' => $this->idAgenda,
-            'idUbicacionN2' => $this->idUbicacionN4,
+            'idUbicacionN2' => $this->idUbicacionN3,
             'num_activos' => 0,
             'habilitadoNivel3' => 0,
             'num_activos_inv' => $activosInventario->count(),

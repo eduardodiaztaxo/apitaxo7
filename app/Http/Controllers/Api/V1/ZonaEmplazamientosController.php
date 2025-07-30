@@ -8,6 +8,7 @@ use App\Http\Resources\V1\EmplazamientoNivel3Resource;
 use App\Models\InvCiclo;
 use App\Models\ZonaPunto;
 use App\Models\EmplazamientoN4;
+use App\Models\EmplazamientoN3;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -109,7 +110,7 @@ class ZonaEmplazamientosController extends Controller
     {
 
 
-        $zonaObjs = EmplazamientoN4::where('codigoUbicacion', 'LIKE', $zona . '%')->where('idAgenda', '=', $agenda_id)->get();
+        $zonaObjs = EmplazamientoN3::where('codigoUbicacion', $zona)->where('idAgenda', '=', $agenda_id)->get();
 
 
         if ($zonaObjs->isEmpty()) {
@@ -129,13 +130,13 @@ class ZonaEmplazamientosController extends Controller
         $emplazamientos = collect();
 
         foreach ($zonaObjs as $zonaObj) {
-            $emplaCats = $cicloObj->zoneSubEmplazamientosWithCats($zonaObj)->pluck('idUbicacionN4')->toArray();
+            $emplaCats = $cicloObj->zoneSubEmplazamientosWithCats($zonaObj)->pluck('idUbicacionN3')->toArray();
 
 
 
             $subEmplas = empty($emplaCats)
                 ? $zonaObj->subemplazamientosNivel3()->get()
-                : $zonaObj->subemplazamientosNivel3()->whereIn('idUbicacionN4', $emplaCats)->get();
+                : $zonaObj->subemplazamientosNivel3()->whereIn('idUbicacionN3', $emplaCats)->get();
 
             foreach ($subEmplas as $sub) {
                 $sub->cycle_id = $ciclo;

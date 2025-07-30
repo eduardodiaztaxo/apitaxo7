@@ -62,10 +62,10 @@ class InventariosController extends Controller
 
         $existeEtiqueta = false;
 
-        $Nivel4 = DB::table('ubicaciones_n4')->where('codigoUbicacion', $request->codigoUbicacion)->value('idUbicacionN4');
+        $Nivel3 = DB::table('ubicaciones_n3')->where('codigoUbicacion', $request->codigoUbicacion)->value('idUbicacionN3');
 
-        if ($Nivel4 != null) {
-            return $this->createinventarioNivel3($request, $Nivel4);
+        if ($Nivel3 != null) {
+            return $this->createinventarioNivel3($request, $Nivel3);
         }
 
         $etiquetaInventario = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta)->value('etiqueta');
@@ -201,7 +201,7 @@ class InventariosController extends Controller
 
 
 
-    public function  createinventarioNivel3(Request $request, $Nivel4)
+    public function  createinventarioNivel3(Request $request, $Nivel3)
     {
         $request->validate([
             'id_grupo'              => 'required|string',
@@ -233,13 +233,10 @@ class InventariosController extends Controller
             return response('La etiqueta ya existe', 400);
         }
 
+        $idUbicacionN3 = $Nivel3;
 
-        $idUbicacionN3 = DB::table('ubicaciones_n3')
-            ->where('codigoUbicacion', '=', substr($request->codigoUbicacion, 0, 6))
-            ->value('idUbicacionN3');
-
-        $idUbicacionGeo = DB::table('ubicaciones_n4')
-            ->where('idUbicacionN4',  $Nivel4)
+        $idUbicacionGeo = DB::table('ubicaciones_n3')
+            ->where('idUbicacionN3',  $Nivel3)
             ->value('idAgenda');
 
         if ($request->cloneFichaDetalle == "true") {
@@ -307,8 +304,8 @@ class InventariosController extends Controller
         $inventario->codigoUbicacion_N2  = 0;
         $inventario->codigoUbicacion_N1  = 0;
         $inventario->idUbicacionN3       = $idUbicacionN3;
-        $inventario->codigoUbicacionN4   = $request->codigoUbicacion ?? 0;
-        $inventario->codigoUbicacionN3   = substr($request->codigoUbicacion, 0, 6);
+        $inventario->codigoUbicacionN4   = 0;
+        $inventario->codigoUbicacionN3   = $request->codigoUbicacion;
         $inventario->responsable         = $this->getNombre();
         $inventario->idResponsable       = $this->getIdResponsable();
         $inventario->etiqueta_padre      = $etiquetaPadre ?? 'Sin Padre';
