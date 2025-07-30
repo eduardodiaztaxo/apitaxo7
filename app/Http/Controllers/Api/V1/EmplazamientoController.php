@@ -8,7 +8,6 @@ use App\Http\Resources\V1\EmplazamientoNivel3Resource;
 use App\Models\CrudActivo;
 use App\Models\Emplazamiento;
 use App\Models\EmplazamientoN3;
-use App\Models\EmplazamientoN4;
 use App\Models\ZonaPunto;
 use App\Services\PlaceService;
 use Illuminate\Http\Request;
@@ -97,54 +96,7 @@ class EmplazamientoController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function createSubEmplazamientos(Request $request)
-    {
-        $request->validate([
-            'descripcion'      => 'required|string',
-            'agenda_id'        => 'required|exists:ubicaciones_n2,idAgenda',
-            'codigoUbicacion'  => 'required|exists:ubicaciones_n2,codigoUbicacion'
-        ]);
-
-        $baseCodigo = $request->codigoUbicacion;
-
-        $subCodigos = DB::table('ubicaciones_n3')
-            ->where('codigoUbicacion', 'like', $baseCodigo . '%')
-            ->pluck('codigoUbicacion');
-
-        $maxSecuencia = $subCodigos
-            ->map(function ($codigo) use ($baseCodigo) {
-                return intval(substr($codigo, strlen($baseCodigo), 2));
-            })
-            ->max();
-
-        $nuevoSufijo = str_pad(($maxSecuencia + 1), 2, '0', STR_PAD_LEFT);
-        $nuevoCodigoUbicacionN3 = $baseCodigo . $nuevoSufijo;
-
-        $data = [
-            'idAgenda'             => $request->agenda_id,
-            'descripcionUbicacion' => $request->descripcion,
-            'codigoUbicacion'      => $nuevoCodigoUbicacionN3,
-            'usuario'              => $request->user()->name,
-            'estado'               => 1,
-            'newApp'               => 1
-        ];
-
-        $empla = EmplazamientoN3::create($data);
-
-        if (!$empla) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'No se pudo crear el emplazamiento'
-            ], 422);
-        }
-
-        return response()->json([
-            'status'  => 'OK',
-            'message' => 'Creado exitosamente',
-            'data'    => EmplazamientoNivel3Resource::make($empla),
-            'data'    => $empla
-        ]);
-    }
+    
     //este falla al crear uno nuevo e ingresar inmediatamente
     //fijar añadiendo propiedad zone_address
     public function createSubEmplazamientosNivel3(Request $request)
@@ -155,12 +107,12 @@ class EmplazamientoController extends Controller
         $request->validate([
             'descripcion'      => 'required|string',
             'agenda_id'        => 'required|exists:ubicaciones_n3,idAgenda',
-            'codigoUbicacion'  => 'required|exists:ubicaciones_n3,codigoUbicacion'
+            'codigoUbicacion'  => 'required|exists:ubicaciones_n2,codigoUbicacion'
         ]);
 
         $baseCodigo = $request->codigoUbicacion;
 
-        $subCodigos = DB::table('ubicaciones_n4')
+        $subCodigos = DB::table('ubicaciones_n3')
             ->where('codigoUbicacion', 'like', $baseCodigo . '%')
             ->pluck('codigoUbicacion');
 
@@ -188,10 +140,10 @@ class EmplazamientoController extends Controller
             ->count();
 
         $num_activos_invN3 = DB::table('inv_inventario')
-            ->where('codigoUbicacionN4', $nuevoCodigoUbicacionN3)
+            ->where('codigoUbicacionN3', $nuevoCodigoUbicacionN3)
             ->count();
 
-        $empla = EmplazamientoN4::create($data);
+        $empla = EmplazamientoN3::create($data);
 
         if (!$empla) {
             return response()->json([
@@ -265,8 +217,8 @@ class EmplazamientoController extends Controller
             $resource = EmplazamientoResource::make($emplaObj);
         } else {
             //buscar en el nivel 3
-            $emplaObj = EmplazamientoN4::where('idUbicacionN4', $emplazamiento)
-                ->where('codigoUbicacion', 'LIKE', '%' . $zona_id . '%')
+            $emplaObj = EmplazamientoN3::where('idUbicacionN3', $emplazamiento)
+                ->where('codigoUbicacion', $zona_id)
                 ->first();
 
             if (!$emplaObj) {
@@ -281,36 +233,6 @@ class EmplazamientoController extends Controller
         $emplaObj->cycle_id = $ciclo;
 
         return response()->json($resource);
-    }
-
-
-    public function showN3(string $codigoUbicacionN3)
-    {
-        $exists = DB::table('ubicaciones_n2')
-            ->where('codigoUbicacion', $codigoUbicacionN3)
-            ->exists();
-
-        if (!$exists) {
-            return response()->json(['status' => 'NOK', 'code' => 404], 404);
-        }
-
-        $collection = DB::table('ubicaciones_n3')
-            ->where('codigoUbicacion', 'like', $codigoUbicacionN3 . '%')
-            ->get();
-
-        $collection = $collection->map(function ($item) use ($codigoUbicacionN3) {
-            $item->num_activos_cats_by_cycleN3 = DB::table('crud_activos')
-                ->where('ubicacionOrganicaN3', 'like', $item->codigoUbicacion . '%')
-                ->count();
-
-            $item->num_activos_invN3 = DB::table('inv_inventario')
-                ->where('codigoUbicacionN3', 'like', $item->codigoUbicacion . '%')
-                ->count();
-
-            return $item;
-        });
-
-        return response()->json($collection, 200);
     }
 
 
@@ -340,7 +262,7 @@ class EmplazamientoController extends Controller
 
         if (!$emplaObj) {
 
-            $emplaObj = EmplazamientoN4::find($id);
+            $emplaObj = EmplazamientoN3::find($id);
 
             if (!$emplaObj) {
                 return response()->json([
@@ -378,7 +300,7 @@ class EmplazamientoController extends Controller
         return response()->json([
             'status' => 'OK',
             'message' => 'Emplazamiento y zona actualizados correctamente',
-            'data' => $emplaObj instanceof EmplazamientoN4
+            'data' => $emplaObj instanceof EmplazamientoN3
                 ? EmplazamientoNivel3Resource::make($emplaObj)
                 : EmplazamientoResource::make($emplaObj),
         ], 200);

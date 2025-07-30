@@ -7,7 +7,6 @@ use App\Http\Resources\V1\EmplazamientoResource;
 use App\Http\Resources\V1\EmplazamientoNivel3Resource;
 use App\Models\InvCiclo;
 use App\Models\ZonaPunto;
-use App\Models\EmplazamientoN4;
 use App\Models\EmplazamientoN3;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -110,8 +109,7 @@ class ZonaEmplazamientosController extends Controller
     {
 
 
-        $zonaObjs = EmplazamientoN3::where('codigoUbicacion', $zona)->where('idAgenda', '=', $agenda_id)->get();
-
+        $zonaObjs = EmplazamientoN3::where('codigoUbicacion', 'LIKE', $zona . '%')->where('idAgenda', '=', $agenda_id)->get();
 
         if ($zonaObjs->isEmpty()) {
             return response()->json([], 200);

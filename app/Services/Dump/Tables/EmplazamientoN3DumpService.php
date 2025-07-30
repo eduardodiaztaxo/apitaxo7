@@ -8,7 +8,7 @@ use App\Services\Dump\Tables\DumpSQLiteInterface;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use PDO;
 
-class EmpNivelTresDumpService implements DumpSQLiteInterface
+class EmplazamientoN3DumpService implements DumpSQLiteInterface
 {
 
 

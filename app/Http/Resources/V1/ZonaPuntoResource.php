@@ -25,7 +25,7 @@ class ZonaPuntoResource extends JsonResource
             'totalBienes' => $this->totalBienes,
             'num_activos'   => $this->activos()->get()->count(),
             'num_activos_cats_by_cycle' => 0,
-            'num_activos_inv' => $this->activos_inv_by_cycle($this->ciclo_auditoria, $this->codigoUbicacion)->get()->count(),
+            'num_activos_inv' => $this->activos_inv_by_cycle($this->ciclo_auditoria, $this->idAgenda)->get()->count(),
         ];
 
 
@@ -55,12 +55,12 @@ class ZonaPuntoResource extends JsonResource
     
         return $queryBuilder;
     }
-    public function activos_inv_by_cycle($ciclo_auditoria, $codigoUbicacion)
+    public function activos_inv_by_cycle($ciclo_auditoria, $idAgenda)
     {
 
          $queryBuilder1 = Inventario::select('inv_inventario.*')
         ->where('inv_inventario.id_ciclo', '=', $ciclo_auditoria)
-        ->where('codigoUbicacion_N1', '=', $codigoUbicacion);
+        ->where('idUbicacionGeo', '=', $idAgenda);
     
         return $queryBuilder1;
     }

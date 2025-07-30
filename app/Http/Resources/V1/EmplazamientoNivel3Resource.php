@@ -46,7 +46,7 @@ class EmplazamientoNivel3Resource extends JsonResource
         $activosInventario = DB::table('inv_inventario')
             ->leftJoin('categoria_n3', 'inv_inventario.id_familia', '=', 'categoria_n3.id_familia')
             ->leftJoin('inv_imagenes', 'inv_inventario.id_img', '=', 'inv_imagenes.id_img')
-            ->where('inv_inventario.codigoUbicacionN4', $this->codigoUbicacion)
+            ->where('inv_inventario.codigoUbicacionN3', $this->codigoUbicacion)
             ->where('inv_inventario.id_ciclo', $this->cycle_id)
             ->select(
                 'inv_inventario.id_ciclo',
