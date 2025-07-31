@@ -46,7 +46,7 @@ return [
     |
     */
 
-    'expiration' => 240,
+    'expiration' => 720,
     'refresh_expiration' => 7200, // 5 days
 
     /*
