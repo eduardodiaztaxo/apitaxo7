@@ -8,14 +8,17 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Inv_imagenes;
 use App\Models\Familia;
+use App\Models\Comuna;
 use App\Models\Responsable;
 use App\Models\InvCiclo;
-use App\Models\EmplazamientoN4;
+use App\Models\EmplazamientoN3;
+use App\Models\EmplazamientoN1;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\V1\EmplazamientoNivel3Resource;
+use App\Http\Resources\V1\EmplazamientoNivel1Resource;
 
 
 class InventariosOfflineController extends Controller
@@ -91,44 +94,40 @@ class InventariosOfflineController extends Controller
         return response()->json($resultados, 200);
     }
 
+   public function showAllComunas(){
+      $ComunasObj = Comuna::all();
 
-
-    public function zonasN3($ciclo)
-    {
-        // Obtener las zonas N3 relacionadas con el ciclo
-        $n3 = DB::table('ubicaciones_n3 as n3')
-            ->join('inv_ciclos_puntos as p', 'n3.idAgenda', '=', 'p.idPunto')
-            ->where('p.idCiclo', $ciclo)
-            ->select('n3.*', 'p.*')
-            ->get();
-
-        $result = [];
-
-        foreach ($n3 as $zona) {
-            $num_activos_cats_by_cycleN3 = DB::table('ubicaciones_n3 as n3')
-                ->join('crud_activos as c', 'c.ubicacionOrganicaN3', '=', 'n3.codigoUbicacion')
-                ->where('n3.codigoUbicacion', $zona->codigoUbicacion)
-                ->where('c.tipoCambio', '!=', 700)
-                ->count();
-
-            $num_activos_invN3 = DB::table('ubicaciones_n3 as n3')
-                ->join('inv_inventario as inv', 'inv.codigoUbicacionN3', '=', 'n3.codigoUbicacion')
-                ->where('n3.codigoUbicacion', $zona->codigoUbicacion)
-                ->count();
-
-            $zona->num_activos_invN3 = $num_activos_invN3;
-            $zona->num_activos_cats_by_cycleN3 = $num_activos_cats_by_cycleN3;
-
-            $result[] = $zona;
+        if ($ComunasObj->isEmpty()) {
+            return response()->json(['status' => 'NOK', 'code' => 404], 404);
         }
-        return response()->json($result, 200);
-    }
 
+           return response()->json($ComunasObj, 200);
+   }
 
+  public function showNameInput()
+  {
+
+    $atributosObj = collect(DB::select("
+     SELECT 
+            t.descripcion,
+            iv.id_atributo,
+            iv.label_input
+        FROM inv_atributos as iv
+        INNER JOIN inv_tipos_atributos as t
+        WHERE iv.id_atributo IN (27,28,29,30,31)
+        AND iv.id_atributo = t.id_atributo
+"));
+
+if ($atributosObj->isEmpty()) {
+    return response()->json(['status' => 'NOK', 'code' => 404], 404);
+}
+
+           return response()->json($atributosObj, 200);
+   }
 
     public function CycleCatsNivel3($ciclo)
     {
-        $zonaObjs = EmplazamientoN4::all();
+        $zonaObjs = EmplazamientoN3::all();
 
         if ($zonaObjs->isEmpty()) {
             return response()->json([
@@ -152,11 +151,13 @@ class InventariosOfflineController extends Controller
         $emplazamientos = collect();
 
         foreach ($zonaObjs as $zonaObj) {
-            $emplaCats = $cicloObj->zoneSubEmplazamientosWithCats($zonaObj)->pluck('idUbicacionN4')->toArray();
+            $emplaCats = $cicloObj->zoneSubEmplazamientosWithCats($zonaObj)->pluck('idUbicacionN3')->toArray();
+
+
 
             $subEmplas = empty($emplaCats)
                 ? $zonaObj->subemplazamientosNivel3()->get()
-                : $zonaObj->subemplazamientosNivel3()->whereIn('idUbicacionN4', $emplaCats)->get();
+                : $zonaObj->subemplazamientosNivel3()->whereIn('idUbicacionN3', $emplaCats)->get();
 
             foreach ($subEmplas as $sub) {
                 $sub->cycle_id = $ciclo;
@@ -164,9 +165,53 @@ class InventariosOfflineController extends Controller
             }
         }
 
+
+
         return response()->json(EmplazamientoNivel3Resource::collection($emplazamientos), 200);
     }
 
+  public function CycleCatsNivel1($ciclo)
+    {
+        $zonaObjs = EmplazamientoN1::all();
+
+        if ($zonaObjs->isEmpty()) {
+            return response()->json([
+                'status' => 'NOK',
+                'message' => 'Zona no encontrada',
+
+                'code' => 404
+            ], 404);
+        }
+
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json([
+                'status' => 'NOK',
+                'message' => 'Ciclo no encontrado',
+                'code' => 404
+            ], 404);
+        }
+        
+        $emplazamientos = collect();
+
+            foreach ($zonaObjs as $zonaObj) {
+                $emplaCats = $cicloObj->EmplazamientosWithCatsN1($zonaObj)->pluck('idUbicacionN1')->toArray();
+
+                $subEmplas = empty($emplaCats)
+                    ? $zonaObj->zoneEmplazamientosN1()->get()
+                    : $zonaObj->zoneEmplazamientosN1()->whereIn('idUbicacionN1', $emplaCats)->get();
+
+                foreach ($subEmplas as $sub) {
+                    $sub->cycle_id = $ciclo;
+                    $emplazamientos->push($sub);
+                }
+            }
+
+            $emplazamientos = $emplazamientos->unique('idUbicacionN1')->values();
+
+            return response()->json(EmplazamientoNivel1Resource::collection($emplazamientos), 200);
+    }
 
 
     public function MarcasPorCicloOfflineInventario($ciclo)

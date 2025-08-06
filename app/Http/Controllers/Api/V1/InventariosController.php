@@ -65,11 +65,149 @@ class InventariosController extends Controller
 
         $idAgenda = $request->idAgenda;
 
-        $Nivel4 = DB::table('ubicaciones_n4')->where('codigoUbicacion', $request->codigoUbicacion)->where('idAgenda', $idAgenda)->value('idUbicacionN4');
+        $etiquetaInventario = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta)->value('etiqueta');
+        $etiquetaUnicaCrudActivo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta)->value('etiqueta');
 
-        if ($Nivel4 != null) {
-            return $this->createinventarioNivel3($request, $Nivel4);
+        if ($etiquetaInventario || $etiquetaUnicaCrudActivo) {
+            $existeEtiqueta = true;
         }
+
+        if (!empty($request->etiqueta_padre)) {
+            $etiquetaInventarioHijo = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
+            $etiquetaCrudActivoHijo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
+
+            if ($etiquetaInventarioHijo || $etiquetaCrudActivoHijo) {
+                $existeEtiqueta = true;
+            }
+        }
+
+        if ($existeEtiqueta) {
+            return response('La etiqueta ya existe', 400);
+        }
+
+
+        if (strlen($request->codigoUbicacion) === 2) {
+            // Nivel 1
+                $codigoUbicacion_N1 = $request->codigoUbicacion;
+
+            } else if (strlen($request->codigoUbicacion) === 4) {
+                // Nivel 2
+                $codigoUbicacion_N2 = $request->codigoUbicacion;
+
+                $idUbicacionN2 = DB::table('ubicaciones_n2')
+                    ->where('codigoUbicacion', $request->codigoUbicacion)
+                    ->value('idUbicacionN2');
+
+            } else {
+                // Nivel 3
+                $codigoUbicacionN3 = $request->codigoUbicacion;
+
+                $idUbicacionN3 = DB::table('ubicaciones_n3')
+                    ->where('codigoUbicacion', $request->codigoUbicacion)
+                    ->value('idUbicacionN3');
+            }
+
+           
+       if ($request->clonarDesdeInventario == 'true') {
+            $imagenes = DB::table('inv_imagenes')
+                ->where('id_img', $request->id_img_clone)
+                ->get();
+
+            $url_img = DB::table('inv_imagenes')->max('id_img') + 1;
+            $origen = 'SAFIN_CLONE';
+            $filename = '9999_' . $request->etiqueta;
+
+            foreach ($imagenes as $img) {
+                DB::table('inv_imagenes')->insert([
+                    'id_img'     => $url_img,
+                    'etiqueta'   => $request->etiqueta,
+                    'origen'     => $origen,
+                    'picture'    => $filename . '.jpg',
+                    'url_imagen' => $img->url_imagen,
+                    'url_picture' => $img->url_picture,
+                    'created_at' => now()
+                ]);
+            }
+        }
+        
+            $id_img = DB::table('inv_imagenes')
+                ->where('etiqueta', $request->etiqueta)
+                ->orderBy('id_img', 'desc')
+                ->value('id_img');
+            $idImg = $id_img ?? null;
+            
+            
+
+        if (intval($request->padre) === 1) {
+            $etiquetaPadre = $request->etiqueta;
+        } elseif (intval($request->padre) === 2) {
+            $etiquetaPadre = $request->etiqueta_padre;
+        }
+
+
+        $inventario = new Inventario();
+        $inventario->id_grupo            = $request->id_grupo;
+        $inventario->id_familia          = $request->id_familia;
+        $inventario->descripcion_bien    = $request->descripcion_bien;
+        $inventario->id_bien             = intval($request->id_bien ?? 0);
+        $inventario->descripcion_marca   = $request->descripcion_marca ?? '';
+        $inventario->id_marca            = intval($request->id_marca ?? 0);
+        $inventario->idForma             = intval($request->idForma ?? 0);
+        $inventario->idMaterial          = intval($request->idMaterial ?? 0);
+        $inventario->etiqueta            = $request->etiqueta;
+        $inventario->modelo              = $request->modelo ?? '';
+        $inventario->serie               = $request->serie ?? '';
+        $inventario->latitud             = $request->latitud ?? 0;
+        $inventario->longitud            = $request->longitud ?? 0;
+        $inventario->capacidad           = intval($request->capacidad ?? 0);
+        $inventario->estado              = intval($request->estado ?? 0);
+        $inventario->color               = intval($request->color ?? 0);
+        $inventario->tipo_trabajo        = intval($request->tipo_trabajo ?? 0);
+        $inventario->carga_trabajo       = intval($request->carga_trabajo ?? 0);
+        $inventario->estado_operacional  = intval($request->estado_operacional ?? 0);
+        $inventario->estado_conservacion = intval($request->estado_conservacion ?? 0);
+        $inventario->condicion_ambiental = intval($request->condicion_ambiental ?? 0);
+        $inventario->cantidad_img        = $request->cantidad_img;
+        $inventario->id_img              = $idImg;
+        $inventario->id_ciclo            = $request->id_ciclo;
+        $inventario->idUbicacionGeo      = $request->idAgenda;
+        $inventario->idUbicacionN2       = $idUbicacionN2 ?? 0;
+        $inventario->codigoUbicacion_N2  = $codigoUbicacion_N2 ?? 0;
+        $inventario->codigoUbicacion_N1  = $codigoUbicacion_N1 ?? 0;
+        $inventario->idUbicacionN3       = $idUbicacionN3 ?? 0;
+        $inventario->codigoUbicacionN3   = $codigoUbicacionN3 ?? 0;
+        $inventario->responsable         = $this->getNombre();
+        $inventario->idResponsable       = $this->getIdResponsable();
+        $inventario->etiqueta_padre      = $etiquetaPadre ?? 'Sin Padre';
+        /** edualejandro */
+        $inventario->eficiencia          = $request->eficiencia ?? null;
+        $inventario->texto_abierto_1     = $request->texto_abierto_1 ?? null;
+        $inventario->texto_abierto_2     = $request->texto_abierto_2 ?? null;
+        $inventario->texto_abierto_3     = $request->texto_abierto_3 ?? null;
+        $inventario->texto_abierto_4     = $request->texto_abierto_4 ?? null;
+        $inventario->texto_abierto_5     = $request->texto_abierto_5 ?? null;
+
+        $inventario->save();
+
+        return response()->json($inventario, 201);
+    }
+
+
+       public function clonarInventario(Request $request)
+    {
+        $request->validate([
+            'id_grupo'              => 'required|string',
+            'id_familia'            => 'required|string',
+            'etiqueta'              => 'required|string',
+            'id_ciclo'              => 'required|exists:inv_ciclos,idCiclo',
+            'codigoUbicacion'       => 'required',
+            'idAgenda'              => 'required'
+        ]);
+
+        $existeEtiqueta = false;
+
+        $idAgenda = $request->idAgenda;
+
 
         $etiquetaInventario = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta)->value('etiqueta');
         $etiquetaUnicaCrudActivo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta)->value('etiqueta');
@@ -92,30 +230,7 @@ class InventariosController extends Controller
         }
 
 
-        if ($request->idUbicacionN2 > 0 && $request->codigoUbicacion_N1 > 0) {
-            //Nivel2
-            $codigoUbicacion_N1 = $request->codigoUbicacion_N1;
-            $idUbicacionN2 = $request->idUbicacionN2;
-            $codigoUbicacion_N2 = DB::table('ubicaciones_n2')
-                ->where('idUbicacionN2',  $idUbicacionN2)
-                ->value('codigoUbicacion');
-        } else {
 
-            $codigoUbicacion_N1 = null;
-            if (!empty($request->codigoUbicacion)) {
-
-                $codigoUbicacion_N1 = substr(strval($request->codigoUbicacion), 0, 2);
-            }
-            $idUbicacionN2 = DB::table('ubicaciones_n2')
-                ->where('codigoUbicacion', $request->codigoUbicacion)
-                ->where('idAgenda', $idAgenda)
-                ->value('idUbicacionN2');
-            $codigoUbicacion_N2 = $request->codigoUbicacion;
-        }
-
-        $idUbicacionGeo = $idAgenda;
-
-        if ($request->cloneFichaDetalle == "true") {
             $imagenes = DB::table('inv_imagenes')
                 ->where('id_img', $request->id_img_clone)
                 ->get();
@@ -135,14 +250,8 @@ class InventariosController extends Controller
                     'created_at' => now()
                 ]);
             }
-        } else {
+        
 
-            $id_img = DB::table('inv_imagenes')
-                ->where('etiqueta', $request->etiqueta)
-                ->orderBy('id_img', 'desc')
-                ->value('id_img');
-            $url_img = $id_img ?? null;
-        }
 
         if (intval($request->padre) === 1) {
             $etiquetaPadre = $request->etiqueta;
@@ -176,13 +285,12 @@ class InventariosController extends Controller
         $inventario->cantidad_img        = $request->cantidad_img;
         $inventario->id_img              = $url_img;
         $inventario->id_ciclo            = $request->id_ciclo;
-        $inventario->idUbicacionGeo      = $idUbicacionGeo;
-        $inventario->idUbicacionN2       = $idUbicacionN2;
-        $inventario->codigoUbicacion_N2  = $codigoUbicacion_N2;
-        $inventario->codigoUbicacion_N1  = $codigoUbicacion_N1;
-        $inventario->idUbicacionN3       = 0;
-        $inventario->codigoUbicacionN4   = 0;
-        $inventario->codigoUbicacionN3   = 0;
+        $inventario->idUbicacionGeo      = $request->idAgenda;
+        $inventario->idUbicacionN2       = $request->idUbicacionN2 ?? 0;
+        $inventario->codigoUbicacion_N2  = $request->codigoUbicacion_N2 ?? 0;
+        $inventario->codigoUbicacion_N1  = $request->codigoUbicacion_N1 ?? 0;
+        $inventario->idUbicacionN3       = $request->idUbicacionN3 ?? 0;
+        $inventario->codigoUbicacionN3   = $request->codigoUbicacionN3 ?? 0;
         $inventario->responsable         = $this->getNombre();
         $inventario->idResponsable       = $this->getIdResponsable();
         $inventario->etiqueta_padre      = $etiquetaPadre ?? 'Sin Padre';
@@ -201,8 +309,7 @@ class InventariosController extends Controller
 
 
 
-
-    public function  createinventarioNivel3(Request $request, $Nivel4)
+    public function  createinventarioNivel3(Request $request, $Nivel3)
     {
         $request->validate([
             'id_grupo'              => 'required|string',
@@ -234,13 +341,10 @@ class InventariosController extends Controller
             return response('La etiqueta ya existe', 400);
         }
 
+        $idUbicacionN3 = $Nivel3;
 
-        $idUbicacionN3 = DB::table('ubicaciones_n3')
-            ->where('codigoUbicacion', '=', substr($request->codigoUbicacion, 0, 6))
-            ->value('idUbicacionN3');
-
-        $idUbicacionGeo = DB::table('ubicaciones_n4')
-            ->where('idUbicacionN4',  $Nivel4)
+        $idUbicacionGeo = DB::table('ubicaciones_n3')
+            ->where('idUbicacionN3',  $Nivel3)
             ->value('idAgenda');
 
         if ($request->cloneFichaDetalle == "true") {
@@ -308,8 +412,8 @@ class InventariosController extends Controller
         $inventario->codigoUbicacion_N2  = 0;
         $inventario->codigoUbicacion_N1  = 0;
         $inventario->idUbicacionN3       = $idUbicacionN3;
-        $inventario->codigoUbicacionN4   = $request->codigoUbicacion ?? 0;
-        $inventario->codigoUbicacionN3   = substr($request->codigoUbicacion, 0, 6);
+        $inventario->codigoUbicacionN4   = 0;
+        $inventario->codigoUbicacionN3   = $request->codigoUbicacion;
         $inventario->responsable         = $this->getNombre();
         $inventario->idResponsable       = $this->getIdResponsable();
         $inventario->etiqueta_padre      = $etiquetaPadre ?? 'Sin Padre';
@@ -386,6 +490,25 @@ class InventariosController extends Controller
             'inventario' => $inventarioActualizado
         ], 200);
     }
+
+public function nombreInputs()
+{
+    $inputs = DB::select("
+        SELECT 
+            t.descripcion,
+            iv.id_atributo,
+            iv.label_input
+        FROM inv_atributos as iv
+        INNER JOIN inv_tipos_atributos as t
+        WHERE iv.id_atributo IN (27,28,29,30,31)
+        AND iv.id_atributo = t.id_atributo
+    ");
+
+    return response()->json([
+        'status' => 'success',
+        'data' => $inputs
+    ]);
+}
 
 
     public function configuracion($id_grupo)
@@ -642,10 +765,10 @@ class InventariosController extends Controller
                     'id_ciclo' => $ciclo,
                     'idUbicacionGeo' => $item->idUbicacionGeo,
                     'idUbicacionN2' => $item->idUbicacionN2,
+                    'codigoUbicacion_N2' => $item->codigoUbicacion_N2,
                     'codigoUbicacion_N1' => $item->codigoUbicacion_N1,
                     'codigoUbicacionN3' => $item->codigoUbicacionN3,
                     'idUbicacionN3' => $item->idUbicacionN3,
-                    'codigoUbicacionN4' => $item->codigoUbicacionN4,
                     'responsable' => $item->responsable,
                     'idResponsable' => $item->idResponsable,
                     'latitud' => $item->latitud,
@@ -887,6 +1010,7 @@ class InventariosController extends Controller
             'status' => 'OK',
             'message' => 'items created sucssessfuly',
             'data' => [
+                'items' => $saved,
                 'fails' => count($failed),
                 'saved' => count($saved),
                 'found_files' => count($paths),

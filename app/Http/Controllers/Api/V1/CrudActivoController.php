@@ -80,6 +80,41 @@ class CrudActivoController extends Controller
         return $etiqueta;
     }
 
+public function showActivos($etiqueta)
+{
+    // Consulta en inv_inventario
+    $sql1 = "
+        SELECT 
+            inv.*, 
+            grupos.descripcion_grupo, 
+            familias.descripcion_familia
+        FROM inv_inventario AS inv
+        LEFT JOIN dp_grupos AS grupos ON inv.id_grupo = grupos.id_grupo
+        LEFT JOIN dp_familias AS familias ON inv.id_familia = familias.id_familia
+        WHERE inv.etiqueta = ?
+    ";
+
+    $data = DB::select($sql1, [$etiqueta]);
+
+    //consulta en crud_activos
+    if (empty($data)) {
+        $sql2 = "
+            SELECT 
+                crud.*, 
+                grupos.descripcion_grupo, 
+                familias.descripcion_familia
+            FROM crud_activos AS crud
+            LEFT JOIN dp_grupos AS grupos ON crud.id_grupo = grupos.id_grupo
+            LEFT JOIN dp_familias AS familias ON crud.id_familia = familias.id_familia
+            WHERE crud.etiqueta = ?
+        ";
+
+        $data = DB::select($sql2, [$etiqueta]);
+    }
+
+    return response()->json($data, 200);
+}
+
 
     public function showAllAssetsByCycleCats(Request $request, $ciclo)
     {
@@ -374,18 +409,7 @@ class CrudActivoController extends Controller
 
     public function update(Request $request, $etiqueta)
     {
-        $request->validate([
-            'marca'            =>  'required|integer|exists:indices_listas,idLista',
-            'descripcion_marca' => 'required',
-            'modelo'           =>  'required',
-            'serie'            =>  'required',
-            'estado_bien'      =>  'required|exists:ind_list_estado,idLista',
-            'descripcionTipo'  =>  'required',
-            'observacion'      =>  'required',
-            'latitud'          =>  'required',
-            'longitud'         =>  'required'
-        ]);
-
+        
         $activo = CrudActivo::where('etiqueta', $etiqueta)->first();
 
         if (!$activo) {
@@ -398,19 +422,35 @@ class CrudActivoController extends Controller
 
     
                 $activo->update([
-                    'descripcion_marca' => $request->descripcion_marca,
-                    'id_marca'          => $request->marca,
-                    'modelo'            => $request->modelo,
-                    'serie'             => $request->serie,
-                    'estado'            => $request->estado_bien,
-                    'descripcionTipo'   => $request->descripcionTipo,
-                    'observacion'       => $request->observacion,
-                    'latitud'           => $request->latitud,
-                    'longitud'          => $request->longitud,
-                    'responsable'       => $responsable,
-                    'idResponsable'     => $idResponsable,
-                    'crud_activo_estado' => 3
-                ]);
+                'descripcion_marca'    => $request->descripcion_marca,
+                'id_marca'             => $request->id_marca,
+                'modelo'               => $request->modelo,
+                'serie'                => $request->serie,
+                'estado'               => $request->estado,
+                'descripcionTipo'      => $request->descripcion,
+                'observacion'          => $request->observacion,
+                'latitud'              => $request->latitud,
+                'longitud'             => $request->longitud,
+                'capacidad'            => $request->capacidad,
+                'idForma'              => $request->idForma,
+                'idMaterial'           => $request->idMaterial,
+                'color'                => $request->color,
+                'tipo_trabajo'         => $request->tipo_trabajo,
+                'carga_trabajo'        => $request->carga_trabajo,
+                'estado_operacional'   => $request->estado_operacional,
+                'estado_conservacion'  => $request->estado_conservacion,
+                'condicion_ambiental'  => $request->condicion_ambiental,
+                'eficiencia'           => $request->eficiencia,
+                'texto_abierto_1'      => $request->texto_abierto_1,
+                'texto_abierto_2'      => $request->texto_abierto_2,
+                'texto_abierto_3'      => $request->texto_abierto_3,
+                'texto_abierto_4'      => $request->texto_abierto_4,
+                'texto_abierto_5'      => $request->texto_abierto_5,
+                'responsable'          => $responsable,
+                'idResponsable'        => $idResponsable,
+                'crud_activo_estado'   => 3
+            ]);
+
 
                 return response()->json([
                     'status'  => 'OK',
@@ -428,12 +468,27 @@ class CrudActivoController extends Controller
            $responsable = $this->getIdResponsable();
 
             $request->merge(['responsableN1' => $responsable]);
-            $request->merge(['apoyaBrazosRuedas' => $request->estado_bien]);
+            $request->merge(['apoyaBrazosRuedas' => $request->estado]);
 
             $activo->fill($request->only([
                 'marca',
                 'modelo',
                 'serie',
+                'material',
+                'forma',
+                'color',
+                'estadoConseervacion',
+                'estadoOperacional',
+                'tipoTrabajo',
+                'cargaTrabajo',
+                'condicionAmbiental',
+                'capacidad',
+                'eficiencia',
+                'texto_abierto_1',
+                'texto_abierto_2',
+                'texto_abierto_3',
+                'texto_abierto_4',
+                'texto_abierto_5',
                 'responsableN1',
                 'apoyaBrazosRuedas',
                 'descripcionTipo',
