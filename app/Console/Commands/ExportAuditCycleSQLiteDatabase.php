@@ -13,7 +13,7 @@ use App\Services\Dump\Tables\CyclesCategoriasDumpService;
 use App\Services\Dump\Tables\CyclesPuntoDumpService;
 use App\Services\Dump\Tables\ConteoRegistroDumpService;
 use App\Services\Dump\Tables\SubZonesDumpService;
-use App\Services\Dump\Tables\EmplazamientosDumpService;
+use App\Services\Dump\Tables\EmplazamientosN2DumpService;
 use App\Services\Dump\Tables\ZonesDumpService;
 use App\Services\Dump\Tables\BienesInventarioDumpService;
 use App\Services\Dump\Tables\BienGrupoFamiliaDumpService;
@@ -34,6 +34,10 @@ use App\Services\Dump\Tables\TipoTrabajoDumpService;
 use App\Services\Dump\Tables\EstadoDumpService;
 use App\Services\Dump\Tables\ResponsableDumpService;
 use App\Services\Dump\Tables\EmplazamientoN3DumpService;
+use App\Services\Dump\Tables\EmplazamientoN1DumpService;
+use App\Services\Dump\Tables\RegionesDumpService;
+use App\Services\Dump\Tables\ComunasDumpService;
+use App\Services\Dump\Tables\AtributosDumpService;
 
 use Illuminate\Console\Command;
 
@@ -154,24 +158,27 @@ class ExportAuditCycleSQLiteDatabase extends Command
         $this->setEstado();
         $this->setGrupo();
         $this->setFamilia();
-    
+        $this->setRegiones();
+        $this->setComunas();
+        $this->setCargaTrabajo();
+        $this->setColores();
+        $this->setCondicionAmbiental();
+        $this->setEstadoConservacion();
+        $this->setFamilia();
+        $this->setForma();
+        $this->setGrupo();
+        $this->setMaterial();
+        $this->setOperacional();
+        $this->setTipoTrabajo();
+        $this->setEmplazamientoN3();
+        $this->setEmplazamientoN1();
+        $this->setAtributos();
 
         if ($tipoCiclo == 1) {
             $this->setBienesInventario();
             $this->setBieneGrupoFamilia();
-            $this->setCargaTrabajo();
-            $this->setColores();
-            $this->setCondicionAmbiental();
             $this->setConfiguracion();
-            $this->setEstadoConservacion();
-            $this->setFamilia();
-            $this->setForma();
-            $this->setGrupo();
             $this->setMarcaInv();
-            $this->setMaterial();
-            $this->setOperacional();
-            $this->setTipoTrabajo();
-            $this->setEmplazamientoN3();
         }
         // $this->setCyclesPuntosByCycle();
 
@@ -243,7 +250,7 @@ class ExportAuditCycleSQLiteDatabase extends Command
 
     private function setEmplazamientosByCycle()
     {
-        (new EmplazamientosDumpService(
+        (new EmplazamientosN2DumpService(
             $this->pdo,
             $this->cycle
         ))->runFromController();
@@ -469,6 +476,49 @@ class ExportAuditCycleSQLiteDatabase extends Command
         $this->info('EmpN3 inserted in SQLite DB.');
     }
 
+       private function setEmplazamientoN1()
+    {
+
+        (new EmplazamientoN1DumpService(
+            $this->pdo,
+            $this->cycle
+        ))->runFromController();
+
+
+        $this->info('EmpN1 inserted in SQLite DB.');
+    }
+    private function setComunas()
+    {
+
+        (new ComunasDumpService(
+            $this->pdo
+        ))->runFromController();
+
+
+        $this->info('comunas inserted in SQLite DB.');
+    }
+
+      private function setRegiones()
+    {
+
+        (new RegionesDumpService(
+            $this->pdo
+        ))->runFromController();
+
+
+        $this->info('Regiones inserted in SQLite DB.');
+    }
+
+     private function setAtributos()
+    {
+
+        (new AtributosDumpService(
+            $this->pdo
+        ))->runFromController();
+
+
+        $this->info('atributos inserted in SQLite DB.');
+    }
     // private function setCyclesPuntosByCycle()
     // {
     //     (new CyclesPuntoDumpService(

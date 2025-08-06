@@ -8,7 +8,7 @@ use App\Services\Dump\Tables\DumpSQLiteInterface;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use PDO;
 
-class EmplazamientosDumpService implements DumpSQLiteInterface
+class EmplazamientosN2DumpService implements DumpSQLiteInterface
 {
 
 
@@ -76,7 +76,7 @@ class EmplazamientosDumpService implements DumpSQLiteInterface
 
         // Create "emplazamientos" table
         $this->pdo->exec("
-            CREATE TABLE IF NOT EXISTS emplazamientos (
+            CREATE TABLE IF NOT EXISTS emplazamientosN2 (
                 id INTEGER PRIMARY KEY,
                 codigo TEXT,
                 codigoUbicacion TEXT,
@@ -88,7 +88,8 @@ class EmplazamientosDumpService implements DumpSQLiteInterface
                 ciclo_auditoria INTEGER DEFAULT 0,
                 num_categorias INTEGER DEFAULT 0,
                 num_activos_audit INTEGER DEFAULT 0,
-                habilitadoNivel3 INTIGER DEFAULT 0
+                habilitadoNivel3 INTIGER DEFAULT 0,
+                num_nivel TEXT
             );
         ");
     }
@@ -103,7 +104,7 @@ class EmplazamientosDumpService implements DumpSQLiteInterface
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            INSERT INTO emplazamientos (
+            INSERT INTO emplazamientosN2 (
                 id,
                 codigo,
                 codigoUbicacion,
@@ -115,7 +116,8 @@ class EmplazamientosDumpService implements DumpSQLiteInterface
                 ciclo_auditoria,
                 num_categorias,
                 num_activos_audit,
-                habilitadoNivel3
+                habilitadoNivel3,
+                num_nivel
             )
             VALUES (
                 :id,
@@ -129,7 +131,8 @@ class EmplazamientosDumpService implements DumpSQLiteInterface
                 :ciclo_auditoria,
                 :num_categorias,
                 :num_activos_audit,
-                :habilitadoNivel3
+                :habilitadoNivel3,
+                :num_nivel
             )  
         ");
 
@@ -150,6 +153,7 @@ class EmplazamientosDumpService implements DumpSQLiteInterface
                 ':num_categorias' => $emplazamiento->num_categorias,
                 ':num_activos_audit' => $emplazamiento->num_activos_audit,
                 ':habilitadoNivel3' => $emplazamiento->habilitadoNivel3,
+                ':num_nivel' => $emplazamiento->num_nivel
             ]);
         }
     }

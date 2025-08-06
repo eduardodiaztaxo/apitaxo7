@@ -12,20 +12,34 @@ class CrudActivo extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'foto4',
-        'marca',
-        'modelo',
-        'serie',
-        'nombreActivo',
-        'responsableN1',
-        'apoyaBrazosRuedas',
-        'descripcionTipo',
-        'observacion',
-        'latitud',
-        'id_familia',
-        'longitud'
-    ];
+ protected $fillable = [
+    'foto4',
+    'marca',
+    'modelo',
+    'serie',
+    'nombreActivo',
+    'responsableN1',
+    'apoyaBrazosRuedas',
+    'descripcionTipo',
+    'observacion',
+    'latitud',
+    'longitud',
+    'material',
+    'forma',
+    'color',
+    'estadoConseervacion',
+    'estadoOperacional',
+    'tipoTrabajo',
+    'cargaTrabajo',
+    'condicionAmbiental',
+    'capacidad',
+    'eficiencia',
+    'texto_abierto_1',
+    'texto_abierto_2',
+    'texto_abierto_3',
+    'texto_abierto_4',
+    'texto_abierto_5',
+];
 
 
     protected $primaryKey = 'idActivo';

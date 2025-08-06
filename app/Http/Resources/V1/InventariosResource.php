@@ -28,8 +28,12 @@ class InventariosResource extends JsonResource
                 'serie',
                 'estado',
                 'responsable',
+                'idUbicacionGeo',
                 'idUbicacionN2',
+                'codigoUbicacion_N2',
+                'codigoUbicacion_N1',
                 'idUbicacionN3',
+                'codigoUbicacionN3',
                 'update_inv',
                 'id_img'
             )
@@ -66,21 +70,23 @@ class InventariosResource extends JsonResource
             ->where('idUbicacionN2', $activo->idUbicacionN2)
             ->select('descripcionUbicacion', 'codigoUbicacion', 'idAgenda')
             ->first();
+
         if (!$subEmplazamiento) {
             $subEmplazamiento = DB::table('ubicaciones_n3')
             ->where('idUbicacionN3', $activo->idUbicacionN3)
             ->select('descripcionUbicacion', 'codigoUbicacion', 'idAgenda')
             ->first();
         }
-    
-        $codigoUbicacionN1 = substr($subEmplazamiento->codigoUbicacion, 0, 2);
+
+        $codigoUbicacionN1 = $activo->codigoUbicacion_N1 ?? '';
+
         $emplazamiento = DB::table('ubicaciones_n1')
             ->where('codigoUbicacion', $codigoUbicacionN1)
             ->select('descripcionUbicacion')
             ->first();
 
         $direccion = DB::table('ubicaciones_geograficas')
-            ->where('idUbicacionGeo', $subEmplazamiento->idAgenda)
+            ->where('idUbicacionGeo', $activo->idUbicacionGeo)
             ->select('direccion', 'region', 'comuna')
             ->first();
         if (!$direccion) {

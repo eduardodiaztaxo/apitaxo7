@@ -46,7 +46,7 @@ class EmplazamientoNivel3Resource extends JsonResource
         $activosInventario = DB::table('inv_inventario')
             ->leftJoin('categoria_n3', 'inv_inventario.id_familia', '=', 'categoria_n3.id_familia')
             ->leftJoin('inv_imagenes', 'inv_inventario.id_img', '=', 'inv_imagenes.id_img')
-            ->where('inv_inventario.codigoUbicacionN3', $this->codigoUbicacion)
+            ->where('inv_inventario.codigoUbicacionN3', 'LIKE', $this->codigoUbicacion . '%')
             ->where('inv_inventario.id_ciclo', $this->cycle_id)
             ->select(
                 'inv_inventario.id_ciclo',
@@ -60,6 +60,7 @@ class EmplazamientoNivel3Resource extends JsonResource
                 'inv_inventario.serie',
                 'inv_inventario.descripcion_marca',
                 'inv_inventario.idUbicacionN3',
+                'inv_inventario.codigoUbicacionN3',
                 'inv_inventario.update_inv',
                 'categoria_n3.descripcionCategoria',
                 DB::raw('MIN(inv_imagenes.url_imagen) as url_imagen')
@@ -75,6 +76,7 @@ class EmplazamientoNivel3Resource extends JsonResource
                 'inv_inventario.modelo',
                 'inv_inventario.serie',
                 'inv_inventario.descripcion_marca',
+                'inv_inventario.codigoUbicacionN3',
                 'inv_inventario.idUbicacionN3',
                 'inv_inventario.update_inv',
                 'categoria_n3.descripcionCategoria'
@@ -119,6 +121,7 @@ class EmplazamientoNivel3Resource extends JsonResource
                 'marca' => $activo->descripcion_marca ?? null,
                 'ubicacionOrganicaN2' => $activo->idUbicacionN3,
                 'update_inv' => $activo->update_inv,
+                'codigoUbicacionN3' => $activo->codigoUbicacionN3,
                 'categoria' => null,
                 'familia' => null,
                 'descripcionCategoria' => $activo->descripcionCategoria,
@@ -136,6 +139,7 @@ class EmplazamientoNivel3Resource extends JsonResource
             'idAgenda' => $this->idAgenda,
             'idUbicacionN2' => $this->idUbicacionN3,
             'num_activos' => 0,
+            'num_nivel' => '',
             'habilitadoNivel3' => 0,
             'num_activos_inv' => $activosInventario->count(),
             'num_activos_cats_by_cycle' => 0,

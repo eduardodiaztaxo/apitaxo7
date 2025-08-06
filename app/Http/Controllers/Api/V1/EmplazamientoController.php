@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\EmplazamientoResource;
 use App\Http\Resources\V1\EmplazamientoNivel3Resource;
+use App\Http\Resources\V1\EmplazamientoNivel1Resource;
+use App\Http\Resources\V1\EmplazamientoAllResource;
 use App\Models\CrudActivo;
 use App\Models\Emplazamiento;
+use App\Models\EmplazamientoN1;
 use App\Models\EmplazamientoN3;
 use App\Models\ZonaPunto;
 use App\Services\PlaceService;
@@ -206,34 +209,68 @@ class EmplazamientoController extends Controller
      */
 
 
-    public function show(int $emplazamiento, int $ciclo, string $zona_id)
-    {
-        // Buscar nivel 2
-        $emplaObj = Emplazamiento::where('idUbicacionN2', $emplazamiento)
-            ->where('codigoUbicacion', $zona_id)
+public function show(int $emplazamiento, int $ciclo, string $codigoUbicacion)
+{
+    // Nivel 1
+    if (strlen($codigoUbicacion) === 2) {
+        $emplaObj = EmplazamientoN1::where('idUbicacionN1', $emplazamiento)
+            ->where('codigoUbicacion', $codigoUbicacion)
             ->first();
 
-        if ($emplaObj) {
-            $resource = EmplazamientoResource::make($emplaObj);
-        } else {
-            //buscar en el nivel 3
-            $emplaObj = EmplazamientoN3::where('idUbicacionN3', $emplazamiento)
-                ->where('codigoUbicacion', $zona_id)
-                ->first();
-
-            if (!$emplaObj) {
-                return response()->json(['status' => 'NOK', 'code' => 404], 404);
-            }
-
-            $resource = EmplazamientoNivel3Resource::make($emplaObj);
+        if (!$emplaObj) {
+            return response()->json(['status' => 'NOK', 'code' => 404], 404);
         }
 
-        $emplaObj->requirePunto = 1;
-        $emplaObj->requireActivos = 1;
-        $emplaObj->cycle_id = $ciclo;
-
-        return response()->json($resource);
+        $resource = EmplazamientoNivel1Resource::make($emplaObj);
     }
+    // Nivel 2
+    else if (strlen($codigoUbicacion) === 4) {
+        $emplaObj = Emplazamiento::where('idUbicacionN2', $emplazamiento)
+            ->where('codigoUbicacion', $codigoUbicacion)
+            ->first();
+
+        if (!$emplaObj) {
+            return response()->json(['status' => 'NOK', 'code' => 404], 404);
+        }
+
+        $resource = EmplazamientoResource::make($emplaObj);
+    }
+    // Nivel 3
+    else {
+        $emplaObj = EmplazamientoN3::where('idUbicacionN3', $emplazamiento)
+            ->where('codigoUbicacion', $codigoUbicacion)
+            ->first();
+
+        if (!$emplaObj) {
+            return response()->json(['status' => 'NOK', 'code' => 404], 404);
+        }
+
+        $resource = EmplazamientoNivel3Resource::make($emplaObj);
+    }
+
+    $emplaObj->requirePunto = 1;
+    $emplaObj->requireActivos = 1;
+    $emplaObj->cycle_id = $ciclo;
+
+    return response()->json($resource);
+}
+
+public function showTodos(int $idAgenda, int $ciclo)
+{
+    $emplaObj = EmplazamientoN1::with(['emplazamientosN2', 'emplazamientosN3'])
+        ->where('idAgenda', $idAgenda)
+        ->first();
+
+    if (!$emplaObj) {
+        return response()->json(['status' => 'NOK', 'code' => 404], 404);
+    }
+
+    $emplaObj->requirePunto = 1;
+    $emplaObj->requireActivos = 1;
+    $emplaObj->cycle_id = $ciclo;
+
+    return response()->json(EmplazamientoAllResource::make($emplaObj));
+}
 
 
 

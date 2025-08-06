@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Query\JoinClause;
 use App\Models\Inventario;
 use App\Models\EmplazamientoN3;
+use App\Models\EmplazamientoN1;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 
@@ -91,16 +92,13 @@ class InvCiclo extends Model
         $sql = "
 
          SELECT DISTINCT
-        ubicaciones_n3.idUbicacionN3 AS idUbicacionN3,
+       ubicaciones_n3.idUbicacionN3 AS idUbicacionN3,
         ubicaciones_n1.idAgenda AS punto,
-        ubicaciones_n3.codigoUbicacion AS emplazamiento,
-        ubicaciones_n4.idUbicacionN4 AS idUbicacionN4
+        ubicaciones_n3.codigoUbicacion AS emplazamiento
         FROM inv_ciclos
         INNER JOIN inv_ciclos_puntos ON inv_ciclos.idCiclo = inv_ciclos_puntos.idCiclo
         INNER JOIN ubicaciones_n1 ON inv_ciclos_puntos.idPunto = ubicaciones_n1.idAgenda
         INNER JOIN ubicaciones_n3 ON ubicaciones_n1.idAgenda = ubicaciones_n3.idAgenda AND ubicaciones_n1.codigoUbicacion = LEFT(ubicaciones_n3.codigoUbicacion, 2)
-        INNER JOIN ubicaciones_n4 ON ubicaciones_n3.idAgenda = ubicaciones_n4.idAgenda AND ubicaciones_n3.codigoUbicacion = LEFT(ubicaciones_n4.codigoUbicacion, 6)
-        -- Aquí agregamos la unión con ubicaciones_n2
         INNER JOIN ubicaciones_n2 
         ON ubicaciones_n2.idUbicacionN2 = ubicaciones_n3.idUbicacionN3
         INNER JOIN inv_ciclos_categorias 
@@ -114,6 +112,28 @@ class InvCiclo extends Model
         return collect(DB::select($sql, [$this->idCiclo, $zona->idAgenda, $zona->codigoUbicacion]));
     }
 
+
+
+     public function EmplazamientosWithCatsN1(EmplazamientoN1 $zona)
+    {
+        $sql = "
+        SELECT DISTINCT
+            ubicaciones_n1.idUbicacionN1 AS idUbicacionN1,
+            ubicaciones_n1.idAgenda AS punto,
+            ubicaciones_n1.codigoUbicacion AS emplazamiento
+        FROM inv_ciclos
+        INNER JOIN inv_ciclos_puntos 
+            ON inv_ciclos.idCiclo = inv_ciclos_puntos.idCiclo
+        INNER JOIN ubicaciones_n1 
+            ON inv_ciclos_puntos.idPunto = ubicaciones_n1.idAgenda
+        INNER JOIN inv_ciclos_categorias 
+            ON inv_ciclos.idCiclo = inv_ciclos_categorias.idCiclo
+        WHERE inv_ciclos.idCiclo = ?
+            AND ubicaciones_n1.idAgenda = ?
+    ";
+
+        return collect(DB::select($sql, [$this->idCiclo, $zona->idAgenda]));
+    }
 
     public function emplazamientos_with_cats()
     {
