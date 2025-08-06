@@ -1010,6 +1010,7 @@ public function nombreInputs()
             'status' => 'OK',
             'message' => 'items created sucssessfuly',
             'data' => [
+                'items' => $saved,
                 'fails' => count($failed),
                 'saved' => count($saved),
                 'found_files' => count($paths),
