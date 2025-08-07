@@ -104,7 +104,7 @@ class EmplazamientoN3DumpService implements DumpSQLiteInterface
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            INSERT INTO emplazamientosN3 (
+            INSERT OR REPLACE INTO emplazamientosN3 (
                 id,
                 codigo,
                 codigoUbicacion,
