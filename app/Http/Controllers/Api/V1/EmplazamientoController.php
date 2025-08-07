@@ -51,7 +51,7 @@ class EmplazamientoController extends Controller
         $request->validate([
             'descripcion'   => 'required|string',
             'zona_id'       => 'required|exists:ubicaciones_n1,idUbicacionN1',
-            'agenda_id'     => 'required|exists:ubicaciones_n1,idAgenda',
+            'agenda_id'     => 'required|exists:ubicaciones_geograficas,idUbicacionGeo',
             'estado'        => 'sometimes|required|in:0,1',
             'ciclo_auditoria' => 'required'
         ]);
@@ -72,11 +72,6 @@ class EmplazamientoController extends Controller
         ];
 
         $empla = Emplazamiento::create($data);
-
-        Emplazamiento::create([
-            'idAgenda' => $request->codigoUbicacion,
-            'ciclo_auditoria' => $cicloAuditoria
-        ]);
 
         if (!$empla) {
             return response()->json([
@@ -109,7 +104,7 @@ class EmplazamientoController extends Controller
 
         $request->validate([
             'descripcion'      => 'required|string',
-            'agenda_id'        => 'required|exists:ubicaciones_n3,idAgenda',
+            'agenda_id'        => 'required|exists:ubicaciones_geograficas,idUbicacionGeo',
             'codigoUbicacion'  => 'required|exists:ubicaciones_n2,codigoUbicacion'
         ]);
 

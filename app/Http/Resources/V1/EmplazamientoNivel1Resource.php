@@ -41,6 +41,7 @@ class EmplazamientoNivel1Resource extends JsonResource
             )
         ) as crud_activos_pictures'), 'crud_activos_pictures.id_activo', '=', 'crud_activos.idActivo')
         ->where('crud_activos.tipoCambio', '!=', 200)
+         ->where('crud_activos.ubicacionOrganicaN1', '=', $this->codigoUbicacion)
         ->get();
 
         $activosInventario = DB::table('inv_inventario')
@@ -159,7 +160,7 @@ class EmplazamientoNivel1Resource extends JsonResource
                 ->toArray();
 
             if (isset($this->cycle_id) && $this->cycle_id) {
-                $activosByCycle = $this->activos_with_cats_by_cycle($this->cycle_id, $this->idAgenda)
+                $activosByCycle = $this->activos_with_cats_by_cycle($this->cycle_id, $this->idAgenda, $this->codigoUbicacion)
                     ->whereIn('crud_activos.id_grupo', $categorias)
                     ->get()
                     ->map(function ($activo) {

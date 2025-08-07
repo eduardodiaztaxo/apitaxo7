@@ -49,7 +49,7 @@ class EmplazamientoN1 extends Model
 
     public function activos()
     {
-        return $this->hasMany(CrudActivo::class, 'ubicacionOrganicaN3', 'codigoUbicacion')->where('ubicacionGeografica', $this->idAgenda);
+        return $this->hasMany(CrudActivo::class, 'ubicacionOrganicaN1', 'codigoUbicacion')->where('ubicacionGeografica', $this->idAgenda);
     }
     
 

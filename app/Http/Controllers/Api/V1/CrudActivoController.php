@@ -467,37 +467,32 @@ public function showActivos($etiqueta)
 
            $responsable = $this->getIdResponsable();
 
-            $request->merge(['responsableN1' => $responsable]);
-            $request->merge(['apoyaBrazosRuedas' => $request->estado]);
-
-            $activo->fill($request->only([
-                'marca',
-                'modelo',
-                'serie',
-                'material',
-                'forma',
-                'color',
-                'estadoConseervacion',
-                'estadoOperacional',
-                'tipoTrabajo',
-                'cargaTrabajo',
-                'condicionAmbiental',
-                'capacidad',
-                'eficiencia',
-                'texto_abierto_1',
-                'texto_abierto_2',
-                'texto_abierto_3',
-                'texto_abierto_4',
-                'texto_abierto_5',
-                'responsableN1',
-                'apoyaBrazosRuedas',
-                'descripcionTipo',
-                'observacion',
-                'latitud',
-                'longitud'
-            ]));
-
-            $activo->save();
+              $activo->update([
+                'marca'               => $request->marca,
+                'modelo'              => $request->modelo,
+                'serie'               => $request->serie,
+                'material'            => $request->idMaterial,
+                'forma'               => $request->idForma,
+                'color'               => $request->color,
+                'estadoConservacion' => $request->estado_conservacion,
+                'estadoOperacional'   => $request->estado_operacional,
+                'tipoTrabajo'         => $request->tipo_trabajo,
+                'cargaTrabajo'        => $request->carga_trabajo,
+                'condicionAmbiental'  => $request->condicion_ambiental,
+                'capacidad'           => $request->capacidad,
+                'eficiencia'          => $request->eficiencia,
+                'texto_abierto_1'     => $request->texto_abierto_1,
+                'texto_abierto_2'     => $request->texto_abierto_2,
+                'texto_abierto_3'     => $request->texto_abierto_3,
+                'texto_abierto_4'     => $request->texto_abierto_4,
+                'texto_abierto_5'     => $request->texto_abierto_5,
+                'responsableN1'       => $responsable,
+                'apoyaBrazosRuedas'   => $request->estado,
+                'descripcionTipo'     => $request->descripcion,
+                'observacion'         => $request->observacion,
+                'latitud'             => $request->latitud,
+                'longitud'            => $request->longitud
+            ]);
 
             $activo->requireUbicacion = 1;
             $activo->requireEmplazamiento = 1;

@@ -63,28 +63,38 @@ class InvCiclo extends Model
      * @return \Illuminate\Support\Collection
      */
 
-    public function zoneEmplazamientosWithCats(ZonaPunto $zona)
-    {
-        $sql = "
+ public function zoneEmplazamientosWithCats(ZonaPunto $zona)
+{
+    $sql = "
         SELECT 
-        ubicaciones_n2.idUbicacionN2 AS idUbicacionN2,
-        crud_activos.ubicacionGeografica AS punto,
-        crud_activos.ubicacionOrganicaN2 AS emplazamiento
+            ubicaciones_n2.idUbicacionN2 AS idUbicacionN2,
+            crud_activos.ubicacionGeografica AS punto,
+            crud_activos.ubicacionOrganicaN2 AS emplazamiento
         FROM
-        inv_ciclos
-        INNER JOIN inv_ciclos_puntos ON inv_ciclos.idCiclo = inv_ciclos_puntos.idCiclo
-        INNER JOIN ubicaciones_n1 ON inv_ciclos_puntos.idPunto = ubicaciones_n1.idAgenda
-        INNER JOIN ubicaciones_n2 ON ubicaciones_n1.idAgenda = ubicaciones_n2.idAgenda AND ubicaciones_n1.codigoUbicacion = LEFT(ubicaciones_n2.codigoUbicacion, 2)
-        INNER JOIN inv_ciclos_categorias ON inv_ciclos.idCiclo = inv_ciclos_categorias.idCiclo
+            inv_ciclos
+        INNER JOIN inv_ciclos_puntos 
+            ON inv_ciclos.idCiclo = inv_ciclos_puntos.idCiclo
+        INNER JOIN inv_ciclos_categorias 
+            ON inv_ciclos.idCiclo = inv_ciclos_categorias.idCiclo
         INNER JOIN crud_activos 
-            ON inv_ciclos_puntos.idPunto =  crud_activos.ubicacionGeografica 
-            AND ubicaciones_n1.codigoUbicacion = crud_activos.ubicacionOrganicaN1
+            ON inv_ciclos_puntos.idPunto = crud_activos.ubicacionGeografica 
             AND inv_ciclos_categorias.id_familia = crud_activos.id_familia
-        WHERE inv_ciclos.idCiclo = ? AND crud_activos.ubicacionGeografica = ? AND crud_activos.ubicacionOrganicaN1 = ?
-        GROUP BY ubicaciones_n2.idUbicacionN2, crud_activos.ubicacionGeografica, crud_activos.ubicacionOrganicaN2 ";
+        INNER JOIN ubicaciones_n2
+            ON ubicaciones_n2.codigoUbicacion = crud_activos.ubicacionOrganicaN2
+        WHERE 
+            inv_ciclos.idCiclo = ?
+            AND crud_activos.ubicacionGeografica = ?
+            AND crud_activos.ubicacionOrganicaN2 LIKE ?
+        GROUP BY 
+            ubicaciones_n2.idUbicacionN2, 
+            crud_activos.ubicacionGeografica, 
+            crud_activos.ubicacionOrganicaN2";
 
-        return collect(DB::select($sql, [$this->idCiclo, $zona->idAgenda, $zona->codigoUbicacion]));
-    }
+    $likeCodigo = '%' . $zona->codigoUbicacion . '%';
+
+    return collect(DB::select($sql, [$this->idCiclo, $zona->idAgenda, $likeCodigo]));
+}
+
 
 
     public function zoneSubEmplazamientosWithCats(EmplazamientoN3 $zona)

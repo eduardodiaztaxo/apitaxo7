@@ -71,11 +71,11 @@ class ZonaEmplazamientosController extends Controller
     }
 
 
-    public function showByCycleCats(Request $request, int $ciclo, int $zona)
+    public function showByCycleCats(Request $request, int $ciclo, $zona)
     {
         //return $request->user()->conn_field;
         //
-        $zonaObj = ZonaPunto::find($zona);
+       $zonaObj = ZonaPunto::where('codigoUbicacion', $zona)->first();
 
         if (!$zonaObj) {
             return response()->json(['status' => 'NOK', 'message' => 'Zona no encontrada', 'code' => 404], 404);
@@ -88,11 +88,7 @@ class ZonaEmplazamientosController extends Controller
             return response()->json(['status' => 'NOK', 'message' => 'Ciclo no encontrado', 'code' => 404], 404);
         }
 
-
-
         $emplaCats = $cicloObj->zoneEmplazamientosWithCats($zonaObj)->pluck('idUbicacionN2')->toArray();
-
-
 
         if (empty($emplaCats)) {
             $emplazamientos = $zonaObj->emplazamientos()->get();
@@ -103,8 +99,6 @@ class ZonaEmplazamientosController extends Controller
         foreach ($emplazamientos as $emplazamiento) {
             $emplazamiento->cycle_id = $ciclo;
         }
-
-
         return response()->json(EmplazamientoResource::collection($emplazamientos), 200);
     }
 
