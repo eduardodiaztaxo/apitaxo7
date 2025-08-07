@@ -427,7 +427,7 @@ public function showActivos($etiqueta)
                 'modelo'               => $request->modelo,
                 'serie'                => $request->serie,
                 'estado'               => $request->estado,
-                'descripcionTipo'      => $request->descripcion,
+                'descripcionTipo'      => $request->descripcionTipo,
                 'observacion'          => $request->observacion,
                 'latitud'              => $request->latitud,
                 'longitud'             => $request->longitud,

@@ -96,6 +96,7 @@ class InventariosController extends Controller
 
                 $idUbicacionN2 = DB::table('ubicaciones_n2')
                     ->where('codigoUbicacion', $request->codigoUbicacion)
+                    ->where('idAgenda', $request->idAgenda)
                     ->value('idUbicacionN2');
 
             } else {
@@ -104,6 +105,7 @@ class InventariosController extends Controller
 
                 $idUbicacionN3 = DB::table('ubicaciones_n3')
                     ->where('codigoUbicacion', $request->codigoUbicacion)
+                    ->where('idAgenda', $request->idAgenda)
                     ->value('idUbicacionN3');
             }
 
@@ -600,51 +602,56 @@ public function nombreInputs()
 
 
 
-    public function ImageByEtiqueta(Request $request, $etiqueta)
-    {
-        $request->validate([
-            'imagenes.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
-        ]);
+  public function ImageByEtiqueta(Request $request, $etiqueta)
+{
+    $request->validate([
+        'imagenes.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
+    ]);
 
-        $origen = 'SAFIN_APP';
-        $id_img = DB::table('inv_imagenes')->max('id_img') + 1;
-        $paths = [];
+    $origen = 'SAFIN_APP';
 
-        foreach ($request->file('imagenes') as $index => $file) {
-            $filename = '9999_' . $etiqueta . '_' . $index . '.jpg';
+    // Calcular id_img de forma segura
+    $maxId = DB::table('inv_imagenes')->max('id_img');
+    $id_img = $maxId !== null ? $maxId + 1 : 1;
 
-            $path = $file->storeAs(
-                PictureSafinService::getImgSubdir($request->user()->nombre_cliente),
-                $filename,
-                'taxoImages'
-            );
+    $paths = [];
 
-            $url = Storage::disk('taxoImages')->url($path);
-            $url_pict = dirname($url) . '/';
+    foreach ($request->file('imagenes') as $index => $file) {
+        $filename = '9999_' . $etiqueta . '_' . $index . '.jpg';
 
-            $img = new Inv_imagenes();
-            $img->etiqueta = $etiqueta;
-            $img->id_img = $id_img;
-            $img->origen = $origen;
-            $img->picture = $filename;
-            $img->created_at = now();
-            $img->url_imagen =  $url;
-            $img->url_picture = $url_pict;
-            $img->save();
+        $path = $file->storeAs(
+            PictureSafinService::getImgSubdir($request->user()->nombre_cliente),
+            $filename,
+            'taxoImages'
+        );
 
-            $paths[] = [
-                'url' => $url_pict,
-                'filename' => $filename
-            ];
-        }
+        $url = Storage::disk('taxoImages')->url($path);
+        $url_pict = dirname($url) . '/';
 
-        return response()->json([
-            'status'    => 'OK',
-            'paths'     => $paths,
-            'folderUrl' => $url_pict,
-            'id_img'    => $id_img - 1
-        ], 201);
+        $img = new Inv_imagenes();
+        $img->etiqueta = $etiqueta;
+        $img->id_img = $id_img;
+        $img->origen = $origen;
+        $img->picture = $filename;
+        $img->created_at = now();
+        $img->url_imagen = $url;
+        $img->url_picture = $url_pict;
+        $img->save();
+
+        $paths[] = [
+            'url' => $url_pict,
+            'filename' => $filename
+        ];
     }
+
+    return response()->json([
+        'status'    => 'OK',
+        'paths'     => $paths,
+        'folderUrl' => $url_pict,
+        'id_img'    => $id_img
+    ], 201);
+}
+
     public function showData($id_inventario, $id_ciclo)
     {
         $sql = "

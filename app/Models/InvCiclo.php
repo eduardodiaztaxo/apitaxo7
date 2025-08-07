@@ -7,6 +7,7 @@ use Illuminate\Database\Query\JoinClause;
 use App\Models\Inventario;
 use App\Models\EmplazamientoN3;
 use App\Models\EmplazamientoN1;
+use App\Models\Emplazamiento;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 
@@ -63,7 +64,7 @@ class InvCiclo extends Model
      * @return \Illuminate\Support\Collection
      */
 
- public function zoneEmplazamientosWithCats(ZonaPunto $zona)
+ public function zoneEmplazamientosWithCats(Emplazamiento $zona)
 {
     $sql = "
         SELECT 

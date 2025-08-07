@@ -12,6 +12,7 @@ use App\Models\UbicacionGeografica;
 use App\Models\Region;
 use App\Models\EmplazamientoN3;
 use App\Models\EmplazamientoN1;
+use App\Models\Emplazamiento;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -71,36 +72,44 @@ class ZonaEmplazamientosController extends Controller
     }
 
 
-    public function showByCycleCats(Request $request, int $ciclo, $zona)
-    {
-        //return $request->user()->conn_field;
-        //
-       $zonaObj = ZonaPunto::where('codigoUbicacion', $zona)->first();
+  public function showByCycleCats(Request $request, int $ciclo, $zona, int $agenda_id)
+{
+    $zonas = Emplazamiento::where('codigoUbicacion', 'like', $zona . '%')
+                ->where('idAgenda', $agenda_id)
+                ->get();
 
-        if (!$zonaObj) {
-            return response()->json(['status' => 'NOK', 'message' => 'Zona no encontrada', 'code' => 404], 404);
-        }
-
-
-        $cicloObj = InvCiclo::find($ciclo);
-
-        if (!$cicloObj) {
-            return response()->json(['status' => 'NOK', 'message' => 'Ciclo no encontrado', 'code' => 404], 404);
-        }
-
-        $emplaCats = $cicloObj->zoneEmplazamientosWithCats($zonaObj)->pluck('idUbicacionN2')->toArray();
-
-        if (empty($emplaCats)) {
-            $emplazamientos = $zonaObj->emplazamientos()->get();
-        } else {
-            $emplazamientos = $zonaObj->emplazamientos()->whereIn('idUbicacionN2', $emplaCats)->get();
-        }
-
-        foreach ($emplazamientos as $emplazamiento) {
-            $emplazamiento->cycle_id = $ciclo;
-        }
-        return response()->json(EmplazamientoResource::collection($emplazamientos), 200);
+    if ($zonas->isEmpty()) {
+        return response()->json(['status' => 'NOK', 'message' => 'Zona no encontrada', 'code' => 404], 404);
     }
+
+    $cicloObj = InvCiclo::find($ciclo);
+
+    if (!$cicloObj) {
+        return response()->json(['status' => 'NOK', 'message' => 'Ciclo no encontrado', 'code' => 404], 404);
+    }
+
+    $emplaCats = collect();
+    foreach ($zonas as $zonaObj) {
+        $emplaCats = $emplaCats->merge($cicloObj->zoneEmplazamientosWithCats($zonaObj));
+    }
+
+    $idsValidos = $emplaCats->pluck('idUbicacionN2')->unique()->toArray();
+
+    $emplazamientos = Emplazamiento::where('codigoUbicacion', 'like', $zona . '%')
+        ->where('idAgenda', $agenda_id);
+
+    if (!empty($idsValidos)) {
+        $emplazamientos = $emplazamientos->whereIn('idUbicacionN2', $idsValidos);
+    }
+
+    $emplazamientos = $emplazamientos->get();
+
+    foreach ($emplazamientos as $emplazamiento) {
+        $emplazamiento->cycle_id = $ciclo;
+    }
+
+    return response()->json(EmplazamientoResource::collection($emplazamientos), 200);
+}
 
 
     public function CycleCatsNivel3(Request $request, int $ciclo, string $zona, int $agenda_id)

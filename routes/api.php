@@ -179,7 +179,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('comunas/{idRegion}', [ZonaEmplazamientosController::class, 'comunas']);
 
-    Route::get('ciclos/{ciclo}/zones/{zona}/emplazamientos', [ZonaEmplazamientosController::class, 'showByCycleCats']);
+    Route::get('ciclos/{ciclo}/zones/{zona}/emplazamientos/{agenda_id}', [ZonaEmplazamientosController::class, 'showByCycleCats']);
 
     Route::get('ciclos/{ciclo}/zones/{zona}/Subemplazamientos/{agenda_id}', [ZonaEmplazamientosController::class, 'CycleCatsNivel3']);
 
