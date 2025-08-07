@@ -27,7 +27,7 @@ class CrudActivo extends Model
     'material',
     'forma',
     'color',
-    'estadoConseervacion',
+    'estadoConservacion',
     'estadoOperacional',
     'tipoTrabajo',
     'cargaTrabajo',

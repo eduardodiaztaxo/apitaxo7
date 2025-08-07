@@ -468,7 +468,7 @@ public function showActivos($etiqueta)
            $responsable = $this->getIdResponsable();
 
               $activo->update([
-                'marca'               => $request->marca,
+                'marca'               => $request->id_marca,
                 'modelo'              => $request->modelo,
                 'serie'               => $request->serie,
                 'material'            => $request->idMaterial,
@@ -488,7 +488,7 @@ public function showActivos($etiqueta)
                 'texto_abierto_5'     => $request->texto_abierto_5,
                 'responsableN1'       => $responsable,
                 'apoyaBrazosRuedas'   => $request->estado,
-                'descripcionTipo'     => $request->descripcion,
+                'descripcionTipo'     => $request->descripcionTipo,
                 'observacion'         => $request->observacion,
                 'latitud'             => $request->latitud,
                 'longitud'            => $request->longitud
