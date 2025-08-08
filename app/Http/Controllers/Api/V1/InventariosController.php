@@ -304,6 +304,7 @@ class InventariosController extends Controller
         $inventario->texto_abierto_3     = $request->texto_abierto_3 ?? null;
         $inventario->texto_abierto_4     = $request->texto_abierto_4 ?? null;
         $inventario->texto_abierto_5     = $request->texto_abierto_5 ?? null;
+        $inventario->modo                = 'ONLINE';
 
         $inventario->save();
 
@@ -374,6 +375,7 @@ class InventariosController extends Controller
             'texto_abierto_4'       => $request->texto_abierto_4 ?? null,
             'texto_abierto_5'       => $request->texto_abierto_5 ?? null,
             'crud_activo_estado'    => $estadoBien,
+            'modo'                  => 'ONLINE'
         ]);
 
         $inventarioActualizado = Inventario::where('etiqueta', $request->etiqueta)->first();
