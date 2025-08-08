@@ -38,7 +38,10 @@ class BienesInventarioDumpService
                 idAtributo INTEGER NOT NULL,
                 id_familia INTEGER NOT NULL,
                 id_grupo INTEGER NOT NULL,
-                ciclo_inventario INTEGER NOT NULL
+                ciclo_inventario INTEGER NOT NULL,
+                creadoPor TEXT,
+                fechaCreacion TEXT,
+                modo TEXT
             )
         ");
     }

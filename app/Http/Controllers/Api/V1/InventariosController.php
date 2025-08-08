@@ -188,6 +188,7 @@ class InventariosController extends Controller
         $inventario->texto_abierto_3     = $request->texto_abierto_3 ?? null;
         $inventario->texto_abierto_4     = $request->texto_abierto_4 ?? null;
         $inventario->texto_abierto_5     = $request->texto_abierto_5 ?? null;
+        $inventario->modo                = 'ONLINE';
 
         $inventario->save();
 
@@ -311,130 +312,6 @@ class InventariosController extends Controller
 
 
 
-    public function  createinventarioNivel3(Request $request, $Nivel3)
-    {
-        $request->validate([
-            'id_grupo'              => 'required|string',
-            'id_familia'            => 'required|string',
-            'etiqueta'              => 'required|string',
-            'id_ciclo'              => 'required|exists:inv_ciclos,idCiclo',
-            'codigoUbicacion'       => 'required',
-        ]);
-
-        $existeEtiqueta = false;
-
-        $etiquetaInventario = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta)->value('etiqueta');
-        $etiquetaUnicaCrudActivo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta)->value('etiqueta');
-
-        if ($etiquetaInventario || $etiquetaUnicaCrudActivo) {
-            $existeEtiqueta = true;
-        }
-
-        if (!empty($request->etiqueta_padre)) {
-            $etiquetaInventarioHijo = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
-            $etiquetaCrudActivoHijo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
-
-            if ($etiquetaInventarioHijo || $etiquetaCrudActivoHijo) {
-                $existeEtiqueta = true;
-            }
-        }
-
-        if ($existeEtiqueta) {
-            return response('La etiqueta ya existe', 400);
-        }
-
-        $idUbicacionN3 = $Nivel3;
-
-        $idUbicacionGeo = DB::table('ubicaciones_n3')
-            ->where('idUbicacionN3',  $Nivel3)
-            ->value('idAgenda');
-
-        if ($request->cloneFichaDetalle == "true") {
-            $imagenes = DB::table('inv_imagenes')
-                ->where('id_img', $request->id_img_clone)
-                ->get();
-
-            $url_img = DB::table('inv_imagenes')->max('id_img') + 1;
-            $origen = 'SAFIN_APP';
-            $filename = '9999_' . $request->etiqueta;
-
-            foreach ($imagenes as $img) {
-                DB::table('inv_imagenes')->insert([
-                    'id_img'     => $url_img,
-                    'etiqueta'   => $request->etiqueta,
-                    'origen'     => $origen,
-                    'picture'    => $filename . '.jpg',
-                    'url_imagen' => $img->url_imagen,
-                    'url_picture' => $img->url_picture,
-                    'created_at' => now()
-                ]);
-            }
-        } else {
-
-            $id_img = DB::table('inv_imagenes')
-                ->where('etiqueta', $request->etiqueta)
-                ->orderBy('id_img', 'desc')
-                ->value('id_img');
-            $url_img = $id_img ?? null;
-        }
-
-        if (intval($request->padre) === 1) {
-            $etiquetaPadre = $request->etiqueta;
-        } elseif (intval($request->padre) === 2) {
-            $etiquetaPadre = $request->etiqueta_padre;
-        }
-
-        $inventario = new Inventario();
-        $inventario->id_grupo            = $request->id_grupo;
-        $inventario->id_familia          = $request->id_familia;
-        $inventario->descripcion_bien    = $request->descripcion_bien;
-        $inventario->id_bien             = intval($request->id_bien ?? 0);
-        $inventario->descripcion_marca   = $request->descripcion_marca ?? '';
-        $inventario->id_marca            = intval($request->id_marca ?? 0);
-        $inventario->idForma             = intval($request->idForma ?? 0);
-        $inventario->idMaterial          = intval($request->idMaterial ?? 0);
-        $inventario->etiqueta            = $request->etiqueta;
-        $inventario->modelo              = $request->modelo ?? '';
-        $inventario->serie               = $request->serie ?? '';
-        $inventario->latitud             = $request->latitud ?? 0;
-        $inventario->longitud            = $request->longitud ?? 0;
-        $inventario->capacidad           = intval($request->capacidad ?? 0);
-        $inventario->estado              = intval($request->estado ?? 0);
-        $inventario->color               = intval($request->color ?? 0);
-        $inventario->tipo_trabajo        = intval($request->tipo_trabajo ?? 0);
-        $inventario->carga_trabajo       = intval($request->carga_trabajo ?? 0);
-        $inventario->estado_operacional  = intval($request->estado_operacional ?? 0);
-        $inventario->estado_conservacion = intval($request->estado_conservacion ?? 0);
-        $inventario->condicion_ambiental = intval($request->condicion_ambiental ?? 0);
-        $inventario->cantidad_img        = $request->cantidad_img;
-        $inventario->id_img              = $url_img;
-        $inventario->id_ciclo            = $request->id_ciclo;
-        $inventario->idUbicacionGeo      = $idUbicacionGeo;
-        $inventario->idUbicacionN2       = 0;
-        $inventario->codigoUbicacion_N2  = 0;
-        $inventario->codigoUbicacion_N1  = 0;
-        $inventario->idUbicacionN3       = $idUbicacionN3;
-        $inventario->codigoUbicacionN4   = 0;
-        $inventario->codigoUbicacionN3   = $request->codigoUbicacion;
-        $inventario->responsable         = $this->getNombre();
-        $inventario->idResponsable       = $this->getIdResponsable();
-        $inventario->etiqueta_padre      = $etiquetaPadre ?? 'Sin Padre';
-        /** edualejandro */
-        $inventario->eficiencia          = $request->eficiencia ?? null;
-        $inventario->texto_abierto_1     = $request->texto_abierto_1 ?? null;
-        $inventario->texto_abierto_2     = $request->texto_abierto_2 ?? null;
-        $inventario->texto_abierto_3     = $request->texto_abierto_3 ?? null;
-        $inventario->texto_abierto_4     = $request->texto_abierto_4 ?? null;
-        $inventario->texto_abierto_5     = $request->texto_abierto_5 ?? null;
-
-        $inventario->save();
-
-        return response()->json($inventario, 201);
-    }
-
-
-
-
     public function updateinventario(Request $request)
     {
         $request->validate([
@@ -449,7 +326,7 @@ class InventariosController extends Controller
             ->orderBy('id_img', 'desc')
             ->value('id_img');
 
-        $url_img = $id_img ?? null;
+        $idImg = $id_img ?? null;
 
         if (intval($request->padre) === 1) {
             $etiquetaPadre = $request->etiqueta;
@@ -457,12 +334,25 @@ class InventariosController extends Controller
             $etiquetaPadre = $request->etiqueta_padre;
         }
 
+        $estadoBien = 0;
+        
+        if($request->actualizarBien > 0){
+            $estadoBien = 3;
+        }
+
         Inventario::where('etiqueta', $request->etiqueta)->update([
+            'id_grupo'            => $request->id_grupo,
+            'id_familia'          => $request->id_familia,
+            'descripcion_bien'    => $request->descripcion_bien,
+            'id_marca'            => $request->id_marca,
+            'descripcion_marca'   => $request->descripcion_marca,
+            'modelo'              => $request->modelo,
+            'serie'               => $request->serie,
             'idForma'             => intval($request->idForma ?? null),
             'idMaterial'          => intval($request->idMaterial ?? null),
             'latitud'             => $request->latitud ?? null,
             'longitud'            => $request->longitud ?? null,
-            'capacidad'           => intval($request->capacidad ?? null),
+            'capacidad'           => $request->capacidad,
             'estado'              => intval($request->estado ?? null),
             'color'               => intval($request->color ?? null),
             'tipo_trabajo'        => intval($request->tipo_trabajo ?? null),
@@ -471,7 +361,7 @@ class InventariosController extends Controller
             'estado_conservacion' => intval($request->estado_conservacion ?? null),
             'condicion_ambiental' => intval($request->condicion_ambiental ?? null),
             'cantidad_img'        => $request->cantidad_img,
-            'id_img'              => $url_img,
+            'id_img'              => $idImg,
             'responsable'         => $this->getNombre(),
             'idResponsable'       => $this->getIdResponsable(),
             'etiqueta_padre'      => $etiquetaPadre ?? 'Sin Padre',
@@ -483,6 +373,7 @@ class InventariosController extends Controller
             'texto_abierto_3'       => $request->texto_abierto_3 ?? null,
             'texto_abierto_4'       => $request->texto_abierto_4 ?? null,
             'texto_abierto_5'       => $request->texto_abierto_5 ?? null,
+            'crud_activo_estado'    => $estadoBien,
         ]);
 
         $inventarioActualizado = Inventario::where('etiqueta', $request->etiqueta)->first();
@@ -703,329 +594,282 @@ public function nombreInputs()
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function storeInventoryMultiple(int $ciclo, Request $request)
-    {
+   public function storeInventoryMultiple(int $ciclo, Request $request)
+{
+    //validate zip file and items as json
+    $request->validate([
+        'items'   => 'required|json',
+        'zipfile' => 'required|file|mimes:zip'
+    ]);
 
-        //validate zip file and items as json
-        $request->validate([
-            'items'   => 'required|json',
-            'zipfile' => 'required|file|mimes:zip'
-        ]);
+    $cycleObj = InvCiclo::find($ciclo);
 
+    if (!$cycleObj) {
+        return response()->json([
+            'status' => 'error',
+            'code' => 404,
+            'message' => 'No existe ciclo'
+        ], 404);
+    }
 
-        $cycleObj = InvCiclo::find($ciclo);
+    //items to inventory
+    $assets = [];
+    //items with errors
+    $errors = [];
+    $images = [];
+    $items = json_decode($request->items);
 
-        if (!$cycleObj) {
-            return response()->json([
-                'status' => 'error',
-                'code' => 404,
-                'message' => 'No existe ciclo'
-            ], 404);
+    foreach ($items as $key => $item) {
+        $validator = Validator::make((array)$item, $this->rules());
+        if ($validator->fails()) {
+            $errors[] = ['index' => $key, 'etiqueta' => $item->etiqueta, 'errors' => $validator->errors()->get("*")];
+        } else if (empty($errors)) {
+
+            $activo = [
+                'id_grupo' => $item->id_grupo,
+                'id_familia' => $item->id_familia,
+                'descripcion_bien' => $item->descripcion_bien,
+                'id_bien' => $item->id_bien,
+                'descripcion_marca' => $item->descripcion_marca,
+                'idForma' => $item->idForma,
+                'idMaterial' => $item->idMaterial,
+                'etiqueta' => $item->etiqueta,
+                'etiqueta_padre' => $item->etiqueta_padre,
+                'id_marca' => $item->id_marca,
+                'modelo' => $item->modelo,
+                'serie' => $item->serie,
+                'capacidad' => $item->capacidad,
+                'estado' => $item->estado,
+                'color' => $item->color,
+                'tipo_trabajo' => $item->tipo_trabajo,
+                'carga_trabajo' => $item->carga_trabajo,
+                'estado_operacional' => $item->estado_operacional,
+                'estado_conservacion' => $item->estado_conservacion,
+                'condicion_Ambiental' => $item->condicion_Ambiental,
+                'cantidad_img' => $item->cantidad_img,
+                'id_img' => $item->id_img,
+                'id_ciclo' => $ciclo,
+                'idUbicacionGeo' => $item->idUbicacionGeo,
+                'idUbicacionN2' => $item->idUbicacionN2,
+                'codigoUbicacion_N2' => $item->codigoUbicacion_N2,
+                'codigoUbicacion_N1' => $item->codigoUbicacion_N1,
+                'codigoUbicacionN3' => $item->codigoUbicacionN3,
+                'idUbicacionN3' => $item->idUbicacionN3,
+                'responsable' => $item->responsable,
+                'idResponsable' => $item->idResponsable,
+                'latitud' => $item->latitud,
+                'longitud' => $item->longitud,
+                'crud_activo_estado' => $item->crud_activo_estado,
+                'update_inv' => $item->update_inv,
+                /** falta campos */
+                /** edualejandro */
+                'eficiencia'            => $item->eficiencia ?? null,
+                'texto_abierto_1'       => $item->texto_abierto_1 ?? null,
+                'texto_abierto_2'       => $item->texto_abierto_2 ?? null,
+                'texto_abierto_3'       => $item->texto_abierto_3 ?? null,
+                'texto_abierto_4'       => $item->texto_abierto_4 ?? null,
+                'texto_abierto_5'       => $item->texto_abierto_5 ?? null,
+                'modo'                  =>'OFFLINE',
+            ];
+
+            $assets[] = $activo;
+            $images[] = [
+                'etiqueta' => $item->etiqueta,
+                'images' => $item->images
+            ];
         }
+    }
 
+    if (!empty($errors)) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'There are some items with errors, fix them and try again',
+            'errors' => $errors
+        ], 422);
+    }
 
-        //items to inventory
-        $assets = [];
+    // ZIP
+    $userFolder = "customers/" . $request->user()->nombre_cliente . "/images/inventario/temp/";
+    $zip = new \ZipArchive;
+    $open = $zip->open($request->file('zipfile')->getRealPath()) === TRUE;
 
-        //items with errors
-        $errors = [];
+    if ($open !== TRUE) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Unable to open zip file'
+        ], 400);
+    }
 
-        $images = [];
+    $extractPath = $userFolder . 'zip_' . time();
+    if (!Storage::exists($extractPath)) {
+        Storage::makeDirectory($extractPath);
+    }
 
-        $items = json_decode($request->items);
+    $fullExtractPath = Storage::path($extractPath);
+    $zip->extractTo($fullExtractPath);
+    $zip->close();
 
-        foreach ($items as $key => $item) {
+    // Obtener todos los paths de los archivos extraídos
+    $files = [];
+    $rii = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($fullExtractPath));
+    $customkey = 0;
 
+    foreach ($rii as $file) {
+        if ($file->isFile()) {
+            $uploadedFile = new \Illuminate\Http\UploadedFile(
+                $file->getPathname(),
+                $file->getFilename(),
+                mime_content_type($file->getPathname()),
+                null,
+                true
+            );
 
-            $validator = Validator::make((array)$item, $this->rules());
+            $files[$customkey] = [
+                'file' => $uploadedFile,
+                'filename' => $file->getFilename(),
+                'etiquetas' =>  []
+            ];
 
-            if ($validator->fails()) {
+            foreach ($images as $key => $img) {
+                foreach ($img['images'] as $path) {
+                    $filename = basename($path);
+                    if ($filename == $file->getFilename()) {
+                        $files[$customkey]['etiquetas'][] = $img['etiqueta'];
+                    }
+                }
+            }
 
-                $errors[] = ['index' => $key, 'etiqueta' => $item->etiqueta, 'errors' => $validator->errors()->get("*")];
-            } else if (empty($errors)) {
+            $customkey++;
+        }
+    }
 
+    $failed = [];
+    $saved = [];
+    $imagesCollection = collect($images);
 
-                $activo = [
+    foreach ($assets as $activo) {
+        $existsInv = Inventario::where('etiqueta', '=', $activo['etiqueta'])->first();
+        $existsCrud = CrudActivo::where('etiqueta', '=', $activo['etiqueta'])->first();
 
-                    'id_grupo' => $item->id_grupo,
-                    'id_familia' => $item->id_familia,
-                    'descripcion_bien' => $item->descripcion_bien,
-                    'id_bien' => $item->id_bien,
-                    'descripcion_marca' => $item->descripcion_marca,
-                    'idForma' => $item->idForma,
-                    'idMaterial' => $item->idMaterial,
-                    'etiqueta' => $item->etiqueta,
-                    'etiqueta_padre' => $item->etiqueta_padre,
-                    'id_marca' => $item->id_marca,
-                    'modelo' => $item->modelo,
-                    'serie' => $item->serie,
-                    'capacidad' => $item->capacidad,
-                    'estado' => $item->estado,
-                    'color' => $item->color,
-                    'tipo_trabajo' => $item->tipo_trabajo,
-                    'carga_trabajo' => $item->carga_trabajo,
-                    'estado_operacional' => $item->estado_operacional,
-                    'estado_conservacion' => $item->estado_conservacion,
-                    'condicion_Ambiental' => $item->condicion_Ambiental,
-                    'cantidad_img' => $item->cantidad_img,
-                    'id_img' => $item->id_img,
-                    'id_ciclo' => $ciclo,
-                    'idUbicacionGeo' => $item->idUbicacionGeo,
-                    'idUbicacionN2' => $item->idUbicacionN2,
-                    'codigoUbicacion_N2' => $item->codigoUbicacion_N2,
-                    'codigoUbicacion_N1' => $item->codigoUbicacion_N1,
-                    'codigoUbicacionN3' => $item->codigoUbicacionN3,
-                    'idUbicacionN3' => $item->idUbicacionN3,
-                    'responsable' => $item->responsable,
-                    'idResponsable' => $item->idResponsable,
-                    'latitud' => $item->latitud,
-                    'longitud' => $item->longitud,
-                    'crud_activo_estado' => $item->crud_activo_estado,
-                    'update_inv' => $item->update_inv,
-                    /** falta campos */
-                    /** edualejandro */
-                    'eficiencia'            => $item->eficiencia ?? null,
-                    'texto_abierto_1'       => $item->texto_abierto_1 ?? null,
-                    'texto_abierto_2'       => $item->texto_abierto_2 ?? null,
-                    'texto_abierto_3'       => $item->texto_abierto_3 ?? null,
-                    'texto_abierto_4'       => $item->texto_abierto_4 ?? null,
-                    'texto_abierto_5'       => $item->texto_abierto_5 ?? null,
+        if ((!$existsInv && !$existsCrud)) {
+            // Crear nuevo registro si no existe en ambas tablas
+            $asset = Inventario::create($activo);
+            $saved[] = $asset->etiqueta;
 
-                ];
+            $imgsAndTag = $imagesCollection->firstWhere('etiqueta', $asset->etiqueta);
 
-                $assets[] = $activo;
+            //Clonar Imágenes si aplica
+            if ($asset->id_img && $asset->id_img > 0 && (!$imgsAndTag['images'] || count($imgsAndTag['images']) === 0)) {
 
-                $images[] = [
-                    'etiqueta' => $item->etiqueta,
-                    'images' => $item->images
-                ];
+                $imagenes = DB::table('inv_imagenes')
+                    ->where('id_img', $asset->id_img)
+                    ->get();
+
+                $newIDImg = DB::table('inv_imagenes')->max('id_img') + 1;
+                //new id image
+                $asset->id_img = $newIDImg;
+                $asset->save();
+
+                $origen = 'SAFIN_APP OFFLINE';
+                $filename = '9999_' . $asset->etiqueta . '_' . uniqid() . '.jpg';
+
+                foreach ($imagenes as $img) {
+                    DB::table('inv_imagenes')->insert([
+                        'id_img'     => $newIDImg,
+                        'origen'     => $origen,
+                        'etiqueta'   => $asset->etiqueta,
+                        'picture'    => $filename . '.jpg',
+                        'url_imagen' => $img->url_imagen,
+                        'url_picture'   => $img->url_picture,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+
+        } elseif ($activo['crud_activo_estado'] == 3 && $existsInv) {
+            $existsInv->update($activo);
+            $saved[] = $activo['etiqueta'];
+            continue; 
+
+        } else {
+            $failed[] = $activo['etiqueta'];
+        }
+    }
+
+    // Procesamiento de imágenes cargadas
+    $id_img = DB::table('inv_imagenes')->max('id_img') + 1;
+    $idsi = [];
+
+    foreach ($files as $file) {
+        if (count($file['etiquetas']) > 0) {
+            foreach ($file['etiquetas'] as $etiqueta) {
+                if (!isset($idsi[$etiqueta])) {
+                    $idsi[$etiqueta] = $id_img;
+                    $id_img++;
+                }
             }
         }
+    }
 
-        if (!empty($errors)) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'There are some items with errors, fix them and try again',
-                'errors' => $errors
-            ], 422);
-        }
+    $paths = [];
+    $origen = 'SAFIN_APP_OFFLINE';
 
+    foreach ($files as $filekey => $file) {
+        if (count($file['etiquetas']) > 0) {
+            foreach ($file['etiquetas'] as $etiqueta) {
+                $activo = collect($assets)->firstWhere('etiqueta', $etiqueta);
 
+                if ($activo && $activo['crud_activo_estado'] == 3) continue;
 
+                $filename = '9999_' . $etiqueta . '_' . $filekey . '.jpg';
 
-
-
-        $userFolder = "customers/" . $request->user()->nombre_cliente . "/images/inventario/temp/";
-
-
-        $zip = new \ZipArchive;
-
-        $open = $zip->open($request->file('zipfile')->getRealPath()) === TRUE;
-
-
-        if ($open !== TRUE) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Unable to open zip file'
-            ], 400);
-        }
-
-
-
-        $extractPath = $userFolder . 'zip_' . time();
-
-
-        if (!Storage::exists($extractPath)) {
-            Storage::makeDirectory($extractPath);
-        }
-
-        $fullExtractPath = Storage::path($extractPath);
-
-        $zip->extractTo($fullExtractPath);
-        $zip->close();
-
-
-
-        // Obtener todos los paths de los archivos extraídos
-        $files = [];
-        $rii = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($fullExtractPath));
-
-
-        $customkey = 0;
-
-        foreach ($rii as $file) {
-
-            if ($file->isFile()) {
-
-
-                $uploadedFile = new \Illuminate\Http\UploadedFile(
-                    $file->getPathname(),
-                    $file->getFilename(),
-                    mime_content_type($file->getPathname()),
-                    null,
-                    true
+                $path = $file['file']->storeAs(
+                    PictureSafinService::getImgSubdir($request->user()->nombre_cliente),
+                    $filename,
+                    'taxoImages'
                 );
 
+                $url = Storage::disk('taxoImages')->url($path);
+                $url_pict = dirname($url) . '/';
 
-                $files[$customkey] = [
-                    'file' => $uploadedFile,
-                    'filename' => $file->getFilename(),
-                    'etiquetas' =>  []
-                ];
+                $img = new Inv_imagenes();
+                $img->etiqueta = $etiqueta;
+                $img->origen = $origen;
+                $img->picture = $filename;
+                //ojo si es que existe otro proceso en paralelo
+                $img->id_img = $idsi[$etiqueta];
+                $img->url_imagen = $url;
+                $img->url_picture = $url_pict;
+                $img->save();
 
-                foreach ($images as $key => $img) {
-                    foreach ($img['images'] as $path) {
-                        $filename = basename($path);
-                        if ($filename == $file->getFilename()) {
-                            $files[$customkey]['etiquetas'][] = $img['etiqueta'];
-                        }
-                    }
-                }
-
-                $customkey++;
+                $paths[] = $url;
             }
         }
-
-        $failed = [];
-        $saved = [];
-
-        $imagesCollection = collect($images);
-
-        foreach ($assets as $activo) {
-
-
-
-            $existsInv = Inventario::where('etiqueta', '=', $activo['etiqueta'])->first();
-            $existsCrud = CrudActivo::where('etiqueta', '=', $activo['etiqueta'])->first();
-
-            if (!$existsInv && !$existsCrud) {
-                $asset = Inventario::create($activo);
-                $saved[] = $asset->etiqueta;
-
-
-                $imgsAndTag = $imagesCollection->firstWhere('etiqueta', $asset->etiqueta);
-
-
-
-
-                //Clonar Imágenes
-                if (
-                    $asset->id_img && $asset->id_img > 0 &&
-                    (!$imgsAndTag['images'] || count($imgsAndTag['images']) === 0)
-                ) {
-
-
-                    $imagenes = DB::table('inv_imagenes')
-                        ->where('id_img', $asset->id_img)
-                        ->get();
-
-                    $newIDImg = DB::table('inv_imagenes')->max('id_img') + 1;
-
-                    //new id image
-                    $asset->id_img = $newIDImg;
-
-                    $asset->save();
-                    $origen = 'SAFIN_APP';
-                    $filename = '9999_' . $asset->etiqueta . '_' . uniqid() . '.jpg';
-
-                    foreach ($imagenes as $img) {
-                        DB::table('inv_imagenes')->insert([
-                            'id_img'     => $newIDImg,
-                            'origen'     => $origen,
-                            'etiqueta'   => $asset->etiqueta,
-                            'picture'    => $filename . '.jpg',
-                            'url_imagen' => $img->url_imagen,
-                            'url_picture'   => $img->url_picture,
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ]);
-                    }
-                }
-            } else {
-                $failed[] = $activo['etiqueta'];
-            }
-        }
-
-
-
-
-
-        $id_img = DB::table('inv_imagenes')->max('id_img') + 1;
-
-        $idsi = [];
-
-        foreach ($files as $file) {
-
-            if (count($file['etiquetas']) > 0) {
-
-                foreach ($file['etiquetas'] as $etiqueta) {
-                    if (!isset($idsi[$etiqueta])) {
-                        $idsi[$etiqueta] = $id_img;
-                        $id_img++;
-                    }
-                }
-            }
-        }
-
-        $paths = [];
-        $origen = 'SAFIN_APP_OFFLINE';
-
-        foreach ($files as $filekey => $file) {
-
-            if (count($file['etiquetas']) > 0) {
-
-
-                foreach ($file['etiquetas'] as $etiqueta) {
-
-                    $filename = '9999_' . $etiqueta . '_' . $filekey . '.jpg';
-
-                    $path = $file['file']->storeAs(
-                        PictureSafinService::getImgSubdir($request->user()->nombre_cliente),
-                        $filename,
-                        'taxoImages'
-                    );
-
-                    $url = Storage::disk('taxoImages')->url($path);
-                    $url_pict = dirname($url) . '/';
-
-                    $img = new Inv_imagenes();
-                    $img->etiqueta = $etiqueta;
-                    $img->origen = $origen;
-                    $img->picture = $filename;
-                    //ojo si es que existe otro proceso en paralelo
-                    $img->id_img = $idsi[$etiqueta];
-                    $img->url_imagen = $url;
-                    $img->url_picture = $url_pict;
-                    $img->save();
-
-                    $paths[] = $url;
-                }
-            }
-        }
-
-        // Eliminar todos los archivos antes de borrar el directorio
-        if (Storage::exists($extractPath)) {
-            $allFiles = Storage::allFiles($extractPath);
-            foreach ($allFiles as $filePath) {
-                Storage::delete($filePath);
-            }
-            Storage::deleteDirectory($extractPath);
-        }
-
-
-        return response()->json([
-            'status' => 'OK',
-            'message' => 'items created sucssessfuly',
-            'data' => [
-                'items' => $saved,
-                'fails' => count($failed),
-                'saved' => count($saved),
-                'found_files' => count($paths),
-                'failed_tags' => $failed,
-                'image_urls' => $paths
-            ]
-        ]);
     }
+
+    // Eliminar todos los archivos antes de borrar el directorio
+    if (Storage::exists($extractPath)) {
+        $allFiles = Storage::allFiles($extractPath);
+        foreach ($allFiles as $filePath) {
+            Storage::delete($filePath);
+        }
+        Storage::deleteDirectory($extractPath);
+    }
+
+    return response()->json([
+        'status' => 'OK',
+        'message' => 'items created sucssessfuly',
+        'data' => [
+            'items' => $saved,
+            'fails' => count($failed),
+            'saved' => count($saved),
+            'found_files' => count($paths),
+            'failed_tags' => $failed,
+            'image_urls' => $paths
+        ]
+    ]);
+}
 
 
 

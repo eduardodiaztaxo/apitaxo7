@@ -62,6 +62,7 @@ class Inventario extends Model
         'observacion',
         'update_inv',
         'crud_activo_estado',
+        'modo',
 
     ];
     public function marcasDisponibles()

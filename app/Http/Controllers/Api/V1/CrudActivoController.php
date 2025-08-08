@@ -413,57 +413,11 @@ public function showActivos($etiqueta)
         $activo = CrudActivo::where('etiqueta', $etiqueta)->first();
 
         if (!$activo) {
-
-            $activo = Inventario::where('etiqueta', $etiqueta)->first();
-
-            if ($activo) {
-                $responsable = $this->getNombre();
-                $idResponsable = $this->getIdResponsable() ?? 0;
-
-    
-                $activo->update([
-                'descripcion_marca'    => $request->descripcion_marca,
-                'id_marca'             => $request->id_marca,
-                'modelo'               => $request->modelo,
-                'serie'                => $request->serie,
-                'estado'               => $request->estado,
-                'descripcionTipo'      => $request->descripcionTipo,
-                'observacion'          => $request->observacion,
-                'latitud'              => $request->latitud,
-                'longitud'             => $request->longitud,
-                'capacidad'            => $request->capacidad,
-                'idForma'              => $request->idForma,
-                'idMaterial'           => $request->idMaterial,
-                'color'                => $request->color,
-                'tipo_trabajo'         => $request->tipo_trabajo,
-                'carga_trabajo'        => $request->carga_trabajo,
-                'estado_operacional'   => $request->estado_operacional,
-                'estado_conservacion'  => $request->estado_conservacion,
-                'condicion_ambiental'  => $request->condicion_ambiental,
-                'eficiencia'           => $request->eficiencia,
-                'texto_abierto_1'      => $request->texto_abierto_1,
-                'texto_abierto_2'      => $request->texto_abierto_2,
-                'texto_abierto_3'      => $request->texto_abierto_3,
-                'texto_abierto_4'      => $request->texto_abierto_4,
-                'texto_abierto_5'      => $request->texto_abierto_5,
-                'responsable'          => $responsable,
-                'idResponsable'        => $idResponsable,
-                'crud_activo_estado'   => 3
-            ]);
-
-
-                return response()->json([
-                    'status'  => 'OK',
-                    'code'    => 200,
-                    'message' => $activo,
-                ], 200);
-            } else {
                 return response()->json([
                     "message" => "Not Found",
                     "status"  => "error"
                 ], 404);
             }
-        } else {
 
            $responsable = $this->getIdResponsable();
 
@@ -502,8 +456,9 @@ public function showActivos($etiqueta)
                 'code'   => 200,
                 'data'   => CrudActivoResource::make($activo)
             ], 200);
-        }
+
     }
+    
 
     public function marcasDisponibles(Request $request, $etiqueta)
     {

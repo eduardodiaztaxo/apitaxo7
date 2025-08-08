@@ -32,7 +32,10 @@ class MarcasInventarioDumpService
                 observacion TEXT NOT NULL,
                 idAtributo INTEGER NOT NULL,
                 id_familia INTEGER NOT NULL,
-                ciclo_inventario INTEGER NOT NULL
+                ciclo_inventario INTEGER NOT NULL,
+                creadoPor TEXT,
+                fechaCreacion TEXT,
+                modo TEXT
             )
         ");
     }

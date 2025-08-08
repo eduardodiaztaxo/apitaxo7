@@ -295,6 +295,13 @@ class DatosActivosController extends Controller
         return response()->json($collection, 200);
     }
 
+public function getNombre()
+    {
+        $user = Auth::user();
+        $usuario = $user->name;
+        $responsable = DB::table('sec_users')->where('login', $usuario)->value('name');
+        return $responsable;
+    }
 
     /**
      * create bienes nuevos.
@@ -347,6 +354,9 @@ class DatosActivosController extends Controller
         $bienes->id_familia  = $request->id_familia;
         $bienes->id_grupo    = $request->id_grupo;
         $bienes->ciclo_inventario = $request->ciclo_inventario;
+        $bienes->creadoPor     = $this->getNombre();
+        $bienes->fechaModificacion = date('Y-m-d H:i:s');
+        $bienes->modo          = 'ONLINE';
         $bienes->save();
 
         return response()->json($bienes, 201);
@@ -401,6 +411,9 @@ class DatosActivosController extends Controller
         $marcas->idAtributo  = $request->idAtributo;
         $marcas->id_familia  = $request->id_familia;
         $marcas->ciclo_inventario = $request->ciclo_inventario;
+        $marcas->creadoPor     = $this->getNombre();
+        $marcas->fechaModificacion = date('Y-m-d H:i:s');
+        $marcas->modo          = 'ONLINE';
         $marcas->save();
 
         return response()->json($marcas, 201);
