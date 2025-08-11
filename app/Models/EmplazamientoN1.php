@@ -27,8 +27,11 @@ class EmplazamientoN1 extends Model
         'descripcionUbicacion',
         'codigoUbicacion',
         'estado',
+        'fechaCreacion',
         'usuario',
-        'ciclo_auditoria'
+        'ciclo_auditoria',
+        'newApp',
+        'modo'
     ];
             public function subemplazamientos()
         {

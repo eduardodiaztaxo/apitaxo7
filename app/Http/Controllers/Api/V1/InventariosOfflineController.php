@@ -228,6 +228,26 @@ if ($atributosObj->isEmpty()) {
         return response()->json($resultado, 200);
     }
 
+        public function MarcasNuevasOfflineInventario($ciclo)
+    {
+        $marcas = DB::table('inv_marcas_nuevos')
+            ->where('ciclo_inventario', $ciclo)
+            ->get();
+
+
+        return response()->json($marcas, 200);
+    }
+
+     public function BienesNuevosOfflineInventario($ciclo)
+    {
+        $bienes = DB::table('inv_bienes_nuevos')
+            ->where('ciclo_inventario', $ciclo)
+            ->get();
+
+        return response()->json($bienes, 200);
+    }
+
+    
     public function configuracionOffline(array $codigo_grupos)
     {
         if (count($codigo_grupos) === 1 && is_string($codigo_grupos[0])) {

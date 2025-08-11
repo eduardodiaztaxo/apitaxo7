@@ -46,47 +46,59 @@ class EmplazamientoController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'descripcion'   => 'required|string',
-            'zona_id'       => 'required|exists:ubicaciones_n1,idUbicacionN1',
-            'agenda_id'     => 'required|exists:ubicaciones_geograficas,idUbicacionGeo',
-            'estado'        => 'sometimes|required|in:0,1',
-            'ciclo_auditoria' => 'required'
-        ]);
+public function store(Request $request)
+{
+    $request->validate([
+        'descripcion'     => 'required|string',
+        'zona_id'         => 'required|exists:ubicaciones_n1,codigoUbicacion',
+        'agenda_id'       => 'required|exists:ubicaciones_geograficas,idUbicacionGeo',
+        'estado'          => 'sometimes|required|in:0,1',
+        'ciclo_auditoria' => 'required'
+    ]);
 
-        $zona = ZonaPunto::find($request->zona_id);
+    $idMax = DB::table('ubicaciones_n2')
+        ->where('idAgenda', $request->agenda_id)
+        ->where('codigoUbicacion', 'like', $request->zona_id . '%')
+        ->max('codigoUbicacion');
 
-        $placeService = new PlaceService();
-        $cicloAuditoria = $request->ciclo_auditoria;
-        $code = $placeService->getNewEmplaCode($zona);
+    $zonaId = $request->zona_id;
 
-        $data = [
-            'idAgenda'              => $request->agenda_id,
-            'descripcionUbicacion'  => $request->descripcion,
-            'codigoUbicacion'       => $code,
-            'estado'                => $request->estado !== null ? $request->estado : 1,
-            'usuario'               => $request->user()->name,
-            'ciclo_auditoria'       => $cicloAuditoria
-        ];
-
-        $empla = Emplazamiento::create($data);
-
-        if (!$empla) {
-            return response()->json([
-                'status' => 'error',
-                'No se pudo crear el emplazamiento',
-                422
-            ], 422);
-        }
-
-        return response()->json([
-            'status'    => 'OK',
-            'message'   => 'Creado exitosamente',
-            'data'      => EmplazamientoResource::make($empla)
-        ]);
+    if ($idMax) {
+        $num = substr($idMax, strlen($zonaId)); 
+        $numIncrementado = str_pad((int)$num + 1, strlen($num), '0', STR_PAD_LEFT);
+        $code = $zonaId . $numIncrementado;
+    } else {
+        $code = $zonaId . '01';
     }
+
+    $data = [
+        'idAgenda'              => $request->agenda_id,
+        'descripcionUbicacion'  => $request->descripcion,
+        'codigoUbicacion'       => $code,
+        'fechaCreacion'         => date('Y-m-d H:i:s'),
+        'estado'                => $request->estado !== null ? $request->estado : 1,
+        'usuario'               => $request->user()->name,
+        'ciclo_auditoria'       => $request->ciclo_auditoria,
+        'newApp'                => 1,
+        'modo'                  => 'ONLINE'
+    ];
+
+    $empla = Emplazamiento::create($data);
+
+    if (!$empla) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'No se pudo crear el emplazamiento'
+        ], 422);
+    }
+
+    return response()->json([
+        'status'  => 'OK',
+        'message' => 'Creado exitosamente',
+        'data'    => EmplazamientoResource::make($empla)
+    ]);
+}
+
 
     /**
      * Create sub emplazamientos.
@@ -130,7 +142,9 @@ class EmplazamientoController extends Controller
             'codigoUbicacion'      => $nuevoCodigoUbicacionN3,
             'usuario'              => $request->user()->name,
             'estado'               => 1,
-            'newApp'               => 1
+            'fechaCreacion'        => date('Y-m-d H:i:s'),
+            'newApp'               => 1,
+            'modo'                 => 'ONLINE'
         ];
 
         $num_activos_cats_by_cycleN3 = DB::table('crud_activos')
@@ -166,6 +180,7 @@ class EmplazamientoController extends Controller
                 'num_activos_cats_by_cycle' => $num_activos_cats_by_cycleN3,
                 'num_activos_inv' => $num_activos_invN3,
                 'newApp' => $empla->newApp,
+                'modo' => $empla->modo,
                 'zone_address' => $zone_address,
             ],
         ]);

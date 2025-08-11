@@ -27,7 +27,9 @@ class ZonaPunto extends Model
         'codigoUbicacion',
         'estado',
         'usuario',
-        'ciclo_auditoria'
+        'ciclo_auditoria',
+        'newApp',
+        'modo'
     ];
 
 

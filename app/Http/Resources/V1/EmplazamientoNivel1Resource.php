@@ -140,6 +140,7 @@ class EmplazamientoNivel1Resource extends JsonResource
             'num_activos' => 0,
             'habilitadoNivel3' => 1,
             'num_nivel' => 'N2',
+            'modo' => $this->modo,
             'num_activos_inv' => $activosInventario->count(),
             'num_activos_cats_by_cycle' => 0,
             'ciclo_auditoria' => $this->ciclo_auditoria,

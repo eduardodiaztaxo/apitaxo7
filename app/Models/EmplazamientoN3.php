@@ -23,8 +23,10 @@ class EmplazamientoN3 extends Model
         'descripcionUbicacion',
         'codigoUbicacion',
         'estado',
+        'fechaCreacion',
         'usuario',
-        'newApp'
+        'newApp',
+        'modo'
     ];
 
     public function subemplazamientosNivel3()

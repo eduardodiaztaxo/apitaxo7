@@ -76,9 +76,6 @@ class UbicacionGeograficaResource extends JsonResource
         }
 
         $auditoria_general = isset($this->auditoria_general) ? $this->auditoria_general : 0;
-        $newApp = UbicacionGeografica::where('idUbicacionGeo', $this->idUbicacionGeo)
-            ->pluck('newApp')
-            ->first();
 
         $address = [
             'idUbicacionGeo' => $this->idUbicacionGeo,
@@ -94,7 +91,8 @@ class UbicacionGeograficaResource extends JsonResource
             'id_estado'     => ($id_estado && $descripcionEstado) ? $id_estado : 1,
             'estado_punto'  => ($id_estado && $descripcionEstado) ? $descripcionEstado : 'ABIERTO',
             'auditoria_general' => $auditoria_general,
-            'newApp'        => $newApp,
+            'newApp'        => $this->newApp,
+            'modo'          => $this->modo,
             'zonas_punto'   => $zonas_punto,
             'num_activos'   => $this->activos()->get()->count(),
             'num_activos_cats_by_cycle' => 0,

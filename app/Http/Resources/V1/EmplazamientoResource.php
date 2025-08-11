@@ -127,10 +127,6 @@ class EmplazamientoResource extends JsonResource
             ];
         });
 
-        $habilitadoNivel3 = DB::table('inv_ciclos')
-        ->where('idCiclo', $this->cycle_id)
-        ->value('Nivel3');
-
         $emplazamiento = [
             'id' => $this->idUbicacionN2,
             'codigo' => $this->codigo,
@@ -139,7 +135,9 @@ class EmplazamientoResource extends JsonResource
             'idAgenda' => $this->idAgenda,
             'idUbicacionN2' => $this->idUbicacionN2,
             'num_nivel' => 'N3',
-            'habilitadoNivel3' => $habilitadoNivel3,
+            'newApp' => $this->newApp,
+            'modo' => $this->modo,
+            'habilitadoNivel3' => 1,
             'num_activos' => 0,
             'num_activos_inv' => $activosInventario->count(),
             'num_activos_cats_by_cycle' => 0,

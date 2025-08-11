@@ -90,7 +90,8 @@ class EmplazamientoN1DumpService implements DumpSQLiteInterface
                 num_activos_audit INTEGER DEFAULT 0,
                 habilitadoNivel3 INTIGER DEFAULT 0,
                 num_nivel TEXT,
-                newApp INTIGER DEFAULT 0
+                newApp INTIGER DEFAULT 0,
+                modo TEXT
             );
         ");
     }
@@ -119,7 +120,8 @@ class EmplazamientoN1DumpService implements DumpSQLiteInterface
                 num_activos_audit,
                 habilitadoNivel3,
                 num_nivel,
-                newApp
+                newApp,
+                modo
             )
             VALUES (
                 :id,
@@ -135,7 +137,8 @@ class EmplazamientoN1DumpService implements DumpSQLiteInterface
                 :num_activos_audit,
                 :habilitadoNivel3,
                 :num_nivel,
-                :newApp
+                :newApp,
+                :modo
             )  
         ");
 
@@ -158,6 +161,7 @@ class EmplazamientoN1DumpService implements DumpSQLiteInterface
                 ':habilitadoNivel3' => $emplazamiento->habilitadoNivel3,
                 ':num_nivel' => $emplazamiento->num_nivel,
                 ':newApp' => $emplazamiento->newApp,
+                ':modo' => $emplazamiento->modo
             ]);
         }
     }

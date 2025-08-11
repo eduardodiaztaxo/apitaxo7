@@ -61,8 +61,11 @@ class ZonaController extends Controller
             'descripcionUbicacion'  => $request->descripcion,
             'codigoUbicacion'       => $code,
             'estado'                => $request->estado !== null ? $request->estado : 1,
+            'fechaCreacion'         => date('Y-m-d H:i:s'),
             'usuario'               => $request->user()->name,
-            'ciclo_auditoria'       => $cicloAuditoria
+            'ciclo_auditoria'       => $cicloAuditoria,
+            'newApp'                => 1,
+            'modo'                  => 'ONLINE'
         ];
 
         $zona = ZonaPunto::create($data);

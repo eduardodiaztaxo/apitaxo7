@@ -98,7 +98,8 @@ class AddressesDumpService implements DumpSQLiteInterface
                 num_subcats_n2_by_cycle INTEGER DEFAULT 0,
                 num_subcats_n3_by_cycle INTEGER DEFAULT 0,
                 num_activos_audit INTEGER DEFAULT 0,
-                newApp INTEGER DEFAULT 0
+                newApp INTEGER, 
+                modo TEXT
             );
         ");
     }
@@ -133,7 +134,8 @@ class AddressesDumpService implements DumpSQLiteInterface
                 num_subcats_n2_by_cycle,
                 num_subcats_n3_by_cycle,
                 num_activos_audit,
-                newApp
+                newApp,
+                modo
             )
             VALUES (
                 :idUbicacionGeo,
@@ -155,7 +157,8 @@ class AddressesDumpService implements DumpSQLiteInterface
                 :num_subcats_n2_by_cycle,
                 :num_subcats_n3_by_cycle,
                 :num_activos_audit,
-                :newApp
+                :newApp,
+                :modo
             )
         ");
 
@@ -186,7 +189,9 @@ class AddressesDumpService implements DumpSQLiteInterface
                 ':num_cats_by_cycle' => $address->num_cats_by_cycle,
                 ':num_subcats_n2_by_cycle' => $address->num_subcats_n2_by_cycle,
                 ':num_subcats_n3_by_cycle' => $address->num_subcats_n3_by_cycle,
-                ':num_activos_audit' => $address->num_activos_audit
+                ':num_activos_audit' => $address->num_activos_audit, 
+                ':newApp' => $address->newApp, 
+                ':modo' => $address->modo
             ]);
         }
 

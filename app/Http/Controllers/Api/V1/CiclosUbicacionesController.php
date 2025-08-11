@@ -55,7 +55,8 @@ class CiclosUbicacionesController extends Controller
             'direccion'     => $request->direccion,
             'region'        => $request->region,
             'comuna'        => $request->comuna,
-            'newApp'       => 1,
+            'newApp'        => 1,
+            'modo'          => 'ONLINE'
         ]);
 
         if (!$ubicacion) {

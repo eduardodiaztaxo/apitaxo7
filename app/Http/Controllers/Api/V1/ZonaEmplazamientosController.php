@@ -72,41 +72,39 @@ class ZonaEmplazamientosController extends Controller
     }
 
 
-  public function showByCycleCats(Request $request, int $ciclo, $zona, int $agenda_id)
+  public function showByCycleCats(Request $request, int $ciclo, string $zona, int $agenda_id)
 {
-    $zonas = Emplazamiento::where('codigoUbicacion', 'like', $zona . '%')
+    $zonaObjs = Emplazamiento::where('codigoUbicacion', 'like', $zona . '%')
                 ->where('idAgenda', $agenda_id)
                 ->get();
 
-    if ($zonas->isEmpty()) {
-        return response()->json(['status' => 'NOK', 'message' => 'Zona no encontrada', 'code' => 404], 404);
-    }
+     $cicloObj = InvCiclo::find($ciclo);
 
-    $cicloObj = InvCiclo::find($ciclo);
+        if (!$cicloObj) {
+            return response()->json([
+                'status' => 'NOK',
+                'message' => 'Ciclo no encontrado',
+                'code' => 404
+            ], 404);
+        }
 
-    if (!$cicloObj) {
-        return response()->json(['status' => 'NOK', 'message' => 'Ciclo no encontrado', 'code' => 404], 404);
-    }
+        $emplazamientos = collect();
 
-    $emplaCats = collect();
-    foreach ($zonas as $zonaObj) {
-        $emplaCats = $emplaCats->merge($cicloObj->zoneEmplazamientosWithCats($zonaObj));
-    }
+        foreach ($zonaObjs as $zonaObj) {
+            $emplaCats = $cicloObj->zoneEmplazamientosWithCats($zonaObj)->pluck('idUbicacionN2')->toArray();
 
-    $idsValidos = $emplaCats->pluck('idUbicacionN2')->unique()->toArray();
 
-    $emplazamientos = Emplazamiento::where('codigoUbicacion', 'like', $zona . '%')
-        ->where('idAgenda', $agenda_id);
 
-    if (!empty($idsValidos)) {
-        $emplazamientos = $emplazamientos->whereIn('idUbicacionN2', $idsValidos);
-    }
+            $subEmplas = empty($emplaCats)
+                ? $zonaObj->emplazamientos()->get()
+                : $zonaObj->emplazamientos()->whereIn('idUbicacionN2', $emplaCats)->get();
 
-    $emplazamientos = $emplazamientos->get();
+            foreach ($subEmplas as $sub) {
+                $sub->cycle_id = $ciclo;
+                $emplazamientos->push($sub);
+            }
+        }
 
-    foreach ($emplazamientos as $emplazamiento) {
-        $emplazamiento->cycle_id = $ciclo;
-    }
 
     return response()->json(EmplazamientoResource::collection($emplazamientos), 200);
 }

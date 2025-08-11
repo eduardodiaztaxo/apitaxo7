@@ -301,7 +301,8 @@ class ExportAuditCycleSQLiteDatabase extends Command
     private function setBienesInventario()
     {
         (new BienesInventarioDumpService(
-            $this->pdo
+            $this->pdo,
+            $this->cycle
         ))->runFromController();
 
         $this->info('bienes insertadas en SQLite DB.');
@@ -412,7 +413,8 @@ class ExportAuditCycleSQLiteDatabase extends Command
     private function setMarcaInv()
     {
         (new MarcasInventarioDumpService(
-            $this->pdo
+            $this->pdo,
+            $this->cycle
         ))->runFromController();
 
         $this->info('marcaInv insertadas en SQLite DB.');

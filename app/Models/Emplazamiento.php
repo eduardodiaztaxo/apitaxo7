@@ -23,8 +23,11 @@ class Emplazamiento extends Model
         'descripcionUbicacion',
         'codigoUbicacion',
         'estado',
+        'fechaCreacion',
         'usuario',
-        'ciclo_auditoria'
+        'ciclo_auditoria',
+        'newApp',
+        'modo'
     ];
 
 
