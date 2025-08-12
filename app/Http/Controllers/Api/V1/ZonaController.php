@@ -57,6 +57,7 @@ class ZonaController extends Controller
         $code = $placeService->getNewZoneCode($punto);
 
         $data = [
+            'idProyecto'            => $request->ciclo_auditoria,
             'idAgenda'              => $request->punto_id,
             'descripcionUbicacion'  => $request->descripcion,
             'codigoUbicacion'       => $code,

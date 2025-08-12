@@ -61,6 +61,10 @@ class Inventario extends Model
         'descripcionTipo',
         'observacion',
         'update_inv',
+        'creado_por',
+        'creado_el',
+        'modificado_el',
+        'modificado_por',
         'crud_activo_estado',
         'modo',
 

@@ -152,7 +152,7 @@ class ExportAuditCycleSQLiteDatabase extends Command
         $this->setConteoRegistroByCycle();
         // $this->setSubZonesByCycle();
         $this->setAssetsByCycle();
-        $this->setResponsable();
+        // $this->setResponsable();
         $this->setInventario();
         $this->setMarca();
         $this->setEstado();

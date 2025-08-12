@@ -21,6 +21,7 @@ use App\Models\IndiceListaMaterial;
 use App\Models\IndiceListaForma;
 use App\Models\IndiceListaEstado;
 use App\Models\Inv_ciclos_categorias;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 
@@ -345,6 +346,8 @@ public function getNombre()
             $newIdLista = max($maxListaIndicelista, $maxListaMarcasNuevos) + 1;
         }
 
+        $usuario = Auth::user()->name;
+
         $bienes = new Inventario_bienes();
         $bienes->idLista     = $newIdLista;
         $bienes->idIndice    = $request->id_familia;
@@ -354,7 +357,7 @@ public function getNombre()
         $bienes->id_familia  = $request->id_familia;
         $bienes->id_grupo    = $request->id_grupo;
         $bienes->ciclo_inventario = $request->ciclo_inventario;
-        $bienes->creadoPor     = $this->getNombre();
+        $bienes->creadoPor    = $usuario;
         $bienes->fechaModificacion = date('Y-m-d H:i:s');
         $bienes->modo          = 'ONLINE';
         $bienes->save();
@@ -402,6 +405,7 @@ public function getNombre()
             $newIdLista = max($maxListaIndicelista, $maxListaMarcasNuevos) + 1;
         }
 
+        $usuario = Auth::user()->name;
 
         $marcas = new Inventario_marcas();
         $marcas->idLista     = $newIdLista;
@@ -411,7 +415,7 @@ public function getNombre()
         $marcas->idAtributo  = $request->idAtributo;
         $marcas->id_familia  = $request->id_familia;
         $marcas->ciclo_inventario = $request->ciclo_inventario;
-        $marcas->creadoPor     = $this->getNombre();
+        $marcas->creadoPor     = $usuario;
         $marcas->fechaModificacion = date('Y-m-d H:i:s');
         $marcas->modo          = 'ONLINE';
         $marcas->save();

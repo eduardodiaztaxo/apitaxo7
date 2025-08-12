@@ -72,6 +72,7 @@ public function store(Request $request)
     }
 
     $data = [
+        'idProyecto'            => $request->ciclo_auditoria,
         'idAgenda'              => $request->agenda_id,
         'descripcionUbicacion'  => $request->descripcion,
         'codigoUbicacion'       => $code,
@@ -117,6 +118,7 @@ public function store(Request $request)
         $request->validate([
             'descripcion'      => 'required|string',
             'agenda_id'        => 'required|exists:ubicaciones_geograficas,idUbicacionGeo',
+            'ciclo'            => 'required',
             'codigoUbicacion'  => 'required|exists:ubicaciones_n2,codigoUbicacion'
         ]);
 
@@ -137,6 +139,7 @@ public function store(Request $request)
 
 
         $data = [
+            'idProyecto'           => $request->ciclo,
             'idAgenda'             => $request->agenda_id,
             'descripcionUbicacion' => $request->descripcion,
             'codigoUbicacion'      => $nuevoCodigoUbicacionN3,

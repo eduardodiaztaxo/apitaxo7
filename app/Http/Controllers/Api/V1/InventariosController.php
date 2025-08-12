@@ -146,6 +146,7 @@ class InventariosController extends Controller
             $etiquetaPadre = $request->etiqueta_padre;
         }
 
+        $usuario = Auth::user()->name;
 
         $inventario = new Inventario();
         $inventario->id_grupo            = $request->id_grupo;
@@ -178,8 +179,6 @@ class InventariosController extends Controller
         $inventario->codigoUbicacion_N1  = $codigoUbicacion_N1 ?? 0;
         $inventario->idUbicacionN3       = $idUbicacionN3 ?? 0;
         $inventario->codigoUbicacionN3   = $codigoUbicacionN3 ?? 0;
-        $inventario->responsable         = $this->getNombre();
-        $inventario->idResponsable       = $this->getIdResponsable();
         $inventario->etiqueta_padre      = $etiquetaPadre ?? 'Sin Padre';
         /** edualejandro */
         $inventario->eficiencia          = $request->eficiencia ?? null;
@@ -189,6 +188,8 @@ class InventariosController extends Controller
         $inventario->texto_abierto_4     = $request->texto_abierto_4 ?? null;
         $inventario->texto_abierto_5     = $request->texto_abierto_5 ?? null;
         $inventario->modo                = 'ONLINE';
+        $inventario->creado_el           = date('Y-m-d H:i:s');
+        $inventario->creado_por          = $usuario;
 
         $inventario->save();
 
@@ -262,6 +263,7 @@ class InventariosController extends Controller
             $etiquetaPadre = $request->etiqueta_padre;
         }
 
+        $usuario = Auth::user()->name;
 
         $inventario = new Inventario();
         $inventario->id_grupo            = $request->id_grupo;
@@ -294,8 +296,6 @@ class InventariosController extends Controller
         $inventario->codigoUbicacion_N1  = $request->codigoUbicacion_N1 ?? 0;
         $inventario->idUbicacionN3       = $request->idUbicacionN3 ?? 0;
         $inventario->codigoUbicacionN3   = $request->codigoUbicacionN3 ?? 0;
-        $inventario->responsable         = $this->getNombre();
-        $inventario->idResponsable       = $this->getIdResponsable();
         $inventario->etiqueta_padre      = $etiquetaPadre ?? 'Sin Padre';
         /** edualejandro */
         $inventario->eficiencia          = $request->eficiencia ?? null;
@@ -305,6 +305,8 @@ class InventariosController extends Controller
         $inventario->texto_abierto_4     = $request->texto_abierto_4 ?? null;
         $inventario->texto_abierto_5     = $request->texto_abierto_5 ?? null;
         $inventario->modo                = 'ONLINE';
+        $inventario->creado_el           = date('Y-m-d H:i:s');
+        $inventario->creado_por          = $usuario;
 
         $inventario->save();
 
@@ -336,7 +338,8 @@ class InventariosController extends Controller
         }
 
         $estadoBien = 0;
-        
+        $usuario = Auth::user()->name;
+
         if($request->actualizarBien > 0){
             $estadoBien = 3;
         }
@@ -363,8 +366,6 @@ class InventariosController extends Controller
             'condicion_ambiental' => intval($request->condicion_ambiental ?? null),
             'cantidad_img'        => $request->cantidad_img,
             'id_img'              => $idImg,
-            'responsable'         => $this->getNombre(),
-            'idResponsable'       => $this->getIdResponsable(),
             'etiqueta_padre'      => $etiquetaPadre ?? 'Sin Padre',
             'update_inv'          => 0,
             /** edualejandro */
@@ -375,7 +376,9 @@ class InventariosController extends Controller
             'texto_abierto_4'       => $request->texto_abierto_4 ?? null,
             'texto_abierto_5'       => $request->texto_abierto_5 ?? null,
             'crud_activo_estado'    => $estadoBien,
-            'modo'                  => 'ONLINE'
+            'modo'                  => 'ONLINE',
+            'modificado_el'         => date('Y-m-d H:i:s'),
+            'modificado_por'        => $usuario
         ]);
 
         $inventarioActualizado = Inventario::where('etiqueta', $request->etiqueta)->first();
@@ -619,17 +622,273 @@ public function nombreInputs()
             'message' => 'No existe ciclo'
         ], 404);
     }
+   
+    $usuario = Auth::user()->name;
+    $direcciones = $request->filled('direcciones') ? json_decode($request->direcciones) : [];
+    $idMapaGeo = [];
 
-    $bienes = $request->filled('bienes') ? json_decode($request->bienes) : [];
-    $marcas = $request->filled('marcas') ? json_decode($request->marcas) : [];
+if (!empty($direcciones)) {
+    foreach ($direcciones as $d) {
+        $idRegion = DB::table('regiones')->where('descripcion', $d->region)->value('idRegion');
+        $idComuna = DB::table('comunas')->where('descripcion', $d->comuna)->value('idComuna');
 
-    // Guardar bienes si hay
-    if (!empty($bienes)) {
-        foreach ($bienes as $bien) {
+        $idGeoOffline = $d->idUbicacionGeo;
+
+       $existeUbicacion = DB::table('ubicaciones_geograficas')
+            ->where('descripcion', $d->descripcion)
+            ->where('zona', $d->zona)
+            ->where('region', $idRegion)
+            ->where('comuna', $idComuna)
+            ->where('direccion', $d->direccion)
+            ->value('idUbicacionGeo'); 
+
+
+        if (!$existeUbicacion) {
+            $idUbicacionInsertada = DB::table('ubicaciones_geograficas')->insertGetId([
+                'idProyecto'     => $ciclo,
+                'codigoCliente'  => $d->codigoCliente,
+                'descripcion'    => $d->descripcion,
+                'zona'           => $d->zona,
+                'region'         => $idRegion,
+                'comuna'         => $idComuna,
+                'direccion'      => $d->direccion,
+                'idPunto'        => $d->idPunto,
+                'estadoGeo'      => $d->estadoGeo,
+                'newApp'         => $d->newApp,
+                'modo'           => $d->modo
+            ]);
+        } else {
+            $idUbicacionInsertada = $existeUbicacion; 
+        }
+
+        $idMapaGeo[$idGeoOffline] = $idUbicacionInsertada;
+
+        $existeCicloPunto = DB::table('inv_ciclos_puntos')
+            ->where('idCiclo', $ciclo)
+            ->where('idPunto', $idUbicacionInsertada)
+            ->first();
+
+        if (!$existeCicloPunto) {
+            DB::table('inv_ciclos_puntos')->insert([
+                'idCiclo'           => $ciclo,
+                'idPunto'           => $idUbicacionInsertada,
+                'usuario'           => $usuario,
+                'fechaCreacion'     => date('Y-m-d'),
+                'id_estado'         => 2,
+                'auditoria_general' => 0
+            ]);
+        }
+    }
+}
+
+function obtenerIdAgendaActualizado($idAgendaOffline, $mapa) {
+    return $mapa[$idAgendaOffline] ?? $idAgendaOffline;
+}
+
+$emplazamientoN1 = $request->filled('emplazamientoN1') ? json_decode($request->emplazamientoN1) : [];
+$idMapaN1_Codigo = []; 
+
+if (!empty($emplazamientoN1)) {
+    foreach ($emplazamientoN1 as $N1) {
+
+        $idAgendaReal = obtenerIdAgendaActualizado($N1->idAgenda, $idMapaGeo);
+
+        $codigoExistente = DB::table('ubicaciones_n1')
+            ->where('idAgenda', $idAgendaReal)
+            ->max('codigoUbicacion');
+
+        if ($codigoExistente) {
+            $nuevoCodigo = str_pad(((int)$codigoExistente) + 1, 2, '0', STR_PAD_LEFT);
+        } else {
+            $nuevoCodigo = $N1->codigoUbicacion;
+        }
+
+        $registroExistente = DB::table('ubicaciones_n1')
+            ->where('idAgenda', $idAgendaReal)
+            ->where('descripcionUbicacion', $N1->nombre)
+            ->first();
+
+        if (!$registroExistente) {
+            DB::table('ubicaciones_n1')->insert([
+                'idProyecto'           => $ciclo,
+                'idAgenda'             => $idAgendaReal,
+                'codigoUbicacion'      => $nuevoCodigo,
+                'descripcionUbicacion' => $N1->nombre,
+                'estado'               => 1,
+                'fechaCreacion'        => now(),
+                'usuario'              => $usuario,
+                'newApp'               => $N1->newApp,
+                'modo'                 => $N1->modo
+            ]);
+            $codigoUbicacionReal = $nuevoCodigo;
+        } else {
+            $codigoUbicacionReal = $registroExistente->codigoUbicacion;
+        }
+
+        $idMapaN1_Codigo[$N1->id] = $codigoUbicacionReal;
+    }
+}
+
+function obtenerCodigoUbicacionN1Actualizado($idOffline, $mapaCodigo) {
+    return $mapaCodigo[$idOffline] ?? null;
+}
+
+
+$emplazamientoN2 = $request->filled('emplazamientoN2') ? json_decode($request->emplazamientoN2) : [];
+$idMapaN2_ID = [];
+$mapaCodigoUbicacionN2 = [];
+
+if (!empty($emplazamientoN2)) {
+    foreach ($emplazamientoN2 as $N2) {
+
+        $idAgendaReal  = obtenerIdAgendaActualizado($N2->idAgenda, $idMapaGeo);
+        $idN2Offline   = $N2->id;
+
+        $prefijo = substr($N2->codigoUbicacion, 0, 2);
+
+        $codigoExistente = DB::table('ubicaciones_n2')
+            ->where('idAgenda', $idAgendaReal)
+            ->where('codigoUbicacion', 'like', $prefijo . '%')
+            ->max('codigoUbicacion');
+
+        if ($codigoExistente) {
+            $parteFinal = (int) substr($codigoExistente, 2);
+            $nuevoCodigo = $prefijo . str_pad($parteFinal + 1, 2, '0', STR_PAD_LEFT);
+        } else {
+            $nuevoCodigo = $N2->codigoUbicacion;
+        }
+
+        $registroExistente = DB::table('ubicaciones_n2')
+            ->where('idAgenda', $idAgendaReal)
+            ->where('descripcionUbicacion', $N2->nombre)
+            ->first();
+
+        if (!$registroExistente) {
+            $idUbicacionN2 = DB::table('ubicaciones_n2')->insertGetId([
+                'idProyecto'           => $ciclo,
+                'idAgenda'             => $idAgendaReal,
+                'codigoUbicacion'      => $nuevoCodigo,
+                'descripcionUbicacion' => $N2->nombre,
+                'estado'               => 1,
+                'fechaCreacion'        => now(),
+                'usuario'              => $usuario,
+                'newApp'               => $N2->newApp,
+                'modo'                 => $N2->modo
+            ]);
+            $codigoUbicacionReal = $nuevoCodigo;
+        } else {
+            $idUbicacionN2 = $registroExistente->idUbicacionN2;
+            $codigoUbicacionReal = $registroExistente->codigoUbicacion;
+        }
+
+        $idMapaN2_ID[$idN2Offline] = $idUbicacionN2;
+        $mapaCodigoUbicacionN2[$idN2Offline] = $codigoUbicacionReal;
+    }
+}
+
+
+function obtenerIdN2Actualizado($idOffline, $mapaID) {
+    return $mapaID[$idOffline] ?? $idOffline;
+}
+
+function obtenerCodigoUbicacionN2Actualizado($codigoOffline, $mapaCodigo) {
+    return $mapaCodigo[$codigoOffline] ?? $codigoOffline;
+}
+
+$emplazamientoN3 = $request->filled('emplazamientoN3') ? json_decode($request->emplazamientoN3) : [];
+$idMapaN3_ID = [];
+$mapaCodigoUbicacionN3 = [];
+
+if (!empty($emplazamientoN3)) {
+    foreach ($emplazamientoN3 as $N3) {
+
+        $idAgendaReal = obtenerIdAgendaActualizado($N3->idAgenda, $idMapaGeo);
+        $idN3Offline = $N3->id;
+
+        $prefijo = substr($N3->codigoUbicacion, 0, 4);
+
+        $codigoExistente = DB::table('ubicaciones_n3')
+            ->where('idAgenda', $idAgendaReal)
+            ->where('codigoUbicacion', 'like', $prefijo . '%')
+            ->max('codigoUbicacion');
+
+        if ($codigoExistente) {
+            $parteFinal = (int) substr($codigoExistente, 4);
+            $nuevoCodigo = $prefijo . str_pad($parteFinal + 1, 2, '0', STR_PAD_LEFT);
+        } else {
+            $nuevoCodigo = $N3->codigoUbicacion;
+        }
+
+        $registroExistente = DB::table('ubicaciones_n3')
+            ->where('idAgenda', $idAgendaReal)
+            ->where('descripcionUbicacion', $N3->nombre)
+            ->first();
+
+        if (!$registroExistente) {
+            $idUbicacionN3 = DB::table('ubicaciones_n3')->insertGetId([
+                'idProyecto'           => $ciclo,
+                'idAgenda'             => $idAgendaReal,
+                'codigoUbicacion'      => $nuevoCodigo,
+                'descripcionUbicacion' => $N3->nombre,
+                'estado'               => 1,
+                'fechaCreacion'        => now(),
+                'usuario'              => $usuario,
+                'newApp'               => $N3->newApp,
+                'modo'                 => $N3->modo
+            ]);
+            $codigoUbicacionReal = $nuevoCodigo;
+        } else {
+            $idUbicacionN3 = $registroExistente->idUbicacionN3;
+            $codigoUbicacionReal = $registroExistente->codigoUbicacion;
+        }
+
+        $idMapaN3_ID[$idN3Offline] = $idUbicacionN3;
+        $mapaCodigoUbicacionN3[$idN3Offline] = $codigoUbicacionReal;
+    }
+}
+
+function obtenerIdN3Actualizado($idOffline, $mapaID) {
+    return $mapaID[$idOffline] ?? $idOffline;
+}
+
+function obtenerCodigoUbicacionN3Actualizado($idOffline, $mapaCodigo) {
+    return $mapaCodigo[$idOffline] ?? null;
+}
+
+  
+$bienes = $request->filled('bienes') ? json_decode($request->bienes) : [];
+$mapaIdListaBienes = [];
+
+if (!empty($bienes)) {
+    foreach ($bienes as $bien) {
+
+        $existeBien = DB::table('inv_bienes_nuevos')
+            ->where('descripcion', $bien->descripcion)
+            ->where('idAtributo', $bien->idAtributo)
+            ->where('id_familia', $bien->id_familia)
+            ->first();
+
+        if (!$existeBien) {
+            $maxListaIndicelista = DB::table('indices_listas')
+                ->where('idAtributo', $bien->idAtributo)
+                ->where('idIndice', $bien->id_familia)
+                ->max('idLista');
+
+            $maxListaBienes = DB::table('inv_bienes_nuevos')
+                ->where('idAtributo', $bien->idAtributo)
+                ->where('id_familia', $bien->id_familia)
+                ->max('idLista');
+
+            if ($maxListaIndicelista === null && $maxListaBienes === null) {
+                $newIdLista = 1;
+            } else {
+                $newIdLista = max($maxListaIndicelista, $maxListaBienes) + 1;
+            }
+
             DB::table('inv_bienes_nuevos')->insert([
-                'idLista'          => $bien->idLista,
+                'idLista'          => $newIdLista,
                 'idIndice'         => $bien->idIndice,
-                'idProyecto'       => 1,
+                'idProyecto'       => $ciclo,
                 'descripcion'      => $bien->descripcion,
                 'observacion'      => $bien->observacion,
                 'idAtributo'       => $bien->idAtributo,
@@ -640,115 +899,63 @@ public function nombreInputs()
                 'fechaCreacion'    => $bien->fechaCreacion,
                 'modo'             => $bien->modo
             ]);
+
+            $mapaIdListaBienes[$bien->idLista] = $newIdLista;
+        } else {
+            $mapaIdListaBienes[$bien->idLista] = $existeBien->idLista;
         }
-    }
-
-    // Guardar marcas si hay
-    if (!empty($marcas)) {
-        foreach ($marcas as $marca) {
-            DB::table('inv_marcas_nuevos')->insert([
-                'idLista'           => $marca->idLista,
-                'idIndice'          => $marca->idIndice,
-                'idProyecto'        => 1,
-                'descripcion'       => $marca->descripcion,
-                'observacion'       => $marca->observacion,
-                'idAtributo'        => $marca->idAtributo,
-                'id_familia'        => $marca->id_familia,
-                'ciclo_inventario'  => $marca->ciclo_inventario,
-                'creadoPor'         => $marca->creadoPor,
-                'fechaCreacion'     => $marca->fechaCreacion,
-                'modo'              => $marca->modo
-            ]);
-        }
-    }
-
-    $emplazamientoN1 = $request->filled('emplazamientoN1') ? json_decode($request->emplazamientoN1) : [];
-    $emplazamientoN2 = $request->filled('emplazamientoN2') ? json_decode($request->emplazamientoN2) : [];
-    $emplazamientoN3 = $request->filled('emplazamientoN3') ? json_decode($request->emplazamientoN3) : [];
-    $usuario = Auth::user()->name;
-
-  
-    if (!empty($emplazamientoN1)) {
-        foreach ($emplazamientoN1 as $N1) {
-            DB::table('ubicaciones_n1')->insert([
-                'idUbicacionN1'         => $N1->id,
-                'idProyecto'            => 1,
-                'idAgenda'              => $N1->idAgenda,
-                'codigoUbicacion'       => $N1->codigoUbicacion,
-                'descripcionUbicacion'  => $N1->nombre,
-                'estado'                => 1,
-                'fechaCreacion'         => now(),
-                'usuario'               => $usuario,
-                'newApp'                => $N1->newApp,
-                'modo'                  => $N1->modo
-            ]);
-        }
-    }
-
-     if (!empty($emplazamientoN2)) {
-        foreach ($emplazamientoN2 as $N2) {
-            DB::table('ubicaciones_n2')->insert([
-                'idUbicacionN2'         => $N2->id,
-                'idProyecto'            => 1,
-                'idAgenda'              => $N2->idAgenda,
-                'codigoUbicacion'       => $N2->codigoUbicacion,
-                'descripcionUbicacion'  => $N2->nombre,
-                'estado'                => 1,
-                'fechaCreacion'         => now(),
-                'usuario'               => $usuario,
-                'newApp'                => $N2->newApp,
-                'modo'                  => $N2->modo
-            ]);
-        }
-    }
-
-       if (!empty($emplazamientoN3)) {
-        foreach ($emplazamientoN3 as $N3) {
-            DB::table('ubicaciones_n3')->insert([
-                'idUbicacionN3'         => $N3->id,
-                'idProyecto'            => 1,
-                'idAgenda'              => $N3->idAgenda,
-                'codigoUbicacion'       => $N3->codigoUbicacion,
-                'descripcionUbicacion'  => $N3->nombre,
-                'estado'                => 1,
-                'fechaCreacion'         => now(),
-                'usuario'               => $usuario,
-                'newApp'                => $N3->newApp,
-                'modo'                  => $N3->modo
-            ]);
-        }
-    }
-
-  $direcciones = $request->filled('direcciones') ? json_decode($request->direcciones) : [];
-
-if (!empty($direcciones)) {
-    foreach ($direcciones as $d) {
-
-        $idRegion = DB::table('regiones')
-            ->where('descripcion', $d->region)
-            ->value('idRegion');
-
-        $idComuna = DB::table('comunas')
-            ->where('descripcion', $d->comuna)
-            ->value('idComuna');
-
-        DB::table('ubicaciones_geograficas')->insert([
-            'idUbicacionGeo' => $d->idUbicacionGeo,
-            'idProyecto'     => 1,
-            'codigoCliente'  => $d->codigoCliente,
-            'descripcion'    => $d->descripcion,
-            'zona'           => $d->zona,
-            'region'         => $idRegion,
-            'comuna'         => $idComuna,
-            'direccion'      => $d->direccion,
-            'idPunto'        => $d->idPunto,
-            'estadoGeo'      => $d->estadoGeo,
-            'newApp'         => $d->newApp,
-            'modo'           => $d->modo
-        ]);
     }
 }
 
+$marcas = $request->filled('marcas') ? json_decode($request->marcas) : [];
+$mapaIdListaMarcas = [];
+
+if (!empty($marcas)) {
+    foreach ($marcas as $marca) {
+
+        $existeMarca = DB::table('inv_marcas_nuevos')
+            ->where('descripcion', $marca->descripcion)
+            ->where('idAtributo', $marca->idAtributo)
+            ->where('id_familia', $marca->id_familia)
+            ->first();
+
+        if (!$existeMarca) {
+            $maxListaIndicelista = DB::table('indices_listas')
+                ->where('idAtributo', $marca->idAtributo)
+                ->where('idIndice', $marca->id_familia)
+                ->max('idLista');
+
+            $maxListaMarcas = DB::table('inv_marcas_nuevos')
+                ->where('idAtributo', $marca->idAtributo)
+                ->where('id_familia', $marca->id_familia)
+                ->max('idLista');
+
+            if ($maxListaIndicelista === null && $maxListaMarcas === null) {
+                $newIdLista = 1;
+            } else {
+                $newIdLista = max($maxListaIndicelista, $maxListaMarcas) + 1;
+            }
+
+            DB::table('inv_marcas_nuevos')->insert([
+                'idLista'          => $newIdLista,
+                'idIndice'         => $marca->idIndice,
+                'idProyecto'       => $ciclo,
+                'descripcion'      => $marca->descripcion,
+                'observacion'      => $marca->observacion,
+                'idAtributo'       => $marca->idAtributo,
+                'id_familia'       => $marca->id_familia,
+                'ciclo_inventario' => $marca->ciclo_inventario,
+                'creadoPor'        => $marca->creadoPor,
+                'fechaCreacion'    => $marca->fechaCreacion,
+                'modo'             => $marca->modo
+            ]);
+
+            $mapaIdListaMarcas[$marca->idLista] = $newIdLista;
+        } else {
+            $mapaIdListaMarcas[$marca->idLista] = $existeMarca->idLista;
+        }
+    }
+}
     //items to inventory
     $assets = [];
     //items with errors
@@ -756,66 +963,105 @@ if (!empty($direcciones)) {
     $images = [];
     $items = json_decode($request->items);
 
-    foreach ($items as $key => $item) {
-        $validator = Validator::make((array)$item, $this->rules());
-        if ($validator->fails()) {
-            $errors[] = ['index' => $key, 'etiqueta' => $item->etiqueta, 'errors' => $validator->errors()->get("*")];
-        } else if (empty($errors)) {
+        foreach ($items as $key => $item) {
+            $validator = Validator::make((array)$item, $this->rules());
 
-            $activo = [
-                'id_grupo' => $item->id_grupo,
-                'id_familia' => $item->id_familia,
-                'descripcion_bien' => $item->descripcion_bien,
-                'id_bien' => $item->id_bien,
-                'descripcion_marca' => $item->descripcion_marca,
-                'idForma' => $item->idForma,
-                'idMaterial' => $item->idMaterial,
-                'etiqueta' => $item->etiqueta,
-                'etiqueta_padre' => $item->etiqueta_padre,
-                'id_marca' => $item->id_marca,
-                'modelo' => $item->modelo,
-                'serie' => $item->serie,
-                'capacidad' => $item->capacidad,
-                'estado' => $item->estado,
-                'color' => $item->color,
-                'tipo_trabajo' => $item->tipo_trabajo,
-                'carga_trabajo' => $item->carga_trabajo,
-                'estado_operacional' => $item->estado_operacional,
-                'estado_conservacion' => $item->estado_conservacion,
-                'condicion_Ambiental' => $item->condicion_Ambiental,
-                'cantidad_img' => $item->cantidad_img,
-                'id_img' => $item->id_img,
-                'id_ciclo' => $ciclo,
-                'idUbicacionGeo' => $item->idUbicacionGeo,
-                'idUbicacionN2' => $item->idUbicacionN2,
-                'codigoUbicacion_N2' => $item->codigoUbicacion_N2,
-                'codigoUbicacion_N1' => $item->codigoUbicacion_N1,
-                'codigoUbicacionN3' => $item->codigoUbicacionN3,
-                'idUbicacionN3' => $item->idUbicacionN3,
-                'responsable' => $item->responsable,
-                'idResponsable' => $item->idResponsable,
-                'latitud' => $item->latitud,
-                'longitud' => $item->longitud,
-                'crud_activo_estado' => $item->crud_activo_estado,
-                'update_inv' => $item->update_inv,
-                /** falta campos */
-                /** edualejandro */
-                'eficiencia'            => $item->eficiencia ?? null,
-                'texto_abierto_1'       => $item->texto_abierto_1 ?? null,
-                'texto_abierto_2'       => $item->texto_abierto_2 ?? null,
-                'texto_abierto_3'       => $item->texto_abierto_3 ?? null,
-                'texto_abierto_4'       => $item->texto_abierto_4 ?? null,
-                'texto_abierto_5'       => $item->texto_abierto_5 ?? null,
-                'modo'                  =>'OFFLINE',
-            ];
+            if ($validator->fails()) {
+                $errors[] = [
+                    'index'    => $key,
+                    'etiqueta' => $item->etiqueta,
+                    'errors'   => $validator->errors()->get("*")
+                ];
+            } else {
 
-            $assets[] = $activo;
-            $images[] = [
-                'etiqueta' => $item->etiqueta,
-                'images' => $item->images
-            ];
+
+                $idBienReal = $item->id_bien;
+                if (isset($mapaIdListaBienes[$idBienReal])) {
+                    $idBienReal = $mapaIdListaBienes[$idBienReal];
+                }
+
+                $idMarcaReal = $item->id_marca;
+                if (isset($mapaIdListaMarcas[$idMarcaReal])) {
+                    $idMarcaReal = $mapaIdListaMarcas[$idMarcaReal];
+                }
+                
+                $idUbicacionGeoReal = $item->idUbicacionGeo;
+                if (isset($idMapaGeo[$idUbicacionGeoReal])) {
+                    $idUbicacionGeoReal = $idMapaGeo[$idUbicacionGeoReal];
+                }
+                    
+                $codigoUbicacionN1 = obtenerCodigoUbicacionN1Actualizado($item->codigoUbicacion_N1, $idMapaN1_Codigo);
+                $idUbicacionN2Real = obtenerIdN2Actualizado($item->idUbicacionN2, $idMapaN2_ID);
+                $codigoUbicacionN2 = obtenerCodigoUbicacionN2Actualizado($item->codigoUbicacion_N2, $mapaCodigoUbicacionN2);
+                $idUbicacionN3Real = obtenerIdN3Actualizado($item->idUbicacionN3, $idMapaN3_ID);
+                $codigoUbicacionN3 = obtenerCodigoUbicacionN3Actualizado($item->codigoUbicacionN3, $mapaCodigoUbicacionN3);
+                $creado_el = null;
+                $creado_por = null;
+                $modificado_el = null;
+                $modificado_por = null;
+
+                if($item->crud_activo_estado == 3){
+                    $modificado_el  = date('Y-m-d H:i:s');
+                    $modificado_por = $usuario;
+                } else {
+                    $creado_el  = date('Y-m-d H:i:s');
+                    $creado_por = $usuario;
+                }
+
+                $activo = [
+                    'id_grupo'             => $item->id_grupo,
+                    'id_familia'           => $item->id_familia,
+                    'descripcion_bien'     => $item->descripcion_bien,
+                    'id_bien'              => $idBienReal, 
+                    'descripcion_marca'    => $item->descripcion_marca,
+                    'id_marca'             => $idMarcaReal,
+                    'idForma'              => $item->idForma,
+                    'idMaterial'           => $item->idMaterial,
+                    'etiqueta'             => $item->etiqueta,
+                    'etiqueta_padre'       => $item->etiqueta_padre,
+                    'modelo'               => $item->modelo,
+                    'serie'                => $item->serie,
+                    'capacidad'            => $item->capacidad,
+                    'estado'               => $item->estado,
+                    'color'                => $item->color,
+                    'tipo_trabajo'         => $item->tipo_trabajo,
+                    'carga_trabajo'        => $item->carga_trabajo,
+                    'estado_operacional'   => $item->estado_operacional,
+                    'estado_conservacion'  => $item->estado_conservacion,
+                    'condicion_Ambiental'  => $item->condicion_Ambiental,
+                    'cantidad_img'         => $item->cantidad_img,
+                    'id_img'               => $item->id_img,
+                    'id_ciclo'             => $ciclo,
+                    'idUbicacionGeo'       => $idUbicacionGeoReal,
+                    'codigoUbicacion_N1'   => $codigoUbicacionN1,
+                    'idUbicacionN2'        => $idUbicacionN2Real,
+                    'codigoUbicacion_N2'   => $codigoUbicacionN2,
+                    'idUbicacionN3'        => $idUbicacionN3Real,
+                    'codigoUbicacionN3'    => $codigoUbicacionN3,
+                    'latitud'              => $item->latitud,
+                    'longitud'             => $item->longitud,
+                    'crud_activo_estado'   => $item->crud_activo_estado,
+                    'update_inv'           => $item->update_inv,
+                    'eficiencia'           => $item->eficiencia ?? null,
+                    'texto_abierto_1'      => $item->texto_abierto_1 ?? null,
+                    'texto_abierto_2'      => $item->texto_abierto_2 ?? null,
+                    'texto_abierto_3'      => $item->texto_abierto_3 ?? null,
+                    'texto_abierto_4'      => $item->texto_abierto_4 ?? null,
+                    'texto_abierto_5'      => $item->texto_abierto_5 ?? null,
+                    'modo'                 => 'OFFLINE',
+                    'creado_el'            => $creado_el,
+                    'creado_por'           => $creado_por,
+                    'modificado_el'        => $modificado_el,
+                    'modificado_por'       => $modificado_por
+                ];
+
+                $assets[] = $activo;
+                $images[] = [
+                    'etiqueta' => $item->etiqueta,
+                    'images'   => $item->images
+                ];
+            }
         }
-    }
 
     if (!empty($errors)) {
         return response()->json([

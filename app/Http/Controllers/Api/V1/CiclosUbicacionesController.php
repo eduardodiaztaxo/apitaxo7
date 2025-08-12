@@ -42,14 +42,15 @@ class CiclosUbicacionesController extends Controller
      public function store(Request $request)
 {
     $request->validate([
-        'descripcion' => 'required|string',
-        'direccion'   => 'required|string',
-        'region'      => 'exists:regiones,idRegion',
-        'comuna'      => 'exists:comunas,idComuna'
+        'descripcion'       => 'required|string',
+        'direccion'         => 'required|string',
+        'ciclo_auditoria'   => 'required',
+        'region'            => 'exists:regiones,idRegion',
+        'comuna'            => 'exists:comunas,idComuna'
     ]);
         $codigoCliente = $this->generarCodigoCliente();
         $ubicacion = DB::table('ubicaciones_geograficas')->insertGetId([
-            'idProyecto'    => 1,
+            'idProyecto'    => $request->ciclo_auditoria,
             'codigoCliente' => $codigoCliente,
             'descripcion'   => $request->descripcion,
             'direccion'     => $request->direccion,
@@ -67,10 +68,8 @@ class CiclosUbicacionesController extends Controller
             ], 422);
         }
 
-       $ciclo = $request->ciclo_auditoria;
-
         $puntos = DB::table('inv_ciclos_puntos')->insert([
-        'idCiclo'               => $ciclo,
+        'idCiclo'               => $request->ciclo_auditoria,
         'idPunto'               => $ubicacion,
         'usuario'               => $request->user()->name,
         'fechaCreacion'         => date('Y-m-d'),
