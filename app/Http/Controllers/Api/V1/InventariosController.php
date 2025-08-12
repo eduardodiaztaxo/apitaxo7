@@ -686,7 +686,7 @@ function obtenerIdAgendaActualizado($idAgendaOffline, $mapa) {
 }
 
 $emplazamientoN1 = $request->filled('emplazamientoN1') ? json_decode($request->emplazamientoN1) : [];
-$idMapaN1_Codigo = []; 
+$idMapaN1_Codigo = [];
 
 if (!empty($emplazamientoN1)) {
     foreach ($emplazamientoN1 as $N1) {
@@ -724,27 +724,27 @@ if (!empty($emplazamientoN1)) {
         } else {
             $codigoUbicacionReal = $registroExistente->codigoUbicacion;
         }
-
-        $idMapaN1_Codigo[$N1->id] = $codigoUbicacionReal;
+        $idMapaN1_Codigo[$N1->codigoUbicacion] = $codigoUbicacionReal;
     }
 }
 
-function obtenerCodigoUbicacionN1Actualizado($idOffline, $mapaCodigo) {
-    return $mapaCodigo[$idOffline] ?? null;
+function obtenerCodigoUbicacionN1Actualizado($codigoOffline, $mapaCodigo) {
+    return $mapaCodigo[$codigoOffline] ?? $codigoOffline;
 }
 
 
-$emplazamientoN2 = $request->filled('emplazamientoN2') ? json_decode($request->emplazamientoN2) : [];
-$idMapaN2_ID = [];
-$mapaCodigoUbicacionN2 = [];
+$ubicacionesN2Offline = $request->filled('emplazamientoN2') ? json_decode($request->emplazamientoN2) : [];
+$mapaIdUbicacionN2 = [];     
+$mapaCodigoUbicacionN2 = [];  
 
-if (!empty($emplazamientoN2)) {
-    foreach ($emplazamientoN2 as $N2) {
+if (!empty($ubicacionesN2Offline)) {
+    foreach ($ubicacionesN2Offline as $ubicacionOffline) {
 
-        $idAgendaReal  = obtenerIdAgendaActualizado($N2->idAgenda, $idMapaGeo);
-        $idN2Offline   = $N2->id;
+        $claveOffline = $ubicacionOffline->codigoUbicacion;
 
-        $prefijo = substr($N2->codigoUbicacion, 0, 2);
+        $idAgendaReal = obtenerIdAgendaActualizado($ubicacionOffline->idAgenda, $idMapaGeo);
+
+        $prefijo = substr($ubicacionOffline->codigoUbicacion, 0, 2);
 
         $codigoExistente = DB::table('ubicaciones_n2')
             ->where('idAgenda', $idAgendaReal)
@@ -755,12 +755,12 @@ if (!empty($emplazamientoN2)) {
             $parteFinal = (int) substr($codigoExistente, 2);
             $nuevoCodigo = $prefijo . str_pad($parteFinal + 1, 2, '0', STR_PAD_LEFT);
         } else {
-            $nuevoCodigo = $N2->codigoUbicacion;
+            $nuevoCodigo = $ubicacionOffline->codigoUbicacion;
         }
 
         $registroExistente = DB::table('ubicaciones_n2')
             ->where('idAgenda', $idAgendaReal)
-            ->where('descripcionUbicacion', $N2->nombre)
+            ->where('descripcionUbicacion', $ubicacionOffline->nombre)
             ->first();
 
         if (!$registroExistente) {
@@ -768,60 +768,63 @@ if (!empty($emplazamientoN2)) {
                 'idProyecto'           => $ciclo,
                 'idAgenda'             => $idAgendaReal,
                 'codigoUbicacion'      => $nuevoCodigo,
-                'descripcionUbicacion' => $N2->nombre,
+                'descripcionUbicacion' => $ubicacionOffline->nombre,
                 'estado'               => 1,
                 'fechaCreacion'        => now(),
                 'usuario'              => $usuario,
-                'newApp'               => $N2->newApp,
-                'modo'                 => $N2->modo
+                'newApp'               => $ubicacionOffline->newApp ?? 0,
+                'modo'                 => $ubicacionOffline->modo ?? 'OFFLINE'
             ]);
+
             $codigoUbicacionReal = $nuevoCodigo;
+
         } else {
             $idUbicacionN2 = $registroExistente->idUbicacionN2;
             $codigoUbicacionReal = $registroExistente->codigoUbicacion;
         }
 
-        $idMapaN2_ID[$idN2Offline] = $idUbicacionN2;
-        $mapaCodigoUbicacionN2[$idN2Offline] = $codigoUbicacionReal;
+        $mapaIdUbicacionN2[$claveOffline] = $idUbicacionN2;
+        $mapaCodigoUbicacionN2[$claveOffline] = $codigoUbicacionReal;
     }
 }
 
-
-function obtenerIdN2Actualizado($idOffline, $mapaID) {
-    return $mapaID[$idOffline] ?? $idOffline;
+function obtenerIdN2Actualizado($claveOffline, $mapaId) {
+    return $mapaId[$claveOffline] ?? $claveOffline; 
 }
 
-function obtenerCodigoUbicacionN2Actualizado($codigoOffline, $mapaCodigo) {
-    return $mapaCodigo[$codigoOffline] ?? $codigoOffline;
+function obtenerCodigoUbicacionN2Actualizado($claveOffline, $mapaCodigo) {
+    return $mapaCodigo[$claveOffline] ?? $claveOffline;
 }
 
-$emplazamientoN3 = $request->filled('emplazamientoN3') ? json_decode($request->emplazamientoN3) : [];
-$idMapaN3_ID = [];
-$mapaCodigoUbicacionN3 = [];
 
-if (!empty($emplazamientoN3)) {
-    foreach ($emplazamientoN3 as $N3) {
+$ubicacionesN3Offline = $request->filled('emplazamientoN3') ? json_decode($request->emplazamientoN3) : [];
+$mapaIdUbicacionN3 = [];     
+$mapaCodigoUbicacionN3 = [];  
 
-        $idAgendaReal = obtenerIdAgendaActualizado($N3->idAgenda, $idMapaGeo);
-        $idN3Offline = $N3->id;
+if (!empty($ubicacionesN3Offline)) {
+    foreach ($ubicacionesN3Offline as $ubicacionOffline) {
 
-        $prefijo = substr($N3->codigoUbicacion, 0, 4);
+        $claveOffline = $ubicacionOffline->codigoUbicacion;
+
+        $idAgendaReal = obtenerIdAgendaActualizado($ubicacionOffline->idAgenda, $idMapaGeo);
+
+       $prefijo = substr($ubicacionOffline->codigoUbicacion, 0, 4);
 
         $codigoExistente = DB::table('ubicaciones_n3')
             ->where('idAgenda', $idAgendaReal)
             ->where('codigoUbicacion', 'like', $prefijo . '%')
             ->max('codigoUbicacion');
 
-        if ($codigoExistente) {
-            $parteFinal = (int) substr($codigoExistente, 4);
+      if ($codigoExistente) {
+           $parteFinal = (int) substr($codigoExistente, 4, 2); 
             $nuevoCodigo = $prefijo . str_pad($parteFinal + 1, 2, '0', STR_PAD_LEFT);
         } else {
-            $nuevoCodigo = $N3->codigoUbicacion;
+            $nuevoCodigo = $ubicacionOffline->codigoUbicacion;
         }
 
         $registroExistente = DB::table('ubicaciones_n3')
             ->where('idAgenda', $idAgendaReal)
-            ->where('descripcionUbicacion', $N3->nombre)
+            ->where('descripcionUbicacion', $ubicacionOffline->nombre)
             ->first();
 
         if (!$registroExistente) {
@@ -829,31 +832,34 @@ if (!empty($emplazamientoN3)) {
                 'idProyecto'           => $ciclo,
                 'idAgenda'             => $idAgendaReal,
                 'codigoUbicacion'      => $nuevoCodigo,
-                'descripcionUbicacion' => $N3->nombre,
+                'descripcionUbicacion' => $ubicacionOffline->nombre,
                 'estado'               => 1,
                 'fechaCreacion'        => now(),
                 'usuario'              => $usuario,
-                'newApp'               => $N3->newApp,
-                'modo'                 => $N3->modo
+                'newApp'               => $ubicacionOffline->newApp ?? 0,
+                'modo'                 => $ubicacionOffline->modo ?? 'OFFLINE'
             ]);
+
             $codigoUbicacionReal = $nuevoCodigo;
+
         } else {
             $idUbicacionN3 = $registroExistente->idUbicacionN3;
             $codigoUbicacionReal = $registroExistente->codigoUbicacion;
         }
 
-        $idMapaN3_ID[$idN3Offline] = $idUbicacionN3;
-        $mapaCodigoUbicacionN3[$idN3Offline] = $codigoUbicacionReal;
+        $mapaIdUbicacionN3[$claveOffline] = $idUbicacionN3;
+        $mapaCodigoUbicacionN3[$claveOffline] = $codigoUbicacionReal;
     }
 }
 
-function obtenerIdN3Actualizado($idOffline, $mapaID) {
-    return $mapaID[$idOffline] ?? $idOffline;
+function obtenerIdN3Actualizado($claveOffline, $mapaId) {
+    return $mapaId[$claveOffline] ?? $claveOffline; 
 }
 
-function obtenerCodigoUbicacionN3Actualizado($idOffline, $mapaCodigo) {
-    return $mapaCodigo[$idOffline] ?? null;
+function obtenerCodigoUbicacionN3Actualizado($claveOffline, $mapaCodigo) {
+    return $mapaCodigo[$claveOffline] ?? $claveOffline;
 }
+
 
   
 $bienes = $request->filled('bienes') ? json_decode($request->bienes) : [];
@@ -974,7 +980,6 @@ if (!empty($marcas)) {
                 ];
             } else {
 
-
                 $idBienReal = $item->id_bien;
                 if (isset($mapaIdListaBienes[$idBienReal])) {
                     $idBienReal = $mapaIdListaBienes[$idBienReal];
@@ -985,28 +990,36 @@ if (!empty($marcas)) {
                     $idMarcaReal = $mapaIdListaMarcas[$idMarcaReal];
                 }
                 
-                $idUbicacionGeoReal = $item->idUbicacionGeo;
+               $idUbicacionGeoReal = $item->idUbicacionGeo;
                 if (isset($idMapaGeo[$idUbicacionGeoReal])) {
                     $idUbicacionGeoReal = $idMapaGeo[$idUbicacionGeoReal];
                 }
-                    
-                $codigoUbicacionN1 = obtenerCodigoUbicacionN1Actualizado($item->codigoUbicacion_N1, $idMapaN1_Codigo);
-                $idUbicacionN2Real = obtenerIdN2Actualizado($item->idUbicacionN2, $idMapaN2_ID);
-                $codigoUbicacionN2 = obtenerCodigoUbicacionN2Actualizado($item->codigoUbicacion_N2, $mapaCodigoUbicacionN2);
-                $idUbicacionN3Real = obtenerIdN3Actualizado($item->idUbicacionN3, $idMapaN3_ID);
-                $codigoUbicacionN3 = obtenerCodigoUbicacionN3Actualizado($item->codigoUbicacionN3, $mapaCodigoUbicacionN3);
-                $creado_el = null;
-                $creado_por = null;
-                $modificado_el = null;
-                $modificado_por = null;
 
-                if($item->crud_activo_estado == 3){
-                    $modificado_el  = date('Y-m-d H:i:s');
-                    $modificado_por = $usuario;
-                } else {
-                    $creado_el  = date('Y-m-d H:i:s');
-                    $creado_por = $usuario;
+                $codigoUbicacionN1 = $item->codigoUbicacion_N1;
+                if (isset($idMapaN1_Codigo[$codigoUbicacionN1])) {
+                    $codigoUbicacionN1 = $idMapaN1_Codigo[$codigoUbicacionN1];
                 }
+
+                $idUbicacionN2Real = $item->idUbicacionN2;
+                if (isset($mapaIdUbicacionN2[$item->codigoUbicacion_N2])) {
+                    $idUbicacionN2Real = $mapaIdUbicacionN2[$item->codigoUbicacion_N2];
+                }
+
+                $codigoUbicacionN2 = $item->codigoUbicacion_N2;
+                if (isset($mapaCodigoUbicacionN2[$item->codigoUbicacion_N2])) {
+                    $codigoUbicacionN2 = $mapaCodigoUbicacionN2[$item->codigoUbicacion_N2];
+                }
+
+                $idUbicacionN3Real = $item->idUbicacionN3;
+                if (isset($mapaIdUbicacionN3[$item->codigoUbicacionN3])) {
+                    $idUbicacionN3Real = $mapaIdUbicacionN3[$item->codigoUbicacionN3];
+                }
+
+                $codigoUbicacionN3Real = $item->codigoUbicacionN3;
+                if (isset($mapaCodigoUbicacionN3[$item->codigoUbicacionN3])) {
+                    $codigoUbicacionN3Real = $mapaCodigoUbicacionN3[$item->codigoUbicacionN3];
+                }
+
 
                 $activo = [
                     'id_grupo'             => $item->id_grupo,
@@ -1037,7 +1050,7 @@ if (!empty($marcas)) {
                     'idUbicacionN2'        => $idUbicacionN2Real,
                     'codigoUbicacion_N2'   => $codigoUbicacionN2,
                     'idUbicacionN3'        => $idUbicacionN3Real,
-                    'codigoUbicacionN3'    => $codigoUbicacionN3,
+                    'codigoUbicacionN3'    => $codigoUbicacionN3Real,
                     'latitud'              => $item->latitud,
                     'longitud'             => $item->longitud,
                     'crud_activo_estado'   => $item->crud_activo_estado,
@@ -1049,11 +1062,15 @@ if (!empty($marcas)) {
                     'texto_abierto_4'      => $item->texto_abierto_4 ?? null,
                     'texto_abierto_5'      => $item->texto_abierto_5 ?? null,
                     'modo'                 => 'OFFLINE',
-                    'creado_el'            => $creado_el,
-                    'creado_por'           => $creado_por,
-                    'modificado_el'        => $modificado_el,
-                    'modificado_por'       => $modificado_por
                 ];
+
+                if($item->crud_activo_estado == 3){
+                   $activo['modificado_el'] = date('Y-m-d H:i:s');
+                   $activo['modificado_por'] = $usuario;
+                } else {
+                    $activo['creado_el'] = date('Y-m-d H:i:s');
+                   $activo['creado_por'] = $usuario;
+                }
 
                 $assets[] = $activo;
                 $images[] = [
