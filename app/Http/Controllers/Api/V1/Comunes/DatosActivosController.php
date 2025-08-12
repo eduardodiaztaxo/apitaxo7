@@ -21,6 +21,7 @@ use App\Models\IndiceListaMaterial;
 use App\Models\IndiceListaForma;
 use App\Models\IndiceListaEstado;
 use App\Models\Inv_ciclos_categorias;
+use App\Models\InvCiclo;
 use Illuminate\Support\Facades\DB;
 
 
@@ -101,6 +102,9 @@ class DatosActivosController extends Controller
 
         return response()->json($collection, 200);
     }
+
+
+
     public function bienesGrupoFamilia($idCiclo)
     {
         // Paso 1: Obtener familias con estado ≠ 0
@@ -190,6 +194,84 @@ class DatosActivosController extends Controller
             });
 
         return response()->json($bienes->values(), 200);
+    }
+
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $cycle_id
+     * @return \Illuminate\Http\Response
+     */
+    public function showAllByBienesGrupoFamilia(Request $request, int $cycle_id)
+    {
+
+        $objCycle = InvCiclo::find($cycle_id);
+
+
+        if (!$objCycle) {
+            return response()->json([
+                'message' => 'Ciclo no encontrado'
+            ], 404);
+        }
+
+        $possible_name_words = array_filter(
+            explode(' ', $request->keyword),
+            function ($palabra) {
+                return strlen($palabra) > 3;
+            }
+        );
+
+        if (
+            $request->keyword && $request->keyword != '' &&
+            count($possible_name_words) > 0 &&
+            strlen($possible_name_words[0]) > 2
+        ) {
+
+
+
+            $bienesGrupoFamilia = $objCycle->bienesGrupoFamiliaByCycle()
+                ->where(function ($query) use ($possible_name_words) {
+                    $query->where('descripcion', 'LIKE', "%$possible_name_words[0]%");
+                    $query->orWhere('descripcion_grupo', 'LIKE', "%$possible_name_words[0]%");
+                    $query->orWhere('descripcion_familia', 'LIKE', "%$possible_name_words[0]%");
+                });
+
+
+
+
+            if (count($possible_name_words) > 1) {
+
+                $bienesGrupoFamilia = $bienesGrupoFamilia->orWhere(function ($query) use ($possible_name_words) {
+                    foreach ($possible_name_words as $palabra) {
+                        $query->where('descripcion', 'LIKE', "%$palabra%");
+                    }
+                });
+
+                $bienesGrupoFamilia = $bienesGrupoFamilia->orWhere(function ($query) use ($possible_name_words) {
+                    foreach ($possible_name_words as $palabra) {
+                        $query->where('descripcion_grupo', 'LIKE', "%$palabra%");
+                    }
+                });
+
+                $bienesGrupoFamilia = $bienesGrupoFamilia->orWhere(function ($query) use ($possible_name_words) {
+                    foreach ($possible_name_words as $palabra) {
+                        $query->where('descripcion_familia', 'LIKE', "%$palabra%");
+                    }
+                });
+            }
+
+
+            $bienesGrupoFamilia = $bienesGrupoFamilia->get();
+        } else {
+            $bienesGrupoFamilia = $objCycle->bienesGrupoFamiliaByCycle()->get();
+        }
+
+
+
+
+        return response()->json($bienesGrupoFamilia, 200);
     }
 
 

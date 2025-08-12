@@ -164,6 +164,87 @@ class InvCiclo extends Model
         return collect(DB::select($sql, [$this->idCiclo]));
     }
 
+    public function bienesGrupoFamiliaByCycle()
+    {
+        $sql =
+            "(
+
+            SELECT 
+                dp_grupos.descripcion_grupo AS descripcion_grupo,
+                dp_familias.descripcion_familia AS descripcion_familia,
+                dp_familias.id_grupo AS id_grupo,
+                dp_familias.id_familia AS id_familia,
+                inv_bienes_nuevos.idLista AS idLista,
+                inv_bienes_nuevos.idAtributo AS idAtributo,
+                inv_bienes_nuevos.idIndice AS idIndice,
+                inv_bienes_nuevos.idProyecto AS idProyecto,
+                inv_bienes_nuevos.descripcion AS descripcion,
+                inv_bienes_nuevos.observacion AS observacion,
+                inv_bienes_nuevos.listaRapida AS listaRapida,
+                inv_bienes_nuevos.creadoPor AS creadoPor,
+                inv_bienes_nuevos.modificadoPor AS modificadoPor,
+                inv_bienes_nuevos.fechaCreacion AS fechaCreacion,
+                inv_bienes_nuevos.fechaModificacion AS fechaModificacion,
+                inv_bienes_nuevos.estado AS estado,
+                inv_bienes_nuevos.foto AS foto,
+                inv_bienes_nuevos.ciclo_inventario AS ciclo_inventario,
+                CONCAT(dp_grupos.descripcion_grupo,'/',dp_familias.descripcion_familia) AS grupo_familia
+            FROM dp_grupos
+            INNER JOIN dp_familias 
+                ON dp_grupos.id_grupo = dp_familias.id_grupo
+            LEFT JOIN inv_ciclos_categorias 
+                ON inv_ciclos_categorias.id_familia = dp_familias.id_familia
+            AND inv_ciclos_categorias.id_grupo = dp_familias.id_grupo
+            AND inv_ciclos_categorias.idCiclo = $this->idCiclo 
+            INNER JOIN inv_bienes_nuevos 
+                ON dp_familias.id_familia = inv_bienes_nuevos.id_familia
+                AND inv_bienes_nuevos.idAtributo = 1
+            WHERE IFNULL(inv_ciclos_categorias.id_familia, '0') <> '0'
+        
+        
+        
+            UNION ALL
+        
+        
+            SELECT 
+                dp_grupos.descripcion_grupo AS descripcion_grupo,
+                dp_familias.descripcion_familia AS descripcion_familia,
+                dp_familias.id_grupo AS id_grupo,
+                dp_familias.id_familia AS id_familia,
+                indices_listas.idLista AS idLista,
+                indices_listas.idAtributo AS idAtributo,
+                indices_listas.idIndice AS idIndice,
+                indices_listas.idProyecto AS idProyecto,
+                indices_listas.descripcion AS descripcion,
+                indices_listas.observacion AS observacion,
+                indices_listas.listaRapida AS listaRapida,
+                indices_listas.creadoPor AS creadoPor,
+                indices_listas.modificadoPor AS modificadoPor,
+                indices_listas.fechaCreacion AS fechaCreacion,
+                indices_listas.fechaModificacion AS fechaModificacion,
+                indices_listas.estado AS estado,
+                indices_listas.foto AS foto,
+                indices_listas.ciclo_inventario AS ciclo_inventario,
+                CONCAT(dp_grupos.descripcion_grupo,'/',dp_familias.descripcion_familia) AS grupo_familia
+            FROM dp_grupos
+            INNER JOIN dp_familias 
+                ON dp_grupos.id_grupo = dp_familias.id_grupo
+            LEFT JOIN inv_ciclos_categorias 
+                ON inv_ciclos_categorias.id_familia = dp_familias.id_familia
+            AND inv_ciclos_categorias.id_grupo = dp_familias.id_grupo
+            AND inv_ciclos_categorias.idCiclo = $this->idCiclo 
+            INNER JOIN indices_listas 
+                ON dp_familias.id_familia = indices_listas.id_familia
+                AND indices_listas.idAtributo = 1
+            WHERE IFNULL(inv_ciclos_categorias.id_familia, '0') <> '0'
+        
+        ) AS bienes_grupos_familia_by_cycle
+        
+        ";
+
+        return DB::table(DB::raw($sql));
+    }
+
 
 
     public function activos_with_cats()
