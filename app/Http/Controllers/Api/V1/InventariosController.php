@@ -591,8 +591,6 @@ public function nombreInputs()
         return response()->json(['status' => 'OK', 'data' => $data]);
     }
 
-
-
     /**
      * Store newly created resources in storage.
      *
@@ -610,19 +608,19 @@ public function storeInventoryMultiple(int $ciclo, Request $request)
 
     $usuario = Auth::user()->name;
 
-    // 1️⃣ Procesar direcciones
+    // Procesar direcciones
     $idMapaGeo = $this->procesarDirecciones($request->direcciones, $ciclo, $usuario);
 
-    // 2️⃣ Procesar emplazamientos N1/N2/N3
+    // Procesar emplazamientos N1/N2/N3
     $idMapaN1_Codigo = $this->procesarUbicacionesN1($request->emplazamientoN1, $ciclo, $usuario, $idMapaGeo);
     [$mapaIdN2, $mapaCodN2] = $this->procesarUbicacionesN2($request->emplazamientoN2, $ciclo, $usuario, $idMapaGeo);
     [$mapaIdN3, $mapaCodN3] = $this->procesarUbicacionesN3($request->emplazamientoN3, $ciclo, $usuario, $idMapaGeo);
 
-    // 3️⃣ Procesar bienes y marcas
+    //Procesar bienes y marcas
     $mapaIdListaBienes = $this->procesarBienes($request->bienes, $ciclo);
     $mapaIdListaMarcas = $this->procesarMarcas($request->marcas, $ciclo);
 
-    // 4️⃣ Procesar items de inventario
+    // Procesar items
     [$assets, $errors, $images] = $this->procesarItems(
         $request->items,
         $ciclo,
@@ -639,10 +637,10 @@ public function storeInventoryMultiple(int $ciclo, Request $request)
         return $this->jsonError('Hay errores en algunos items', 422, ['errors' => $errors]);
     }
 
-    // 5️⃣ Procesar ZIP de imágenes
+    //Procesar ZIP
     $files = $this->procesarZipImagenes($request, $images);
 
-    // 6️⃣ Guardar activos e imágenes
+    //Guardar activos e imágenes
     [$saved, $failed, $paths] = $this->guardarActivosConImagenes($assets, $files, $request->user()->nombre_cliente);
 
     return response()->json([
@@ -658,10 +656,6 @@ public function storeInventoryMultiple(int $ciclo, Request $request)
         ]
     ]);
 }
-
-/* =========================
-   FUNCIONES PRIVADAS
-========================= */
 
 private function validateRequest(Request $request)
 {
@@ -696,9 +690,6 @@ private function obtenerCodigoActualizado($codigoOffline, array $mapa)
     return $mapa[$codigoOffline] ?? $codigoOffline;
 }
 
-/**
- * Procesar items y mapear activos
- */
 private function procesarItems($itemsJson, int $ciclo, string $usuario, $idMapaGeo, $idMapaN1_Codigo, $mapaIdN2, $mapaCodN2, $mapaIdN3, $mapaCodN3, $mapaIdListaBienes, $mapaIdListaMarcas)
 {
     $items = $itemsJson ? json_decode($itemsJson) : [];
@@ -1050,7 +1041,7 @@ private function procesarMarcas($json, int $ciclo): array
 }
 
 /**
- * Procesar ZIP de imágenes
+ * Procesar ZIP
  */
 private function procesarZipImagenes(Request $request, array $images): array
 {
@@ -1101,8 +1092,9 @@ private function procesarZipImagenes(Request $request, array $images): array
 
     return $files;
 }
-
-
+/**
+ * Guardar Img
+ */
 private function guardarActivosConImagenes(array $assets, array $files, string $cliente)
 {
     $saved = [];
