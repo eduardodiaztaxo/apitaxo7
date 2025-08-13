@@ -122,6 +122,9 @@ class InventariosResource extends JsonResource
             'cicle_id'             => $activo->id_ciclo,
             'nombreActivo'         => $activo->descripcion_bien,
             'descripcionCategoria' => $descFamilia->descripcion_familia ?? 'Desconocida',
+            'codigoUbiacionN1'       => $activo->codigoUbicacion_N1,
+            'codigoUbicacionN2'      => $activo->codigoUbicacion_N2,
+            'CodigoUbicacionN3'      => $activo->codigoUbicacionN3,
             'marca'                => $activo->descripcion_marca ?: 'Sin Registros',
             'modelo'               => $activo->modelo ?: 'Sin Registros',
             'serie'                => $activo->serie ?: 'Sin Registros',
@@ -137,9 +140,9 @@ class InventariosResource extends JsonResource
             'update_inv'           => $activo->update_inv,
             'foto4'                => $fotoUrl,
             'emplazamiento'        => [
-                'nombre' => $subEmplazamiento->descripcionUbicacion ?? 'No disponible',
+                'nombre' => $emplazamiento->descripcionUbicacion ?? '',
                 'zone_address' => [
-                    'descripcionUbicacion' => $emplazamiento->descripcionUbicacion ?? 'No disponible',
+                    'descripcionUbicacion' => $subEmplazamiento->descripcionUbicacion ?? '',
                 ],
             ],
            

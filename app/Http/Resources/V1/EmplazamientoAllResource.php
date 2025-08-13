@@ -107,6 +107,15 @@ class EmplazamientoAllResource extends JsonResource
         ->where('id_familia', $this->id_familia)
         ->value('descripcion_familia');
 
+        if (!empty($activo->codigoUbicacion_N2)) {
+                $ubicacion = $activo->codigoUbicacion_N2;
+            } elseif (!empty($activo->codigoUbicacion_N1)) {
+                $ubicacion = $activo->codigoUbicacion_N1;
+            } else {
+                $ubicacion = $activo->codigoUbicacionN3;
+            }
+
+
             return (object)[
                 'id_ciclo' => $this->cycle_id,
                 'id_inventario' => $activo->id_inventario,
@@ -118,10 +127,8 @@ class EmplazamientoAllResource extends JsonResource
                 'modelo' => $activo->modelo ?? '',
                 'serie' => $activo->serie ?? '',
                 'marca' => $activo->descripcion_marca ?? null,
-                'ubicacionOrganicaN1' => $activo->codigoUbicacion_N1,
-                'ubicacionOrganicaN2' => $activo->codigoUbicacion_N2,
+                'ubicacionOrganicaN2' => $ubicacion,
                 'update_inv' => $activo->update_inv,
-                'codigoUbicacionN3' => $activo->codigoUbicacionN3,
                 'categoria' => null,
                 'familia' => null,
                 'descripcionCategoria' => $activo->descripcionCategoria,
