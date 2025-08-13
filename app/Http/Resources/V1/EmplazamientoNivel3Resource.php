@@ -139,6 +139,7 @@ class EmplazamientoNivel3Resource extends JsonResource
             'idAgenda' => $this->idAgenda,
             'idUbicacionN2' => $this->idUbicacionN3,
             'num_activos' => 0,
+            'detalle'=> 'Detalle Emplazamiento (N3)',
             'num_nivel' => '',
             'habilitadoNivel3' => 0,
             'modo' => $this->modo,

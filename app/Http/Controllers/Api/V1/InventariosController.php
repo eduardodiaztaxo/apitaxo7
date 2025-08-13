@@ -599,9 +599,72 @@ public function nombreInputs()
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-   public function storeInventoryMultiple(int $ciclo, Request $request)
+public function storeInventoryMultiple(int $ciclo, Request $request)
 {
-    //validate zip file and items as json
+    $this->validateRequest($request);
+
+    $cycleObj = InvCiclo::find($ciclo);
+    if (!$cycleObj) {
+        return $this->jsonError('No existe ciclo', 404);
+    }
+
+    $usuario = Auth::user()->name;
+
+    // 1️⃣ Procesar direcciones
+    $idMapaGeo = $this->procesarDirecciones($request->direcciones, $ciclo, $usuario);
+
+    // 2️⃣ Procesar emplazamientos N1/N2/N3
+    $idMapaN1_Codigo = $this->procesarUbicacionesN1($request->emplazamientoN1, $ciclo, $usuario, $idMapaGeo);
+    [$mapaIdN2, $mapaCodN2] = $this->procesarUbicacionesN2($request->emplazamientoN2, $ciclo, $usuario, $idMapaGeo);
+    [$mapaIdN3, $mapaCodN3] = $this->procesarUbicacionesN3($request->emplazamientoN3, $ciclo, $usuario, $idMapaGeo);
+
+    // 3️⃣ Procesar bienes y marcas
+    $mapaIdListaBienes = $this->procesarBienes($request->bienes, $ciclo);
+    $mapaIdListaMarcas = $this->procesarMarcas($request->marcas, $ciclo);
+
+    // 4️⃣ Procesar items de inventario
+    [$assets, $errors, $images] = $this->procesarItems(
+        $request->items,
+        $ciclo,
+        $usuario,
+        $idMapaGeo,
+        $idMapaN1_Codigo,
+        $mapaIdN2, $mapaCodN2,
+        $mapaIdN3, $mapaCodN3,
+        $mapaIdListaBienes,
+        $mapaIdListaMarcas
+    );
+
+    if (!empty($errors)) {
+        return $this->jsonError('Hay errores en algunos items', 422, ['errors' => $errors]);
+    }
+
+    // 5️⃣ Procesar ZIP de imágenes
+    $files = $this->procesarZipImagenes($request, $images);
+
+    // 6️⃣ Guardar activos e imágenes
+    [$saved, $failed, $paths] = $this->guardarActivosConImagenes($assets, $files, $request->user()->nombre_cliente);
+
+    return response()->json([
+        'status' => 'OK',
+        'message' => 'Inventario procesado correctamente',
+        'data' => [
+            'items' => $saved,
+            'fails' => count($failed),
+            'saved' => count($saved),
+            'found_files' => count($paths),
+            'failed_tags' => $failed,
+            'image_urls' => $paths
+        ]
+    ]);
+}
+
+/* =========================
+   FUNCIONES PRIVADAS
+========================= */
+
+private function validateRequest(Request $request)
+{
     $request->validate([
         'items'             => 'nullable|json',
         'zipfile'           => 'nullable|file|mimes:zip',
@@ -612,262 +675,286 @@ public function nombreInputs()
         'emplazamientoN3'   => 'nullable|json',
         'direcciones'       => 'nullable|json'
     ]);
+}
 
-    $cycleObj = InvCiclo::find($ciclo);
+private function jsonError(string $message, int $code, array $extra = [])
+{
+    return response()->json(array_merge([
+        'status'  => 'error',
+        'code'    => $code,
+        'message' => $message
+    ], $extra), $code);
+}
 
-    if (!$cycleObj) {
-        return response()->json([
-            'status' => 'error',
-            'code' => 404,
-            'message' => 'No existe ciclo'
-        ], 404);
+private function obtenerIdAgendaActualizado($idAgendaOffline, array $mapa)
+{
+    return $mapa[$idAgendaOffline] ?? $idAgendaOffline;
+}
+
+private function obtenerCodigoActualizado($codigoOffline, array $mapa)
+{
+    return $mapa[$codigoOffline] ?? $codigoOffline;
+}
+
+/**
+ * Procesar items y mapear activos
+ */
+private function procesarItems($itemsJson, int $ciclo, string $usuario, $idMapaGeo, $idMapaN1_Codigo, $mapaIdN2, $mapaCodN2, $mapaIdN3, $mapaCodN3, $mapaIdListaBienes, $mapaIdListaMarcas)
+{
+    $items = $itemsJson ? json_decode($itemsJson) : [];
+    $assets = [];
+    $errors = [];
+    $images = [];
+
+    foreach ($items as $key => $item) {
+        $validator = Validator::make((array) $item, $this->rules());
+        if ($validator->fails()) {
+            $errors[] = ['index' => $key, 'etiqueta' => $item->etiqueta, 'errors' => $validator->errors()->get("*")];
+            continue;
+        }
+
+        $activo = $this->mapActivo($item, $ciclo, $usuario, $idMapaGeo, $idMapaN1_Codigo, $mapaIdN2, $mapaCodN2, $mapaIdN3, $mapaCodN3, $mapaIdListaBienes, $mapaIdListaMarcas);
+        $assets[] = $activo;
+        $images[] = ['etiqueta' => $item->etiqueta, 'images' => $item->images];
     }
-   
-    $usuario = Auth::user()->name;
-    $direcciones = $request->filled('direcciones') ? json_decode($request->direcciones) : [];
+
+    return [$assets, $errors, $images];
+}
+
+/**
+ * Mapear un item
+ */
+private function mapActivo($item, $ciclo, $usuario, $idMapaGeo, $idMapaN1_Codigo, $mapaIdN2, $mapaCodN2, $mapaIdN3, $mapaCodN3, $mapaIdListaBienes, $mapaIdListaMarcas)
+{
+    // Determinar si se usa
+    $usarMapas = isset($idMapaGeo[$item->idUbicacionGeo]);
+    $id_bien_final  = $mapaIdListaBienes[$item->id_bien] ?? $item->id_bien;
+    $id_marca_final = $mapaIdListaMarcas[$item->id_marca] ?? $item->id_marca;
+
+    return [
+        'id_grupo'           => $item->id_grupo,
+        'id_familia'         => $item->id_familia,
+        'descripcion_bien'   => $item->descripcion_bien,
+        'id_bien'            => $id_bien_final,
+        'descripcion_marca'  => $item->descripcion_marca,
+        'id_marca'           => $id_marca_final,
+        'idForma'            => $item->idForma,
+        'idMaterial'         => $item->idMaterial,
+        'etiqueta'           => $item->etiqueta,
+        'etiqueta_padre'     => $item->etiqueta_padre,
+        'modelo'             => $item->modelo,
+        'serie'              => $item->serie,
+        'capacidad'          => $item->capacidad,
+        'estado'             => $item->estado,
+        'color'              => $item->color,
+        'tipo_trabajo'       => $item->tipo_trabajo,
+        'carga_trabajo'      => $item->carga_trabajo,
+        'estado_operacional' => $item->estado_operacional,
+        'estado_conservacion'=> $item->estado_conservacion,
+        'condicion_Ambiental'=> $item->condicion_Ambiental,
+        'cantidad_img'       => $item->cantidad_img,
+        'id_img'             => $item->id_img,
+        'id_ciclo'           => $ciclo,
+        'idUbicacionGeo'     => $item->idUbicacionGeo, 
+        'codigoUbicacion_N1' => $idMapaN1_Codigo[$item->codigoUbicacion_N1] ?? $item->codigoUbicacion_N1,
+        'idUbicacionN2'      => $usarMapas ? ($mapaIdN2[$item->codigoUbicacion_N2] ?? null) : $item->idUbicacionN2,
+        'codigoUbicacion_N2' => $usarMapas ? ($mapaCodN2[$item->codigoUbicacion_N2] ?? null) : $item->codigoUbicacion_N2,
+        'idUbicacionN3'      => $usarMapas ? ($mapaIdN3[$item->codigoUbicacionN3] ?? null) : $item->idUbicacionN3,
+        'codigoUbicacionN3'  => $usarMapas ? ($mapaCodN3[$item->codigoUbicacionN3] ?? null) : $item->codigoUbicacionN3,
+        'latitud'            => $item->latitud,
+        'longitud'           => $item->longitud,
+        'crud_activo_estado' => $item->crud_activo_estado,
+        'update_inv'         => $item->update_inv,
+        'eficiencia'         => $item->eficiencia ?? null,
+        'texto_abierto_1'    => $item->texto_abierto_1 ?? null,
+        'texto_abierto_2'    => $item->texto_abierto_2 ?? null,
+        'texto_abierto_3'    => $item->texto_abierto_3 ?? null,
+        'texto_abierto_4'    => $item->texto_abierto_4 ?? null,
+        'texto_abierto_5'    => $item->texto_abierto_5 ?? null,
+        'modo'               => 'OFFLINE',
+        'creado_el'          => $item->crud_activo_estado != 3 ? now() : null,
+        'creado_por'         => $item->crud_activo_estado != 3 ? $usuario : null,
+        'modificado_el'      => $item->crud_activo_estado == 3 ? now() : null,
+        'modificado_por'     => $item->crud_activo_estado == 3 ? $usuario : null
+    ];
+}
+
+/**
+ * Procesar direcciones 
+ */
+private function procesarDirecciones($direccionesJson, int $ciclo, string $usuario): array
+{
+    $direcciones = $direccionesJson ? json_decode($direccionesJson) : [];
     $idMapaGeo = [];
 
-if (!empty($direcciones)) {
     foreach ($direcciones as $d) {
         $idRegion = DB::table('regiones')->where('descripcion', $d->region)->value('idRegion');
         $idComuna = DB::table('comunas')->where('descripcion', $d->comuna)->value('idComuna');
 
-        $idGeoOffline = $d->idUbicacionGeo;
+        $existeUbicacion = DB::table('ubicaciones_geograficas')
+            ->where([
+                ['descripcion', '=', $d->descripcion],
+                ['zona', '=', $d->zona],
+                ['region', '=', $idRegion],
+                ['comuna', '=', $idComuna],
+                ['direccion', '=', $d->direccion]
+            ])->value('idUbicacionGeo');
 
-       $existeUbicacion = DB::table('ubicaciones_geograficas')
-            ->where('descripcion', $d->descripcion)
-            ->where('zona', $d->zona)
-            ->where('region', $idRegion)
-            ->where('comuna', $idComuna)
-            ->where('direccion', $d->direccion)
-            ->value('idUbicacionGeo'); 
+        $idUbicacionInsertada = $existeUbicacion ?: DB::table('ubicaciones_geograficas')->insertGetId([
+            'idProyecto'    => $ciclo,
+            'codigoCliente' => $d->codigoCliente,
+            'descripcion'   => $d->descripcion,
+            'zona'          => $d->zona,
+            'region'        => $idRegion,
+            'comuna'        => $idComuna,
+            'direccion'     => $d->direccion,
+            'idPunto'       => $d->idPunto,
+            'estadoGeo'     => $d->estadoGeo,
+            'newApp'        => $d->newApp,
+            'modo'          => $d->modo
+        ]);
 
+        $idMapaGeo[$d->idUbicacionGeo] = $idUbicacionInsertada;
 
-        if (!$existeUbicacion) {
-            $idUbicacionInsertada = DB::table('ubicaciones_geograficas')->insertGetId([
-                'idProyecto'     => $ciclo,
-                'codigoCliente'  => $d->codigoCliente,
-                'descripcion'    => $d->descripcion,
-                'zona'           => $d->zona,
-                'region'         => $idRegion,
-                'comuna'         => $idComuna,
-                'direccion'      => $d->direccion,
-                'idPunto'        => $d->idPunto,
-                'estadoGeo'      => $d->estadoGeo,
-                'newApp'         => $d->newApp,
-                'modo'           => $d->modo
-            ]);
-        } else {
-            $idUbicacionInsertada = $existeUbicacion; 
-        }
-
-        $idMapaGeo[$idGeoOffline] = $idUbicacionInsertada;
-
-        $existeCicloPunto = DB::table('inv_ciclos_puntos')
-            ->where('idCiclo', $ciclo)
-            ->where('idPunto', $idUbicacionInsertada)
-            ->first();
-
-        if (!$existeCicloPunto) {
-            DB::table('inv_ciclos_puntos')->insert([
-                'idCiclo'           => $ciclo,
-                'idPunto'           => $idUbicacionInsertada,
-                'usuario'           => $usuario,
-                'fechaCreacion'     => date('Y-m-d'),
-                'id_estado'         => 2,
-                'auditoria_general' => 0
-            ]);
-        }
+        DB::table('inv_ciclos_puntos')->updateOrInsert(
+            ['idCiclo' => $ciclo, 'idPunto' => $idUbicacionInsertada],
+            ['usuario' => $usuario, 'fechaCreacion' => now(), 'id_estado' => 2, 'auditoria_general' => 0]
+        );
     }
+
+    return $idMapaGeo;
 }
 
-function obtenerIdAgendaActualizado($idAgendaOffline, $mapa) {
-    return $mapa[$idAgendaOffline] ?? $idAgendaOffline;
-}
+/**
+ * Procesar Ubicaciones N1
+ */
+private function procesarUbicacionesN1($json, int $ciclo, string $usuario, array $idMapaGeo): array
+{
+    $data = $json ? json_decode($json) : [];
+    $mapaCodigo = [];
 
-$emplazamientoN1 = $request->filled('emplazamientoN1') ? json_decode($request->emplazamientoN1) : [];
-$idMapaN1_Codigo = [];
+    foreach ($data as $n1) {
+        $idAgendaReal = $this->obtenerIdAgendaActualizado($n1->idAgenda, $idMapaGeo);
+        $codigoExistente = DB::table('ubicaciones_n1')->where('idAgenda', $idAgendaReal)->max('codigoUbicacion');
+        $nuevoCodigo = $codigoExistente ? str_pad(((int) $codigoExistente) + 1, 2, '0', STR_PAD_LEFT) : $n1->codigoUbicacion;
 
-if (!empty($emplazamientoN1)) {
-    foreach ($emplazamientoN1 as $N1) {
-
-        $idAgendaReal = obtenerIdAgendaActualizado($N1->idAgenda, $idMapaGeo);
-
-        $codigoExistente = DB::table('ubicaciones_n1')
-            ->where('idAgenda', $idAgendaReal)
-            ->max('codigoUbicacion');
-
-        if ($codigoExistente) {
-            $nuevoCodigo = str_pad(((int)$codigoExistente) + 1, 2, '0', STR_PAD_LEFT);
-        } else {
-            $nuevoCodigo = $N1->codigoUbicacion;
-        }
-
-        $registroExistente = DB::table('ubicaciones_n1')
-            ->where('idAgenda', $idAgendaReal)
-            ->where('descripcionUbicacion', $N1->nombre)
+        $registro = DB::table('ubicaciones_n1')->where('idAgenda', $idAgendaReal)
+            ->where('descripcionUbicacion', $n1->nombre)
             ->first();
 
-        if (!$registroExistente) {
+        $codigoReal = $registro->codigoUbicacion ?? $nuevoCodigo;
+
+        if (!$registro) {
             DB::table('ubicaciones_n1')->insert([
                 'idProyecto'           => $ciclo,
                 'idAgenda'             => $idAgendaReal,
                 'codigoUbicacion'      => $nuevoCodigo,
-                'descripcionUbicacion' => $N1->nombre,
+                'descripcionUbicacion' => $n1->nombre,
                 'estado'               => 1,
                 'fechaCreacion'        => now(),
                 'usuario'              => $usuario,
-                'newApp'               => $N1->newApp,
-                'modo'                 => $N1->modo
+                'newApp'               => $n1->newApp,
+                'modo'                 => $n1->modo
             ]);
-            $codigoUbicacionReal = $nuevoCodigo;
-        } else {
-            $codigoUbicacionReal = $registroExistente->codigoUbicacion;
         }
-        $idMapaN1_Codigo[$N1->codigoUbicacion] = $codigoUbicacionReal;
+
+        $mapaCodigo[$n1->codigoUbicacion] = $codigoReal;
     }
+
+    return $mapaCodigo;
 }
 
-function obtenerCodigoUbicacionN1Actualizado($codigoOffline, $mapaCodigo) {
-    return $mapaCodigo[$codigoOffline] ?? $codigoOffline;
-}
+/**
+ * Procesar Ubicaciones N2
+ */
+private function procesarUbicacionesN2($json, int $ciclo, string $usuario, array $idMapaGeo): array
+{
+    $data = $json ? json_decode($json) : [];
+    $mapaId = [];
+    $mapaCodigo = [];
 
+    foreach ($data as $n2) {
+        $idAgendaReal = $this->obtenerIdAgendaActualizado($n2->idAgenda, $idMapaGeo);
+        $codigoExistente = DB::table('ubicaciones_n2')->where('idAgenda', $idAgendaReal)->max('codigoUbicacion');
+        $nuevoCodigo = $codigoExistente ? str_pad(((int) $codigoExistente) + 1, 2, '0', STR_PAD_LEFT) : $n2->codigoUbicacion;
 
-$ubicacionesN2Offline = $request->filled('emplazamientoN2') ? json_decode($request->emplazamientoN2) : [];
-$mapaIdUbicacionN2 = [];     
-$mapaCodigoUbicacionN2 = [];  
-
-if (!empty($ubicacionesN2Offline)) {
-    foreach ($ubicacionesN2Offline as $ubicacionOffline) {
-
-        $claveOffline = $ubicacionOffline->codigoUbicacion;
-
-        $idAgendaReal = obtenerIdAgendaActualizado($ubicacionOffline->idAgenda, $idMapaGeo);
-
-        $prefijo = substr($ubicacionOffline->codigoUbicacion, 0, 2);
-
-        $codigoExistente = DB::table('ubicaciones_n2')
-            ->where('idAgenda', $idAgendaReal)
-            ->where('codigoUbicacion', 'like', $prefijo . '%')
-            ->max('codigoUbicacion');
-
-        if ($codigoExistente) {
-            $parteFinal = (int) substr($codigoExistente, 2);
-            $nuevoCodigo = $prefijo . str_pad($parteFinal + 1, 2, '0', STR_PAD_LEFT);
-        } else {
-            $nuevoCodigo = $ubicacionOffline->codigoUbicacion;
-        }
-
-        $registroExistente = DB::table('ubicaciones_n2')
-            ->where('idAgenda', $idAgendaReal)
-            ->where('descripcionUbicacion', $ubicacionOffline->nombre)
+        $registro = DB::table('ubicaciones_n2')->where('idAgenda', $idAgendaReal)
+            ->where('descripcionUbicacion', $n2->nombre)
             ->first();
 
-        if (!$registroExistente) {
-            $idUbicacionN2 = DB::table('ubicaciones_n2')->insertGetId([
+        if (!$registro) {
+            $idInsertado = DB::table('ubicaciones_n2')->insertGetId([
                 'idProyecto'           => $ciclo,
                 'idAgenda'             => $idAgendaReal,
                 'codigoUbicacion'      => $nuevoCodigo,
-                'descripcionUbicacion' => $ubicacionOffline->nombre,
+                'descripcionUbicacion' => $n2->nombre,
                 'estado'               => 1,
                 'fechaCreacion'        => now(),
                 'usuario'              => $usuario,
-                'newApp'               => $ubicacionOffline->newApp ?? 0,
-                'modo'                 => $ubicacionOffline->modo ?? 'OFFLINE'
+                'newApp'               => $n2->newApp,
+                'modo'                 => $n2->modo
             ]);
-
-            $codigoUbicacionReal = $nuevoCodigo;
-
+            $mapaId[$nuevoCodigo] = $idInsertado;
+            $mapaCodigo[$nuevoCodigo] = $nuevoCodigo;
         } else {
-            $idUbicacionN2 = $registroExistente->idUbicacionN2;
-            $codigoUbicacionReal = $registroExistente->codigoUbicacion;
+            $mapaId[$registro->codigoUbicacion] = $registro->idUbicacionN2;
+            $mapaCodigo[$registro->codigoUbicacion] = $registro->codigoUbicacion;
         }
-
-        $mapaIdUbicacionN2[$claveOffline] = $idUbicacionN2;
-        $mapaCodigoUbicacionN2[$claveOffline] = $codigoUbicacionReal;
     }
+
+    return [$mapaId, $mapaCodigo];
 }
 
-function obtenerIdN2Actualizado($claveOffline, $mapaId) {
-    return $mapaId[$claveOffline] ?? $claveOffline; 
-}
+/**
+ * Procesar Ubicaciones N3
+ */
+private function procesarUbicacionesN3($json, int $ciclo, string $usuario, array $idMapaGeo): array
+{
+    $data = $json ? json_decode($json) : [];
+    $mapaId = [];
+    $mapaCodigo = [];
 
-function obtenerCodigoUbicacionN2Actualizado($claveOffline, $mapaCodigo) {
-    return $mapaCodigo[$claveOffline] ?? $claveOffline;
-}
+    foreach ($data as $n3) {
+        $idAgendaReal = $this->obtenerIdAgendaActualizado($n3->idAgenda, $idMapaGeo);
+        $codigoExistente = DB::table('ubicaciones_n3')->where('idAgenda', $idAgendaReal)->max('codigoUbicacion');
+        $nuevoCodigo = $codigoExistente ? str_pad(((int) $codigoExistente) + 1, 2, '0', STR_PAD_LEFT) : $n3->codigoUbicacion;
 
-
-$ubicacionesN3Offline = $request->filled('emplazamientoN3') ? json_decode($request->emplazamientoN3) : [];
-$mapaIdUbicacionN3 = [];     
-$mapaCodigoUbicacionN3 = [];  
-
-if (!empty($ubicacionesN3Offline)) {
-    foreach ($ubicacionesN3Offline as $ubicacionOffline) {
-
-        $claveOffline = $ubicacionOffline->codigoUbicacion;
-
-        $idAgendaReal = obtenerIdAgendaActualizado($ubicacionOffline->idAgenda, $idMapaGeo);
-
-       $prefijo = substr($ubicacionOffline->codigoUbicacion, 0, 4);
-
-        $codigoExistente = DB::table('ubicaciones_n3')
-            ->where('idAgenda', $idAgendaReal)
-            ->where('codigoUbicacion', 'like', $prefijo . '%')
-            ->max('codigoUbicacion');
-
-      if ($codigoExistente) {
-           $parteFinal = (int) substr($codigoExistente, 4, 2); 
-            $nuevoCodigo = $prefijo . str_pad($parteFinal + 1, 2, '0', STR_PAD_LEFT);
-        } else {
-            $nuevoCodigo = $ubicacionOffline->codigoUbicacion;
-        }
-
-        $registroExistente = DB::table('ubicaciones_n3')
-            ->where('idAgenda', $idAgendaReal)
-            ->where('descripcionUbicacion', $ubicacionOffline->nombre)
+        $registro = DB::table('ubicaciones_n3')->where('idAgenda', $idAgendaReal)
+            ->where('descripcionUbicacion', $n3->nombre)
             ->first();
 
-        if (!$registroExistente) {
-            $idUbicacionN3 = DB::table('ubicaciones_n3')->insertGetId([
+        if (!$registro) {
+            $idInsertado = DB::table('ubicaciones_n3')->insertGetId([
                 'idProyecto'           => $ciclo,
                 'idAgenda'             => $idAgendaReal,
                 'codigoUbicacion'      => $nuevoCodigo,
-                'descripcionUbicacion' => $ubicacionOffline->nombre,
+                'descripcionUbicacion' => $n3->nombre,
                 'estado'               => 1,
                 'fechaCreacion'        => now(),
                 'usuario'              => $usuario,
-                'newApp'               => $ubicacionOffline->newApp ?? 0,
-                'modo'                 => $ubicacionOffline->modo ?? 'OFFLINE'
+                'newApp'               => $n3->newApp,
+                'modo'                 => $n3->modo
             ]);
-
-            $codigoUbicacionReal = $nuevoCodigo;
-
+            $mapaId[$nuevoCodigo] = $idInsertado;
+            $mapaCodigo[$nuevoCodigo] = $nuevoCodigo;
         } else {
-            $idUbicacionN3 = $registroExistente->idUbicacionN3;
-            $codigoUbicacionReal = $registroExistente->codigoUbicacion;
+            $mapaId[$registro->codigoUbicacion] = $registro->idUbicacionN3;
+            $mapaCodigo[$registro->codigoUbicacion] = $registro->codigoUbicacion;
         }
-
-        $mapaIdUbicacionN3[$claveOffline] = $idUbicacionN3;
-        $mapaCodigoUbicacionN3[$claveOffline] = $codigoUbicacionReal;
     }
+
+    return [$mapaId, $mapaCodigo];
 }
+/**
+ * Procesar bienes Nuevos
+ */
 
-function obtenerIdN3Actualizado($claveOffline, $mapaId) {
-    return $mapaId[$claveOffline] ?? $claveOffline; 
-}
+private function procesarBienes($json, int $ciclo): array
+{
+    $bienes = $json ? json_decode($json) : [];
+    $mapaIdListaBienes = [];
 
-function obtenerCodigoUbicacionN3Actualizado($claveOffline, $mapaCodigo) {
-    return $mapaCodigo[$claveOffline] ?? $claveOffline;
-}
-
-
-  
-$bienes = $request->filled('bienes') ? json_decode($request->bienes) : [];
-$mapaIdListaBienes = [];
-
-if (!empty($bienes)) {
     foreach ($bienes as $bien) {
-
         $existeBien = DB::table('inv_bienes_nuevos')
             ->where('descripcion', $bien->descripcion)
             ->where('idAtributo', $bien->idAtributo)
@@ -885,11 +972,7 @@ if (!empty($bienes)) {
                 ->where('id_familia', $bien->id_familia)
                 ->max('idLista');
 
-            if ($maxListaIndicelista === null && $maxListaBienes === null) {
-                $newIdLista = 1;
-            } else {
-                $newIdLista = max($maxListaIndicelista, $maxListaBienes) + 1;
-            }
+            $newIdLista = max($maxListaIndicelista ?? 0, $maxListaBienes ?? 0) + 1;
 
             DB::table('inv_bienes_nuevos')->insert([
                 'idLista'          => $newIdLista,
@@ -911,14 +994,19 @@ if (!empty($bienes)) {
             $mapaIdListaBienes[$bien->idLista] = $existeBien->idLista;
         }
     }
+
+    return $mapaIdListaBienes;
 }
 
-$marcas = $request->filled('marcas') ? json_decode($request->marcas) : [];
-$mapaIdListaMarcas = [];
+/**
+ * Procesar marcas Nuevas
+ */
+private function procesarMarcas($json, int $ciclo): array
+{
+    $marcas = $json ? json_decode($json) : [];
+    $mapaIdListaMarcas = [];
 
-if (!empty($marcas)) {
     foreach ($marcas as $marca) {
-
         $existeMarca = DB::table('inv_marcas_nuevos')
             ->where('descripcion', $marca->descripcion)
             ->where('idAtributo', $marca->idAtributo)
@@ -936,11 +1024,7 @@ if (!empty($marcas)) {
                 ->where('id_familia', $marca->id_familia)
                 ->max('idLista');
 
-            if ($maxListaIndicelista === null && $maxListaMarcas === null) {
-                $newIdLista = 1;
-            } else {
-                $newIdLista = max($maxListaIndicelista, $maxListaMarcas) + 1;
-            }
+            $newIdLista = max($maxListaIndicelista ?? 0, $maxListaMarcas ?? 0) + 1;
 
             DB::table('inv_marcas_nuevos')->insert([
                 'idLista'          => $newIdLista,
@@ -961,251 +1045,75 @@ if (!empty($marcas)) {
             $mapaIdListaMarcas[$marca->idLista] = $existeMarca->idLista;
         }
     }
+
+    return $mapaIdListaMarcas;
 }
-    //items to inventory
-    $assets = [];
-    //items with errors
-    $errors = [];
-    $images = [];
-    $items = json_decode($request->items);
 
-        foreach ($items as $key => $item) {
-            $validator = Validator::make((array)$item, $this->rules());
+/**
+ * Procesar ZIP de imágenes
+ */
+private function procesarZipImagenes(Request $request, array $images): array
+{
+    $userFolder = "customers/" . $request->user()->nombre_cliente . "/images/inventario/temp/";
+    $files = [];
 
-            if ($validator->fails()) {
-                $errors[] = [
-                    'index'    => $key,
-                    'etiqueta' => $item->etiqueta,
-                    'errors'   => $validator->errors()->get("*")
-                ];
-            } else {
+    if (!$request->hasFile('zipfile')) return $files;
 
-                $idBienReal = $item->id_bien;
-                if (isset($mapaIdListaBienes[$idBienReal])) {
-                    $idBienReal = $mapaIdListaBienes[$idBienReal];
-                }
-
-                $idMarcaReal = $item->id_marca;
-                if (isset($mapaIdListaMarcas[$idMarcaReal])) {
-                    $idMarcaReal = $mapaIdListaMarcas[$idMarcaReal];
-                }
-                
-               $idUbicacionGeoReal = $item->idUbicacionGeo;
-                if (isset($idMapaGeo[$idUbicacionGeoReal])) {
-                    $idUbicacionGeoReal = $idMapaGeo[$idUbicacionGeoReal];
-                }
-
-                $codigoUbicacionN1 = $item->codigoUbicacion_N1;
-                if (isset($idMapaN1_Codigo[$codigoUbicacionN1])) {
-                    $codigoUbicacionN1 = $idMapaN1_Codigo[$codigoUbicacionN1];
-                }
-
-                $idUbicacionN2Real = $item->idUbicacionN2;
-                if (isset($mapaIdUbicacionN2[$item->codigoUbicacion_N2])) {
-                    $idUbicacionN2Real = $mapaIdUbicacionN2[$item->codigoUbicacion_N2];
-                }
-
-                $codigoUbicacionN2 = $item->codigoUbicacion_N2;
-                if (isset($mapaCodigoUbicacionN2[$item->codigoUbicacion_N2])) {
-                    $codigoUbicacionN2 = $mapaCodigoUbicacionN2[$item->codigoUbicacion_N2];
-                }
-
-                $idUbicacionN3Real = $item->idUbicacionN3;
-                if (isset($mapaIdUbicacionN3[$item->codigoUbicacionN3])) {
-                    $idUbicacionN3Real = $mapaIdUbicacionN3[$item->codigoUbicacionN3];
-                }
-
-                $codigoUbicacionN3Real = $item->codigoUbicacionN3;
-                if (isset($mapaCodigoUbicacionN3[$item->codigoUbicacionN3])) {
-                    $codigoUbicacionN3Real = $mapaCodigoUbicacionN3[$item->codigoUbicacionN3];
-                }
-
-
-                $activo = [
-                    'id_grupo'             => $item->id_grupo,
-                    'id_familia'           => $item->id_familia,
-                    'descripcion_bien'     => $item->descripcion_bien,
-                    'id_bien'              => $idBienReal, 
-                    'descripcion_marca'    => $item->descripcion_marca,
-                    'id_marca'             => $idMarcaReal,
-                    'idForma'              => $item->idForma,
-                    'idMaterial'           => $item->idMaterial,
-                    'etiqueta'             => $item->etiqueta,
-                    'etiqueta_padre'       => $item->etiqueta_padre,
-                    'modelo'               => $item->modelo,
-                    'serie'                => $item->serie,
-                    'capacidad'            => $item->capacidad,
-                    'estado'               => $item->estado,
-                    'color'                => $item->color,
-                    'tipo_trabajo'         => $item->tipo_trabajo,
-                    'carga_trabajo'        => $item->carga_trabajo,
-                    'estado_operacional'   => $item->estado_operacional,
-                    'estado_conservacion'  => $item->estado_conservacion,
-                    'condicion_Ambiental'  => $item->condicion_Ambiental,
-                    'cantidad_img'         => $item->cantidad_img,
-                    'id_img'               => $item->id_img,
-                    'id_ciclo'             => $ciclo,
-                    'idUbicacionGeo'       => $idUbicacionGeoReal,
-                    'codigoUbicacion_N1'   => $codigoUbicacionN1,
-                    'idUbicacionN2'        => $idUbicacionN2Real,
-                    'codigoUbicacion_N2'   => $codigoUbicacionN2,
-                    'idUbicacionN3'        => $idUbicacionN3Real,
-                    'codigoUbicacionN3'    => $codigoUbicacionN3Real,
-                    'latitud'              => $item->latitud,
-                    'longitud'             => $item->longitud,
-                    'crud_activo_estado'   => $item->crud_activo_estado,
-                    'update_inv'           => $item->update_inv,
-                    'eficiencia'           => $item->eficiencia ?? null,
-                    'texto_abierto_1'      => $item->texto_abierto_1 ?? null,
-                    'texto_abierto_2'      => $item->texto_abierto_2 ?? null,
-                    'texto_abierto_3'      => $item->texto_abierto_3 ?? null,
-                    'texto_abierto_4'      => $item->texto_abierto_4 ?? null,
-                    'texto_abierto_5'      => $item->texto_abierto_5 ?? null,
-                    'modo'                 => 'OFFLINE',
-                ];
-
-                if($item->crud_activo_estado == 3){
-                   $activo['modificado_el'] = date('Y-m-d H:i:s');
-                   $activo['modificado_por'] = $usuario;
-                } else {
-                    $activo['creado_el'] = date('Y-m-d H:i:s');
-                   $activo['creado_por'] = $usuario;
-                }
-
-                $assets[] = $activo;
-                $images[] = [
-                    'etiqueta' => $item->etiqueta,
-                    'images'   => $item->images
-                ];
-            }
-        }
-
-    if (!empty($errors)) {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'There are some items with errors, fix them and try again',
-            'errors' => $errors
-        ], 422);
-    }
-
-   // ZIP
-$userFolder = "customers/" . $request->user()->nombre_cliente . "/images/inventario/temp/";
-$extractPath = null; 
-$files = [];
-
-if ($request->hasFile('zipfile')) {
     $zip = new \ZipArchive;
-    $open = $zip->open($request->file('zipfile')->getRealPath()) === TRUE;
-
-    if ($open !== TRUE) {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Unable to open zip file'
-        ], 400);
-    }
+    if ($zip->open($request->file('zipfile')->getRealPath()) !== TRUE) return $files;
 
     $extractPath = $userFolder . 'zip_' . time();
-    if (!Storage::exists($extractPath)) {
-        Storage::makeDirectory($extractPath);
-    }
+    if (!Storage::exists($extractPath)) Storage::makeDirectory($extractPath);
 
     $fullExtractPath = Storage::path($extractPath);
     $zip->extractTo($fullExtractPath);
     $zip->close();
 
-
     $rii = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($fullExtractPath));
     $customkey = 0;
 
     foreach ($rii as $file) {
-        if ($file->isFile()) {
-            $uploadedFile = new \Illuminate\Http\UploadedFile(
-                $file->getPathname(),
-                $file->getFilename(),
-                mime_content_type($file->getPathname()),
-                null,
-                true
-            );
+        if (!$file->isFile()) continue;
 
-            $files[$customkey] = [
-                'file' => $uploadedFile,
-                'filename' => $file->getFilename(),
-                'etiquetas' =>  []
-            ];
+        $uploadedFile = new \Illuminate\Http\UploadedFile(
+            $file->getPathname(),
+            $file->getFilename(),
+            mime_content_type($file->getPathname()),
+            null,
+            true
+        );
 
-            foreach ($images as $key => $img) {
-                foreach ($img['images'] as $path) {
-                    $filename = basename($path);
-                    if ($filename == $file->getFilename()) {
-                        $files[$customkey]['etiquetas'][] = $img['etiqueta'];
-                    }
+        $files[$customkey] = [
+            'file' => $uploadedFile,
+            'filename' => $file->getFilename(),
+            'etiquetas' => []
+        ];
+
+        foreach ($images as $img) {
+            foreach ($img['images'] as $path) {
+                if (basename($path) == $file->getFilename()) {
+                    $files[$customkey]['etiquetas'][] = $img['etiqueta'];
                 }
             }
-
-            $customkey++;
         }
+        $customkey++;
     }
-} else {
-    $files = [];
+
+    return $files;
 }
 
-$failed = [];
-$saved = [];
-$imagesCollection = collect($images);
 
-foreach ($assets as $activo) {
-    $existsInv = Inventario::where('etiqueta', '=', $activo['etiqueta'])->first();
-    $existsCrud = CrudActivo::where('etiqueta', '=', $activo['etiqueta'])->first();
+private function guardarActivosConImagenes(array $assets, array $files, string $cliente)
+{
+    $saved = [];
+    $failed = [];
+    $paths = [];
 
-    if ((!$existsInv && !$existsCrud)) {
-        // Crear nuevo registro si no existe en ambas tablas
-        $asset = Inventario::create($activo);
-        $saved[] = $asset->etiqueta;
+    $id_img = DB::table('inv_imagenes')->max('id_img') + 1;
+    $idsi = [];
 
-        $imgsAndTag = $imagesCollection->firstWhere('etiqueta', $asset->etiqueta);
 
-        if ($asset->id_img && $asset->id_img > 0 && (!$imgsAndTag['images'] || count($imgsAndTag['images']) === 0)) {
-
-            $imagenes = DB::table('inv_imagenes')
-                ->where('id_img', $asset->id_img)
-                ->get();
-
-            $newIDImg = DB::table('inv_imagenes')->max('id_img') + 1;
-            $asset->id_img = $newIDImg;
-            $asset->save();
-
-            $origen = 'SAFIN_APP OFFLINE';
-            $filename = '9999_' . $asset->etiqueta . '_' . uniqid() . '.jpg';
-
-            foreach ($imagenes as $img) {
-                DB::table('inv_imagenes')->insert([
-                    'id_img'     => $newIDImg,
-                    'origen'     => $origen,
-                    'etiqueta'   => $asset->etiqueta,
-                    'picture'    => $filename . '.jpg',
-                    'url_imagen' => $img->url_imagen,
-                    'url_picture'   => $img->url_picture,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
-        }
-
-    } elseif ($activo['crud_activo_estado'] == 3 && $existsInv) {
-        $existsInv->update($activo);
-        $saved[] = $activo['etiqueta'];
-        continue; 
-
-    } else {
-        $failed[] = $activo['etiqueta'];
-    }
-}
-
-$id_img = DB::table('inv_imagenes')->max('id_img') + 1;
-$idsi = [];
-
-foreach ($files as $file) {
-    if (count($file['etiquetas']) > 0) {
+    foreach ($files as $file) {
         foreach ($file['etiquetas'] as $etiqueta) {
             if (!isset($idsi[$etiqueta])) {
                 $idsi[$etiqueta] = $id_img;
@@ -1213,22 +1121,41 @@ foreach ($files as $file) {
             }
         }
     }
-}
 
-$paths = [];
-$origen = 'SAFIN_APP_OFFLINE';
+   
+    foreach ($assets as &$activo) {
+        if (isset($idsi[$activo['etiqueta']])) {
+            $activo['id_img'] = $idsi[$activo['etiqueta']];
+        } else {
+          
+            $activo['id_img'] = $activo['id_img'] ?? 1;
+        }
 
-foreach ($files as $filekey => $file) {
-    if (count($file['etiquetas']) > 0) {
+        $existsInv = Inventario::where('etiqueta', $activo['etiqueta'])->first();
+        $existsCrud = CrudActivo::where('etiqueta', $activo['etiqueta'])->first();
+
+        if (!$existsInv && !$existsCrud) {
+            $asset = Inventario::create($activo);
+            $saved[] = $asset->etiqueta;
+        } elseif ($activo['crud_activo_estado'] == 3 && $existsInv) {
+            $existsInv->update($activo);
+            $saved[] = $activo['etiqueta'];
+        } else {
+            $failed[] = $activo['etiqueta'];
+        }
+    }
+
+    $origen = 'SAFIN_APP_OFFLINE';
+
+    
+    foreach ($files as $filekey => $file) {
         foreach ($file['etiquetas'] as $etiqueta) {
             $activo = collect($assets)->firstWhere('etiqueta', $etiqueta);
-
             if ($activo && $activo['crud_activo_estado'] == 3) continue;
 
             $filename = '9999_' . $etiqueta . '_' . $filekey . '.jpg';
-
             $path = $file['file']->storeAs(
-                PictureSafinService::getImgSubdir($request->user()->nombre_cliente),
+                PictureSafinService::getImgSubdir($cliente),
                 $filename,
                 'taxoImages'
             );
@@ -1240,7 +1167,7 @@ foreach ($files as $filekey => $file) {
             $img->etiqueta = $etiqueta;
             $img->origen = $origen;
             $img->picture = $filename;
-            $img->id_img = $idsi[$etiqueta];
+            $img->id_img = $idsi[$etiqueta]; 
             $img->url_imagen = $url;
             $img->url_picture = $url_pict;
             $img->save();
@@ -1248,34 +1175,13 @@ foreach ($files as $filekey => $file) {
             $paths[] = $url;
         }
     }
-}
 
-if ($extractPath && Storage::exists($extractPath)) {
-    $allFiles = Storage::allFiles($extractPath);
-    foreach ($allFiles as $filePath) {
-        Storage::delete($filePath);
+    foreach ($files as $file) {
+        Storage::delete($file['file']->getPathname());
     }
-    Storage::deleteDirectory($extractPath);
+
+    return [$saved, $failed, $paths];
 }
-
-return response()->json([
-    'status' => 'OK',
-    'message' => 'items created sucssessfuly',
-    'data' => [
-        'items' => $saved,
-        'fails' => count($failed),
-        'saved' => count($saved),
-        'found_files' => count($paths),
-        'failed_tags' => $failed,
-        'image_urls' => $paths
-    ]
-]);
-
-}
-
-
-
-
 
 
     protected function rules()

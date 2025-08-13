@@ -130,6 +130,9 @@ class EmplazamientoAllResource extends JsonResource
             ];
         });
 
+         $emplazamiento = [
+            'detalle'=> 'Detalle General',
+        ];
 
         if (isset($this->requirePunto) && $this->requirePunto) {
             $emplazamiento['ubicacionPunto'] = UbicacionGeograficaResource::make($this->ubicacionPunto()->first());

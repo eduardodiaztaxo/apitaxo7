@@ -134,6 +134,7 @@ class EmplazamientoResource extends JsonResource
             'nombre' => $this->descripcionUbicacion,
             'idAgenda' => $this->idAgenda,
             'idUbicacionN2' => $this->idUbicacionN2,
+            'detalle'=> 'Detalle Emplazamiento (N3)',
             'num_nivel' => 'N3',
             'newApp' => $this->newApp,
             'modo' => $this->modo,
