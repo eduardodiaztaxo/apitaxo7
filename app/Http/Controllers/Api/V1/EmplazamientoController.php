@@ -306,6 +306,7 @@ public function moverEmplazamientos(Request $request, string $codigoUbicacion, i
         }
 
         $idEmplazamiento = $emplaObj->idUbicacionN1;
+        $nombre = $emplaObj->descripcionUbicacion;
         $codigoUbicacion = (string) $emplaObj->codigoUbicacion;
     }
     // Nivel 2
@@ -327,6 +328,7 @@ public function moverEmplazamientos(Request $request, string $codigoUbicacion, i
         }
 
         $idEmplazamiento = $emplaObj->idUbicacionN2;
+        $nombre = $emplaObj->descripcionUbicacion;
         $codigoUbicacion = (string) $emplaObj->codigoUbicacion;
     }
     // Nivel 3
@@ -348,6 +350,7 @@ public function moverEmplazamientos(Request $request, string $codigoUbicacion, i
         }
 
         $idEmplazamiento = $emplaObj->idUbicacionN3;
+        $nombre = $emplaObj->descripcionUbicacion;
         $codigoUbicacion = (string) $emplaObj->codigoUbicacion;
     }
 
@@ -385,11 +388,11 @@ public function moverEmplazamientos(Request $request, string $codigoUbicacion, i
     }
 
     return response()->json([
-        'status' => 'OK',
-        'data' => [
+         [
             'id' => $idEmplazamiento,
             'ciclo_id' => $ciclo_id,
-            'codigoUbicacion' => $codigoUbicacion
+            'codigoUbicacion' => $codigoUbicacion,
+            'nombre' => $nombre
         ]
     ]);
 }

@@ -184,6 +184,10 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('ciclos/{ciclo}/zones/{zona}/Subemplazamientos/{agenda_id}', [ZonaEmplazamientosController::class, 'CycleCatsNivel3']);
 
     Route::get('ciclos/{ciclo}/emplazamientosN1/{agenda_id}', [ZonaEmplazamientosController::class, 'CycleCatsNivel1']);
+    
+    Route::get('ciclos/{ciclo}/emplazamientos-select-n2/{agenda_id}', [ZonaEmplazamientosController::class, 'selectEmplazamientosN2']);
+
+    Route::get('ciclos/{ciclo}/emplazamientos-select-n3/{agenda_id}', [ZonaEmplazamientosController::class, 'selectEmplazamientosN3']);
 
     Route::get('mover-emplazamientos/{codigoUbicacion}/{ciclo_id}/{agenda_id}/{etiqueta}', [EmplazamientoController::class, 'moverEmplazamientos']);
 

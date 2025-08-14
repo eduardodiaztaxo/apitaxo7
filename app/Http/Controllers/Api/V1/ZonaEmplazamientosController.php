@@ -152,6 +152,83 @@ class ZonaEmplazamientosController extends Controller
         return response()->json(EmplazamientoNivel3Resource::collection($emplazamientos), 200);
     }
 
+    
+
+    public function selectEmplazamientosN2(Request $request, int $ciclo, int $agenda_id)
+{
+    $zonaObjs = Emplazamiento::where('idAgenda', '=', $agenda_id)->get();
+
+     $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json([
+                'status' => 'NOK',
+                'message' => 'Ciclo no encontrado',
+                'code' => 404
+            ], 404);
+        }
+
+        $emplazamientos = collect();
+
+        foreach ($zonaObjs as $zonaObj) {
+            $emplaCats = $cicloObj->zoneEmplazamientosWithCats($zonaObj)->pluck('idUbicacionN2')->toArray();
+
+
+
+            $subEmplas = empty($emplaCats)
+                ? $zonaObj->emplazamientos()->get()
+                : $zonaObj->emplazamientos()->whereIn('idUbicacionN2', $emplaCats)->get();
+
+            foreach ($subEmplas as $sub) {
+                $sub->cycle_id = $ciclo;
+                $emplazamientos->push($sub);
+            }
+        }
+
+
+    return response()->json(EmplazamientoResource::collection($emplazamientos), 200);
+}
+
+  public function selectEmplazamientosN3(Request $request, int $ciclo, int $agenda_id)
+{
+    $zonaObjs = EmplazamientoN3::where('idAgenda', '=', $agenda_id)->get();
+
+   if ($zonaObjs->isEmpty()) {
+            return response()->json([], 200);
+        }
+
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json([
+                'status' => 'NOK',
+                'message' => 'Ciclo no encontrado',
+                'code' => 404
+            ], 404);
+        }
+
+        $emplazamientos = collect();
+
+        foreach ($zonaObjs as $zonaObj) {
+            $emplaCats = $cicloObj->zoneSubEmplazamientosWithCats($zonaObj)->pluck('idUbicacionN3')->toArray();
+
+
+
+            $subEmplas = empty($emplaCats)
+                ? $zonaObj->subemplazamientosNivel3()->get()
+                : $zonaObj->subemplazamientosNivel3()->whereIn('idUbicacionN3', $emplaCats)->get();
+
+            foreach ($subEmplas as $sub) {
+                $sub->cycle_id = $ciclo;
+                $emplazamientos->push($sub);
+            }
+        }
+
+
+
+        return response()->json(EmplazamientoNivel3Resource::collection($emplazamientos), 200);
+}
+
   public function CycleCatsNivel1(Request $request, int $ciclo, int $agenda_id)
 {
     $zonaObjs = EmplazamientoN1::where('idAgenda', '=', $agenda_id)->get();
