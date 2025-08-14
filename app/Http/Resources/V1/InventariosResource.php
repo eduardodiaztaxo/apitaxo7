@@ -67,24 +67,45 @@ class InventariosResource extends JsonResource
             ->where('idLista', $activo->estado)
             ->value('descripcion');
 
+        // Buscar en N2
         $subEmplazamiento = DB::table('ubicaciones_n2')
             ->where('idUbicacionN2', $activo->idUbicacionN2)
-            ->select('descripcionUbicacion', 'codigoUbicacion', 'idAgenda')
+            ->where('idAgenda', $activo->idUbicacionGeo)
+            ->select('idUbicacionN2', 'descripcionUbicacion', 'codigoUbicacion')
             ->first();
 
+        // Si no está en N2, buscar en N3
         if (!$subEmplazamiento) {
             $subEmplazamiento = DB::table('ubicaciones_n3')
-            ->where('idUbicacionN3', $activo->idUbicacionN3)
-            ->select('descripcionUbicacion', 'codigoUbicacion', 'idAgenda')
-            ->first();
+                ->where('idUbicacionN3', $activo->idUbicacionN3)
+                ->where('idAgenda', $activo->idUbicacionGeo)
+                ->select('idUbicacionN3', 'descripcionUbicacion', 'codigoUbicacion')
+                ->first();
         }
 
         $codigoUbicacionN1 = $activo->codigoUbicacion_N1 ?? '';
-
         $emplazamiento = DB::table('ubicaciones_n1')
             ->where('codigoUbicacion', $codigoUbicacionN1)
-            ->select('descripcionUbicacion')
+            ->where('idAgenda', $activo->idUbicacionGeo)
+            ->select('idUbicacionN1', 'descripcionUbicacion', 'codigoUbicacion')
             ->first();
+
+        // Asignar valores finales
+        if ($subEmplazamiento) {
+            if (isset($subEmplazamiento->idUbicacionN2)) {
+                $idFinal = $subEmplazamiento->idUbicacionN2;
+            } elseif (isset($subEmplazamiento->idUbicacionN3)) {
+                $idFinal = $subEmplazamiento->idUbicacionN3;
+            }
+            $codigoUbicacionFinal = $subEmplazamiento->codigoUbicacion ?? '';
+        } elseif ($emplazamiento) {
+            $idFinal = $emplazamiento->idUbicacionN1;
+            $codigoUbicacionFinal = $emplazamiento->codigoUbicacion ?? '';
+        } else {
+            $codigoUbicacionFinal = '';
+            $idFinal = 0;
+        }
+
 
         $direccion = DB::table('ubicaciones_geograficas')
             ->where('idUbicacionGeo', $activo->idUbicacionGeo)
@@ -140,16 +161,20 @@ class InventariosResource extends JsonResource
             'update_inv'           => $activo->update_inv,
             'foto4'                => $fotoUrl,
             'emplazamiento'        => [
-                'nombre' => $emplazamiento->descripcionUbicacion ?? '',
+                'id'                => $idFinal,
+                'nombre'            => $emplazamiento->descripcionUbicacion ?? '',
+                'codigoUbicacion'   => $codigoUbicacionFinal,
+                'idAgenda'          => $activo->idUbicacionGeo,
                 'zone_address' => [
                     'descripcionUbicacion' => $subEmplazamiento->descripcionUbicacion ?? '',
                 ],
             ],
            
             'ubicacion' => [
-                'direccion' => $direccion->direccion ?? 'No disponible',
-                'region'    => $region->descripcion ?? 'No disponible',
-                'comuna'    => $comuna->descripcion ?? 'No disponible',
+                'idUbicacionGeo' => $activo->idUbicacionGeo,
+                'direccion'      => $direccion->direccion ?? 'No disponible',
+                'region'         => $region->descripcion ?? 'No disponible',
+                'comuna'         => $comuna->descripcion ?? 'No disponible',
             ],
         ];
     }
