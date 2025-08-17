@@ -110,6 +110,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('bienes_grupo_familia/{idCiclo}', [DatosActivosController::class, 'bienesGrupoFamilia']);
 
+    Route::get('bienes-grupo-familia/{cycle_id}', [DatosActivosController::class, 'showAllByBienesGrupoFamilia']);
+
     Route::get('buscar_grupo_familia/{id_familia}', [DatosActivosController::class, 'buscarGrupoFamilia']);
 
     Route::get('colores', [DatosActivosController::class, 'indiceColores']);
@@ -230,6 +232,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::post('Subemplazamientos/nuevo', [EmplazamientoController::class, 'createSubEmplazamientosNivel3']);
 
     Route::get('ciclos/{ciclo}/emplazamientos/{emplazamiento}', [CiclosEmplazamientosController::class, 'show']);
+
+    Route::get('ciclos/{ciclo}/emplazamientos/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssets']);
 
     Route::post('auditorias/procesar-conteo', [InventarioConteoController::class, 'processConteo']);
 

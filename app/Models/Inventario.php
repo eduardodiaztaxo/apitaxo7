@@ -87,6 +87,47 @@ class Inventario extends Model
 
     public function imagen()
     {
-        return $this->belongsTo(Inv_imagenes::class, 'id_img', 'id_img');
+        return $this->hasMany(Inv_imagenes::class, 'id_img', 'id_img');
+    }
+
+    public function imagenes()
+    {
+        return $this->hasMany(Inv_imagenes::class, 'id_img', 'id_img');
+    }
+
+
+    public function grupo()
+    {
+        return $this->belongsTo(Grupo::class, 'id_grupo', 'id_grupo');
+    }
+
+    public function familia()
+    {
+        return $this->belongsTo(Familia::class, 'id_familia', 'id_familia');
+    }
+
+    public function estadoBien()
+    {
+        return $this->belongsTo(IndiceLista13::class, 'idLista', 'estado');
+    }
+
+    public function addressPunto()
+    {
+        return $this->belongsTo(UbicacionGeografica::class, 'idUbicacionGeo', 'idUbicacionGeo');
+    }
+
+    public function zonaN1()
+    {
+        return $this->belongsTo(ZonaPunto::class, 'idUbicacionN1', 'idUbicacionN1');
+    }
+
+    public function emplazamientoN2()
+    {
+        return $this->belongsTo(EmplazamientoN2::class, 'idUbicacionN2', 'idUbicacionN2');
+    }
+
+    public function emplazamientoN3()
+    {
+        return $this->belongsTo(EmplazamientoN3::class, 'idUbicacionN3', 'idUbicacionN3');
     }
 }

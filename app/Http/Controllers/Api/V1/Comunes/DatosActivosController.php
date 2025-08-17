@@ -22,6 +22,7 @@ use App\Models\IndiceListaForma;
 use App\Models\IndiceListaEstado;
 use App\Models\Inv_ciclos_categorias;
 use Illuminate\Support\Facades\Auth;
+use App\Models\InvCiclo;
 use Illuminate\Support\Facades\DB;
 
 
@@ -102,6 +103,9 @@ class DatosActivosController extends Controller
 
         return response()->json($collection, 200);
     }
+
+
+
     public function bienesGrupoFamilia($idCiclo)
     {
         // Paso 1: Obtener familias con estado ≠ 0
@@ -191,6 +195,79 @@ class DatosActivosController extends Controller
             });
 
         return response()->json($bienes->values(), 200);
+    }
+
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $cycle_id
+     * @return \Illuminate\Http\Response
+     */
+    public function showAllByBienesGrupoFamilia(Request $request, int $cycle_id)
+    {
+
+        $objCycle = InvCiclo::find($cycle_id);
+
+
+        if (!$objCycle) {
+            return response()->json([
+                'message' => 'Ciclo no encontrado'
+            ], 404);
+        }
+
+        $complete_word = trim($request->keyword);
+
+        $possible_name_words = keyword_search_terms_from_keyword($request->keyword);
+
+        if (
+            !!keyword_is_searcheable($request->keyword)
+        ) {
+
+
+
+            $bienesGrupoFamilia = $objCycle->bienesGrupoFamiliaByCycle()
+                ->where(function ($query) use ($complete_word) {
+                    $query->where('descripcion', 'LIKE', "%$complete_word%");
+                    $query->orWhere('descripcion_grupo', 'LIKE', "%$complete_word%");
+                    $query->orWhere('descripcion_familia', 'LIKE', "%$complete_word%");
+                });
+
+
+
+
+            if (count($possible_name_words) > 1) {
+
+                $bienesGrupoFamilia = $bienesGrupoFamilia->orWhere(function ($query) use ($possible_name_words) {
+                    foreach ($possible_name_words as $palabra) {
+                        $query->where('descripcion', 'LIKE', "%$palabra%");
+                    }
+                });
+
+                $bienesGrupoFamilia = $bienesGrupoFamilia->orWhere(function ($query) use ($possible_name_words) {
+                    foreach ($possible_name_words as $palabra) {
+                        $query->where('descripcion_grupo', 'LIKE', "%$palabra%");
+                    }
+                });
+
+                $bienesGrupoFamilia = $bienesGrupoFamilia->orWhere(function ($query) use ($possible_name_words) {
+                    foreach ($possible_name_words as $palabra) {
+                        $query->where('descripcion_familia', 'LIKE', "%$palabra%");
+                    }
+                });
+            }
+
+
+            $bienesGrupoFamilia = $bienesGrupoFamilia->get();
+        } else {
+            $bienesGrupoFamilia = $objCycle->bienesGrupoFamiliaByCycle()->get();
+        }
+
+
+
+
+        return response()->json($bienesGrupoFamilia, 200);
     }
 
 
@@ -296,7 +373,7 @@ class DatosActivosController extends Controller
         return response()->json($collection, 200);
     }
 
-public function getNombre()
+    public function getNombre()
     {
         $user = Auth::user();
         $usuario = $user->name;
