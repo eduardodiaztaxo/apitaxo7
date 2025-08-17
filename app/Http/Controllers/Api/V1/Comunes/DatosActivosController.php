@@ -216,26 +216,21 @@ class DatosActivosController extends Controller
             ], 404);
         }
 
-        $possible_name_words = array_filter(
-            explode(' ', $request->keyword),
-            function ($palabra) {
-                return strlen($palabra) > 3;
-            }
-        );
+        $complete_word = trim($request->keyword);
+
+        $possible_name_words = keyword_search_terms_from_keyword($request->keyword);
 
         if (
-            $request->keyword && $request->keyword != '' &&
-            count($possible_name_words) > 0 &&
-            strlen($possible_name_words[0]) > 2
+            !!keyword_is_searcheable($request->keyword)
         ) {
 
 
 
             $bienesGrupoFamilia = $objCycle->bienesGrupoFamiliaByCycle()
-                ->where(function ($query) use ($possible_name_words) {
-                    $query->where('descripcion', 'LIKE', "%$possible_name_words[0]%");
-                    $query->orWhere('descripcion_grupo', 'LIKE', "%$possible_name_words[0]%");
-                    $query->orWhere('descripcion_familia', 'LIKE', "%$possible_name_words[0]%");
+                ->where(function ($query) use ($complete_word) {
+                    $query->where('descripcion', 'LIKE', "%$complete_word%");
+                    $query->orWhere('descripcion_grupo', 'LIKE', "%$complete_word%");
+                    $query->orWhere('descripcion_familia', 'LIKE', "%$complete_word%");
                 });
 
 

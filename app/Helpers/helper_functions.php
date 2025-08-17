@@ -182,3 +182,37 @@ function format_chilean_rut($rut)
     // Return the formatted RUT with a dash before the verifier digit
     return $formattedBody . '-' . strtoupper($verifier);
 }
+
+/**
+ * Check if keyword can be searched
+ * 
+ * @param $keyword
+ * 
+ * return {boolean}
+ */
+function keyword_is_searcheable($keyword)
+{
+
+
+    $possible_name_words = keyword_search_terms_from_keyword($keyword);
+
+    return $keyword && $keyword != '' && count($possible_name_words) > 0 && strlen($possible_name_words[0]) > 2;
+}
+
+/**
+ * get terms or words from phrase or keyword
+ * 
+ * @param $keyword
+ * 
+ * return {boolean}
+ */
+function keyword_search_terms_from_keyword($keyword, int $length_word = 3)
+{
+
+    return array_filter(
+        explode(' ', $keyword),
+        function ($palabra) use ($length_word) {
+            return strlen($palabra) > $length_word;
+        }
+    );
+}
