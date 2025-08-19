@@ -33,30 +33,77 @@ class EmplazamientoN1 extends Model
         'newApp',
         'modo'
     ];
-            public function subemplazamientos()
-        {
-            
-            return $this->hasMany(EmplazamientoN1::class, 'idAgenda', 'idAgenda')->where('codigoUbicacion', $this->codigoUbicacion);
+    public function subemplazamientos()
+    {
 
-        }
+        return $this->hasMany(EmplazamientoN1::class, 'idAgenda', 'idAgenda')->where('codigoUbicacion', $this->codigoUbicacion);
+    }
 
-        public function emplazamientosN2()
-        {
-            return $this->hasMany(Emplazamiento::class, 'idAgenda', 'idAgenda');
-        }
-        public function emplazamientosN3()
-        {
-            return $this->hasMany(EmplazamientoN3::class, 'idAgenda', 'idAgenda');
-        }
+    public function emplazamientosN2()
+    {
+        return $this->hasMany(Emplazamiento::class, 'idAgenda', 'idAgenda');
+    }
+    public function emplazamientosN3()
+    {
+        return $this->hasMany(EmplazamientoN3::class, 'idAgenda', 'idAgenda');
+    }
+
+
+    public function inv_activos()
+    {
+        return $this->inv_activos_with_child_levels()->whereRaw('LENGTH(inv_inventario.codigoUbicacion_N2) < 2');
+    }
+
+    public function inv_activos_with_child_levels()
+    {
+
+        $codigoUbicacion = $this->codigoUbicacion;
+
+        return Inventario::join('ubicaciones_n1', function (JoinClause $join) use ($codigoUbicacion) {
+            $join->on('inv_inventario.idUbicacionGeo', '=', 'ubicaciones_n1.idAgenda')
+                ->on('inv_inventario.codigoUbicacion_N1', '=', DB::raw("'$codigoUbicacion'"));
+        });
+        //return $this->hasMany(Inventario::class, 'idUbicacionN1', 'idUbicacionN1');
+    }
+
+    public function inv_group_families()
+    {
+        return $this->inv_group_families_with_child_levels()->whereRaw('LENGTH(inv_inventario.codigoUbicacion_N2) < 2');
+    }
+
+    public function inv_group_families_with_child_levels()
+    {
+
+        $codigoUbicacion = $this->codigoUbicacion;
+
+        return Inventario::select(
+            'ubicaciones_n1.codigoUbicacion',
+            DB::raw("'n1' AS place_level"),
+            DB::raw("'1' AS isSub"),
+            'inv_inventario.id_ciclo',
+            'inv_inventario.id_grupo',
+            'inv_inventario.id_familia',
+            'dp_grupos.descripcion_grupo',
+            'dp_familias.descripcion_familia',
+            DB::raw('COUNT(*) as total')
+        )->join('ubicaciones_n1', function (JoinClause $join) use ($codigoUbicacion) {
+            $join->on('inv_inventario.idUbicacionGeo', '=', 'ubicaciones_n1.idAgenda')
+                ->on('inv_inventario.codigoUbicacion_N1', '=', DB::raw("'$codigoUbicacion'"));
+        })
+            ->join('dp_familias', 'inv_inventario.id_familia', 'dp_familias.id_familia')
+            ->join('dp_grupos', 'inv_inventario.id_grupo', 'dp_grupos.id_grupo')
+            ->groupBy('ubicaciones_n1.codigoUbicacion', 'inv_inventario.id_ciclo', 'inv_inventario.id_grupo', 'inv_inventario.id_familia', 'dp_grupos.descripcion_grupo', 'dp_familias.descripcion_familia');
+    }
+
 
 
     public function activos()
     {
         return $this->hasMany(CrudActivo::class, 'ubicacionOrganicaN1', 'codigoUbicacion')->where('ubicacionGeografica', $this->idAgenda);
     }
-    
 
-     public function activos_with_cats_by_cycle($cycle_id)
+
+    public function activos_with_cats_by_cycle($cycle_id)
     {
         $queryBuilder = CrudActivo::select('crud_activos.*')->join('inv_ciclos_puntos', 'crud_activos.ubicacionGeografica', 'inv_ciclos_puntos.idPunto')
             ->join('inv_ciclos', 'inv_ciclos.idCiclo', '=', 'inv_ciclos_puntos.idCiclo')
@@ -73,15 +120,21 @@ class EmplazamientoN1 extends Model
     }
 
 
-       public function zoneEmplazamientosN1()
-{
+    public function zoneEmplazamientosN1()
+    {
 
-    return $this->hasMany(EmplazamientoN1::class, 'idAgenda', 'idAgenda');
+        return $this->hasMany(EmplazamientoN1::class, 'idAgenda', 'idAgenda');
+    }
 
-}
+
+    public function zonaPunto()
+    {
+        return $this->where('idUbicacionN1', $this->idUbicacionN1);
+    }
+
+
     public function ubicacionPunto()
     {
         return $this->belongsTo(UbicacionGeografica::class, 'idAgenda', 'idUbicacionGeo');
     }
-
 }

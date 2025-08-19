@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Api\V2;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\V2\EmplazamientoNivel2Resource;
-use App\Models\EmplazamientoN2;
+use App\Http\Resources\V2\EmplazamientoNivel1Resource;
+use App\Models\EmplazamientoN1;
 use Illuminate\Http\Request;
 
-class EmplazamientoNivel2Controller extends Controller
+class EmplazamientoNivel1Controller extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -40,18 +40,16 @@ class EmplazamientoNivel2Controller extends Controller
         //
     }
 
-
     /**
      * Display the specified resource.
      *
-     * @param int $ciclo
      * @param  int  $emplazamiento_id
      * @return \Illuminate\Http\Response
      */
     public function show(int $ciclo, int $emplazamiento)
     {
 
-        $emplaObj = EmplazamientoN2::find($emplazamiento);
+        $emplaObj = EmplazamientoN1::find($emplazamiento);
 
         if (!$emplaObj) {
             return response()->json(['status' => 'error', 'code' => 404], 404);
@@ -62,10 +60,13 @@ class EmplazamientoNivel2Controller extends Controller
 
         $emplaObj->cycle_id = $ciclo;
 
-        $resource = EmplazamientoNivel2Resource::make($emplaObj);
+        $resource = EmplazamientoNivel1Resource::make($emplaObj);
+
+
 
         return response()->json($resource);
     }
+
     /**
      * Show the form for editing the specified resource.
      *

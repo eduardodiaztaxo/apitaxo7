@@ -26,7 +26,9 @@ use App\Http\Controllers\Api\V1\Maps\MapPolygonController;
 use App\Http\Controllers\Api\V1\Responsible\AssignResponsibleController;
 use App\Http\Controllers\Api\V1\ResponsibleController;
 use App\Http\Controllers\Api\V1\UbicacionesActivosController;
+use App\Http\Controllers\Api\V2\EmplazamientoNivel1Controller;
 use App\Http\Controllers\Api\V2\EmplazamientoNivel2Controller;
+use App\Http\Controllers\Api\V2\EmplazamientoNivel3Controller;
 
 /*
 |--------------------------------------------------------------------------
@@ -234,7 +236,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('ciclos/{ciclo}/emplazamientos/{emplazamiento}', [CiclosEmplazamientosController::class, 'show']);
 
-    Route::get('ciclos/{ciclo}/emplazamientos/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssets']);
+
 
     Route::get('ciclos/{ciclo}/emplazamientos/{emplazamiento}/group-families', [CiclosEmplazamientosController::class, 'showGroupFamilies']);
 
@@ -270,12 +272,30 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::apiResource('maps/markers', MapMarkerController::class)->only(['index', 'store', 'update', 'destroy']);
 
     Route::get('maps/areas/{id}/areas', [MapPolygonController::class, 'showMarkers'])->name('maps.areas.show');
+
+    Route::get('ciclos/{ciclo}/emplazamientos/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssetsN2']);
 });
 
 
 Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2')->group(function () {
 
+    Route::get('ciclos/{ciclo}/emplazamientos-n1/{emplazamiento}', [EmplazamientoNivel1Controller::class, 'show']);
+
     Route::get('ciclos/{ciclo}/emplazamientos-n2/{emplazamiento}', [EmplazamientoNivel2Controller::class, 'show']);
+
+    Route::get('ciclos/{ciclo}/emplazamientos-n3/{emplazamiento}', [EmplazamientoNivel3Controller::class, 'show']);
+
+    Route::get('ciclos/{ciclo}/emplazamientos-n1/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssetsN1']);
+
+    Route::get('ciclos/{ciclo}/emplazamientos-n2/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssetsN2']);
+
+    Route::get('ciclos/{ciclo}/emplazamientos-n3/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssetsN3']);
+
+    Route::get('ciclos/{ciclo}/emplazamientos-n1/{emplazamiento}/group-families', [CiclosEmplazamientosController::class, 'showGroupFamiliesN1']);
+
+    Route::get('ciclos/{ciclo}/emplazamientos-n2/{emplazamiento}/group-families', [CiclosEmplazamientosController::class, 'showGroupFamiliesN2']);
+
+    Route::get('ciclos/{ciclo}/emplazamientos-n3/{emplazamiento}/group-families', [CiclosEmplazamientosController::class, 'showGroupFamiliesN3']);
 });
 
 Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {

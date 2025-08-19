@@ -30,18 +30,57 @@ class EmplazamientoN3 extends Model
     ];
 
     public function subemplazamientosNivel3()
-{
-    
-    return $this->hasMany(EmplazamientoN3::class, 'idAgenda', 'idAgenda')->where('codigoUbicacion', $this->codigoUbicacion);
+    {
 
-}
+        return $this->hasMany(EmplazamientoN3::class, 'idAgenda', 'idAgenda')->where('codigoUbicacion', $this->codigoUbicacion);
+    }
 
     public function activos()
     {
         return $this->hasMany(CrudActivo::class, 'ubicacionOrganicaN3', 'codigoUbicacion')->where('ubicacionGeografica', $this->idAgenda);
     }
 
-     public function activos_with_cats_by_cycle($cycle_id)
+
+    public function inv_activos()
+    {
+        return $this->inv_activos_with_child_levels()->whereRaw('LENGTH(inv_inventario.codigoUbicacionN3) < 2');
+    }
+
+    public function inv_activos_with_child_levels()
+    {
+        return $this->hasMany(Inventario::class, 'idUbicacionN3', 'idUbicacionN3');
+    }
+
+    public function inv_group_families()
+    {
+        return $this->inv_group_families_with_child_levels()->whereRaw('LENGTH(inv_inventario.codigoUbicacionN4) < 2');
+    }
+
+    public function inv_group_families_with_child_levels()
+    {
+
+        $idUbicacionN3 = $this->idUbicacionN3;
+
+        return Inventario::select(
+            'ubicaciones_n3.codigoUbicacion',
+            DB::raw("'n1' AS place_level"),
+            DB::raw("'1' AS isSub"),
+            'inv_inventario.id_ciclo',
+            'inv_inventario.id_grupo',
+            'inv_inventario.id_familia',
+            'dp_grupos.descripcion_grupo',
+            'dp_familias.descripcion_familia',
+            DB::raw('COUNT(*) as total')
+        )->join('ubicaciones_n3', function (JoinClause $join) use ($idUbicacionN3) {
+            $join->on('inv_inventario.idUbicacionN3', '=', 'ubicaciones_n3.idUbicacionN3')
+                ->on('ubicaciones_n3.idUbicacionN3', '=', DB::raw($idUbicacionN3));
+        })
+            ->join('dp_familias', 'inv_inventario.id_familia', 'dp_familias.id_familia')
+            ->join('dp_grupos', 'inv_inventario.id_grupo', 'dp_grupos.id_grupo')
+            ->groupBy('ubicaciones_n3.codigoUbicacion', 'inv_inventario.id_ciclo', 'inv_inventario.id_grupo', 'inv_inventario.id_familia', 'dp_grupos.descripcion_grupo', 'dp_familias.descripcion_familia');
+    }
+
+    public function activos_with_cats_by_cycle($cycle_id)
     {
         $queryBuilder = CrudActivo::select('crud_activos.*')->join('inv_ciclos_puntos', 'crud_activos.ubicacionGeografica', 'inv_ciclos_puntos.idPunto')
             ->join('inv_ciclos', 'inv_ciclos.idCiclo', '=', 'inv_ciclos_puntos.idCiclo')
@@ -57,16 +96,15 @@ class EmplazamientoN3 extends Model
         return $queryBuilder;
     }
 
-public function zonaPunto()
-{
-    return ZonaPunto::where('idAgenda', $this->idAgenda)
-                    ->where('codigoUbicacion', substr($this->codigoUbicacion, 0, 2))
-                    ->first();
-}
+    public function zonaPunto()
+    {
+        return ZonaPunto::where('idAgenda', $this->idAgenda)
+            ->where('codigoUbicacion', substr($this->codigoUbicacion, 0, 2))
+            ->first();
+    }
 
     public function ubicacionPunto()
     {
         return $this->belongsTo(UbicacionGeografica::class, 'idAgenda', 'idUbicacionGeo');
     }
-
 }
