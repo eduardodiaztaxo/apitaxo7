@@ -136,8 +136,6 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::post('create-inventario', [InventariosController::class, 'createinventario']);
 
-    Route::post('clonar-inventario', [InventariosController::class, 'clonarInventario']);
-
     Route::get('configuracion/{id_grupo}', [InventariosController::class, 'configuracion']);
 
     Route::get('nombre-inputs', [InventariosController::class, 'nombreInputs']);
@@ -220,6 +218,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('emplazamientos/{emplazamiento}/{ciclo}/{codigoUbicacion}', [EmplazamientoController::class, 'show']);
 
     Route::get('todos-emplazamientos/{idAgenda}/{ciclo}', [EmplazamientoController::class, 'showTodos']);    
+    
+    Route::get('group-emplazamientos/{idAgenda}/{ciclo}', [EmplazamientoController::class, 'groupEmplazamientos']);    
 
     Route::put('emplazamientos/{id}', [EmplazamientoController::class, 'update']);
 

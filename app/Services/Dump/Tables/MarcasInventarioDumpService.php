@@ -74,7 +74,8 @@ class MarcasInventarioDumpService
                 ciclo_inventario INTEGER NOT NULL,
                 creadoPor TEXT,
                 fechaCreacion TEXT,
-                modo TEXT
+                modo TEXT,
+                offline INTEGER
             )
         ");
     }
@@ -96,7 +97,8 @@ class MarcasInventarioDumpService
                 ciclo_inventario,
                 creadoPor,
                 fechaCreacion,
-                modo
+                modo,
+                offline
     )
     VALUES (
                 :idLista,
@@ -108,7 +110,8 @@ class MarcasInventarioDumpService
                 :ciclo_inventario,
                 :creadoPor,
                 :fechaCreacion,
-                :modo
+                :modo,
+                :offline
     )
 ");
 
@@ -126,7 +129,8 @@ class MarcasInventarioDumpService
                 'ciclo_inventario' => $m->ciclo_inventario,
                 'creadoPor' => $m->creadoPor,
                 'fechaCreacion' => $m->fechaCreacion,
-                'modo' => $m->modo
+                'modo' => $m->modo,
+                'offline' => 0
             ]);
         }
     }

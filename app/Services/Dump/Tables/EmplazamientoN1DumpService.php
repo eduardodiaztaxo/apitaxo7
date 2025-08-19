@@ -92,7 +92,8 @@ class EmplazamientoN1DumpService implements DumpSQLiteInterface
                 detalle TEXT,
                 num_nivel TEXT,
                 newApp INTIGER DEFAULT 0,
-                modo TEXT
+                modo TEXT,
+                offline INTEGER
             );
         ");
     }
@@ -123,7 +124,8 @@ class EmplazamientoN1DumpService implements DumpSQLiteInterface
                 detalle,
                 num_nivel,
                 newApp,
-                modo
+                modo,
+                offline
             )
             VALUES (
                 :id,
@@ -141,7 +143,8 @@ class EmplazamientoN1DumpService implements DumpSQLiteInterface
                 :detalle,
                 :num_nivel,
                 :newApp,
-                :modo
+                :modo,
+                :offline
             )  
         ");
 
@@ -165,7 +168,8 @@ class EmplazamientoN1DumpService implements DumpSQLiteInterface
                 ':detalle' => $emplazamiento->detalle,
                 ':num_nivel' => $emplazamiento->num_nivel,
                 ':newApp' => $emplazamiento->newApp,
-                ':modo' => $emplazamiento->modo
+                ':modo' => $emplazamiento->modo,
+                ':offline' => 0
             ]);
         }
     }

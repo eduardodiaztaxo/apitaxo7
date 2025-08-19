@@ -8,6 +8,7 @@ use App\Http\Resources\V1\EmplazamientoNivel3Resource;
 use App\Http\Resources\V1\EmplazamientoNivel1Resource;
 use App\Http\Resources\V1\EmplazamientoAllResource;
 use App\Models\CrudActivo;
+use App\Models\InvCiclo;
 use App\Models\Emplazamiento;
 use App\Models\EmplazamientoN1;
 use App\Models\EmplazamientoN3;
@@ -285,6 +286,30 @@ public function showTodos(int $idAgenda, int $ciclo)
     return response()->json(EmplazamientoAllResource::make($emplaObj));
 }
 
+
+public function groupEmplazamientos(int $idAgenda, int $ciclo)
+{
+    $cicloObj = InvCiclo::find($ciclo);
+
+    if (!$cicloObj) {
+        return response()->json([
+            'status' => 'NOK',
+            'message' => 'Ciclo no encontrado',
+            'code' => 404
+        ], 404);
+    }
+
+    $activos = $cicloObj->activos_with_cats_by_cycle_emplazamiento($ciclo, $idAgenda);
+
+    return response()->json([
+        'status' => 'OK',
+        'message' => 'Emplazamientos obtenidos correctamente',
+        'data' => [
+            'emplazamientos' => $activos,
+        ],
+    ], 200);
+}
+
 public function moverEmplazamientos(Request $request, string $codigoUbicacion, int $ciclo_id, int $agenda_id, string $etiqueta)
 {
     // Nivel 1
@@ -365,11 +390,21 @@ public function moverEmplazamientos(Request $request, string $codigoUbicacion, i
 
     if (strlen($codigoUbicacion) === 2) {
         $updateData['codigoUbicacion_N1'] = $codigoUbicacion;
+        $updateData['idUbicacionN2'] = 0;
+        $updateData['codigoUbicacion_N2'] = 0;
+        $updateData['idUbicacionN3'] = 0;
+        $updateData['codigoUbicacionN3'] = 0;
     } elseif (strlen($codigoUbicacion) === 4) {
-        $updateData['idUbicacionN2'] = $emplaObj->id;
+        $updateData['codigoUbicacion_N1'] = 0;
+        $updateData['idUbicacionN2'] = $emplaObj->idUbicacionN2;
         $updateData['codigoUbicacion_N2'] = $codigoUbicacion;
+        $updateData['idUbicacionN3'] = 0;
+        $updateData['codigoUbicacionN3'] = 0;
     } elseif (strlen($codigoUbicacion) === 6) {
-        $updateData['idUbicacionN3'] = $emplaObj->id;
+        $updateData['codigoUbicacion_N1'] = 0;
+        $updateData['idUbicacionN2'] = 0;
+        $updateData['codigoUbicacion_N2'] = 0;
+        $updateData['idUbicacionN3'] = $emplaObj->idUbicacionN3;
         $updateData['codigoUbicacionN3'] = $codigoUbicacion;
     }
 

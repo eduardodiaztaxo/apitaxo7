@@ -74,9 +74,11 @@ class CiclosUbicacionesController extends Controller
         'usuario'               => $request->user()->name,
         'fechaCreacion'         => date('Y-m-d'),
         'id_estado'             => 2,
-        'auditoria_general'     => 0
+        'auditoria_general'     => 0,
+        'modo'                  => 'ONLINE',
     ]);
       
+        $ciclo = $request->ciclo_auditoria;
         $cicloObj = InvCiclo::find($ciclo);
 
         $puntos = $cicloObj->puntos()->get();
