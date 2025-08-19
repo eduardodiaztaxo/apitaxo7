@@ -25,7 +25,6 @@ class MarcasInventarioDumpService
         $this->pdo = $pdo;
 
         $this->cycle = $cycle;
-
     }
 
     /**
@@ -47,8 +46,8 @@ class MarcasInventarioDumpService
 
         $response = $datsdActivosCtrl->MarcasNuevasOfflineInventario($this->cycle);
 
-       $jsonContent = $response->getContent();
-       
+        $jsonContent = $response->getContent();
+
         // Decodificar el JSON a un arreglo asociativo
         $data = json_decode($jsonContent);
 
@@ -60,12 +59,12 @@ class MarcasInventarioDumpService
         $this->insert($data);
     }
 
-    
+
     public function createTable(): void
     {
         $this->pdo->exec("
             CREATE TABLE IF NOT EXISTS marcasInventario (
-                idLista INTEGER PRIMARY KEY AUTOINCREMENT,
+                idLista INTEGER,
                 idIndice INTEGER NOT NULL,
                 descripcion TEXT NOT NULL,
                 observacion TEXT NOT NULL,
@@ -78,12 +77,12 @@ class MarcasInventarioDumpService
             )
         ");
     }
- /**
+    /**
      *
      * @param \Illuminate\Http\Resources\Json\AnonymousResourceCollection $cycles Array of cycle objects to insert.
      * @return void
      */
-  public function insert(array|AnonymousResourceCollection $marcas): void
+    public function insert(array|AnonymousResourceCollection $marcas): void
     {
         $stmt = $this->pdo->prepare("
     INSERT INTO marcasInventario (

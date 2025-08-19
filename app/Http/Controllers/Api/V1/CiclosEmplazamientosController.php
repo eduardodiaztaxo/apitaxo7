@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\EmplazamientoResource;
+use App\Http\Resources\V1\GroupFamilyPlaceResumenResource;
 use App\Http\Resources\V2\InventariosResource;
 use App\Models\Emplazamiento;
 use App\Models\EmplazamientoN2;
@@ -131,6 +132,49 @@ class CiclosEmplazamientosController extends Controller
         return response()->json([
             'status' => 'OK',
             'data' => InventariosResource::collection($assets)
+        ]);
+    }
+
+    /**
+     * Display families of the specified resource.
+     *
+     * @param   int $ciclo 
+     * @param   int $emplazamiento
+     * @param   \Illuminate\Http\Request
+     * @return  \Illuminate\Http\Response
+     */
+    public function showGroupFamilies(int $ciclo, int $emplazamiento, Request $request)
+    {
+
+        $emplaN2Obj = EmplazamientoN2::find($emplazamiento);
+
+        if (!$emplaN2Obj) {
+            return response()->json(['status' => 'error', 'code' => 404], 404);
+        }
+
+
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json(['status' => 'error', 'code' => 404], 404);
+        }
+
+        if ($cicloObj->puntos()->where('idUbicacionGeo', $emplaN2Obj->idAgenda)->count() === 0) {
+            return response()->json(['status' => 'error', 'code' => 404, 'message' => 'El emplazamiento no se corresponde con el ciclo'], 404);
+        }
+
+
+        $queryBuilder = $emplaN2Obj->inv_group_families()->where('inv_inventario.id_ciclo', $cicloObj->idCiclo);
+
+
+        $family_place_resumen = $queryBuilder->get();
+
+
+
+        //
+        return response()->json([
+            'status' => 'OK',
+            'data' => GroupFamilyPlaceResumenResource::make($family_place_resumen)
         ]);
     }
 }

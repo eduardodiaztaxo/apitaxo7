@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\V1\Maps\MapPolygonController;
 use App\Http\Controllers\Api\V1\Responsible\AssignResponsibleController;
 use App\Http\Controllers\Api\V1\ResponsibleController;
 use App\Http\Controllers\Api\V1\UbicacionesActivosController;
+use App\Http\Controllers\Api\V2\EmplazamientoNivel2Controller;
 
 /*
 |--------------------------------------------------------------------------
@@ -186,7 +187,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('ciclos/{ciclo}/zones/{zona}/Subemplazamientos/{agenda_id}', [ZonaEmplazamientosController::class, 'CycleCatsNivel3']);
 
     Route::get('ciclos/{ciclo}/emplazamientosN1/{agenda_id}', [ZonaEmplazamientosController::class, 'CycleCatsNivel1']);
-    
+
     Route::get('ciclos/{ciclo}/emplazamientos-select-n2/{agenda_id}', [ZonaEmplazamientosController::class, 'selectEmplazamientosN2']);
 
     Route::get('ciclos/{ciclo}/emplazamientos-select-n3/{agenda_id}', [ZonaEmplazamientosController::class, 'selectEmplazamientosN3']);
@@ -221,7 +222,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('emplazamientos/{emplazamiento}/{ciclo}/{codigoUbicacion}', [EmplazamientoController::class, 'show']);
 
-    Route::get('todos-emplazamientos/{idAgenda}/{ciclo}', [EmplazamientoController::class, 'showTodos']);    
+    Route::get('todos-emplazamientos/{idAgenda}/{ciclo}', [EmplazamientoController::class, 'showTodos']);
 
     Route::put('emplazamientos/{id}', [EmplazamientoController::class, 'update']);
 
@@ -234,6 +235,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('ciclos/{ciclo}/emplazamientos/{emplazamiento}', [CiclosEmplazamientosController::class, 'show']);
 
     Route::get('ciclos/{ciclo}/emplazamientos/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssets']);
+
+    Route::get('ciclos/{ciclo}/emplazamientos/{emplazamiento}/group-families', [CiclosEmplazamientosController::class, 'showGroupFamilies']);
 
     Route::post('auditorias/procesar-conteo', [InventarioConteoController::class, 'processConteo']);
 
@@ -269,6 +272,11 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('maps/areas/{id}/areas', [MapPolygonController::class, 'showMarkers'])->name('maps.areas.show');
 });
 
+
+Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2')->group(function () {
+
+    Route::get('ciclos/{ciclo}/emplazamientos-n2/{emplazamiento}', [EmplazamientoNivel2Controller::class, 'show']);
+});
 
 Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
 

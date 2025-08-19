@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\EmplazamientoResource;
 use App\Http\Resources\V1\EmplazamientoNivel3Resource;
 use App\Http\Resources\V1\EmplazamientoNivel1Resource;
+use App\Http\Resources\V2\EmplazamientoNivel2Resource;
 use App\Models\InvCiclo;
 use App\Models\ZonaPunto;
 use App\Models\UbicacionGeografica;
@@ -45,10 +46,8 @@ class ZonaEmplazamientosController extends Controller
      * @return \Illuminate\Http\Response
      */
 
- 
-    public function store(Request $request){
-        
-    }
+
+    public function store(Request $request) {}
     /**
      * Display the specified resource.
      *
@@ -72,13 +71,13 @@ class ZonaEmplazamientosController extends Controller
     }
 
 
-  public function showByCycleCats(Request $request, int $ciclo, string $zona, int $agenda_id)
-{
-    $zonaObjs = Emplazamiento::where('codigoUbicacion', 'like', $zona . '%')
-                ->where('idAgenda', $agenda_id)
-                ->get();
+    public function showByCycleCats(Request $request, int $ciclo, string $zona, int $agenda_id)
+    {
+        $zonaObjs = Emplazamiento::where('codigoUbicacion', 'like', $zona . '%')
+            ->where('idAgenda', $agenda_id)
+            ->get();
 
-     $cicloObj = InvCiclo::find($ciclo);
+        $cicloObj = InvCiclo::find($ciclo);
 
         if (!$cicloObj) {
             return response()->json([
@@ -106,8 +105,8 @@ class ZonaEmplazamientosController extends Controller
         }
 
 
-    return response()->json(EmplazamientoResource::collection($emplazamientos), 200);
-}
+        return response()->json(EmplazamientoNivel2Resource::collection($emplazamientos), 200);
+    }
 
 
     public function CycleCatsNivel3(Request $request, int $ciclo, string $zona, int $agenda_id)
@@ -152,13 +151,13 @@ class ZonaEmplazamientosController extends Controller
         return response()->json(EmplazamientoNivel3Resource::collection($emplazamientos), 200);
     }
 
-    
+
 
     public function selectEmplazamientosN2(Request $request, int $ciclo, int $agenda_id)
-{
-    $zonaObjs = Emplazamiento::where('idAgenda', '=', $agenda_id)->get();
+    {
+        $zonaObjs = Emplazamiento::where('idAgenda', '=', $agenda_id)->get();
 
-     $cicloObj = InvCiclo::find($ciclo);
+        $cicloObj = InvCiclo::find($ciclo);
 
         if (!$cicloObj) {
             return response()->json([
@@ -186,14 +185,14 @@ class ZonaEmplazamientosController extends Controller
         }
 
 
-    return response()->json(EmplazamientoResource::collection($emplazamientos), 200);
-}
+        return response()->json(EmplazamientoResource::collection($emplazamientos), 200);
+    }
 
-  public function selectEmplazamientosN3(Request $request, int $ciclo, int $agenda_id)
-{
-    $zonaObjs = EmplazamientoN3::where('idAgenda', '=', $agenda_id)->get();
+    public function selectEmplazamientosN3(Request $request, int $ciclo, int $agenda_id)
+    {
+        $zonaObjs = EmplazamientoN3::where('idAgenda', '=', $agenda_id)->get();
 
-   if ($zonaObjs->isEmpty()) {
+        if ($zonaObjs->isEmpty()) {
             return response()->json([], 200);
         }
 
@@ -227,45 +226,45 @@ class ZonaEmplazamientosController extends Controller
 
 
         return response()->json(EmplazamientoNivel3Resource::collection($emplazamientos), 200);
-}
-
-  public function CycleCatsNivel1(Request $request, int $ciclo, int $agenda_id)
-{
-    $zonaObjs = EmplazamientoN1::where('idAgenda', '=', $agenda_id)->get();
-
-    if ($zonaObjs->isEmpty()) {
-        return response()->json([], 200);
     }
 
-    $cicloObj = InvCiclo::find($ciclo);
+    public function CycleCatsNivel1(Request $request, int $ciclo, int $agenda_id)
+    {
+        $zonaObjs = EmplazamientoN1::where('idAgenda', '=', $agenda_id)->get();
 
-    if (!$cicloObj) {
-        return response()->json([
-            'status' => 'NOK',
-            'message' => 'Ciclo no encontrado',
-            'code' => 404
-        ], 404);
-    }
-
-    $emplazamientos = collect();
-
-    foreach ($zonaObjs as $zonaObj) {
-        $emplaCats = $cicloObj->EmplazamientosWithCatsN1($zonaObj)->pluck('idUbicacionN1')->toArray();
-
-        $subEmplas = empty($emplaCats)
-            ? $zonaObj->zoneEmplazamientosN1()->get()
-            : $zonaObj->zoneEmplazamientosN1()->whereIn('idUbicacionN1', $emplaCats)->get();
-
-        foreach ($subEmplas as $sub) {
-            $sub->cycle_id = $ciclo;
-            $emplazamientos->push($sub);
+        if ($zonaObjs->isEmpty()) {
+            return response()->json([], 200);
         }
+
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json([
+                'status' => 'NOK',
+                'message' => 'Ciclo no encontrado',
+                'code' => 404
+            ], 404);
+        }
+
+        $emplazamientos = collect();
+
+        foreach ($zonaObjs as $zonaObj) {
+            $emplaCats = $cicloObj->EmplazamientosWithCatsN1($zonaObj)->pluck('idUbicacionN1')->toArray();
+
+            $subEmplas = empty($emplaCats)
+                ? $zonaObj->zoneEmplazamientosN1()->get()
+                : $zonaObj->zoneEmplazamientosN1()->whereIn('idUbicacionN1', $emplaCats)->get();
+
+            foreach ($subEmplas as $sub) {
+                $sub->cycle_id = $ciclo;
+                $emplazamientos->push($sub);
+            }
+        }
+
+        $emplazamientos = $emplazamientos->unique('idUbicacionN1')->values();
+
+        return response()->json(EmplazamientoNivel1Resource::collection($emplazamientos), 200);
     }
-
-    $emplazamientos = $emplazamientos->unique('idUbicacionN1')->values();
-
-    return response()->json(EmplazamientoNivel1Resource::collection($emplazamientos), 200);
-}
 
 
     public function showAllEmplaByCycleCats(Request $request, int $ciclo)
@@ -291,7 +290,7 @@ class ZonaEmplazamientosController extends Controller
         return response()->json(EmplazamientoResource::collection($emplazamientos), 200);
     }
 
-     public function regiones()
+    public function regiones()
     {
         $RegionesObj = Region::all();
 
@@ -302,7 +301,7 @@ class ZonaEmplazamientosController extends Controller
         return response()->json($RegionesObj);
     }
 
-     public function comunas(int $idRegion)
+    public function comunas(int $idRegion)
     {
         $ComunaObj = DB::table('comunas')->where('idRegion', $idRegion)->get();
 

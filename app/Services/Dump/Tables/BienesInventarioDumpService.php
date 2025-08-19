@@ -25,7 +25,6 @@ class BienesInventarioDumpService
         $this->pdo = $pdo;
 
         $this->cycle = $cycle;
-
     }
 
     /**
@@ -47,8 +46,8 @@ class BienesInventarioDumpService
 
         $response = $datsdActivosCtrl->BienesNuevosOfflineInventario($this->cycle);
 
-       $jsonContent = $response->getContent();
-       
+        $jsonContent = $response->getContent();
+
         // Decodificar el JSON a un arreglo asociativo
         $data = json_decode($jsonContent);
 
@@ -64,7 +63,7 @@ class BienesInventarioDumpService
     {
         $this->pdo->exec("
             CREATE TABLE IF NOT EXISTS bienesInventario (
-                idLista INTEGER PRIMARY KEY AUTOINCREMENT,
+                idLista INTEGER,
                 idIndice INTEGER NOT NULL,
                 descripcion TEXT NOT NULL,
                 observacion TEXT NOT NULL,
@@ -78,12 +77,12 @@ class BienesInventarioDumpService
             )
         ");
     }
- /**
+    /**
      *
      * @param \Illuminate\Http\Resources\Json\AnonymousResourceCollection $cycles Array of cycle objects to insert.
      * @return void
      */
-  public function insert(array|AnonymousResourceCollection $bienes): void
+    public function insert(array|AnonymousResourceCollection $bienes): void
     {
         $stmt = $this->pdo->prepare("
         INSERT INTO bienesInventario (
@@ -132,4 +131,3 @@ class BienesInventarioDumpService
         }
     }
 }
-
