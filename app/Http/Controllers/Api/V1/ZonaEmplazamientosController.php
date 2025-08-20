@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\EmplazamientoResource;
-use App\Http\Resources\V1\EmplazamientoNivel3Resource;
-use App\Http\Resources\V1\EmplazamientoNivel1Resource;
+use App\Http\Resources\V2\EmplazamientoNivel3Resource;
+use App\Http\Resources\V2\EmplazamientoNivel1Resource;
 use App\Http\Resources\V2\EmplazamientoNivel2Resource;
 use App\Models\InvCiclo;
 use App\Models\ZonaPunto;
@@ -248,6 +248,8 @@ class ZonaEmplazamientosController extends Controller
 
         $emplazamientos = collect();
 
+
+
         foreach ($zonaObjs as $zonaObj) {
             $emplaCats = $cicloObj->EmplazamientosWithCatsN1($zonaObj)->pluck('idUbicacionN1')->toArray();
 
@@ -287,7 +289,7 @@ class ZonaEmplazamientosController extends Controller
             $emplazamiento->cycle_id = $ciclo;
         }
 
-        return response()->json(EmplazamientoResource::collection($emplazamientos), 200);
+        return response()->json(EmplazamientoNivel2Resource::collection($emplazamientos), 200);
     }
 
     public function regiones()

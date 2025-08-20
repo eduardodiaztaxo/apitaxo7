@@ -91,6 +91,8 @@ class EmplazamientoN3DumpService implements DumpSQLiteInterface
                 num_activos_audit INTEGER DEFAULT 0,
                 habilitadoNivel3 INTIGER DEFAULT 0,
                 detalle TEXT,
+                num_nivel TEXT,
+                next_level TEXT,
                 newApp INTIGER DEFAULT 0,
                 modo TEXT
             );
@@ -121,6 +123,8 @@ class EmplazamientoN3DumpService implements DumpSQLiteInterface
                 num_categorias,
                 num_activos_audit,
                 habilitadoNivel3,
+                num_nivel,
+                next_level,
                 detalle,
                 newApp,
                 modo
@@ -140,6 +144,8 @@ class EmplazamientoN3DumpService implements DumpSQLiteInterface
                 :num_activos_audit,
                 :habilitadoNivel3,
                 :detalle,
+                :num_nivel,
+                :next_level,
                 :newApp,
                 :modo
             )  
@@ -164,6 +170,8 @@ class EmplazamientoN3DumpService implements DumpSQLiteInterface
                 ':num_activos_audit' => $emplazamiento->num_activos_audit,
                 ':habilitadoNivel3' => $emplazamiento->habilitadoNivel3,
                 ':detalle' => $emplazamiento->detalle,
+                ':num_nivel' => $emplazamiento->num_nivel,
+                ':next_level' => $emplazamiento->next_level,
                 ':newApp' => $emplazamiento->newApp,
                 ':modo' => $emplazamiento->modo
             ]);

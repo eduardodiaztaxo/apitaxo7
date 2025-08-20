@@ -91,6 +91,7 @@ class EmplazamientosN2DumpService implements DumpSQLiteInterface
                 habilitadoNivel3 INTIGER DEFAULT 0,
                 detalle TEXT,
                 num_nivel TEXT,
+                next_level TEXT,
                 newApp INTIGER,
                 modo TEXT
             );
@@ -122,6 +123,7 @@ class EmplazamientosN2DumpService implements DumpSQLiteInterface
                 habilitadoNivel3,
                 detalle,
                 num_nivel,
+                next_level,
                 newApp,
                 modo
             )
@@ -140,6 +142,7 @@ class EmplazamientosN2DumpService implements DumpSQLiteInterface
                 :habilitadoNivel3,
                 :detalle,
                 :num_nivel,
+                :next_level,
                 :newApp,
                 :modo
             )  
@@ -164,6 +167,7 @@ class EmplazamientosN2DumpService implements DumpSQLiteInterface
                 ':detalle' => $emplazamiento->detalle,
                 ':habilitadoNivel3' => $emplazamiento->habilitadoNivel3,
                 ':num_nivel' => $emplazamiento->num_nivel,
+                ':next_level' => $emplazamiento->next_level,
                 ':newApp' => $emplazamiento->newApp,
                 ':modo' => $emplazamiento->modo
             ]);

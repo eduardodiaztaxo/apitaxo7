@@ -40,8 +40,8 @@ class EmplazamientoNivel3Resource extends JsonResource
                 GROUP BY id_activo
             )
         ) as crud_activos_pictures'), 'crud_activos_pictures.id_activo', '=', 'crud_activos.idActivo')
-        ->where('crud_activos.tipoCambio', '!=', 200)
-        ->get();
+            ->where('crud_activos.tipoCambio', '!=', 200)
+            ->get();
 
         $activosInventario = DB::table('inv_inventario')
             ->leftJoin('categoria_n3', 'inv_inventario.id_familia', '=', 'categoria_n3.id_familia')
@@ -104,9 +104,9 @@ class EmplazamientoNivel3Resource extends JsonResource
                     }
                 }
             }
-         $familiaDescripcion = DB::table('dp_familias')
-        ->where('id_familia', $this->id_familia)
-        ->value('descripcion_familia');
+            $familiaDescripcion = DB::table('dp_familias')
+                ->where('id_familia', $this->id_familia)
+                ->value('descripcion_familia');
 
             return (object)[
                 'id_ciclo' => $this->cycle_id,
@@ -130,7 +130,7 @@ class EmplazamientoNivel3Resource extends JsonResource
             ];
         });
 
-    
+
         $emplazamiento = [
             'id' => $this->idUbicacionN3,
             'codigo' => $this->codigo,
@@ -138,8 +138,9 @@ class EmplazamientoNivel3Resource extends JsonResource
             'nombre' => $this->descripcionUbicacion,
             'idAgenda' => $this->idAgenda,
             'idUbicacionN2' => $this->idUbicacionN3,
+            'idUbicacionN3' => $this->idUbicacionN3,
             'num_activos' => 0,
-            'detalle'=> 'Detalle Emplazamiento (N3)',
+            'detalle' => 'Detalle Emplazamiento (N3)',
             'num_nivel' => '',
             'habilitadoNivel3' => 0,
             'modo' => $this->modo,

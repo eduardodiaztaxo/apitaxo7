@@ -24,18 +24,21 @@ class EmplazamientoNivel3Resource extends JsonResource
 
 
         $emplazamiento = [
-            'id' => $this->idUbicacionN2,
+            'id' => $this->idUbicacionN3,
             'codigo' => $this->codigo,
             'codigoUbicacion' => $this->codigoUbicacion,
             'nombre' => $this->descripcionUbicacion,
             'idAgenda' => $this->idAgenda,
             'idUbicacionN3' => $this->idUbicacionN3,
+            'idUbicacionN2' => $this->idUbicacionN2,
             'detalle' => 'Detalle Emplazamiento (N3)',
             'num_nivel' => 'N3',
+            'next_level' => '',
             'newApp' => $this->newApp,
             'modo' => $this->modo,
             'habilitadoNivel3' => 1,
             'num_activos' => 0,
+            'num_activos_audit' => 0,
             'num_activos_inv' => $num_activos_inv,
             'num_activos_cats_by_cycle' => 0,
             'ciclo_auditoria' => $this->ciclo_auditoria,
@@ -47,5 +50,7 @@ class EmplazamientoNivel3Resource extends JsonResource
         if (isset($this->requirePunto) && $this->requirePunto) {
             $emplazamiento['ubicacionPunto'] = UbicacionGeograficaResource::make($this->ubicacionPunto()->first());
         }
+
+        return $emplazamiento;
     }
 }

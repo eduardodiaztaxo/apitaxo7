@@ -17,8 +17,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Storage;
-use App\Http\Resources\V1\EmplazamientoNivel3Resource;
-use App\Http\Resources\V1\EmplazamientoNivel1Resource;
+use App\Http\Resources\V2\EmplazamientoNivel3Resource;
+use App\Http\Resources\V2\EmplazamientoNivel1Resource;
 
 
 class InventariosOfflineController extends Controller
@@ -94,20 +94,21 @@ class InventariosOfflineController extends Controller
         return response()->json($resultados, 200);
     }
 
-   public function showAllComunas(){
-      $ComunasObj = Comuna::all();
+    public function showAllComunas()
+    {
+        $ComunasObj = Comuna::all();
 
         if ($ComunasObj->isEmpty()) {
             return response()->json(['status' => 'NOK', 'code' => 404], 404);
         }
 
-           return response()->json($ComunasObj, 200);
-   }
+        return response()->json($ComunasObj, 200);
+    }
 
-  public function showNameInput()
-  {
+    public function showNameInput()
+    {
 
-    $atributosObj = collect(DB::select("
+        $atributosObj = collect(DB::select("
      SELECT 
             t.descripcion,
             iv.id_atributo,
@@ -118,12 +119,12 @@ class InventariosOfflineController extends Controller
         AND iv.id_atributo = t.id_atributo
 "));
 
-if ($atributosObj->isEmpty()) {
-    return response()->json(['status' => 'NOK', 'code' => 404], 404);
-}
+        if ($atributosObj->isEmpty()) {
+            return response()->json(['status' => 'NOK', 'code' => 404], 404);
+        }
 
-           return response()->json($atributosObj, 200);
-   }
+        return response()->json($atributosObj, 200);
+    }
 
     public function CycleCatsNivel3($ciclo)
     {
@@ -170,7 +171,7 @@ if ($atributosObj->isEmpty()) {
         return response()->json(EmplazamientoNivel3Resource::collection($emplazamientos), 200);
     }
 
-  public function CycleCatsNivel1($ciclo)
+    public function CycleCatsNivel1($ciclo)
     {
         $zonaObjs = EmplazamientoN1::all();
 
@@ -192,25 +193,25 @@ if ($atributosObj->isEmpty()) {
                 'code' => 404
             ], 404);
         }
-        
+
         $emplazamientos = collect();
 
-            foreach ($zonaObjs as $zonaObj) {
-                $emplaCats = $cicloObj->EmplazamientosWithCatsN1($zonaObj)->pluck('idUbicacionN1')->toArray();
+        foreach ($zonaObjs as $zonaObj) {
+            $emplaCats = $cicloObj->EmplazamientosWithCatsN1($zonaObj)->pluck('idUbicacionN1')->toArray();
 
-                $subEmplas = empty($emplaCats)
-                    ? $zonaObj->zoneEmplazamientosN1()->get()
-                    : $zonaObj->zoneEmplazamientosN1()->whereIn('idUbicacionN1', $emplaCats)->get();
+            $subEmplas = empty($emplaCats)
+                ? $zonaObj->zoneEmplazamientosN1()->get()
+                : $zonaObj->zoneEmplazamientosN1()->whereIn('idUbicacionN1', $emplaCats)->get();
 
-                foreach ($subEmplas as $sub) {
-                    $sub->cycle_id = $ciclo;
-                    $emplazamientos->push($sub);
-                }
+            foreach ($subEmplas as $sub) {
+                $sub->cycle_id = $ciclo;
+                $emplazamientos->push($sub);
             }
+        }
 
-            $emplazamientos = $emplazamientos->unique('idUbicacionN1')->values();
+        $emplazamientos = $emplazamientos->unique('idUbicacionN1')->values();
 
-            return response()->json(EmplazamientoNivel1Resource::collection($emplazamientos), 200);
+        return response()->json(EmplazamientoNivel1Resource::collection($emplazamientos), 200);
     }
 
 
@@ -228,7 +229,7 @@ if ($atributosObj->isEmpty()) {
         return response()->json($resultado, 200);
     }
 
-        public function MarcasNuevasOfflineInventario($ciclo)
+    public function MarcasNuevasOfflineInventario($ciclo)
     {
         $marcas = DB::table('inv_marcas_nuevos')
             ->where('ciclo_inventario', $ciclo)
@@ -238,7 +239,7 @@ if ($atributosObj->isEmpty()) {
         return response()->json($marcas, 200);
     }
 
-     public function BienesNuevosOfflineInventario($ciclo)
+    public function BienesNuevosOfflineInventario($ciclo)
     {
         $bienes = DB::table('inv_bienes_nuevos')
             ->where('ciclo_inventario', $ciclo)
@@ -247,7 +248,7 @@ if ($atributosObj->isEmpty()) {
         return response()->json($bienes, 200);
     }
 
-    
+
     public function configuracionOffline(array $codigo_grupos)
     {
         if (count($codigo_grupos) === 1 && is_string($codigo_grupos[0])) {

@@ -82,7 +82,7 @@ class EmplazamientoN1DumpService implements DumpSQLiteInterface
                 codigoUbicacion TEXT,
                 nombre TEXT,
                 idAgenda INTEGER,
-                idUbicacionN2 INTEGER,
+                idUbicacionN1 INTEGER,
                 num_activos INTEGER DEFAULT 0,
                 num_activos_cats_by_cycle INTEGER DEFAULT 0,
                 ciclo_auditoria INTEGER DEFAULT 0,
@@ -91,6 +91,7 @@ class EmplazamientoN1DumpService implements DumpSQLiteInterface
                 habilitadoNivel3 INTIGER DEFAULT 0,
                 detalle TEXT,
                 num_nivel TEXT,
+                next_level TEXT,
                 newApp INTIGER DEFAULT 0,
                 modo TEXT
             );
@@ -113,7 +114,7 @@ class EmplazamientoN1DumpService implements DumpSQLiteInterface
                 codigoUbicacion,
                 nombre,
                 idAgenda,
-                idUbicacionN2,
+                idUbicacionN1,
                 num_activos,
                 num_activos_cats_by_cycle,
                 ciclo_auditoria,
@@ -122,6 +123,7 @@ class EmplazamientoN1DumpService implements DumpSQLiteInterface
                 habilitadoNivel3,
                 detalle,
                 num_nivel,
+                next_level,
                 newApp,
                 modo
             )
@@ -131,7 +133,7 @@ class EmplazamientoN1DumpService implements DumpSQLiteInterface
                 :codigoUbicacion,
                 :nombre,
                 :idAgenda,
-                :idUbicacionN2,
+                :idUbicacionN1,
                 :num_activos,
                 :num_activos_cats_by_cycle,
                 :ciclo_auditoria,
@@ -140,6 +142,7 @@ class EmplazamientoN1DumpService implements DumpSQLiteInterface
                 :habilitadoNivel3,
                 :detalle,
                 :num_nivel,
+                :next_level,
                 :newApp,
                 :modo
             )  
@@ -155,7 +158,7 @@ class EmplazamientoN1DumpService implements DumpSQLiteInterface
                 ':codigoUbicacion' => $emplazamiento->codigoUbicacion,
                 ':nombre' => $emplazamiento->nombre,
                 ':idAgenda' => $emplazamiento->idAgenda,
-                ':idUbicacionN2' => $emplazamiento->idUbicacionN2,
+                ':idUbicacionN1' => $emplazamiento->idUbicacionN1,
                 ':num_activos' => $emplazamiento->num_activos,
                 ':num_activos_cats_by_cycle' => $emplazamiento->num_activos_cats_by_cycle,
                 ':ciclo_auditoria' => $emplazamiento->ciclo_auditoria,
@@ -164,6 +167,7 @@ class EmplazamientoN1DumpService implements DumpSQLiteInterface
                 ':habilitadoNivel3' => $emplazamiento->habilitadoNivel3,
                 ':detalle' => $emplazamiento->detalle,
                 ':num_nivel' => $emplazamiento->num_nivel,
+                ':next_level' => $emplazamiento->next_level,
                 ':newApp' => $emplazamiento->newApp,
                 ':modo' => $emplazamiento->modo
             ]);
