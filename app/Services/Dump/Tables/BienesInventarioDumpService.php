@@ -73,7 +73,8 @@ class BienesInventarioDumpService
                 ciclo_inventario INTEGER NOT NULL,
                 creadoPor TEXT,
                 fechaCreacion TEXT,
-                modo TEXT
+                modo TEXT,
+                offline INTEGER
             )
         ");
     }
@@ -96,7 +97,8 @@ class BienesInventarioDumpService
                 ciclo_inventario,
                 creadoPor,
                 fechaCreacion,
-                modo
+                modo,
+                offline
     )
     VALUES (
                 :idLista,
@@ -109,7 +111,8 @@ class BienesInventarioDumpService
                 :ciclo_inventario,
                 :creadoPor,
                 :fechaCreacion,
-                :modo
+                :modo,
+                :offline
     )
 ");
 
@@ -126,7 +129,8 @@ class BienesInventarioDumpService
                 'ciclo_inventario' => $b->ciclo_inventario,
                 'creadoPor' => $b->creadoPor,
                 'fechaCreacion' => $b->fechaCreacion,
-                'modo' => $b->modo
+                'modo' => $b->modo,
+                'offline' => 0,
             ]);
         }
     }

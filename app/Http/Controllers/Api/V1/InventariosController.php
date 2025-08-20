@@ -110,7 +110,7 @@ class InventariosController extends Controller
             }
 
            
-       if ($request->clonarDesdeInventario == 'true') {
+        if ($request->clonarDesdeInventario == 'true' && intval($request->conf_fotos) === 0) {
             $imagenes = DB::table('inv_imagenes')
                 ->where('id_img', $request->id_img_clone)
                 ->get();
@@ -131,15 +131,14 @@ class InventariosController extends Controller
                 ]);
             }
         }
-        
-            $id_img = DB::table('inv_imagenes')
-                ->where('etiqueta', $request->etiqueta)
-                ->orderBy('id_img', 'desc')
-                ->value('id_img');
-            $idImg = $id_img ?? null;
-            
-            
 
+
+         $id_img = DB::table('inv_imagenes')
+            ->where('etiqueta', $request->etiqueta)
+            ->orderBy('id_img', 'desc')
+            ->value('id_img');
+            $idImg = $id_img ?? null;
+        
         if (intval($request->padre) === 1) {
             $etiquetaPadre = $request->etiqueta;
         } elseif (intval($request->padre) === 2) {
@@ -162,7 +161,7 @@ class InventariosController extends Controller
         $inventario->serie               = $request->serie ?? '';
         $inventario->latitud             = $request->latitud ?? 0;
         $inventario->longitud            = $request->longitud ?? 0;
-        $inventario->capacidad           = intval($request->capacidad ?? 0);
+        $inventario->capacidad           = intval($request->capacidad ?? '');
         $inventario->estado              = intval($request->estado ?? 0);
         $inventario->color               = intval($request->color ?? 0);
         $inventario->tipo_trabajo        = intval($request->tipo_trabajo ?? 0);
@@ -195,124 +194,6 @@ class InventariosController extends Controller
 
         return response()->json($inventario, 201);
     }
-
-
-       public function clonarInventario(Request $request)
-    {
-        $request->validate([
-            'id_grupo'              => 'required|string',
-            'id_familia'            => 'required|string',
-            'etiqueta'              => 'required|string',
-            'id_ciclo'              => 'required|exists:inv_ciclos,idCiclo',
-            'codigoUbicacion'       => 'required',
-            'idAgenda'              => 'required'
-        ]);
-
-        $existeEtiqueta = false;
-
-        $idAgenda = $request->idAgenda;
-
-
-        $etiquetaInventario = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta)->value('etiqueta');
-        $etiquetaUnicaCrudActivo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta)->value('etiqueta');
-
-        if ($etiquetaInventario || $etiquetaUnicaCrudActivo) {
-            $existeEtiqueta = true;
-        }
-
-        if (!empty($request->etiqueta_padre)) {
-            $etiquetaInventarioHijo = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
-            $etiquetaCrudActivoHijo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
-
-            if ($etiquetaInventarioHijo || $etiquetaCrudActivoHijo) {
-                $existeEtiqueta = true;
-            }
-        }
-
-        if ($existeEtiqueta) {
-            return response('La etiqueta ya existe', 400);
-        }
-
-
-
-            $imagenes = DB::table('inv_imagenes')
-                ->where('id_img', $request->id_img_clone)
-                ->get();
-
-            $url_img = DB::table('inv_imagenes')->max('id_img') + 1;
-            $origen = 'SAFIN_APP';
-            $filename = '9999_' . $request->etiqueta;
-
-            foreach ($imagenes as $img) {
-                DB::table('inv_imagenes')->insert([
-                    'id_img'     => $url_img,
-                    'etiqueta'   => $request->etiqueta,
-                    'origen'     => $origen,
-                    'picture'    => $filename . '.jpg',
-                    'url_imagen' => $img->url_imagen,
-                    'url_picture' => $img->url_picture,
-                    'created_at' => now()
-                ]);
-            }
-        
-
-
-        if (intval($request->padre) === 1) {
-            $etiquetaPadre = $request->etiqueta;
-        } elseif (intval($request->padre) === 2) {
-            $etiquetaPadre = $request->etiqueta_padre;
-        }
-
-        $usuario = Auth::user()->name;
-
-        $inventario = new Inventario();
-        $inventario->id_grupo            = $request->id_grupo;
-        $inventario->id_familia          = $request->id_familia;
-        $inventario->descripcion_bien    = $request->descripcion_bien;
-        $inventario->id_bien             = intval($request->id_bien ?? 0);
-        $inventario->descripcion_marca   = $request->descripcion_marca ?? '';
-        $inventario->id_marca            = intval($request->id_marca ?? 0);
-        $inventario->idForma             = intval($request->idForma ?? 0);
-        $inventario->idMaterial          = intval($request->idMaterial ?? 0);
-        $inventario->etiqueta            = $request->etiqueta;
-        $inventario->modelo              = $request->modelo ?? '';
-        $inventario->serie               = $request->serie ?? '';
-        $inventario->latitud             = $request->latitud ?? 0;
-        $inventario->longitud            = $request->longitud ?? 0;
-        $inventario->capacidad           = intval($request->capacidad ?? 0);
-        $inventario->estado              = intval($request->estado ?? 0);
-        $inventario->color               = intval($request->color ?? 0);
-        $inventario->tipo_trabajo        = intval($request->tipo_trabajo ?? 0);
-        $inventario->carga_trabajo       = intval($request->carga_trabajo ?? 0);
-        $inventario->estado_operacional  = intval($request->estado_operacional ?? 0);
-        $inventario->estado_conservacion = intval($request->estado_conservacion ?? 0);
-        $inventario->condicion_ambiental = intval($request->condicion_ambiental ?? 0);
-        $inventario->cantidad_img        = $request->cantidad_img;
-        $inventario->id_img              = $url_img;
-        $inventario->id_ciclo            = $request->id_ciclo;
-        $inventario->idUbicacionGeo      = $request->idAgenda;
-        $inventario->idUbicacionN2       = $request->idUbicacionN2 ?? 0;
-        $inventario->codigoUbicacion_N2  = $request->codigoUbicacion_N2 ?? 0;
-        $inventario->codigoUbicacion_N1  = $request->codigoUbicacion_N1 ?? 0;
-        $inventario->idUbicacionN3       = $request->idUbicacionN3 ?? 0;
-        $inventario->codigoUbicacionN3   = $request->codigoUbicacionN3 ?? 0;
-        $inventario->etiqueta_padre      = $etiquetaPadre ?? 'Sin Padre';
-        /** edualejandro */
-        $inventario->eficiencia          = $request->eficiencia ?? null;
-        $inventario->texto_abierto_1     = $request->texto_abierto_1 ?? null;
-        $inventario->texto_abierto_2     = $request->texto_abierto_2 ?? null;
-        $inventario->texto_abierto_3     = $request->texto_abierto_3 ?? null;
-        $inventario->texto_abierto_4     = $request->texto_abierto_4 ?? null;
-        $inventario->texto_abierto_5     = $request->texto_abierto_5 ?? null;
-        $inventario->modo                = 'ONLINE';
-        $inventario->creado_el           = date('Y-m-d H:i:s');
-        $inventario->creado_por          = $usuario;
-
-        $inventario->save();
-
-        return response()->json($inventario, 201);
-    }
-
 
 
     public function updateinventario(Request $request)
@@ -485,9 +366,9 @@ public function nombreInputs()
                 COALESCE(MAX(CASE WHEN id_atributo = 31 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_5,
                 COALESCE(
                     IFNULL(MAX(CASE WHEN id_atributo = 31 THEN label_input ELSE NULL END), 'Texto Abierto 5')
-                ) AS label_texto_abierto_5
+                ) AS label_texto_abierto_5,
+                 COALESCE(MAX(CASE WHEN id_atributo = 32 THEN id_validacion END), 0) AS conf_fotos
 
-    
             FROM inv_atributos 
             WHERE id_grupo = ?";
 
@@ -504,7 +385,11 @@ public function nombreInputs()
         'imagenes.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
     ]);
 
-    $origen = 'SAFIN_APP';
+        if ($request->conf_fotos != 0 && strtolower($request->tipo) == 'true') {
+            $origen = 'SAFIN_CLONE';
+        } else {
+            $origen = 'SAFIN_APP';
+        }
 
     // Calcular id_img de forma segura
     $maxId = DB::table('inv_imagenes')->max('id_img');
@@ -544,7 +429,8 @@ public function nombreInputs()
         'status'    => 'OK',
         'paths'     => $paths,
         'folderUrl' => $url_pict,
-        'id_img'    => $id_img
+        'id_img'    => $id_img,
+        'name'      => $origen
     ], 201);
 }
 
@@ -809,7 +695,7 @@ private function procesarDirecciones($direccionesJson, int $ciclo, string $usuar
 
         DB::table('inv_ciclos_puntos')->updateOrInsert(
             ['idCiclo' => $ciclo, 'idPunto' => $idUbicacionInsertada],
-            ['usuario' => $usuario, 'fechaCreacion' => now(), 'id_estado' => 2, 'auditoria_general' => 0]
+            ['usuario' => $usuario, 'fechaCreacion' => now(), 'id_estado' => 2, 'auditoria_general' => 0, 'modo' => 'OFFLINE']
         );
     }
 
@@ -866,8 +752,26 @@ private function procesarUbicacionesN2($json, int $ciclo, string $usuario, array
 
     foreach ($data as $n2) {
         $idAgendaReal = $this->obtenerIdAgendaActualizado($n2->idAgenda, $idMapaGeo);
-        $codigoExistente = DB::table('ubicaciones_n2')->where('idAgenda', $idAgendaReal)->max('codigoUbicacion');
-        $nuevoCodigo = $codigoExistente ? str_pad(((int) $codigoExistente) + 1, 2, '0', STR_PAD_LEFT) : $n2->codigoUbicacion;
+
+        $existeCodigo = DB::table('ubicaciones_n2')
+            ->where('idAgenda', $idAgendaReal)
+            ->where('codigoUbicacion', $n2->codigoUbicacion)
+            ->exists();
+
+        if ($existeCodigo) {
+
+            $prefijo = substr($n2->codigoUbicacion, 0, 2);
+
+            $codigoExistente = DB::table('ubicaciones_n2')
+                ->where('idAgenda', $idAgendaReal)
+                ->where('codigoUbicacion', 'like', $prefijo.'%')
+                ->selectRaw("MAX(CAST(codigoUbicacion AS UNSIGNED)) as maximo")
+                ->value('maximo');
+
+            $nuevoCodigo = str_pad($codigoExistente + 1, 4, '0', STR_PAD_LEFT);
+        } else {
+            $nuevoCodigo = $n2->codigoUbicacion;
+        }
 
         $registro = DB::table('ubicaciones_n2')->where('idAgenda', $idAgendaReal)
             ->where('descripcionUbicacion', $n2->nombre)
@@ -907,8 +811,26 @@ private function procesarUbicacionesN3($json, int $ciclo, string $usuario, array
 
     foreach ($data as $n3) {
         $idAgendaReal = $this->obtenerIdAgendaActualizado($n3->idAgenda, $idMapaGeo);
-        $codigoExistente = DB::table('ubicaciones_n3')->where('idAgenda', $idAgendaReal)->max('codigoUbicacion');
-        $nuevoCodigo = $codigoExistente ? str_pad(((int) $codigoExistente) + 1, 2, '0', STR_PAD_LEFT) : $n3->codigoUbicacion;
+
+        $existeCodigo = DB::table('ubicaciones_n3')
+            ->where('idAgenda', $idAgendaReal)
+            ->where('codigoUbicacion', $n3->codigoUbicacion)
+            ->exists();
+
+        if ($existeCodigo) {
+
+            $prefijo = substr($n3->codigoUbicacion, 0, 2);
+
+            $codigoExistente = DB::table('ubicaciones_n3')
+                ->where('idAgenda', $idAgendaReal)
+                ->where('codigoUbicacion', 'like', $prefijo.'%')
+                ->selectRaw("MAX(CAST(codigoUbicacion AS UNSIGNED)) as maximo")
+                ->value('maximo');
+
+            $nuevoCodigo = str_pad($codigoExistente + 1, 6, '0', STR_PAD_LEFT); 
+        } else {
+            $nuevoCodigo = $n3->codigoUbicacion;
+        }
 
         $registro = DB::table('ubicaciones_n3')->where('idAgenda', $idAgendaReal)
             ->where('descripcionUbicacion', $n3->nombre)
@@ -936,6 +858,7 @@ private function procesarUbicacionesN3($json, int $ciclo, string $usuario, array
 
     return [$mapaId, $mapaCodigo];
 }
+
 /**
  * Procesar bienes Nuevos
  */

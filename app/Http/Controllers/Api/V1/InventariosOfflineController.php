@@ -335,7 +335,8 @@ class InventariosOfflineController extends Controller
                         COALESCE(MAX(CASE WHEN id_atributo = 31 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_5,
                         COALESCE(
                             IFNULL(MAX(CASE WHEN id_atributo = 31 THEN label_input ELSE NULL END), 'Texto Abierto 5')
-                        ) AS label_texto_abierto_5
+                        ) AS label_texto_abierto_5,
+                        COALESCE(MAX(CASE WHEN id_atributo = 32 THEN id_validacion END), 0) AS conf_fotos
                         
                     FROM inv_atributos 
                     WHERE id_grupo = ?";

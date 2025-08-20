@@ -110,9 +110,6 @@ class CrudActivo extends Model
 
 
 
-
-
-
     public function ubicacionGeografica()
     {
         return $this->belongsTo(UbicacionGeografica::class, 'ubicacionGeografica', 'idUbicacionGeo');
