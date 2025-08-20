@@ -99,8 +99,7 @@ class EmplazamientoN3 extends Model
     public function zonaPunto()
     {
         return ZonaPunto::where('idAgenda', $this->idAgenda)
-            ->where('codigoUbicacion', substr($this->codigoUbicacion, 0, 2))
-            ->first();
+            ->where('codigoUbicacion', substr($this->codigoUbicacion, 0, 2));
     }
 
     public function ubicacionPunto()

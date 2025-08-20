@@ -24,6 +24,15 @@ class EmplazamientoNivel1Resource extends JsonResource
             ->where('inv_inventario.id_ciclo', $this->cycle_id)
             ->count();
 
+       $num_activos_N2 = Inventario::where('inv_inventario.codigoUbicacion_N2', 'LIKE', '%' . $this->codigoUbicacion . '%')
+            ->where('inv_inventario.idUbicacionGeo', $this->idAgenda)
+            ->where('inv_inventario.id_ciclo', $this->cycle_id)
+            ->count();
+
+       $num_activos_N3 = Inventario::where('inv_inventario.codigoUbicacionN3', 'LIKE', '%' . $this->codigoUbicacion . '%')
+            ->where('inv_inventario.idUbicacionGeo', $this->idAgenda)
+            ->where('inv_inventario.id_ciclo', $this->cycle_id)
+            ->count();
 
 
         $emplazamiento = [
@@ -41,6 +50,8 @@ class EmplazamientoNivel1Resource extends JsonResource
             'habilitadoNivel3' => 1,
             'num_activos' => 0,
             'num_activos_inv' => $num_activos_inv,
+            'num_activos_N2' => $num_activos_N2,
+            'num_activos_N3' => $num_activos_N3,
             'num_activos_audit' => 0,
             'num_activos_cats_by_cycle' => 0,
             'ciclo_auditoria' => $this->ciclo_auditoria,
