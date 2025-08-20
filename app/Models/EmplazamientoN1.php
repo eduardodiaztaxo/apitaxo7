@@ -86,10 +86,11 @@ class EmplazamientoN1 extends Model
             'dp_grupos.descripcion_grupo',
             'dp_familias.descripcion_familia',
             DB::raw('COUNT(*) as total')
-        )->join('ubicaciones_n1', function (JoinClause $join) use ($codigoUbicacion) {
+        )->join('ubicaciones_n1', function (JoinClause $join) {
             $join->on('inv_inventario.idUbicacionGeo', '=', 'ubicaciones_n1.idAgenda')
-                ->on('inv_inventario.codigoUbicacion_N1', '=', DB::raw("'$codigoUbicacion'"));
+                ->on('inv_inventario.codigoUbicacion_N1', '=', 'ubicaciones_n1.codigoUbicacion');
         })
+            ->where('ubicaciones_n1.codigoUbicacion', $codigoUbicacion)
             ->join('dp_familias', 'inv_inventario.id_familia', 'dp_familias.id_familia')
             ->join('dp_grupos', 'inv_inventario.id_grupo', 'dp_grupos.id_grupo')
             ->groupBy('ubicaciones_n1.codigoUbicacion', 'inv_inventario.id_ciclo', 'inv_inventario.id_grupo', 'inv_inventario.id_familia', 'dp_grupos.descripcion_grupo', 'dp_familias.descripcion_familia');
