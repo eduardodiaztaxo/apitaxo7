@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\V1\GroupFamilyPlaceResumenResource;
+use App\Http\Resources\V1\InventariosResource;
 use App\Http\Resources\V1\UbicacionGeograficaResource;
 use App\Models\InvCiclo;
 use App\Models\InvCicloPunto;
+use App\Models\Inventario;
 use App\Models\UbicacionGeografica;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -38,16 +41,16 @@ class CiclosUbicacionesController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-  
-     public function store(Request $request)
-{
-    $request->validate([
-        'descripcion'       => 'required|string',
-        'direccion'         => 'required|string',
-        'ciclo_auditoria'   => 'required',
-        'region'            => 'exists:regiones,idRegion',
-        'comuna'            => 'exists:comunas,idComuna'
-    ]);
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'descripcion'       => 'required|string',
+            'direccion'         => 'required|string',
+            'ciclo_auditoria'   => 'required',
+            'region'            => 'exists:regiones,idRegion',
+            'comuna'            => 'exists:comunas,idComuna'
+        ]);
         $codigoCliente = $this->generarCodigoCliente();
         $ubicacion = DB::table('ubicaciones_geograficas')->insertGetId([
             'idProyecto'    => $request->ciclo_auditoria,
@@ -69,15 +72,15 @@ class CiclosUbicacionesController extends Controller
         }
 
         $puntos = DB::table('inv_ciclos_puntos')->insert([
-        'idCiclo'               => $request->ciclo_auditoria,
-        'idPunto'               => $ubicacion,
-        'usuario'               => $request->user()->name,
-        'fechaCreacion'         => date('Y-m-d'),
-        'id_estado'             => 2,
-        'auditoria_general'     => 0,
-        'modo'                  => 'ONLINE',
-    ]);
-      
+            'idCiclo'               => $request->ciclo_auditoria,
+            'idPunto'               => $ubicacion,
+            'usuario'               => $request->user()->name,
+            'fechaCreacion'         => date('Y-m-d'),
+            'id_estado'             => 2,
+            'auditoria_general'     => 0,
+            'modo'                  => 'ONLINE',
+        ]);
+
         $ciclo = $request->ciclo_auditoria;
         $cicloObj = InvCiclo::find($ciclo);
 
@@ -100,25 +103,25 @@ class CiclosUbicacionesController extends Controller
             }
         }
         return response()->json(UbicacionGeograficaResource::collection($puntos), 200);
-}
+    }
 
-public function generarCodigoCliente()
-{
-    $letras = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    $numeros = '0123456789';
-    $codigo = '';
-    do {
+    public function generarCodigoCliente()
+    {
+        $letras = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $numeros = '0123456789';
         $codigo = '';
-        for ($i = 0; $i < 4; $i++) {
-            $codigo .= $letras[rand(0, strlen($letras) - 1)];
-        }
-        for ($i = 0; $i < 4; $i++) {
-            $codigo .= $numeros[rand(0, strlen($numeros) - 1)];
-        }
-        $existe = DB::table('ubicaciones_geograficas')->where('codigoCliente', $codigo)->exists();
-    } while ($existe);
-    return $codigo;
-}
+        do {
+            $codigo = '';
+            for ($i = 0; $i < 4; $i++) {
+                $codigo .= $letras[rand(0, strlen($letras) - 1)];
+            }
+            for ($i = 0; $i < 4; $i++) {
+                $codigo .= $numeros[rand(0, strlen($numeros) - 1)];
+            }
+            $existe = DB::table('ubicaciones_geograficas')->where('codigoCliente', $codigo)->exists();
+        } while ($existe);
+        return $codigo;
+    }
     /**
      * Display the specified resource.
      *
@@ -144,6 +147,93 @@ public function generarCodigoCliente()
 
         return response()->json(UbicacionGeograficaResource::collection($puntos), 200);
     }
+
+
+    /**
+     * Display assets of the specified resource.
+     *
+     * @param   int $ciclo 
+     * @param   int $punto
+     * @param   \Illuminate\Http\Request
+     * @return  \Illuminate\Http\Response
+     */
+    public function showAssets(int $ciclo, int $punto, Request $request)
+    {
+
+        $addressObj = UbicacionGeografica::find($punto);
+
+        if (!$addressObj) {
+            return response()->json(['status' => 'error', 'code' => 404], 404);
+        }
+
+
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json(['status' => 'error', 'code' => 404], 404);
+        }
+
+        if ($cicloObj->puntos()->where('idUbicacionGeo', $punto)->count() === 0) {
+            return response()->json(['status' => 'error', 'code' => 404, 'message' => 'La direccion no se corresponde con el ciclo'], 404);
+        }
+
+
+        $queryBuilder = Inventario::queryBuilderInventory_FindInGroupFamily_Pagination($addressObj, $cicloObj, $request);
+
+        $assets = $queryBuilder->get();
+
+        //
+        return response()->json([
+            'status' => 'OK',
+            'data' => InventariosResource::collection($assets)
+        ]);
+    }
+
+
+    /**
+     * Display families of the specified resource.
+     *
+     * @param   int $ciclo 
+     * @param   int $punto
+     * @param   \Illuminate\Http\Request
+     * @return  \Illuminate\Http\Response
+     */
+    public function showGroupFamilies(int $ciclo, int $punto, Request $request)
+    {
+
+        $addressObj = UbicacionGeografica::find($punto);
+
+        if (!$addressObj) {
+            return response()->json(['status' => 'error', 'code' => 404], 404);
+        }
+
+
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json(['status' => 'error', 'code' => 404], 404);
+        }
+
+        if ($cicloObj->puntos()->where('idUbicacionGeo', $punto)->count() === 0) {
+            return response()->json(['status' => 'error', 'code' => 404, 'message' => 'El punto no se corresponde con el ciclo'], 404);
+        }
+
+
+        $queryBuilder = $addressObj->inv_group_families()->where('inv_inventario.id_ciclo', $cicloObj->idCiclo);;
+
+        $family_place_resumen = $queryBuilder->get();
+
+
+
+        //
+        return response()->json([
+            'status' => 'OK',
+            'data' => GroupFamilyPlaceResumenResource::make($family_place_resumen)
+        ]);
+    }
+
+
+
 
     /**
      * Display address resource.

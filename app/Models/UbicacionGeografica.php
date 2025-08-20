@@ -25,6 +25,43 @@ class UbicacionGeografica extends Model
         return $this->belongsTo(Comuna::class, 'comuna', 'idComuna');
     }
 
+    public function inv_activos()
+    {
+        return $this->inv_activos_with_child_levels();
+    }
+
+    public function inv_activos_with_child_levels()
+    {
+        return $this->hasMany(Inventario::class, 'idUbicacionGeo', 'idUbicacionGeo');
+    }
+
+    public function inv_group_families()
+    {
+        return $this->inv_group_families_with_child_levels();
+    }
+
+    public function inv_group_families_with_child_levels()
+    {
+
+        $idUbicacionGeo = $this->idUbicacionGeo;
+
+        return Inventario::select(
+            DB::raw("'00' AS codigoUbicacion"),
+            DB::raw("'n0' AS place_level"),
+            DB::raw("'0' AS isSub"),
+            'inv_inventario.id_ciclo',
+            'inv_inventario.id_grupo',
+            'inv_inventario.id_familia',
+            'dp_grupos.descripcion_grupo',
+            'dp_familias.descripcion_familia',
+            DB::raw('COUNT(*) as total')
+        )->join('ubicaciones_geograficas', 'inv_inventario.idUbicacionGeo', 'ubicaciones_geograficas.idUbicacionGeo')
+            ->join('dp_familias', 'inv_inventario.id_familia', 'dp_familias.id_familia')
+            ->join('dp_grupos', 'inv_inventario.id_grupo', 'dp_grupos.id_grupo')
+            ->where('inv_inventario.idUbicacionGeo', '=', $idUbicacionGeo)
+            ->groupBy('codigoUbicacion', 'inv_inventario.id_ciclo', 'inv_inventario.id_grupo', 'inv_inventario.id_familia', 'dp_grupos.descripcion_grupo', 'dp_familias.descripcion_familia');
+    }
+
     public function activos()
     {
         return $this->hasMany(CrudActivo::class, 'ubicacionGeografica', 'idUbicacionGeo');

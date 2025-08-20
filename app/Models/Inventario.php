@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\IndiceLista;
 use Illuminate\Database\Query\JoinClause;
+use Illuminate\Http\Request;
 
 class Inventario extends Model
 {
@@ -129,5 +130,46 @@ class Inventario extends Model
     public function emplazamientoN3()
     {
         return $this->belongsTo(EmplazamientoN3::class, 'idUbicacionN3', 'idUbicacionN3');
+    }
+
+    public static function queryBuilderInventory_FindInGroupFamily_Pagination($model, InvCiclo $cicloObj, Request $request)
+    {
+        $queryBuilder = $model->inv_activos()->where('inv_inventario.id_ciclo', $cicloObj->idCiclo);
+
+        if (!!keyword_is_searcheable($request->keyword)) {
+            $complete_word = trim($request->keyword);
+            $possible_name_words = keyword_search_terms_from_keyword($request->keyword);
+
+            $queryBuilder = $queryBuilder->join('dp_familias', 'inv_inventario.id_familia', 'dp_familias.id_familia');
+
+            $queryBuilder = $queryBuilder
+                ->where(function ($query) use ($complete_word) {
+                    $query->where('inv_inventario.descripcion_bien', 'LIKE', "%$complete_word%");
+                    $query->orWhere('inv_inventario.etiqueta', 'LIKE', "%$complete_word%");
+                    $query->orWhere('dp_familias.descripcion_familia', 'LIKE', "%$complete_word%");
+                });
+
+            if (count($possible_name_words) > 1) {
+                $queryBuilder = $queryBuilder->orWhere(function ($query) use ($possible_name_words) {
+                    foreach ($possible_name_words as $palabra) {
+                        $query->where('inv_inventario.descripcion_bien', 'LIKE', "%$palabra%");
+                    }
+                });
+
+                $queryBuilder = $queryBuilder->orWhere(function ($query) use ($possible_name_words) {
+                    foreach ($possible_name_words as $palabra) {
+                        $query->where('dp_familias.descripcion_familia', 'LIKE', "%$palabra%");
+                    }
+                });
+            }
+        }
+
+        if ($request->from && $request->rows) {
+            $offset = $request->from - 1;
+            $limit = $request->rows;
+            $queryBuilder->offset($offset)->limit($limit);
+        }
+
+        return $queryBuilder;
     }
 }
