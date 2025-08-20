@@ -36,7 +36,7 @@ class EmplazamientoNivel3Resource extends JsonResource
             'next_level' => '',
             'newApp' => $this->newApp,
             'modo' => $this->modo,
-            'habilitadoNivel3' => 1,
+            'habilitadoNivel3' => 0,
             'num_activos' => 0,
             'num_activos_audit' => 0,
             'num_activos_inv' => $num_activos_inv,
