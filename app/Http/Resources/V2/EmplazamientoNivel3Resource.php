@@ -40,6 +40,8 @@ class EmplazamientoNivel3Resource extends JsonResource
             'num_activos' => 0,
             'num_activos_audit' => 0,
             'num_activos_inv' => $num_activos_inv,
+            'num_activos_N2' => null,
+            'num_activos_N3' => null,
             'num_activos_cats_by_cycle' => 0,
             'ciclo_auditoria' => $this->ciclo_auditoria,
             'num_categorias' => $this->activos()->select('categoriaN3')->groupBy('categoriaN3')->get()->count(),
