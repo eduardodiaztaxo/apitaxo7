@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\IndiceLista;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class Inventario extends Model
 {
@@ -55,6 +56,7 @@ class Inventario extends Model
         'codigoUbicacion_N2',
         'idUbicacionN3',
         'codigoUbicacionN3',
+        'codigoUbicacionN4',
         'responsable',
         'idResponsable',
         'latitud',
@@ -122,6 +124,14 @@ class Inventario extends Model
         return $this->belongsTo(ZonaPunto::class, 'idUbicacionN1', 'idUbicacionN1');
     }
 
+    public function emplazamienton1()
+    {
+        return EmplazamientoN1::join('inv_inventario', function (JoinClause $join) {
+            $join->on('ubicaciones_n1.idAgenda', '=', 'inv_inventario.idUbicacionGeo')
+                ->on('ubicaciones_n1.codigoUbicacion', '=', 'inv_inventario.codigoUbicacion_N1');
+        })->where('ubicaciones_n1.idAgenda', '=', $this->idUbicacionGeo)->where('ubicaciones_n1.codigoUbicacion', '=', $this->codigoUbicacionN1);
+    }
+
     public function emplazamientoN2()
     {
         return $this->belongsTo(EmplazamientoN2::class, 'idUbicacionN2', 'idUbicacionN2');
@@ -171,5 +181,46 @@ class Inventario extends Model
         }
 
         return $queryBuilder;
+    }
+
+    /**
+     * Fill instance with codes and ids of places and levels  
+     */
+    public function fillCodeAndIDSEmplazamientos()
+    {
+
+        if (strlen($this->codigoUbicacionN4) === 8) {
+            $this->codigoUbicacionN3 = substr($this->codigoUbicacionN4, 0, 6);
+        }
+
+        if (strlen($this->codigoUbicacionN3) === 6) {
+            $this->codigoUbicacion_N2 = substr($this->codigoUbicacionN3, 0, 4);
+        }
+
+        if (strlen($this->codigoUbicacion_N2) === 4) {
+            $this->codigoUbicacion_N1 = substr($this->codigoUbicacion_N2, 0, 2);
+        }
+
+        if (strlen($this->codigoUbicacionN3) === 6) {
+            $idUbicacionN3 = DB::table('ubicaciones_n3')
+                ->where('codigoUbicacion', $this->codigoUbicacionN3)
+                ->where('idAgenda', $this->idUbicacionGeo)
+                ->value('idUbicacionN3');
+
+            $this->idUbicacionN3 = $idUbicacionN3;
+        }
+
+        if (strlen($this->codigoUbicacion_N2) === 4) {
+            $idUbicacionN2 = DB::table('ubicaciones_n2')
+                ->where('codigoUbicacion', $this->codigoUbicacion_N2)
+                ->where('idAgenda', $this->idUbicacionGeo)
+                ->value('idUbicacionN2');
+
+            $this->idUbicacionN2 = $idUbicacionN2;
+        }
+
+        $this->save();
+
+        return $this;
     }
 }
