@@ -266,7 +266,8 @@ class CiclosUbicacionesController extends Controller
 
         $puntoObj->requireActivos = 1;
         $puntoObj->cycle_id = $cicloObj->idCiclo;
-
+        $puntoObj->general = 1;
+         
 
         //
         return response()->json(UbicacionGeograficaResource::make($puntoObj));
