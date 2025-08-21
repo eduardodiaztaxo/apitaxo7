@@ -17,11 +17,9 @@ class EmplazamientoNivel3Resource extends JsonResource
      */
     public function toArray($request)
     {
-        $num_activos_inv = Inventario::where('inv_inventario.idUbicacionN3', $this->idUbicacionN3)
-            ->where('inv_inventario.id_ciclo', $this->cycle_id)
-            ->count();
 
 
+        $num_activos_inv = $this->inv_activos()->count();
 
         $emplazamiento = [
             'id' => $this->idUbicacionN3,
@@ -40,8 +38,9 @@ class EmplazamientoNivel3Resource extends JsonResource
             'num_activos' => 0,
             'num_activos_audit' => 0,
             'num_activos_inv' => $num_activos_inv,
+            'num_activos_N1' => null,
             'num_activos_N2' => null,
-            'num_activos_N3' => null,
+            'num_activos_N3' => $num_activos_inv,
             'num_activos_cats_by_cycle' => 0,
             'ciclo_auditoria' => $this->ciclo_auditoria,
             'num_categorias' => $this->activos()->select('categoriaN3')->groupBy('categoriaN3')->get()->count(),
