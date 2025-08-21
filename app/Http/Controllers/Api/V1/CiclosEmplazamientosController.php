@@ -144,9 +144,9 @@ class CiclosEmplazamientosController extends Controller
     public function showAssetsN3(int $ciclo, int $emplazamiento, Request $request)
     {
 
-        $emplaN2Obj = EmplazamientoN3::find($emplazamiento);
+        $emplaN3Obj = EmplazamientoN3::find($emplazamiento);
 
-        if (!$emplaN2Obj) {
+        if (!$emplaN3Obj) {
             return response()->json(['status' => 'error', 'code' => 404], 404);
         }
 
@@ -157,12 +157,12 @@ class CiclosEmplazamientosController extends Controller
             return response()->json(['status' => 'NOK', 'code' => 404], 404);
         }
 
-        if ($cicloObj->puntos()->where('idUbicacionGeo', $emplaN2Obj->idAgenda)->count() === 0) {
-            return response()->json(['status' => 'error', 'code' => 404, 'message' => 'El emplazamiento no se corresponde con el ciclo'], 404);
+        if ($cicloObj->puntos()->where('idUbicacionGeo', $emplaN3Obj->idAgenda)->count() === 0) {
+            return response()->json(['status' => 'error', 'code' => 404, 'message' => 'El emplazamiento nievl  3 no se corresponde con el ciclo'], 404);
         }
 
 
-        $queryBuilder = Inventario::queryBuilderInventory_FindInGroupFamily_Pagination($emplaN2Obj, $cicloObj, $request);
+        $queryBuilder = Inventario::queryBuilderInventory_FindInGroupFamily_Pagination($emplaN3Obj, $cicloObj, $request);
 
         $assets = $queryBuilder->get();
 

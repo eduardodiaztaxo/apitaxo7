@@ -43,7 +43,7 @@ class EmplazamientoN3 extends Model
 
     public function inv_activos()
     {
-        return $this->inv_activos_with_child_levels()->whereRaw('LENGTH(inv_inventario.codigoUbicacionN3) < 2');
+        return $this->inv_activos_with_child_levels()->whereRaw('LENGTH(inv_inventario.codigoUbicacionN4) < 2');
     }
 
     public function inv_activos_with_child_levels()
@@ -60,6 +60,7 @@ class EmplazamientoN3 extends Model
     {
 
         $idUbicacionN3 = $this->idUbicacionN3;
+
 
         return Inventario::select(
             'ubicaciones_n3.codigoUbicacion',
