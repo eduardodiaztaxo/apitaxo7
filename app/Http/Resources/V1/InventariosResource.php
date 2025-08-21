@@ -83,9 +83,10 @@ class InventariosResource extends JsonResource
                 ->first();
         }
 
-        $codigoUbicacionN1 = $activo->codigoUbicacion_N1 ?? '';
-        $emplazamiento = DB::table('ubicaciones_n1')
-            ->where('codigoUbicacion', $codigoUbicacionN1)
+        $codigoUbicacionN1 = $activo->codigoUbicacion_N1 ?? $activo->codigoUbicacion_N2 ?? $activo->codigoUbicacion_N3 ?? '';
+       
+       $emplazamiento = DB::table('ubicaciones_n1')
+            ->where('codigoUbicacion', 'like', '%' . $codigoUbicacionN1 . '%')
             ->where('idAgenda', $activo->idUbicacionGeo)
             ->select('idUbicacionN1', 'descripcionUbicacion', 'codigoUbicacion')
             ->first();

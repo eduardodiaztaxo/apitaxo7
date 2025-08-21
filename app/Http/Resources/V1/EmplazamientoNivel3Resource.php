@@ -150,7 +150,7 @@ class EmplazamientoNivel3Resource extends JsonResource
             'num_categorias' => $this->activos()->select('categoriaN3')->groupBy('categoriaN3')->get()->count(),
             'id_ciclo' => $this->cycle_id,
             'newApp' => $this->newApp,
-            'zone_address' => ZonaPuntoResource::make($this->zonaPunto())
+            'zone_address' => ZonaPuntoResource::make($this->zonaPunto()->first())
         ];
 
         if (isset($this->requirePunto) && $this->requirePunto) {
