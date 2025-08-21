@@ -28,7 +28,7 @@ class EmplazamientoNivel3Resource extends JsonResource
             'nombre' => $this->descripcionUbicacion,
             'idAgenda' => $this->idAgenda,
             'idUbicacionN3' => $this->idUbicacionN3,
-            'idUbicacionN2' => $this->idUbicacionN2,
+            'idUbicacionN2' => $this->idUbicacionN3,
             'detalle' => 'Detalle Emplazamiento (N3)',
             'num_nivel' => 'N3',
             'next_level' => '',
@@ -42,7 +42,7 @@ class EmplazamientoNivel3Resource extends JsonResource
             'num_activos_N2' => null,
             'num_activos_N3' => $num_activos_inv,
             'num_activos_cats_by_cycle' => 0,
-            'ciclo_auditoria' => $this->ciclo_auditoria,
+            'ciclo_auditoria' => 0,
             'num_categorias' => $this->activos()->select('categoriaN3')->groupBy('categoriaN3')->get()->count(),
             'id_ciclo' => $this->cycle_id,
             'zone_address' => ZonaPuntoResource::make($this->zonaPunto()->first())

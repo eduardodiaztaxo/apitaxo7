@@ -158,6 +158,8 @@ class EmplazamientoN3DumpService implements DumpSQLiteInterface
 
         foreach ($emplazamientos as $emplazamiento) {
 
+
+
             $stmt->execute([
                 ':id' => $emplazamiento->id,
                 ':codigo' => $emplazamiento->codigo,
@@ -172,12 +174,12 @@ class EmplazamientoN3DumpService implements DumpSQLiteInterface
                 ':num_categorias' => $emplazamiento->num_categorias,
                 ':num_activos_audit' => $emplazamiento->num_activos_audit,
                 ':habilitadoNivel3' => $emplazamiento->habilitadoNivel3,
-                ':detalle' => $emplazamiento->detalle,
-                ':num_nivel' => $emplazamiento->num_nivel,
-                ':next_level' => $emplazamiento->next_level,
                 ':newApp' => $emplazamiento->newApp,
                 ':modo' => $emplazamiento->modo,
-                ':offline' => 0
+                ':offline' => 0,
+                ':detalle' => $emplazamiento->num_nivel,
+                ':num_nivel' => $emplazamiento->next_level,
+                ':next_level' => $emplazamiento->detalle
             ]);
         }
     }
