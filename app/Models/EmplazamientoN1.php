@@ -57,12 +57,12 @@ class EmplazamientoN1 extends Model
     public function inv_activos_with_child_levels()
     {
 
-        $codigoUbicacion = $this->codigoUbicacion;
-
-        return Inventario::join('ubicaciones_n1', function (JoinClause $join) use ($codigoUbicacion) {
+        return Inventario::join('ubicaciones_n1', function (JoinClause $join) {
             $join->on('inv_inventario.idUbicacionGeo', '=', 'ubicaciones_n1.idAgenda')
-                ->on('inv_inventario.codigoUbicacion_N1', '=', DB::raw("'$codigoUbicacion'"));
-        });
+                ->on('inv_inventario.codigoUbicacion_N1', '=', 'ubicaciones_n1.codigoUbicacion');
+        })
+            ->where('inv_inventario.codigoUbicacion_N1', '=', $this->codigoUbicacion)
+            ->where('ubicaciones_n1.idUbicacionN1', '=', $this->idUbicacionN1);
         //return $this->hasMany(Inventario::class, 'idUbicacionN1', 'idUbicacionN1');
     }
 
@@ -74,7 +74,7 @@ class EmplazamientoN1 extends Model
     public function inv_group_families_with_child_levels()
     {
 
-        $codigoUbicacion = $this->codigoUbicacion;
+
 
         return Inventario::select(
             'ubicaciones_n1.codigoUbicacion',
@@ -90,9 +90,9 @@ class EmplazamientoN1 extends Model
             $join->on('inv_inventario.idUbicacionGeo', '=', 'ubicaciones_n1.idAgenda')
                 ->on('inv_inventario.codigoUbicacion_N1', '=', 'ubicaciones_n1.codigoUbicacion');
         })
-            ->where('ubicaciones_n1.codigoUbicacion', $codigoUbicacion)
             ->join('dp_familias', 'inv_inventario.id_familia', 'dp_familias.id_familia')
             ->join('dp_grupos', 'inv_inventario.id_grupo', 'dp_grupos.id_grupo')
+            ->where('ubicaciones_n1.idUbicacionN1', '=', $this->idUbicacionN1)
             ->groupBy('ubicaciones_n1.codigoUbicacion', 'inv_inventario.id_ciclo', 'inv_inventario.id_grupo', 'inv_inventario.id_familia', 'dp_grupos.descripcion_grupo', 'dp_familias.descripcion_familia');
     }
 

@@ -51,6 +51,8 @@ class EmplazamientoNivel1Controller extends Controller
 
         $emplaObj = EmplazamientoN1::find($emplazamiento);
 
+
+
         if (!$emplaObj) {
             return response()->json(['status' => 'error', 'code' => 404], 404);
         }
