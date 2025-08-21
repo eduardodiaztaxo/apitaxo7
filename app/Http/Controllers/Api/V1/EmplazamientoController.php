@@ -382,9 +382,6 @@ class EmplazamientoController extends Controller
 
 
         $updateData = [
-            'crud_activo_estado' => 3,
-            'modificado_el' => now(),
-            'modificado_por' => $request->user() ? $request->user()->name : 'Desconocido',
             'modo' => 'ONLINE',
         ];
 

@@ -85,6 +85,9 @@ class InventariosController extends Controller
             return response('La etiqueta ya existe', 400);
         }
 
+            if($request->codigoUbicacion == 0) {
+                $request->codigoUbicacion = $request->codigoUbicacion_N1;
+            }
 
         if (strlen($request->codigoUbicacion) === 2) {
             // Nivel 1
