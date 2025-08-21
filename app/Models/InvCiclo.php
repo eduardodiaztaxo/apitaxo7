@@ -125,7 +125,8 @@ public function activos_with_cats_by_cycle_emplazamiento($cycle_id, $idAgenda)
             ON inv.idUbicacionGeo = n1.idAgenda
             AND inv.codigoUbicacion_N1 = n1.codigoUbicacion
             AND inv.id_ciclo = ?
-            WHERE n1.idAgenda = ?
+            WHERE n1.idAgenda = ? 
+            AND LENGTH(inv.codigoUbicacion_N2) < 2
             GROUP BY n1.descripcionUbicacion, n1.codigoUbicacion
 
             UNION ALL
@@ -142,6 +143,7 @@ public function activos_with_cats_by_cycle_emplazamiento($cycle_id, $idAgenda)
             AND inv.codigoUbicacion_N2 = n2.codigoUbicacion
             AND inv.id_ciclo = ?
             WHERE n2.idAgenda = ?
+            AND LENGTH(inv.codigoUbicacionN3) < 2
             GROUP BY n2.descripcionUbicacion, n2.codigoUbicacion
 
             UNION ALL
