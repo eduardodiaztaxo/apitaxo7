@@ -77,6 +77,7 @@ class UbicacionGeograficaResource extends JsonResource
 
         $auditoria_general = isset($this->auditoria_general) ? $this->auditoria_general : 0;
 
+      
         $address = [
             'idUbicacionGeo' => $this->idUbicacionGeo,
             'codigoCliente' => $this->codigoCliente,
@@ -99,6 +100,14 @@ class UbicacionGeograficaResource extends JsonResource
             'num_activos_inv_cats_by_cycle' => 0,
             'num_cats_by_cycle' => 0
         ];
+
+           if ($this->general === 1) {
+                $detalle = [
+                    'detalle' => 'Detalle General',
+                ];
+
+                $address['detalle'] = $detalle['detalle'];
+            }
 
         if (isset($this->cycle_id) && $this->cycle_id) {
 
