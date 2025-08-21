@@ -85,9 +85,6 @@ class InventariosController extends Controller
             return response('La etiqueta ya existe', 400);
         }
 
-            if($request->codigoUbicacion == 0) {
-                $request->codigoUbicacion = $request->codigoUbicacion_N1;
-            }
 
         if (strlen($request->codigoUbicacion) === 2) {
             // Nivel 1
@@ -162,7 +159,7 @@ class InventariosController extends Controller
         $inventario->serie               = $request->serie ?? '';
         $inventario->latitud             = $request->latitud ?? 0;
         $inventario->longitud            = $request->longitud ?? 0;
-        $inventario->capacidad           = intval($request->capacidad ?? '');
+        $inventario->capacidad           = $request->capacidad ?? '';
         $inventario->estado              = intval($request->estado ?? 0);
         $inventario->color               = intval($request->color ?? 0);
         $inventario->tipo_trabajo        = intval($request->tipo_trabajo ?? 0);
