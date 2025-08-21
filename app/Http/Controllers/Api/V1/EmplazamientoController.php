@@ -12,6 +12,7 @@ use App\Models\InvCiclo;
 use App\Models\Emplazamiento;
 use App\Models\EmplazamientoN1;
 use App\Models\EmplazamientoN3;
+use App\Models\Inventario;
 use App\Models\ZonaPunto;
 use App\Services\PlaceService;
 use Illuminate\Http\Request;
@@ -47,59 +48,59 @@ class EmplazamientoController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-public function store(Request $request)
-{
-    $request->validate([
-        'descripcion'     => 'required|string',
-        'zona_id'         => 'required|exists:ubicaciones_n1,codigoUbicacion',
-        'agenda_id'       => 'required|exists:ubicaciones_geograficas,idUbicacionGeo',
-        'estado'          => 'sometimes|required|in:0,1',
-        'ciclo_auditoria' => 'required'
-    ]);
+    public function store(Request $request)
+    {
+        $request->validate([
+            'descripcion'     => 'required|string',
+            'zona_id'         => 'required|exists:ubicaciones_n1,codigoUbicacion',
+            'agenda_id'       => 'required|exists:ubicaciones_geograficas,idUbicacionGeo',
+            'estado'          => 'sometimes|required|in:0,1',
+            'ciclo_auditoria' => 'required'
+        ]);
 
-    $idMax = DB::table('ubicaciones_n2')
-        ->where('idAgenda', $request->agenda_id)
-        ->where('codigoUbicacion', 'like', $request->zona_id . '%')
-        ->max('codigoUbicacion');
+        $idMax = DB::table('ubicaciones_n2')
+            ->where('idAgenda', $request->agenda_id)
+            ->where('codigoUbicacion', 'like', $request->zona_id . '%')
+            ->max('codigoUbicacion');
 
-    $zonaId = $request->zona_id;
+        $zonaId = $request->zona_id;
 
-    if ($idMax) {
-        $num = substr($idMax, strlen($zonaId)); 
-        $numIncrementado = str_pad((int)$num + 1, strlen($num), '0', STR_PAD_LEFT);
-        $code = $zonaId . $numIncrementado;
-    } else {
-        $code = $zonaId . '01';
-    }
+        if ($idMax) {
+            $num = substr($idMax, strlen($zonaId));
+            $numIncrementado = str_pad((int)$num + 1, strlen($num), '0', STR_PAD_LEFT);
+            $code = $zonaId . $numIncrementado;
+        } else {
+            $code = $zonaId . '01';
+        }
 
-    $data = [
-        'idProyecto'            => $request->ciclo_auditoria,
-        'idAgenda'              => $request->agenda_id,
-        'descripcionUbicacion'  => $request->descripcion,
-        'codigoUbicacion'       => $code,
-        'fechaCreacion'         => date('Y-m-d H:i:s'),
-        'estado'                => $request->estado !== null ? $request->estado : 1,
-        'usuario'               => $request->user()->name,
-        'ciclo_auditoria'       => $request->ciclo_auditoria,
-        'newApp'                => 1,
-        'modo'                  => 'ONLINE'
-    ];
+        $data = [
+            'idProyecto'            => $request->ciclo_auditoria,
+            'idAgenda'              => $request->agenda_id,
+            'descripcionUbicacion'  => $request->descripcion,
+            'codigoUbicacion'       => $code,
+            'fechaCreacion'         => date('Y-m-d H:i:s'),
+            'estado'                => $request->estado !== null ? $request->estado : 1,
+            'usuario'               => $request->user()->name,
+            'ciclo_auditoria'       => $request->ciclo_auditoria,
+            'newApp'                => 1,
+            'modo'                  => 'ONLINE'
+        ];
 
-    $empla = Emplazamiento::create($data);
+        $empla = Emplazamiento::create($data);
 
-    if (!$empla) {
+        if (!$empla) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No se pudo crear el emplazamiento'
+            ], 422);
+        }
+
         return response()->json([
-            'status' => 'error',
-            'message' => 'No se pudo crear el emplazamiento'
-        ], 422);
+            'status'  => 'OK',
+            'message' => 'Creado exitosamente',
+            'data'    => EmplazamientoResource::make($empla)
+        ]);
     }
-
-    return response()->json([
-        'status'  => 'OK',
-        'message' => 'Creado exitosamente',
-        'data'    => EmplazamientoResource::make($empla)
-    ]);
-}
 
 
     /**
@@ -108,7 +109,7 @@ public function store(Request $request)
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    
+
     //este falla al crear uno nuevo e ingresar inmediatamente
     //fijar añadiendo propiedad zone_address
     public function createSubEmplazamientosNivel3(Request $request)
@@ -223,214 +224,219 @@ public function store(Request $request)
      */
 
 
-public function show(int $emplazamiento, int $ciclo, string $codigoUbicacion)
-{
-    // Nivel 1
-    if (strlen($codigoUbicacion) === 2) {
-        $emplaObj = EmplazamientoN1::where('idUbicacionN1', $emplazamiento)
-            ->where('codigoUbicacion', $codigoUbicacion)
+    public function show(int $emplazamiento, int $ciclo, string $codigoUbicacion)
+    {
+        // Nivel 1
+        if (strlen($codigoUbicacion) === 2) {
+            $emplaObj = EmplazamientoN1::where('idUbicacionN1', $emplazamiento)
+                ->where('codigoUbicacion', $codigoUbicacion)
+                ->first();
+
+            if (!$emplaObj) {
+                return response()->json(['status' => 'NOK', 'code' => 404], 404);
+            }
+
+            $resource = EmplazamientoNivel1Resource::make($emplaObj);
+        }
+        // Nivel 2
+        else if (strlen($codigoUbicacion) === 4) {
+            $emplaObj = Emplazamiento::where('idUbicacionN2', $emplazamiento)
+                ->where('codigoUbicacion', $codigoUbicacion)
+                ->first();
+
+            if (!$emplaObj) {
+                return response()->json(['status' => 'NOK', 'code' => 404], 404);
+            }
+
+            $resource = EmplazamientoResource::make($emplaObj);
+        }
+        // Nivel 3
+        else {
+            $emplaObj = EmplazamientoN3::where('idUbicacionN3', $emplazamiento)
+                ->where('codigoUbicacion', $codigoUbicacion)
+                ->first();
+
+            if (!$emplaObj) {
+                return response()->json(['status' => 'NOK', 'code' => 404], 404);
+            }
+
+            $resource = EmplazamientoNivel3Resource::make($emplaObj);
+        }
+
+        $emplaObj->requirePunto = 1;
+        $emplaObj->requireActivos = 1;
+        $emplaObj->cycle_id = $ciclo;
+
+        return response()->json($resource);
+    }
+
+    public function showTodos(int $idAgenda, int $ciclo)
+    {
+        $emplaObj = EmplazamientoN1::with(['emplazamientosN2', 'emplazamientosN3'])
+            ->where('idAgenda', $idAgenda)
             ->first();
 
         if (!$emplaObj) {
             return response()->json(['status' => 'NOK', 'code' => 404], 404);
         }
 
-        $resource = EmplazamientoNivel1Resource::make($emplaObj);
-    }
-    // Nivel 2
-    else if (strlen($codigoUbicacion) === 4) {
-        $emplaObj = Emplazamiento::where('idUbicacionN2', $emplazamiento)
-            ->where('codigoUbicacion', $codigoUbicacion)
-            ->first();
+        $emplaObj->requirePunto = 1;
+        $emplaObj->requireActivos = 1;
+        $emplaObj->cycle_id = $ciclo;
 
-        if (!$emplaObj) {
-            return response()->json(['status' => 'NOK', 'code' => 404], 404);
+        return response()->json(EmplazamientoAllResource::make($emplaObj));
+    }
+
+
+    public function groupEmplazamientos(int $idAgenda, int $ciclo)
+    {
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json([
+                'status' => 'NOK',
+                'message' => 'Ciclo no encontrado',
+                'code' => 404
+            ], 404);
         }
 
-        $resource = EmplazamientoResource::make($emplaObj);
-    }
-    // Nivel 3
-    else {
-        $emplaObj = EmplazamientoN3::where('idUbicacionN3', $emplazamiento)
-            ->where('codigoUbicacion', $codigoUbicacion)
-            ->first();
+        $activos = $cicloObj->activos_with_cats_by_cycle_emplazamiento($ciclo, $idAgenda);
 
-        if (!$emplaObj) {
-            return response()->json(['status' => 'NOK', 'code' => 404], 404);
-        }
-
-        $resource = EmplazamientoNivel3Resource::make($emplaObj);
-    }
-
-    $emplaObj->requirePunto = 1;
-    $emplaObj->requireActivos = 1;
-    $emplaObj->cycle_id = $ciclo;
-
-    return response()->json($resource);
-}
-
-public function showTodos(int $idAgenda, int $ciclo)
-{
-    $emplaObj = EmplazamientoN1::with(['emplazamientosN2', 'emplazamientosN3'])
-        ->where('idAgenda', $idAgenda)
-        ->first();
-
-    if (!$emplaObj) {
-        return response()->json(['status' => 'NOK', 'code' => 404], 404);
-    }
-
-    $emplaObj->requirePunto = 1;
-    $emplaObj->requireActivos = 1;
-    $emplaObj->cycle_id = $ciclo;
-
-    return response()->json(EmplazamientoAllResource::make($emplaObj));
-}
-
-
-public function groupEmplazamientos(int $idAgenda, int $ciclo)
-{
-    $cicloObj = InvCiclo::find($ciclo);
-
-    if (!$cicloObj) {
         return response()->json([
-            'status' => 'NOK',
-            'message' => 'Ciclo no encontrado',
-            'code' => 404
-        ], 404);
+            'status' => 'OK',
+            'message' => 'Emplazamientos obtenidos correctamente',
+            'data' => [
+                'emplazamientos' => $activos,
+            ],
+        ], 200);
     }
 
-    $activos = $cicloObj->activos_with_cats_by_cycle_emplazamiento($ciclo, $idAgenda);
+    public function moverEmplazamientos(Request $request, string $codigoUbicacion, int $ciclo_id, int $agenda_id, string $etiqueta)
+    {
+        // Nivel 1
+        if (strlen($codigoUbicacion) === 2) {
+            $emplaObj = EmplazamientoN1::where('idAgenda', $agenda_id)
+                ->where('codigoUbicacion', $codigoUbicacion)
+                ->first();
 
-    return response()->json([
-        'status' => 'OK',
-        'message' => 'Emplazamientos obtenidos correctamente',
-        'data' => [
-            'emplazamientos' => $activos,
-        ],
-    ], 200);
-}
+            if (!$emplaObj) {
 
-public function moverEmplazamientos(Request $request, string $codigoUbicacion, int $ciclo_id, int $agenda_id, string $etiqueta)
-{
-    // Nivel 1
-    if (strlen($codigoUbicacion) === 2) {
-        $emplaObj = EmplazamientoN1::where('idAgenda', $agenda_id)
-            ->where('codigoUbicacion', $codigoUbicacion)
-            ->first();
+                return response()->json([
+                    'status' => 'NOK',
+                    'code' => 404,
+                    'data' => [
+                        'idAgenda' => $agenda_id,
+                        'codigoUbicacion' => $codigoUbicacion
+                    ]
+                ], 404);
+            }
 
-        if (!$emplaObj) {
-       
-            return response()->json([
-                'status' => 'NOK',
-                'code' => 404,
-                'data' => [
-                    'idAgenda' => $agenda_id,
-                    'codigoUbicacion' => $codigoUbicacion
-                ]
-            ], 404);
+            $idEmplazamiento = $emplaObj->idUbicacionN1;
+            $nombre = $emplaObj->descripcionUbicacion;
+            $codigoUbicacion = (string) $emplaObj->codigoUbicacion;
+        }
+        // Nivel 2
+        else if (strlen($codigoUbicacion) === 4) {
+            $emplaObj = Emplazamiento::where('idAgenda', $agenda_id)
+                ->where('codigoUbicacion', $codigoUbicacion)
+                ->first();
+
+            if (!$emplaObj) {
+
+                return response()->json([
+                    'status' => 'NOK',
+                    'code' => 404,
+                    'data' => [
+                        'idAgenda' => $agenda_id,
+                        'codigoUbicacion' => $codigoUbicacion
+                    ]
+                ], 404);
+            }
+
+            $idEmplazamiento = $emplaObj->idUbicacionN2;
+            $nombre = $emplaObj->descripcionUbicacion;
+            $codigoUbicacion = (string) $emplaObj->codigoUbicacion;
+        }
+        // Nivel 3
+        else {
+            $emplaObj = EmplazamientoN3::where('idAgenda', $agenda_id)
+                ->where('codigoUbicacion', $codigoUbicacion)
+                ->first();
+
+            if (!$emplaObj) {
+
+                return response()->json([
+                    'status' => 'NOK',
+                    'code' => 404,
+                    'data' => [
+                        'idAgenda' => $agenda_id,
+                        'codigoUbicacion' => $codigoUbicacion
+                    ]
+                ], 404);
+            }
+
+            $idEmplazamiento = $emplaObj->idUbicacionN3;
+            $nombre = $emplaObj->descripcionUbicacion;
+            $codigoUbicacion = (string) $emplaObj->codigoUbicacion;
         }
 
-        $idEmplazamiento = $emplaObj->idUbicacionN1;
-        $nombre = $emplaObj->descripcionUbicacion;
-        $codigoUbicacion = (string) $emplaObj->codigoUbicacion;
-    }
-    // Nivel 2
-    else if (strlen($codigoUbicacion) === 4) {
-        $emplaObj = Emplazamiento::where('idAgenda', $agenda_id)
-            ->where('codigoUbicacion', $codigoUbicacion)
-            ->first();
 
-        if (!$emplaObj) {
-           
-            return response()->json([
-                'status' => 'NOK',
-                'code' => 404,
-                'data' => [
-                    'idAgenda' => $agenda_id,
-                    'codigoUbicacion' => $codigoUbicacion
-                ]
-            ], 404);
+        $updateData = [
+            'crud_activo_estado' => 3,
+            'modificado_el' => now(),
+            'modificado_por' => $request->user() ? $request->user()->name : 'Desconocido',
+            'modo' => 'ONLINE',
+        ];
+
+
+        if (strlen($codigoUbicacion) === 2) {
+            $updateData['codigoUbicacion_N1'] = $codigoUbicacion;
+            $updateData['idUbicacionN2'] = 0;
+            $updateData['codigoUbicacion_N2'] = 0;
+            $updateData['idUbicacionN3'] = 0;
+            $updateData['codigoUbicacionN3'] = 0;
+        } elseif (strlen($codigoUbicacion) === 4) {
+            $updateData['codigoUbicacion_N1'] = 0;
+            $updateData['idUbicacionN2'] = $emplaObj->idUbicacionN2;
+            $updateData['codigoUbicacion_N2'] = $codigoUbicacion;
+            $updateData['idUbicacionN3'] = 0;
+            $updateData['codigoUbicacionN3'] = 0;
+        } elseif (strlen($codigoUbicacion) === 6) {
+            $updateData['codigoUbicacion_N1'] = 0;
+            $updateData['idUbicacionN2'] = 0;
+            $updateData['codigoUbicacion_N2'] = 0;
+            $updateData['idUbicacionN3'] = $emplaObj->idUbicacionN3;
+            $updateData['codigoUbicacionN3'] = $codigoUbicacion;
         }
 
-        $idEmplazamiento = $emplaObj->idUbicacionN2;
-        $nombre = $emplaObj->descripcionUbicacion;
-        $codigoUbicacion = (string) $emplaObj->codigoUbicacion;
-    }
-    // Nivel 3
-    else {
-        $emplaObj = EmplazamientoN3::where('idAgenda', $agenda_id)
-            ->where('codigoUbicacion', $codigoUbicacion)
-            ->first();
 
-        if (!$emplaObj) {
-           
+        $updated = DB::table('inv_inventario')
+            ->where('etiqueta', $etiqueta)
+            ->where('id_ciclo', $ciclo_id)
+            ->update($updateData);
+
+        if ($updated === 0) {
             return response()->json([
                 'status' => 'NOK',
-                'code' => 404,
-                'data' => [
-                    'idAgenda' => $agenda_id,
-                    'codigoUbicacion' => $codigoUbicacion
-                ]
-            ], 404);
+                'message' => 'Error al actualizar los datos del inventario o no se realizó ningún cambio',
+                'code' => 500
+            ], 500);
         }
 
-        $idEmplazamiento = $emplaObj->idUbicacionN3;
-        $nombre = $emplaObj->descripcionUbicacion;
-        $codigoUbicacion = (string) $emplaObj->codigoUbicacion;
-    }
+        $bien = Inventario::where('etiqueta', '=', $etiqueta)->first();
 
-   
-    $updateData = [
-        'crud_activo_estado' => 3,
-        'modificado_el' => now(),  
-        'modificado_por' => $request->user() ? $request->user()->name : 'Desconocido',
-        'modo' => 'ONLINE',
-    ];
+        $bien->fillCodeAndIDSEmplazamientos();
 
-
-    if (strlen($codigoUbicacion) === 2) {
-        $updateData['codigoUbicacion_N1'] = $codigoUbicacion;
-        $updateData['idUbicacionN2'] = 0;
-        $updateData['codigoUbicacion_N2'] = 0;
-        $updateData['idUbicacionN3'] = 0;
-        $updateData['codigoUbicacionN3'] = 0;
-    } elseif (strlen($codigoUbicacion) === 4) {
-        $updateData['codigoUbicacion_N1'] = 0;
-        $updateData['idUbicacionN2'] = $emplaObj->idUbicacionN2;
-        $updateData['codigoUbicacion_N2'] = $codigoUbicacion;
-        $updateData['idUbicacionN3'] = 0;
-        $updateData['codigoUbicacionN3'] = 0;
-    } elseif (strlen($codigoUbicacion) === 6) {
-        $updateData['codigoUbicacion_N1'] = 0;
-        $updateData['idUbicacionN2'] = 0;
-        $updateData['codigoUbicacion_N2'] = 0;
-        $updateData['idUbicacionN3'] = $emplaObj->idUbicacionN3;
-        $updateData['codigoUbicacionN3'] = $codigoUbicacion;
-    }
-
-    
-    $updated = DB::table('inv_inventario')
-        ->where('etiqueta', $etiqueta)
-        ->where('id_ciclo', $ciclo_id)
-        ->update($updateData);
-
-    if ($updated === 0) {
         return response()->json([
-            'status' => 'NOK',
-            'message' => 'Error al actualizar los datos del inventario o no se realizó ningún cambio',
-            'code' => 500
-        ], 500);
+            [
+                'id' => $idEmplazamiento,
+                'ciclo_id' => $ciclo_id,
+                'codigoUbicacion' => $codigoUbicacion,
+                'nombre' => $nombre,
+                'bien' => $bien
+            ]
+        ]);
     }
-
-    return response()->json([
-         [
-            'id' => $idEmplazamiento,
-            'ciclo_id' => $ciclo_id,
-            'codigoUbicacion' => $codigoUbicacion,
-            'nombre' => $nombre
-        ]
-    ]);
-}
 
 
 
