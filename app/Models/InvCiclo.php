@@ -105,74 +105,74 @@ public function activos_with_cats_by_cycle_emplazamiento($cycle_id, $idAgenda)
             d.direccion, 
             NULL AS codigoUbicacion,
             COUNT(inv.etiqueta) AS num_activos
-            FROM ubicaciones_geograficas AS d
-            LEFT JOIN inv_inventario AS inv
+        FROM ubicaciones_geograficas AS d
+        LEFT JOIN inv_inventario AS inv
             ON inv.idUbicacionGeo = d.idUbicacionGeo
             AND inv.id_ciclo = ?
-            WHERE d.idUbicacionGeo = ?
-            GROUP BY d.descripcion, d.direccion
+        WHERE d.idUbicacionGeo = ?
+        GROUP BY d.descripcion, d.direccion
 
-            UNION ALL
+        UNION ALL
 
-            SELECT 
+        SELECT 
             'N1' AS nivel,
             n1.descripcionUbicacion,
             NULL AS direccion,
             n1.codigoUbicacion,
             COUNT(inv.etiqueta) AS num_activos
-            FROM ubicaciones_n1 AS n1
-            LEFT JOIN inv_inventario AS inv
+        FROM ubicaciones_n1 AS n1
+        LEFT JOIN inv_inventario AS inv
             ON inv.idUbicacionGeo = n1.idAgenda
             AND inv.codigoUbicacion_N1 = n1.codigoUbicacion
             AND inv.id_ciclo = ?
-            WHERE n1.idAgenda = ? 
-            AND LENGTH(inv.codigoUbicacion_N2) < 2
-            GROUP BY n1.descripcionUbicacion, n1.codigoUbicacion
+            AND (inv.codigoUbicacion_N2 IS NULL OR LENGTH(inv.codigoUbicacion_N2) < 2)
+        WHERE n1.idAgenda = ? 
+        GROUP BY n1.descripcionUbicacion, n1.codigoUbicacion
 
-            UNION ALL
+        UNION ALL
 
-            SELECT 
+        SELECT 
             'N2' AS nivel,
             n2.descripcionUbicacion,
             NULL AS direccion,
             n2.codigoUbicacion,
             COUNT(inv.etiqueta) AS num_activos
-            FROM ubicaciones_n2 AS n2
-            LEFT JOIN inv_inventario AS inv
+        FROM ubicaciones_n2 AS n2
+        LEFT JOIN inv_inventario AS inv
             ON inv.idUbicacionGeo = n2.idAgenda
             AND inv.codigoUbicacion_N2 = n2.codigoUbicacion
             AND inv.id_ciclo = ?
-            WHERE n2.idAgenda = ?
-            AND LENGTH(inv.codigoUbicacionN3) < 2
-            GROUP BY n2.descripcionUbicacion, n2.codigoUbicacion
+            AND (inv.codigoUbicacionN3 IS NULL OR LENGTH(inv.codigoUbicacionN3) < 2)
+        WHERE n2.idAgenda = ?
+        GROUP BY n2.descripcionUbicacion, n2.codigoUbicacion
 
-            UNION ALL
+        UNION ALL
 
-            SELECT 
+        SELECT 
             'N3' AS nivel,
             n3.descripcionUbicacion,
             NULL AS direccion,
             n3.codigoUbicacion,
             COUNT(inv.etiqueta) AS num_activos
-            FROM ubicaciones_n3 AS n3
-            LEFT JOIN inv_inventario AS inv
+        FROM ubicaciones_n3 AS n3
+        LEFT JOIN inv_inventario AS inv
             ON inv.idUbicacionGeo = n3.idAgenda
             AND inv.codigoUbicacionN3 = n3.codigoUbicacion
             AND inv.id_ciclo = ?
-            WHERE n3.idAgenda = ?
-            GROUP BY n3.descripcionUbicacion, n3.codigoUbicacion
+        WHERE n3.idAgenda = ?
+        GROUP BY n3.descripcionUbicacion, n3.codigoUbicacion
 
-    ORDER BY nivel, codigoUbicacion;
-";
+        ORDER BY nivel, codigoUbicacion;
+   ";
 
-return DB::select($sql, [
-    $cycle_id, $idAgenda,   // Direccion
-    $cycle_id, $idAgenda,   // Emplazamiento N1
-    $cycle_id, $idAgenda,   // Emplazamiento N2
-    $cycle_id, $idAgenda    // Emplazamiento N3
-]);
-
+   return DB::select($sql, [
+       $cycle_id, $idAgenda,   // Direccion
+       $cycle_id, $idAgenda,   // Emplazamiento N1
+       $cycle_id, $idAgenda,   // Emplazamiento N2
+       $cycle_id, $idAgenda    // Emplazamiento N3
+   ]);
 }
+
 
     public function zoneSubEmplazamientosWithCats(EmplazamientoN3 $zona)
     {
