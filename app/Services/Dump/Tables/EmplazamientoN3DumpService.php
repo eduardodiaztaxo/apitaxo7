@@ -110,7 +110,7 @@ class EmplazamientoN3DumpService implements DumpSQLiteInterface
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            INSERT OR REPLACE INTO emplazamientosN3 (
+            INSERT INTO emplazamientosN3 (
                 id,
                 codigo,
                 codigoUbicacion,
@@ -124,9 +124,9 @@ class EmplazamientoN3DumpService implements DumpSQLiteInterface
                 num_categorias,
                 num_activos_audit,
                 habilitadoNivel3,
+                detalle,
                 num_nivel,
                 next_level,
-                detalle,
                 newApp,
                 modo,
                 offline
@@ -174,12 +174,12 @@ class EmplazamientoN3DumpService implements DumpSQLiteInterface
                 ':num_categorias' => $emplazamiento->num_categorias,
                 ':num_activos_audit' => $emplazamiento->num_activos_audit,
                 ':habilitadoNivel3' => $emplazamiento->habilitadoNivel3,
+                ':detalle' => $emplazamiento->detalle,
+                ':num_nivel' => $emplazamiento->num_nivel,
+                ':next_level' => $emplazamiento->next_level,
                 ':newApp' => $emplazamiento->newApp,
                 ':modo' => $emplazamiento->modo,
-                ':offline' => 0,
-                ':detalle' => $emplazamiento->num_nivel,
-                ':num_nivel' => $emplazamiento->next_level,
-                ':next_level' => $emplazamiento->detalle
+                ':offline' => 0
             ]);
         }
     }
