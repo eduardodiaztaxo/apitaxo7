@@ -148,32 +148,15 @@ class MapPolygonController extends Controller
 
 
 
-        $min_lat = 0;
-        $max_lat = 0;
-        $min_lng = 0;
-        $max_lng = 0;
 
-        $area = json_decode($request->area, true);
-        //ojo con los polígonos que pasan desde -180 hacia más a la izquierda
-        //y desde 180 hacia más a la derecha, ya que pueden tener coordenadas negativas
-        //y positivas, por lo que se debe calcular el mínimo y máximo de latitud y
-        //longitud de forma adecuada.
-        if (is_array($area) && count($area) > 0) {
-            $min_lat = min(array_column($area, 'lat'));
-            $max_lat = max(array_column($area, 'lat'));
-            $min_lng = min(array_column($area, 'lng'));
-            $max_lng = max(array_column($area, 'lng'));
-        }
 
         $mapAreaArr = [
-            'area' => $request->area,
-            'min_lat' => $min_lat,
-            'max_lat' => $max_lat,
-            'min_lng' => $min_lng,
-            'max_lng' => $max_lng,
+            'area' => $request->area
         ];
 
         $mapArea->update($mapAreaArr);
+
+        $mapArea->updateMinMaxLatLng();
 
         return response()->json(MapPolygonalAreaResource::make($mapArea), 200);
     }
