@@ -399,7 +399,7 @@ class InventariosController extends Controller
     if ($existingEtiquetaInventario || $existingEtiquetaCrudActivos) {
         return response()->json([
             'status' => 'ERROR',
-            'message' => 'La etiqueta ya existe.',
+            'message' => 'La etiqueta ingresada ya existe.',
         ], 400);
     }
 
