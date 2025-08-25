@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\EmplazamientoResource;
-use App\Http\Resources\V1\EmplazamientoNivel2Resource;
+use App\Http\Resources\V2\EmplazamientoNivel2Resource;
 use App\Http\Resources\V1\EmplazamientoNivel3Resource;
 use App\Http\Resources\V1\EmplazamientoNivel1Resource;
 use App\Http\Resources\V1\EmplazamientoAllResource;
