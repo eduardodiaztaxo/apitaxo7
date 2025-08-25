@@ -393,6 +393,16 @@ class InventariosController extends Controller
             $origen = 'SAFIN_APP';
         }
 
+    $existingEtiquetaInventario = Inventario::where('etiqueta', $etiqueta)->first();
+    $existingEtiquetaCrudActivos = CrudActivos::where('etiqueta', $etiqueta)->first();
+
+    if ($existingEtiquetaInventario || $existingEtiquetaCrudActivos) {
+        return response()->json([
+            'status' => 'ERROR',
+            'message' => 'La etiqueta ya existe en inv_inventario o crud_activos.',
+        ], 400);
+    }
+    
         // Calcular id_img de forma segura
         $maxId = DB::table('inv_imagenes')->max('id_img');
         $id_img = $maxId !== null ? $maxId + 1 : 1;
