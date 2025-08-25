@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\EmplazamientoResource;
 use App\Http\Resources\V2\EmplazamientoNivel2Resource;
-use App\Http\Resources\V1\EmplazamientoNivel3Resource;
+use App\Http\Resources\V2\EmplazamientoNivel3Resource;
 use App\Http\Resources\V1\EmplazamientoNivel1Resource;
 use App\Http\Resources\V1\EmplazamientoAllResource;
 use App\Models\CrudActivo;
@@ -174,22 +174,10 @@ class EmplazamientoController extends Controller
         $zone_address = ZonaPunto::where('idAgenda', '=', $empla->idAgenda)
             ->where('codigoUbicacion', '=', substr($empla->codigoUbicacion, 0, 2))->first();
 
-        return response()->json([
+          return response()->json([
             'status'  => 'OK',
             'message' => 'Creado exitosamente',
-            'data'    => [
-                'idAgenda' => $empla->idAgenda,
-                'nombre' => $empla->descripcionUbicacion,
-                'codigoUbicacion' => $empla->codigoUbicacion,
-                'estado' => $empla->estado,
-                'usuario' => $empla->usuario,
-                'ciclo_auditoria' => 1,
-                'num_activos_cats_by_cycle' => $num_activos_cats_by_cycleN3,
-                'num_activos_inv' => $num_activos_invN3,
-                'newApp' => $empla->newApp,
-                'modo' => $empla->modo,
-                'zone_address' => $zone_address,
-            ],
+            'data'    => EmplazamientoNivel3Resource::make($empla)
         ]);
     }
 
