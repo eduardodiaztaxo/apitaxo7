@@ -55,4 +55,42 @@ class MapPolygonalArea extends Model
 
         return $inside;
     }
+
+    public function updateMinMaxLatLng()
+    {
+
+        $min_lat = null;
+        $max_lat = null;
+        $min_lng = null;
+        $max_lng = null;
+
+        $area = json_decode($this->area, true);
+        //ojo con los polígonos que pasan desde -180 hacia más a la izquierda
+        //y desde 180 hacia más a la derecha, ya que pueden tener coordenadas negativas
+        //y positivas, por lo que se debe calcular el mínimo y máximo de latitud y
+        //longitud de forma adecuada.
+        if (is_array($area) && count($area) > 0) {
+
+            $min_lat = min(array_column($area, 'lat'));
+            $max_lat = max(array_column($area, 'lat'));
+            $min_lng = min(array_column($area, 'lng'));
+            $max_lng = max(array_column($area, 'lng'));
+
+            $min_lat = number_format((float)$min_lat, 14, '.', '');
+            $max_lat = number_format((float)$max_lat, 14, '.', '');
+            $min_lng = number_format((float)$min_lng, 14, '.', '');
+            $max_lng = number_format((float)$max_lng, 14, '.', '');
+        }
+
+
+
+        $mapAreaArr = [
+            'min_lat' => $min_lat,
+            'max_lat' => $max_lat,
+            'min_lng' => $min_lng,
+            'max_lng' => $max_lng,
+        ];
+
+        $this->update($mapAreaArr);
+    }
 }
