@@ -26,14 +26,16 @@ class EmplazamientoNivel1Resource extends JsonResource
 
         $num_activos_inv = $this->inv_activos()->count();
 
-        $num_activos_N1 = Inventario::where('inv_inventario.codigoUbicacion_N1', $this->codigoUbicacion)
-            ->where('inv_inventario.idUbicacionGeo', $this->idAgenda)
-            ->where('inv_inventario.id_ciclo', $this->cycle_id)
+        $num_activos_N1 = Inventario::where('codigoUbicacion_N1', $this->codigoUbicacion)
+            ->where('idUbicacionGeo', $this->idAgenda)
+            ->where('codigoUbicacion_N2', '<', 2)
+            ->where('id_ciclo', $this->cycle_id)
             ->count();
 
-        $num_activos_N2 = Inventario::where('inv_inventario.codigoUbicacion_N2', 'LIKE',  $this->codigoUbicacion . '%')
-            ->where('inv_inventario.idUbicacionGeo', $this->idAgenda)
-            ->where('inv_inventario.id_ciclo', $this->cycle_id)
+        $num_activos_N2 = Inventario::where('codigoUbicacion_N2', 'LIKE', $this->codigoUbicacion . '%')
+            ->where('idUbicacionGeo', $this->idAgenda)
+            ->where('codigoUbicacionN3', '<', 2)
+            ->where('id_ciclo', $this->cycle_id)
             ->count();
 
         $num_activos_N3 = Inventario::where('inv_inventario.codigoUbicacionN3', 'LIKE',  $this->codigoUbicacion . '%')

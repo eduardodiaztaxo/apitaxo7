@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\EmplazamientoResource;
+use App\Http\Resources\V1\EmplazamientoNivel2Resource;
 use App\Http\Resources\V1\EmplazamientoNivel3Resource;
 use App\Http\Resources\V1\EmplazamientoNivel1Resource;
 use App\Http\Resources\V1\EmplazamientoAllResource;
 use App\Models\CrudActivo;
 use App\Models\InvCiclo;
 use App\Models\Emplazamiento;
+use App\Models\EmplazamientoN2;
 use App\Models\EmplazamientoN1;
 use App\Models\EmplazamientoN3;
 use App\Models\Inventario;
@@ -86,7 +88,7 @@ class EmplazamientoController extends Controller
             'modo'                  => 'ONLINE'
         ];
 
-        $empla = Emplazamiento::create($data);
+        $empla = EmplazamientoN2::create($data);
 
         if (!$empla) {
             return response()->json([
@@ -98,7 +100,7 @@ class EmplazamientoController extends Controller
         return response()->json([
             'status'  => 'OK',
             'message' => 'Creado exitosamente',
-            'data'    => EmplazamientoResource::make($empla)
+            'data'    => EmplazamientoNivel2Resource::make($empla)
         ]);
     }
 
