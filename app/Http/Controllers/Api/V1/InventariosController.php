@@ -397,9 +397,7 @@ class InventariosController extends Controller
     $existingEtiquetaCrudActivos = CrudActivo::where('etiqueta', $etiqueta)->first();
 
     if ($existingEtiquetaInventario || $existingEtiquetaCrudActivos) {
-        return response()->json([
-            'message' => 'La etiqueta ya existe en inv_inventario o crud_activos.',
-        ], 400);
+        return response('La etiqueta ya existe', 400);
     }
 
         // Calcular id_img de forma segura
