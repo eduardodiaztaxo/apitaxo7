@@ -396,12 +396,9 @@ class InventariosController extends Controller
     $existingEtiquetaInventario = Inventario::where('etiqueta', $etiqueta)->first();
     $existingEtiquetaCrudActivos = CrudActivo::where('etiqueta', $etiqueta)->first();
 
-    if ($existingEtiquetaInventario || $existingEtiquetaCrudActivos) {
-        return response()->json([
-            'status' => 'ERROR',
-            'message' => 'La etiqueta ya existe en inv_inventario o crud_activos.',
-        ], 400);
-    }
+        if ($existingEtiquetaInventario || $existingEtiquetaCrudActivos) {
+            return; //MENSAJE EN LA FUNCIÓN createinventario
+        }
 
         // Calcular id_img de forma segura
         $maxId = DB::table('inv_imagenes')->max('id_img');
