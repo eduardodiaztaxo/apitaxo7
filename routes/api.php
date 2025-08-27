@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\V1\Maps\MapMarkerController;
 use App\Http\Controllers\Api\V1\Maps\MapPolygonController;
 use App\Http\Controllers\Api\V1\Responsible\AssignResponsibleController;
 use App\Http\Controllers\Api\V1\ResponsibleController;
+use App\Http\Controllers\Api\V1\Tasks\CommandController;
 use App\Http\Controllers\Api\V1\UbicacionesActivosController;
 use App\Http\Controllers\Api\V2\EmplazamientoNivel1Controller;
 use App\Http\Controllers\Api\V2\EmplazamientoNivel2Controller;
@@ -275,6 +276,12 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('ciclos/{ciclo}/emplazamientos/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssetsN2']);
 });
+
+Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(function () {
+    Route::post('commands/relate-markers-to-areas', [CommandController::class, 'runRelateMarkersToAreasCommand']);
+});
+
+
 
 
 Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2')->group(function () {
