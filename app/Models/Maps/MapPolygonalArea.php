@@ -17,7 +17,9 @@ class MapPolygonalArea extends Model
         'min_lat',
         'max_lat',
         'min_lng',
-        'max_lng'
+        'max_lng',
+        'total_markers',
+        'total_markers_at'
     ];
 
     public function markers()
@@ -31,6 +33,16 @@ class MapPolygonalArea extends Model
         return $markers->filter(function ($marker) {
             return $this->isPointInsidePolygon($marker->lat, $marker->lng, json_decode($this->area, true));
         });
+    }
+
+    /** 
+     * Get the last photo of the markers in the area
+     * 
+     */
+    public function markersLastPhoto()
+    {
+        return $this->hasMany(MarkerLevelArea::class, 'area_id', 'id')
+            ->where('level', $this->level);
     }
 
     function isPointInsidePolygon($lat, $lng, $polygon)
