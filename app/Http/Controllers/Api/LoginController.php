@@ -80,6 +80,7 @@ class LoginController extends Controller
 
             return response()->json([
                 'id_user' => $user->id,
+                'proyecto_id' => $user->proyecto_id,
                 'token' => $token->plainTextToken,
                 'refresh_token' => $refreshToken['rt_string'],
                 'refresh_expires_at' => $refreshToken['rt_model']->expires_at,
@@ -168,6 +169,7 @@ class LoginController extends Controller
 
             return response()->json([
                 'id_user' => $user->id,
+                'proyecto_id' => $user->proyecto_id,
                 'name' => $name,
                 'User' => $user->name,
                 'email' => $user->email,

@@ -38,6 +38,7 @@ use App\Services\Dump\Tables\EmplazamientoN1DumpService;
 use App\Services\Dump\Tables\RegionesDumpService;
 use App\Services\Dump\Tables\ComunasDumpService;
 use App\Services\Dump\Tables\AtributosDumpService;
+use App\Services\Dump\Tables\DifferencesAddressesDumpService;
 
 use Illuminate\Console\Command;
 
@@ -173,6 +174,7 @@ class ExportAuditCycleSQLiteDatabase extends Command
         $this->setEmplazamientoN3();
         $this->setEmplazamientoN1();
         $this->setAtributos();
+        $this->setDiferencias();
 
         if ($tipoCiclo == 1) {
             $this->setBienesInventario();
@@ -236,7 +238,19 @@ class ExportAuditCycleSQLiteDatabase extends Command
 
         $this->info('Addresses inserted in SQLite DB.');
     }
+    
+      private function setDiferencias()
+    {
 
+        (new DifferencesAddressesDumpService(
+            $this->pdo,
+            $this->cycle
+        ))->runFromController();
+
+
+        $this->info('Differences Addresses inserted in SQLite DB.');
+    }
+    
     private function setZonesByCycle()
     {
 

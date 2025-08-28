@@ -24,10 +24,6 @@ class UserResource extends JsonResource
             $signature_register = 1;
         }
 
-
-
-
-
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -36,6 +32,7 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'rut'   => $this->rut,
             "nombre_cliente" => $this->nombre_cliente,
+            "proyecto_id" => $this->proyecto_id,
             "role_id" => $this->role_id,
             "role" => $this->role ? $this->role->name : '',
             'created_at' => $this->created_at,
