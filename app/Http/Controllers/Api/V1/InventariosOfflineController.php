@@ -248,6 +248,14 @@ class InventariosOfflineController extends Controller
         return response()->json($bienes, 200);
     }
 
+        public function DiferenciasDirecionesMapa()
+    {
+        $map = DB::table('map_direccion_diferencias')
+            ->get();
+
+        return response()->json($map, 200);
+    }
+
 
     public function configuracionOffline(array $codigo_grupos)
     {

@@ -96,6 +96,17 @@ class InvCiclo extends Model
     return collect(DB::select($sql, [$this->idCiclo, $zona->idAgenda, $likeCodigo]));
 }
 
+public function diferencias_por_direcciones($cycle_id, $idAgenda)
+{
+   $sql = "
+        SELECT 
+          * FROM map_direccion_diferencias
+        WHERE id_direccion = ? 
+";
+return DB::select($sql, [$idAgenda]);
+}
+
+
 public function activos_with_cats_by_cycle_emplazamiento($cycle_id, $idAgenda)
 {
    $sql = "

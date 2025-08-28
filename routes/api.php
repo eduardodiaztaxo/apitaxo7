@@ -227,6 +227,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('group-emplazamientos/{idAgenda}/{ciclo}', [EmplazamientoController::class, 'groupEmplazamientos']);
 
+    Route::get('group-map-direccion-diferencias/{idAgenda}/{ciclo}', [EmplazamientoController::class, 'groupMapDireccionDiferencias']);
+
     Route::put('emplazamientos/{id}', [EmplazamientoController::class, 'update']);
 
     Route::post('emplazamientos/create', [EmplazamientoController::class, 'create']);

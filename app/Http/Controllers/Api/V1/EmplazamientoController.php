@@ -301,6 +301,29 @@ class EmplazamientoController extends Controller
         ], 200);
     }
 
+    public function groupMapDireccionDiferencias(int $idAgenda, int $ciclo)
+{
+    $cicloObj = InvCiclo::find($ciclo);
+
+    if (!$cicloObj) {
+        return response()->json([
+            'status' => 'NOK',
+            'message' => 'Ciclo no encontrado',
+            'code' => 404
+        ], 404);
+    }
+
+    $diferencias = $cicloObj->diferencias_por_direcciones($ciclo, $idAgenda);
+
+    return response()->json([
+        'status' => 'OK',
+        'message' => 'Diferencias obtenidas correctamente',
+        'data' => [
+            $diferencias
+        ],
+    ], 200);
+}
+
     public function moverEmplazamientos(Request $request, string $codigoUbicacion, int $ciclo_id, int $agenda_id, string $etiqueta)
     {
         // Nivel 1
