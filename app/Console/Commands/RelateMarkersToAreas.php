@@ -79,6 +79,9 @@ class RelateMarkersToAreas extends Command
                     ],
                 );
             }
+        }
+
+        foreach ($areas as $area) {
 
             $area->total_markers = $area->markersLastPhoto()->count();
             $area->total_markers_at = now();
