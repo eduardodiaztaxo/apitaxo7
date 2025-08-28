@@ -2,6 +2,7 @@
 
 namespace App\Models\Maps;
 
+use App\Models\UbicacionGeografica;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -43,6 +44,16 @@ class MapPolygonalArea extends Model
     {
         return $this->hasMany(MarkerLevelArea::class, 'area_id', 'id')
             ->where('level', $this->level);
+    }
+
+
+    /** 
+     * Get the last photo of the markers in the area
+     * 
+     */
+    public function punto()
+    {
+        return $this->belongsTo(UbicacionGeografica::class, 'address_id', 'idUbicacionGeo');
     }
 
     function isPointInsidePolygon($lat, $lng, $polygon)

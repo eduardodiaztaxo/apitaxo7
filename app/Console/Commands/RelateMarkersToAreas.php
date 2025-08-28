@@ -86,6 +86,13 @@ class RelateMarkersToAreas extends Command
             $area->total_markers = $area->markersLastPhoto()->count();
             $area->total_markers_at = now();
             $area->save();
+
+            $punto = $area->punto;
+
+            if ($punto) {
+                $punto->q_poligono = $area->total_markers;
+                $punto->save();
+            }
         }
 
         $this->info('Join Markers to Polygons complete successfully.');
