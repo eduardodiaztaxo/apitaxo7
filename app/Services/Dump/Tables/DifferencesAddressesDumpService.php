@@ -48,11 +48,10 @@ class DifferencesAddressesDumpService implements DumpSQLiteInterface
 
         $cyclesUbiCtrl = new InventariosOfflineController();
 
-        $response = $cyclesUbiCtrl->DiferenciasDirecionesMapa($request, $this->cycle);
+        $response = $cyclesUbiCtrl->DiferenciasDirecionesMapa($this->cycle);
 
         $jsonContent = $response->getContent();
 
-        // Decodificar el JSON a un arreglo asociativo
         $data = json_decode($jsonContent);
 
         if (isset($data->status) && $data->status !== 'OK') {

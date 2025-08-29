@@ -100,8 +100,22 @@ public function diferencias_por_direcciones($cycle_id, $idAgenda)
 {
    $sql = "
         SELECT 
-          * FROM map_direccion_diferencias
-        WHERE id_direccion = ? 
+        ar.address_id AS id_direccion,
+        mak.NAME AS categoria, 
+        COUNT(mak.NAME) AS q_teorico,
+        COUNT(inv.etiqueta) AS q_fisico,
+        (COUNT(inv.etiqueta) - COUNT(mak.NAME)) AS diferencia
+    FROM 
+        map_marker_assets mak
+        INNER JOIN map_markers_levels_areas lev 
+            ON mak.id = lev.marker_id
+        INNER JOIN map_polygonal_areas ar 
+        LEFT JOIN inv_inventario AS inv 
+            ON inv.id_bien = mak.id 
+        AND ar.address_id = inv.idUbicacionGeo
+    WHERE 
+        ar.address_id = ? 
+     GROUP BY ar.address_id, mak.NAME
 ";
 return DB::select($sql, [$idAgenda]);
 }

@@ -248,13 +248,36 @@ class InventariosOfflineController extends Controller
         return response()->json($bienes, 200);
     }
 
-        public function DiferenciasDirecionesMapa()
-    {
-        $map = DB::table('map_direccion_diferencias')
-            ->get();
+ public function DiferenciasDirecionesMapa($ciclo)
+{
+    $direcciones = collect(DB::select("
+    SELECT idPunto FROM `inv_ciclos_puntos`
+    WHERE idCiclo = $ciclo
+    "));
 
-        return response()->json($map, 200);
-    }
+
+     $map = collect(DB::select("
+        SELECT 
+            ar.address_id AS id_direccion,
+            mak.NAME AS categoria, 
+            COUNT(mak.NAME) AS q_teorico,
+            COUNT(inv.etiqueta) AS q_fisico,
+            (COUNT(inv.etiqueta) - COUNT(mak.NAME)) AS diferencia
+        FROM 
+            map_marker_assets mak
+            INNER JOIN map_markers_levels_areas lev 
+                ON mak.id = lev.marker_id
+            INNER JOIN map_polygonal_areas ar 
+            LEFT JOIN inv_inventario AS inv 
+                ON inv.id_bien = mak.id 
+            AND ar.address_id = inv.idUbicacionGeo
+        WHERE 
+            ar.address_id IN (" . implode(',', $direcciones->pluck('idPunto')->toArray()) . ")
+        GROUP BY ar.address_id, mak.NAME;
+            "));
+
+    return response()->json($map, 200);
+}
 
 
     public function configuracionOffline(array $codigo_grupos)

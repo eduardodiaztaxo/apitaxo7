@@ -314,12 +314,17 @@ class EmplazamientoController extends Controller
     }
 
     $diferencias = $cicloObj->diferencias_por_direcciones($ciclo, $idAgenda);
+    $total = array_sum(array_map(function($item) {
+        return $item->q_teorico ?? 0;
+    }, $diferencias));
+
 
     return response()->json([
         'status' => 'OK',
         'message' => 'Diferencias obtenidas correctamente',
         'data' => [
-            $diferencias
+            $diferencias,
+            $total
         ],
     ], 200);
 }
