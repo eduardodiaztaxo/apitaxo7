@@ -80,10 +80,10 @@ class CrudActivoController extends Controller
         return $etiqueta;
     }
 
-public function showActivos($etiqueta)
-{
-    // Consulta en inv_inventario
-    $sql1 = "
+    public function showActivos($etiqueta)
+    {
+        // Consulta en inv_inventario
+        $sql1 = "
         SELECT 
             inv.*, 
             grupos.descripcion_grupo, 
@@ -94,11 +94,11 @@ public function showActivos($etiqueta)
         WHERE inv.etiqueta = ?
     ";
 
-    $data = DB::select($sql1, [$etiqueta]);
+        $data = DB::select($sql1, [$etiqueta]);
 
-    //consulta en crud_activos
-    if (empty($data)) {
-        $sql2 = "
+        //consulta en crud_activos
+        if (empty($data)) {
+            $sql2 = "
             SELECT 
                 crud.*, 
                 grupos.descripcion_grupo, 
@@ -109,11 +109,11 @@ public function showActivos($etiqueta)
             WHERE crud.etiqueta = ?
         ";
 
-        $data = DB::select($sql2, [$etiqueta]);
-    }
+            $data = DB::select($sql2, [$etiqueta]);
+        }
 
-    return response()->json($data, 200);
-}
+        return response()->json($data, 200);
+    }
 
 
     public function showAllAssetsByCycleCats(Request $request, $ciclo)
@@ -163,6 +163,31 @@ public function showActivos($etiqueta)
         $activo->requireEmplazamiento = 1;
 
         $resource = new CrudActivoResource($activo);
+        return response()->json($resource, 200);
+    }
+
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  \Illuminate\Http\Request $request 
+     * @param int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function showInventoryByID(Request $request, $id)
+    {
+
+        $activo = Inventario::find($id);
+
+        if (!$activo) {
+            return response()->json([
+                "message" => "Not Found",
+                "status"  => "error"
+            ], 404);
+        }
+
+        $resource = new InventariosResource($activo);
+
         return response()->json($resource, 200);
     }
 
@@ -249,90 +274,90 @@ public function showActivos($etiqueta)
 
 
         if (!$idActivo_Documento) {
-        $idActivo_Inventario = Inventario::where('etiqueta', '=', $etiqueta)->value('id_inventario');
+            $idActivo_Inventario = Inventario::where('etiqueta', '=', $etiqueta)->value('id_inventario');
 
-        if (!$idActivo_Inventario) {
-            return response()->json([
-                'message' => 'Not Found',
-                'status' => 'error'
-            ], 404);
-        }
-
-        DB::table('inv_inventario')
-        ->where('id_inventario', '=', $idActivo_Inventario)
-        ->update([
-            'crud_activo_estado' => 3
-        ]);
-        // --- Si es activo de Inventario: subimos imagen a carpeta inventario ---
-        // $userFolder = "customers/" . $request->user()->nombre_cliente . "/images/inventario/" . $etiqueta . "/" . now()->format('Y-m-d');
-
-        // if (!Storage::exists($userFolder)) {
-        //     Storage::makeDirectory($userFolder);
-        // }
-
-    $filename = '9999_' . $etiqueta;
-    $origen = 'SAFIN_APP_INVENTARIO';
-    $file = $request->file('imagen'); 
-    $namefile = $filename . '.jpg'; ;
-    $path = $file->storeAs(
-    PictureSafinService::getImgSubdir($request->user()->nombre_cliente), 
-    $namefile, 
-    'taxoImages'
-        );
-
-    $url = Storage::disk('taxoImages')->url($path);
-    $url_pict = dirname($url) . '/';
-        // $imageName = $etiqueta . '_' . uniqid();
-        // $path = $this->imageService->optimizeImageinv($file, $userFolder, $imageName);
-        // $fullUrl = asset('storage/' . $path);
-
-         if ($request->oldImageUrl) {
-            $imagenExistente = Inv_imagenes::where('etiqueta', $etiqueta)
-                ->where('url_imagen', $request->oldImageUrl)
-                ->first();
-
-            if ($imagenExistente) {
-                $imagenExistente->url_imagen = $url_pict;
-                $imagenExistente->origen = $origen;
-                $imagenExistente->picture = $filename.'.jpg';
-                $imagenExistente->updated_at = now();
-                $imagenExistente->save();
-
+            if (!$idActivo_Inventario) {
                 return response()->json([
-                    'status' => 'OK',
-                    'message' => 'Imagen existente actualizada',
-                    'url' => $url_pict
-                ], 200);
+                    'message' => 'Not Found',
+                    'status' => 'error'
+                ], 404);
+            }
+
+            DB::table('inv_inventario')
+                ->where('id_inventario', '=', $idActivo_Inventario)
+                ->update([
+                    'crud_activo_estado' => 3
+                ]);
+            // --- Si es activo de Inventario: subimos imagen a carpeta inventario ---
+            // $userFolder = "customers/" . $request->user()->nombre_cliente . "/images/inventario/" . $etiqueta . "/" . now()->format('Y-m-d');
+
+            // if (!Storage::exists($userFolder)) {
+            //     Storage::makeDirectory($userFolder);
+            // }
+
+            $filename = '9999_' . $etiqueta;
+            $origen = 'SAFIN_APP_INVENTARIO';
+            $file = $request->file('imagen');
+            $namefile = $filename . '.jpg';;
+            $path = $file->storeAs(
+                PictureSafinService::getImgSubdir($request->user()->nombre_cliente),
+                $namefile,
+                'taxoImages'
+            );
+
+            $url = Storage::disk('taxoImages')->url($path);
+            $url_pict = dirname($url) . '/';
+            // $imageName = $etiqueta . '_' . uniqid();
+            // $path = $this->imageService->optimizeImageinv($file, $userFolder, $imageName);
+            // $fullUrl = asset('storage/' . $path);
+
+            if ($request->oldImageUrl) {
+                $imagenExistente = Inv_imagenes::where('etiqueta', $etiqueta)
+                    ->where('url_imagen', $request->oldImageUrl)
+                    ->first();
+
+                if ($imagenExistente) {
+                    $imagenExistente->url_imagen = $url_pict;
+                    $imagenExistente->origen = $origen;
+                    $imagenExistente->picture = $filename . '.jpg';
+                    $imagenExistente->updated_at = now();
+                    $imagenExistente->save();
+
+                    return response()->json([
+                        'status' => 'OK',
+                        'message' => 'Imagen existente actualizada',
+                        'url' => $url_pict
+                    ], 200);
+                }
             }
         }
-    }
 
-    $filename = '9999_' . $etiqueta;
-    $origen = 'SAFIN_APP';
+        $filename = '9999_' . $etiqueta;
+        $origen = 'SAFIN_APP';
 
-    $file = $request->file('imagen'); 
-    $namefile = $filename . '.jpg'; 
+        $file = $request->file('imagen');
+        $namefile = $filename . '.jpg';
 
-   $path = $file->storeAs(
-    PictureSafinService::getImgSubdir($request->user()->nombre_cliente), 
-    $namefile, 
-    'taxoImages'
+        $path = $file->storeAs(
+            PictureSafinService::getImgSubdir($request->user()->nombre_cliente),
+            $namefile,
+            'taxoImages'
         );
 
-    $url = Storage::disk('taxoImages')->url($path);
-    $url_pict = dirname($url) . '/';
-        
-       $ultimo = DB::table('crud_activos_pictures')
+        $url = Storage::disk('taxoImages')->url($path);
+        $url_pict = dirname($url) . '/';
+
+        $ultimo = DB::table('crud_activos_pictures')
             ->where('id_activo', $idActivo_Documento)
             ->orderByDesc('id_foto')
             ->first();
-//
+        //
         if ($ultimo) {
             DB::table('crud_activos_pictures')
                 ->where('id_foto', $ultimo->id_foto)
                 ->update([
                     'url_picture' => $url_pict,
-                    'picture'     => $filename.'.jpg',
+                    'picture'     => $filename . '.jpg',
                     'origen'      => $origen,
                     'fecha_update' => now()
                 ]);
@@ -341,7 +366,7 @@ public function showActivos($etiqueta)
             DB::table('crud_activos_pictures')->insert([
                 'id_activo'   => $idActivo_Documento,
                 'url_picture' => $url_pict,
-                'picture'     => $filename.'.jpg',
+                'picture'     => $filename . '.jpg',
                 'origen'      => $origen,
                 'fecha_update' => now()
             ]);
@@ -351,15 +376,14 @@ public function showActivos($etiqueta)
 
         // $activo->save();
 
-      return response()->json(
-    [
-        'status' => 'OK',
-        'path'   => $path,
-        'url'    => $url
-    ],
-    201
-);
-
+        return response()->json(
+            [
+                'status' => 'OK',
+                'path'   => $path,
+                'url'    => $url
+            ],
+            201
+        );
     }
 
 
@@ -391,74 +415,73 @@ public function showActivos($etiqueta)
         return $responsable;
     }
 
-   public function getIdResponsable()
-{
-    $usuario = Auth::user()->name;
+    public function getIdResponsable()
+    {
+        $usuario = Auth::user()->name;
 
-    $nombre = DB::table('sec_users')
-        ->where('login', $usuario)
-        ->value('name');
+        $nombre = DB::table('sec_users')
+            ->where('login', $usuario)
+            ->value('name');
 
-     $idResponsable = DB::table('responsables')
-        ->where('name', $nombre) 
-        ->value('idResponsable');
+        $idResponsable = DB::table('responsables')
+            ->where('name', $nombre)
+            ->value('idResponsable');
 
-    return $idResponsable;
-}
+        return $idResponsable;
+    }
 
 
     public function update(Request $request, $etiqueta)
     {
-        
+
         $activo = CrudActivo::where('etiqueta', $etiqueta)->first();
 
         if (!$activo) {
-                return response()->json([
-                    "message" => "Not Found",
-                    "status"  => "error"
-                ], 404);
-            }
-
-           $responsable = $this->getIdResponsable();
-
-              $activo->update([
-                'marca'               => $request->id_marca,
-                'modelo'              => $request->modelo,
-                'serie'               => $request->serie,
-                'material'            => $request->idMaterial,
-                'forma'               => $request->idForma,
-                'color'               => $request->color,
-                'estadoConservacion'  => $request->estado_conservacion,
-                'estadoOperacional'   => $request->estado_operacional,
-                'tipoTrabajo'         => $request->tipo_trabajo,
-                'cargaTrabajo'        => $request->carga_trabajo,
-                'condicionAmbiental'  => $request->condicion_ambiental,
-                'capacidad'           => $request->capacidad,
-                'eficiencia'          => $request->eficiencia,
-                'texto_abierto_1'     => $request->texto_abierto_1 ?? '',
-                'texto_abierto_2'     => $request->texto_abierto_2  ?? '',
-                'texto_abierto_3'     => $request->texto_abierto_3  ?? '',
-                'texto_abierto_4'     => $request->texto_abierto_4  ?? '',
-                'texto_abierto_5'     => $request->texto_abierto_5  ?? '',
-                'responsableN1'       => $responsable,
-                'apoyaBrazosRuedas'   => $request->estado,
-                'descripcionTipo'     => $request->descripcionTipo,
-                'observacion'         => $request->observacion,
-                'latitud'             => $request->latitud,
-                'longitud'            => $request->longitud
-            ]);
-
-            $activo->requireUbicacion = 1;
-            $activo->requireEmplazamiento = 1;
-
             return response()->json([
-                'status' => 'OK',
-                'code'   => 200,
-                'data'   => CrudActivoResource::make($activo)
-            ], 200);
+                "message" => "Not Found",
+                "status"  => "error"
+            ], 404);
+        }
 
+        $responsable = $this->getIdResponsable();
+
+        $activo->update([
+            'marca'               => $request->id_marca,
+            'modelo'              => $request->modelo,
+            'serie'               => $request->serie,
+            'material'            => $request->idMaterial,
+            'forma'               => $request->idForma,
+            'color'               => $request->color,
+            'estadoConservacion'  => $request->estado_conservacion,
+            'estadoOperacional'   => $request->estado_operacional,
+            'tipoTrabajo'         => $request->tipo_trabajo,
+            'cargaTrabajo'        => $request->carga_trabajo,
+            'condicionAmbiental'  => $request->condicion_ambiental,
+            'capacidad'           => $request->capacidad,
+            'eficiencia'          => $request->eficiencia,
+            'texto_abierto_1'     => $request->texto_abierto_1 ?? '',
+            'texto_abierto_2'     => $request->texto_abierto_2  ?? '',
+            'texto_abierto_3'     => $request->texto_abierto_3  ?? '',
+            'texto_abierto_4'     => $request->texto_abierto_4  ?? '',
+            'texto_abierto_5'     => $request->texto_abierto_5  ?? '',
+            'responsableN1'       => $responsable,
+            'apoyaBrazosRuedas'   => $request->estado,
+            'descripcionTipo'     => $request->descripcionTipo,
+            'observacion'         => $request->observacion,
+            'latitud'             => $request->latitud,
+            'longitud'            => $request->longitud
+        ]);
+
+        $activo->requireUbicacion = 1;
+        $activo->requireEmplazamiento = 1;
+
+        return response()->json([
+            'status' => 'OK',
+            'code'   => 200,
+            'data'   => CrudActivoResource::make($activo)
+        ], 200);
     }
-    
+
 
     public function marcasDisponibles(Request $request, $etiqueta)
     {

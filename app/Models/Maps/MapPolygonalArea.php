@@ -2,6 +2,7 @@
 
 namespace App\Models\Maps;
 
+use App\Models\Inventario;
 use App\Models\UbicacionGeografica;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -34,6 +35,32 @@ class MapPolygonalArea extends Model
         return $markers->filter(function ($marker) {
             return $this->isPointInsidePolygon($marker->lat, $marker->lng, json_decode($this->area, true));
         });
+    }
+
+    public function inventory_markers()
+    {
+
+
+        $preMarkers = $this->hasMany(Inventario::class, 'idUbicacionGeo', 'address_id')->get();
+
+
+        $markers = $preMarkers->map(function ($inventario) {
+
+            return new MapMarkerAsset([
+                'inv_id' =>  $inventario->id_inventario,
+                'category_id' => $inventario->id_familia,
+                'name' => $inventario->descripcion_bien,
+                'lat' => (float)$inventario->latitud,
+                'lng' => (float)$inventario->longitud,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+        });
+
+
+
+
+        return $markers;
     }
 
     /** 

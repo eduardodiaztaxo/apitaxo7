@@ -74,6 +74,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('activos/etiqueta/{etiqueta}', [CrudActivoController::class, 'showByEtiqueta']);
 
+    Route::get('activos/inventario/{id}', [CrudActivoController::class, 'showInventoryByID']);
+
     Route::post('activos/etiquetas', [CrudActivoController::class, 'showByEtiquetas']);
 
     Route::post('activos/not-responsibles/etiquetas', [CrudActivoController::class, 'showByEtiquetasWithoutResponsibles']);
@@ -274,7 +276,11 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::apiResource('maps/markers', MapMarkerController::class)->only(['index', 'store', 'update', 'destroy']);
 
-    Route::get('maps/areas/{id}/areas', [MapPolygonController::class, 'showMarkers'])->name('maps.areas.show');
+    Route::put('maps/inventory-markers/{id}', [MapPolygonController::class, 'updateInventoryMarker']);
+
+    Route::get('maps/areas/{id}/markers', [MapPolygonController::class, 'showMarkers'])->name('maps.areas.showMarkers');
+
+    Route::get('maps/areas/{id}/inventory-markers', [MapPolygonController::class, 'showInventoryMarkers'])->name('maps.areas.showInvMarkers');
 
     Route::get('ciclos/{ciclo}/emplazamientos/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssetsN2']);
 });

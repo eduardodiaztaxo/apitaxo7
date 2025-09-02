@@ -10,6 +10,7 @@ class MapMarkerAsset extends Model
     use HasFactory;
 
     protected $fillable = [
+        'inv_id',
         'name',
         'category_id',
         'lat',

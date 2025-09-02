@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Maps;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Maps\MapMarkerAssetResource;
 use App\Http\Resources\V1\Maps\MapPolygonalAreaResource;
+use App\Models\Inventario;
 use App\Models\Maps\MapPolygonalArea;
 use Illuminate\Http\Request;
 
@@ -186,5 +187,41 @@ class MapPolygonController extends Controller
         $markers = $mapArea->markers();
 
         return response()->json(MapMarkerAssetResource::collection($markers), 200);
+    }
+
+    public function showInventoryMarkers($id)
+    {
+        $mapArea = MapPolygonalArea::find($id);
+
+        if (!$mapArea) {
+            return response()->json(['error' => 'Map area not found'], 404);
+        }
+
+        $markers = $mapArea->inventory_markers();
+
+        return response()->json(MapMarkerAssetResource::collection($markers), 200);
+    }
+
+
+    public function updateInventoryMarker(Request $request, $id)
+    {
+
+        $request->validate([
+            'lat' => 'required|numeric',
+            'lng' => 'required|numeric'
+        ]);
+
+        $asset = Inventario::find($id);
+
+        if (!$asset) {
+            return response()->json(['error' => 'asset not found'], 404);
+        }
+
+        $asset->latitud = $request->lat;
+        $asset->longitud = $request->lng;
+
+        $asset->save();
+
+        return response()->json($asset, 200);
     }
 }
