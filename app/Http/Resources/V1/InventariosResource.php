@@ -36,7 +36,9 @@ class InventariosResource extends JsonResource
                 'idUbicacionN3',
                 'codigoUbicacionN3',
                 'update_inv',
-                'id_img'
+                'id_img',
+                'latitud',
+                'longitud'
             )
             ->get();
     
@@ -161,6 +163,8 @@ class InventariosResource extends JsonResource
             'fotoUrl'              => $fotoUrl,
             'update_inv'           => $activo->update_inv,
             'foto4'                => $fotoUrl,
+            'latitud'              => $activo->latitud,
+            'longitud'             => $activo->longitud,
             'emplazamiento'        => [
                 'id'                => $idFinal,
                 'nombre'            => $emplazamiento->descripcionUbicacion ?? '',
