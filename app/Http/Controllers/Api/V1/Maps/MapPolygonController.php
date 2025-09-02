@@ -60,8 +60,8 @@ class MapPolygonController extends Controller
                 return response()->json(['error' => 'Parent area not found'], 404);
             }
             //EL nivel debe ser +1 superior
-            if ($parent->level !== $request->level - 1) {
-                return response()->json(['error' => 'Parent area level does not match'], 422);
+            if ($parent->level !== $request->level - 1 && !($parent->level == 1 && $request->level == 10)) {
+                return response()->json(['error' => 'Parent area level does not match '], 422);
             }
         } else {
             $parent = null;
