@@ -12,6 +12,7 @@ use App\Models\Inventario;
 use App\Models\UbicacionGeografica;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class CiclosUbicacionesController extends Controller
 {
@@ -294,9 +295,16 @@ class CiclosUbicacionesController extends Controller
             return response()->json(['status' => 'NOK', 'code' => 404], 404);
         }
 
-        $puntos = $cicloObj->puntos()->get();
+        $user = Auth::user();
+        $usuario = $user->name;
 
+        $puntos = $cicloObj->ciclo_puntos_users($usuario, $ciclo)->get();
 
+        if ($puntos->count() === 0) {
+                $puntos = $cicloObj->puntos()->get();
+        }
+    
+    
         //$zonas = $cicloObj->zonesWithCats()->pluck('zona')->toArray();
         //¿La zona tiene bienes que no están asociados a emplazamientos?
 
@@ -307,7 +315,7 @@ class CiclosUbicacionesController extends Controller
             //Si el ciclo es auditoría y la auditoría es general, el atributo auditoria_general se pone a 1
             if ($cicloObj->idTipoCiclo == 2) {
 
-                $InvCicloPunto = InvCicloPunto::where('idCiclo', $ciclo)->where('idPunto', $punto->idUbicacionGeo)->first();
+                $InvCicloPunto = InvCicloPunto::where('idCiclo', $ciclo)->where('idPunto', $punto->idUbicacionGeo)->where('usuario', $usuario)->first();
 
                 if ($InvCicloPunto) {
                     $punto->auditoria_general = $InvCicloPunto->auditoria_general;
