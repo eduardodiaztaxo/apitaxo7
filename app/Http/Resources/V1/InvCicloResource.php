@@ -5,6 +5,7 @@ namespace App\Http\Resources\V1;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Models\CiclosEstados;
 use App\Models\InvConteoRegistro;
+use Illuminate\Support\Facades\Auth;
 
 class InvCicloResource extends JsonResource
 {
@@ -23,7 +24,17 @@ class InvCicloResource extends JsonResource
         $numAudithFaltante = InvConteoRegistro::Where('ciclo_id', $this->idCiclo)->where('audit_status', 2)->where('status', 1)->count();
         $assetsCycle = $this->activos_with_cats()->count(); 
         $assetsCycleInv = $this->activos_with_cats_inv()->count();
+ 
+        $user = Auth::user();
+        $usuario = $user->name;
 
+        $puntos = $this->ciclo_puntos_users($usuario, $this->idCiclo)->count();
+
+        if ($puntos === 0) {
+            $puntos = $this->puntos()->count();
+        } 
+
+       
         return [
             'idCiclo'           => $this->idCiclo,
             'status'            => $this->estadoCiclo,
@@ -35,7 +46,7 @@ class InvCicloResource extends JsonResource
             'assets_cycle'      => $assetsCycle,
             'assets_cycle_inv'  => $assetsCycleInv,
             'assets_count'      => $this->audit_activos_address_cats()->count(),
-            'puntos_count'      => $this->puntos()->count(),
+            'puntos_count'      => $puntos,
             'audith_count'      => $numAudith,
             'audith_sobrante'   => $numAudithSobrante,
             'audith_faltante'   => $assetsCycle - $numAudith,
