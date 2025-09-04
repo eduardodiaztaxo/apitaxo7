@@ -8,6 +8,7 @@ use App\Models\Inventario;
 use App\Models\EmplazamientoN3;
 use App\Models\EmplazamientoN1;
 use App\Models\Emplazamiento;
+use App\Models\InvUsuariosPunto;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 
@@ -31,6 +32,22 @@ class InvCiclo extends Model
             'idPunto'
         );
     }
+
+public function ciclo_puntos_users($usuario, $ciclo_id)
+{
+    return $this->hasManyThrough(
+        UbicacionGeografica::class, // Modelo final
+        InvUsuariosPunto::class,    // Modelo intermedio
+        'idCiclo',                  // FK del modelo intermedio hacia InvCiclo
+        'idUbicacionGeo',           // FK del modelo final hacia InvUsuariosPunto
+        'idCiclo',                  // PK local en InvCiclo
+        'idPunto'                   // PK local en InvUsuariosPunto
+    )
+    ->where('inv_usuarios_puntos.usuario', $usuario)
+    ->where('inv_usuarios_puntos.idCiclo', $ciclo_id);
+}
+
+
 
     public function ciclo_users()
     {
