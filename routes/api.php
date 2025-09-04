@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\V1\ZonaController;
 use App\Http\Controllers\Api\V1\ZonaEmplazamientosController;
 use App\Http\Controllers\Api\V1\ZonasActivosController;
 use App\Http\Controllers\Api\V1\InventariosController;
+use App\Http\Controllers\Api\V1\Maps\MapCategoryController;
 use App\Http\Controllers\Api\V1\Maps\MapMarkerController;
 use App\Http\Controllers\Api\V1\Maps\MapPolygonController;
 use App\Http\Controllers\Api\V1\Responsible\AssignResponsibleController;
@@ -281,6 +282,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('maps/areas/{id}/markers', [MapPolygonController::class, 'showMarkers'])->name('maps.areas.showMarkers');
 
     Route::get('maps/areas/{id}/inventory-markers', [MapPolygonController::class, 'showInventoryMarkers'])->name('maps.areas.showInvMarkers');
+
+    Route::get('maps/markers/categories', [MapCategoryController::class, 'index']);
 
     Route::get('ciclos/{ciclo}/emplazamientos/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssetsN2']);
 });
