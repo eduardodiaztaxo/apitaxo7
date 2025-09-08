@@ -74,6 +74,9 @@ class RelateMarkersToAreas extends Command
         $areas = $queryBuilder->get();
 
         foreach ($areas as $area) {
+
+            MarkerLevelArea::where('area_id', '=', $area->id)->where('level', '=', $area->level)->delete();
+
             $markers = $area->markers();
 
             $this->info('Area ID: ' . $area->id . ' Name: ' . $area->name . ' - Markers found: ' . count($markers));
