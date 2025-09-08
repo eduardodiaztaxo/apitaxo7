@@ -277,6 +277,10 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::apiResource('maps/markers', MapMarkerController::class)->only(['index', 'store', 'update', 'destroy']);
 
+    Route::get('maps/areas/base', [MapPolygonController::class, 'indexBase']);
+
+    Route::get('maps/areas/descendants/{parent_id}', [MapPolygonController::class, 'getDescendants']);
+
     Route::put('maps/inventory-markers/{id}', [MapPolygonController::class, 'updateInventoryMarker']);
 
     Route::get('maps/areas/{id}/markers', [MapPolygonController::class, 'showMarkers'])->name('maps.areas.showMarkers');
