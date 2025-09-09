@@ -135,7 +135,7 @@ class UbicacionGeografica extends Model
     }
 
 
-public function verificacion_range($cycle_id, $idAgenda)
+public function verificacion_range($idAgenda)
 {
    $sql = "
     SELECT NAME, AREA, address_id FROM map_polygonal_areas
