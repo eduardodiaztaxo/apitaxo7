@@ -14,7 +14,7 @@ class RelateMarkersToAreas extends Command
      *
      * @var string
      */
-    protected $signature = 'command:realte-markers-to-aeras {--connection=} {--level=}';
+    protected $signature = 'command:realte-markers-to-aeras {--connection=} {--level=} {--areas_ids=}';
 
     /**
      * The console command description.
@@ -24,6 +24,8 @@ class RelateMarkersToAreas extends Command
     protected $description = 'Join markers to areas by levels';
 
     protected $level = 0;
+
+    protected $areas_ids = null;
 
     /**
      * Create a new command instance.
@@ -53,18 +55,28 @@ class RelateMarkersToAreas extends Command
         }
 
         $this->level = $this->option('level');
+        $this->areas_ids = $this->option('areas_ids');
 
-        if (!$this->level) {
+        if (!$this->level && !$this->areas_ids) {
             $this->error('--cycle option is required.');
             return 1;
         }
 
         DB::setDefaultConnection($conn_field);
 
+        if ($this->level) {
+            $queryBuilder = MapPolygonalArea::where('level', '=', $this->level);
+        } else {
+            $queryBuilder = MapPolygonalArea::whereIn('id', explode(',', $this->areas_ids));
+        }
 
-        $areas = MapPolygonalArea::where('level', '=', $this->level)->get();
+
+        $areas = $queryBuilder->get();
 
         foreach ($areas as $area) {
+
+            MarkerLevelArea::where('area_id', '=', $area->id)->where('level', '=', $area->level)->delete();
+
             $markers = $area->markers();
 
             $this->info('Area ID: ' . $area->id . ' Name: ' . $area->name . ' - Markers found: ' . count($markers));
@@ -75,7 +87,7 @@ class RelateMarkersToAreas extends Command
                     [
                         'marker_id' => $marker->id,
                         'area_id' => $area->id,
-                        'level' => $this->level
+                        'level' => $area->level
                     ],
                 );
             }

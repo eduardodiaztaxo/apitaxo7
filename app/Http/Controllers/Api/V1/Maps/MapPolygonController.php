@@ -29,6 +29,59 @@ class MapPolygonController extends Controller
     }
 
     /**
+     * Display a listing of the base resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function indexBase()
+    {
+        $areas = MapPolygonalArea::whereIn('level', [0, 1])->get();
+
+
+        return response()->json(
+            MapPolygonalAreaResource::collection($areas),
+            200
+        );
+    }
+
+    /**
+     * Display a listing of the base resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function getDescendants($parent_id)
+    {
+
+        $childs_areas = MapPolygonalArea::where('parent_id', '=', $parent_id)->get();
+
+        $descendants = $childs_areas;
+
+        $childs = $descendants;
+
+        while ($childs->count() > 0) {
+
+            $parents = $childs;
+
+            $childs = collect([]);
+
+            foreach ($parents as $area) {
+
+                $child_areas = MapPolygonalArea::where('parent_id', '=', $area->id)->get();
+
+                if ($child_areas->count() > 0)
+                    $childs = $childs->merge($child_areas);
+            }
+
+            if ($childs->count() > 0)
+                $descendants = $descendants->merge($childs);
+        }
+
+        return response()->json(
+            MapPolygonalAreaResource::collection($descendants),
+            200
+        );
+    }
+    /**
      * Show the form for creating a new resource.
      *
      * @return \Illuminate\Http\Response
