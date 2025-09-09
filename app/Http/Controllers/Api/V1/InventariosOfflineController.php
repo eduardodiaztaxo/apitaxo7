@@ -257,24 +257,41 @@ class InventariosOfflineController extends Controller
 
 
      $map = collect(DB::select("
-        SELECT 
-            ar.address_id AS id_direccion,
-            mak.NAME AS categoria, 
-            COUNT(mak.NAME) AS q_teorico,
-            COUNT(inv.etiqueta) AS q_fisico,
-            (COUNT(inv.etiqueta) - COUNT(mak.NAME)) AS diferencia
-        FROM 
-            map_marker_assets mak
-            INNER JOIN map_markers_levels_areas lev 
-                ON mak.id = lev.marker_id
-            INNER JOIN map_polygonal_areas ar 
-            LEFT JOIN inv_inventario AS inv 
-                ON inv.id_bien = mak.id 
-            AND ar.address_id = inv.idUbicacionGeo
-        WHERE 
-            ar.address_id IN (" . implode(',', $direcciones->pluck('idPunto')->toArray()) . ")
-        GROUP BY ar.address_id, mak.NAME;
-            "));
+     SELECT
+    datos_cliente.id_direccion,  
+    map_assets_categories.name AS categoria, 
+    datos_cliente.q_teorico,
+    inv_resumen.q_fisico,
+    COALESCE(inv_resumen.q_fisico, 0) - COALESCE(datos_cliente.q_teorico, 0) AS diferencia
+    
+FROM 
+    map_assets_categories 
+LEFT JOIN (
+    SELECT 
+        ar.address_id AS id_direccion,
+        mak.category_id AS category_id,
+        mak.name AS categoria,
+        COUNT(*) AS q_teorico 
+    FROM 
+        map_marker_assets mak
+    INNER JOIN map_markers_levels_areas lev ON mak.id = lev.marker_id
+    INNER JOIN map_polygonal_areas ar ON lev.area_id = ar.id
+    WHERE 
+        ar.address_id IN (" . implode(',', $direcciones->pluck('idPunto')->toArray()) . ")
+    GROUP BY ar.address_id, mak.name, mak.category_id
+) AS datos_cliente 
+    ON map_assets_categories.id = datos_cliente.category_id
+LEFT JOIN (
+    SELECT 
+        id_familia, 
+        idUbicacionGeo, 
+        COUNT(*) AS q_fisico 
+    FROM inv_inventario 
+    WHERE idUbicacionGeo IN (" . implode(',', $direcciones->pluck('idPunto')->toArray()) . ")
+    GROUP BY id_familia, idUbicacionGeo
+) AS inv_resumen 
+    ON map_assets_categories.id = inv_resumen.id_familia
+    "));
 
     return response()->json($map, 200);
 }

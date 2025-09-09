@@ -26,13 +26,18 @@ class InvCicloResource extends JsonResource
         $assetsCycleInv = $this->activos_with_cats_inv()->count();
  
         $user = Auth::user();
-        $usuario = $user->name;
 
-        $puntos = $this->ciclo_puntos_users($usuario, $this->idCiclo)->count();
+
+        if ($user) {
+            $usuario = $user->name;
+            $puntos = $this->ciclo_puntos_users($usuario, $this->idCiclo)->count();
+        } else {
+            $puntos = 0; 
+        }
 
         if ($puntos === 0) {
             $puntos = $this->puntos()->count();
-        } 
+        }
 
        
         return [
