@@ -162,7 +162,7 @@ LEFT JOIN (
 ) AS inv_resumen 
     ON map_assets_categories.id = inv_resumen.id_familia
 ";
-return DB::select($sql, [$idAgenda]);
+return DB::select($sql, [$idAgenda, $idAgenda]);
 }
 
 
