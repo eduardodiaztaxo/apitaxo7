@@ -1119,7 +1119,7 @@ class InventariosController extends Controller
         return [$saved, $failed, $paths];
     }
 
-   private function rangoPermitido($idAgenda) {
+   public function rangoPermitido($idAgenda) {
     $rango = UbicacionGeografica::find($idAgenda)->rango;
 
     $puntos = $rango->verificacion_range($idAgenda);
