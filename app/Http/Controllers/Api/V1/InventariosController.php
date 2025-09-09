@@ -159,6 +159,7 @@ class InventariosController extends Controller
         $inventario->serie               = $request->serie ?? '';
         $inventario->latitud             = $request->latitud ?? 0;
         $inventario->longitud            = $request->longitud ?? 0;
+        $inventario->precision           = $request->precision ?? 0;
         $inventario->capacidad           = $request->capacidad ?? '';
         $inventario->estado              = intval($request->estado ?? 0);
         $inventario->color               = intval($request->color ?? 0);
@@ -237,6 +238,7 @@ class InventariosController extends Controller
             'idMaterial'          => intval($request->idMaterial ?? null),
             'latitud'             => $request->latitud ?? null,
             'longitud'            => $request->longitud ?? null,
+            'precision'           => $request->precision ?? null,
             'capacidad'           => $request->capacidad,
             'estado'              => intval($request->estado ?? null),
             'color'               => intval($request->color ?? null),
