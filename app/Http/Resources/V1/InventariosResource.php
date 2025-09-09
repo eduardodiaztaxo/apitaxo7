@@ -165,6 +165,8 @@ class InventariosResource extends JsonResource
             'foto4'                => $fotoUrl,
             'latitud'              => $activo->latitud,
             'longitud'             => $activo->longitud,
+            'accuracyStr'          => $activo->precision_geo,
+            'calidadGeo'           => $activo->calidad_geo,
             'emplazamiento'        => [
                 'id'                => $idFinal,
                 'nombre'            => $emplazamiento->descripcionUbicacion ?? '',
