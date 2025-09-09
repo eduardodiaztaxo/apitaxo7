@@ -138,7 +138,7 @@ class UbicacionGeografica extends Model
 public function verificacion_range($idAgenda)
 {
    $sql = "
-    SELECT NAME, AREA, address_id FROM map_polygonal_areas
+    SELECT name, area, address_id FROM map_polygonal_areas
     WHERE address_id = ?
 ";
 return DB::select($sql, [$idAgenda]);
