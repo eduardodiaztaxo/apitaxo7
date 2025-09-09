@@ -10,6 +10,7 @@ use App\Models\Inv_imagenes;
 use App\Http\Controllers\Controller;
 use App\Models\CrudActivo;
 use App\Models\InvCiclo;
+use App\Models\UbicacionGeografica;
 use Illuminate\Support\Facades\DB;
 use Intervention\Image\Facades\Image;
 use App\Services\ImageService;
@@ -1118,6 +1119,13 @@ class InventariosController extends Controller
         return [$saved, $failed, $paths];
     }
 
+   private function rangoPermitido($idAgenda) {
+    $rango = UbicacionGeografica::find($idAgenda)->rango;
+
+    $puntos = $rango->verificacion_range($idAgenda);
+
+    return response()->json($puntos);
+}
 
     protected function rules()
     {
