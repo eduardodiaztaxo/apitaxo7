@@ -32,10 +32,6 @@ class InvCicloResource extends JsonResource
             $usuario = $user->name;
             $puntos = $this->ciclo_puntos_users($usuario, $this->idCiclo)->count();
         } else {
-            $puntos = 0; 
-        }
-
-        if ($puntos === 0) {
             $puntos = $this->puntos()->count();
         }
 
