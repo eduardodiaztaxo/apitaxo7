@@ -27,11 +27,11 @@ class InvCicloResource extends JsonResource
  
         $user = Auth::user();
 
+        $usuario = $user?->name;
+        $puntos = $this->ciclo_puntos_users($usuario, $this->idCiclo)->count();
+      
 
-        if ($user) {
-            $usuario = $user->name;
-            $puntos = $this->ciclo_puntos_users($usuario, $this->idCiclo)->count();
-        } else {
+        if ($puntos === 0) {
             $puntos = $this->puntos()->count();
         }
 

@@ -33,19 +33,30 @@ class InvCiclo extends Model
         );
     }
 
-public function ciclo_puntos_users($usuario, $ciclo_id)
+public function ciclo_puntos_users($usuario = null, $ciclo_id = null)
 {
-    return $this->hasManyThrough(
-        UbicacionGeografica::class, // Modelo final
-        InvUsuariosPunto::class,    // Modelo intermedio
-        'idCiclo',                  // FK del modelo intermedio hacia InvCiclo
-        'idUbicacionGeo',           // FK del modelo final hacia InvUsuariosPunto
-        'idCiclo',                  // PK local en InvCiclo
-        'idPunto'                   // PK local en InvUsuariosPunto
-    )
-    ->where('inv_usuarios_puntos.usuario', $usuario)
-    ->where('inv_usuarios_puntos.idCiclo', $ciclo_id);
+    $query = $this->hasManyThrough(
+        UbicacionGeografica::class, 
+        InvUsuariosPunto::class,    
+        'idCiclo',                  
+        'idUbicacionGeo',           
+        'idCiclo',                  
+        'idPunto'                   
+    );
+
+
+    if ($usuario) {
+        $query->where('inv_usuarios_puntos.usuario', $usuario);
+    }
+
+
+    if ($ciclo_id) {
+        $query->where('inv_usuarios_puntos.idCiclo', $ciclo_id);
+    }
+
+    return $query;
 }
+
 
 
 
