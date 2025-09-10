@@ -38,7 +38,9 @@ class InventariosResource extends JsonResource
                 'update_inv',
                 'id_img',
                 'latitud',
-                'longitud'
+                'longitud',
+                'precision_geo',   
+                'calidad_geo'    
             )
             ->get();
     
