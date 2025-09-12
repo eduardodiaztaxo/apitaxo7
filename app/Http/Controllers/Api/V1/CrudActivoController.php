@@ -296,7 +296,7 @@ class CrudActivoController extends Controller
             // }
 
             $filename = '9999_' . $etiqueta;
-            $origen = 'SAFIN_APP_INVENTARIO';
+            $origen = 'SAFIN_APP_ACTUALIZADAS';
             $file = $request->file('imagen');
             $namefile = $filename . '.jpg';;
             $path = $file->storeAs(
@@ -307,9 +307,6 @@ class CrudActivoController extends Controller
 
             $url = Storage::disk('taxoImages')->url($path);
             $url_pict = dirname($url) . '/';
-            // $imageName = $etiqueta . '_' . uniqid();
-            // $path = $this->imageService->optimizeImageinv($file, $userFolder, $imageName);
-            // $fullUrl = asset('storage/' . $path);
 
             if ($request->oldImageUrl) {
                 $imagenExistente = Inv_imagenes::where('etiqueta', $etiqueta)
@@ -317,7 +314,8 @@ class CrudActivoController extends Controller
                     ->first();
 
                 if ($imagenExistente) {
-                    $imagenExistente->url_imagen = $url_pict;
+                    $imagenExistente->url_imagen = $url; 
+                    $imagenExistente->url_picture = $url_pict; 
                     $imagenExistente->origen = $origen;
                     $imagenExistente->picture = $filename . '.jpg';
                     $imagenExistente->updated_at = now();
@@ -326,7 +324,7 @@ class CrudActivoController extends Controller
                     return response()->json([
                         'status' => 'OK',
                         'message' => 'Imagen existente actualizada',
-                        'url' => $url_pict
+                        'url' => $url
                     ], 200);
                 }
             }
