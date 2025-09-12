@@ -3,8 +3,7 @@
 namespace App\Http\Controllers\Api\V2;
 
 use App\Http\Controllers\Controller;
-
-use App\Http\Resources\V1\EmplazamientoNivel1Resource;
+use App\Http\Resources\V2\EmplazamientoNivel1Resource;
 use App\Models\EmplazamientoN1;
 use Illuminate\Http\Request;
 
