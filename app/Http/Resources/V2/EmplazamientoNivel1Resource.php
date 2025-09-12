@@ -66,8 +66,8 @@ class EmplazamientoNivel1Resource extends JsonResource
             'num_activos_cats_by_cycle' => 0,
             'ciclo_auditoria' => $this->ciclo_auditoria,
             'num_categorias' => $this->activos()->select('categoriaN3')->groupBy('categoriaN3')->get()->count(),
-            'id_ciclo' => $this->cycle_id,
-            'zone_address' => ZonaPuntoResource::make($this->zonaPunto()->first())
+            'id_ciclo' => $this->cycle_id
+            // 'zone_address' => ZonaPuntoResource::make($this->zonaPunto()->first())
         ];
 
         if (isset($this->requirePunto) && $this->requirePunto) {
