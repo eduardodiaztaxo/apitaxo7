@@ -271,64 +271,8 @@ class CrudActivoController extends Controller
         // $activo = CrudActivo::where('etiqueta', '=', $etiqueta)->first();
 
         $idActivo_Documento = CrudActivo::where('etiqueta', '=', $etiqueta)->value('idActivo');
-
-
-        if (!$idActivo_Documento) {
-            $idActivo_Inventario = Inventario::where('etiqueta', '=', $etiqueta)->value('id_inventario');
-
-            if (!$idActivo_Inventario) {
-                return response()->json([
-                    'message' => 'Not Found',
-                    'status' => 'error'
-                ], 404);
-            }
-
-            DB::table('inv_inventario')
-                ->where('id_inventario', '=', $idActivo_Inventario)
-                ->update([
-                    'crud_activo_estado' => 3
-                ]);
-            // --- Si es activo de Inventario: subimos imagen a carpeta inventario ---
-            // $userFolder = "customers/" . $request->user()->nombre_cliente . "/images/inventario/" . $etiqueta . "/" . now()->format('Y-m-d');
-
-            // if (!Storage::exists($userFolder)) {
-            //     Storage::makeDirectory($userFolder);
-            // }
-
-            $filename = '9999_' . $etiqueta;
-            $origen = 'SAFIN_APP_ACTUALIZADAS';
-            $file = $request->file('imagen');
-            $namefile = $filename . '.jpg';;
-            $path = $file->storeAs(
-                PictureSafinService::getImgSubdir($request->user()->nombre_cliente),
-                $namefile,
-                'taxoImages'
-            );
-
-            $url = Storage::disk('taxoImages')->url($path);
-            $url_pict = dirname($url) . '/';
-
-            if ($request->oldImageUrl) {
-                $imagenExistente = Inv_imagenes::where('etiqueta', $etiqueta)
-                    ->where('url_imagen', $request->oldImageUrl)
-                    ->first();
-
-                if ($imagenExistente) {
-                    $imagenExistente->url_imagen = $url; 
-                    $imagenExistente->url_picture = $url_pict; 
-                    $imagenExistente->origen = $origen;
-                    $imagenExistente->picture = $filename . '.jpg';
-                    $imagenExistente->updated_at = now();
-                    $imagenExistente->save();
-
-                    return response()->json([
-                        'status' => 'OK',
-                        'message' => 'Imagen existente actualizada',
-                        'url' => $url
-                    ], 200);
-                }
-            }
-        }
+  
+        if ($idActivo_Documento) {
 
         $filename = '9999_' . $etiqueta;
         $origen = 'SAFIN_APP';
@@ -369,10 +313,59 @@ class CrudActivoController extends Controller
                 'fecha_update' => now()
             ]);
         }
+    }else{
+        $idActivo_Inventario = Inventario::where('etiqueta', '=', $etiqueta)->value('id_inventario');
 
-        // $activo->foto4 = $path;
+            if (!$idActivo_Inventario) {
+                return response()->json([
+                    'message' => 'Not Found',
+                    'status' => 'error'
+                ], 404);
+            }
 
-        // $activo->save();
+            DB::table('inv_inventario')
+                ->where('id_inventario', '=', $idActivo_Inventario)
+                ->update([
+                    'crud_activo_estado' => 3
+                ]);
+           
+
+            $filename = '9999_' . $etiqueta;
+            $origen = 'SAFIN_APP_ACTUALIZADAS';
+            $file = $request->file('imagen');
+            $namefile = $filename . '.jpg';;
+            $path = $file->storeAs(
+                PictureSafinService::getImgSubdir($request->user()->nombre_cliente),
+                $namefile,
+                'taxoImages'
+            );
+
+            $url = Storage::disk('taxoImages')->url($path);
+            $url_pict = dirname($url) . '/';
+
+            if ($request->oldImageUrl) {
+                $imagenExistente = Inv_imagenes::where('etiqueta', $etiqueta)
+                    ->where('url_imagen', $request->oldImageUrl)
+                    ->first();
+
+                if ($imagenExistente) {
+                    $imagenExistente->url_imagen = $url; 
+                    $imagenExistente->url_picture = $url_pict; 
+                    $imagenExistente->origen = $origen;
+                    $imagenExistente->picture = $filename . '.jpg';
+                    $imagenExistente->updated_at = now();
+                    $imagenExistente->save();
+
+                    return response()->json([
+                        'status' => 'OK',
+                        'message' => 'Imagen existente actualizada',
+                        'url' => $url
+                    ], 200);
+                }
+            }
+        
+    }
+    
 
         return response()->json(
             [
