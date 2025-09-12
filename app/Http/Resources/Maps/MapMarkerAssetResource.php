@@ -14,6 +14,13 @@ class MapMarkerAssetResource extends JsonResource
      */
     public function toArray($request)
     {
-        return parent::toArray($request);
+        $marker = parent::toArray($request);
+
+        $category = $this->getCategory;
+        if ($category) {
+            $marker['primary_icon'] = do_icon_marker_map($category->marker_icon, $category->marker_pin, $category->primary_color);
+            $marker['secondary_icon'] = do_icon_marker_map($category->marker_icon, $category->marker_pin, $category->secondary_color);
+        }
+        return $marker;
     }
 }

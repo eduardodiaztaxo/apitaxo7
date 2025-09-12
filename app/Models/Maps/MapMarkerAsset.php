@@ -16,4 +16,9 @@ class MapMarkerAsset extends Model
         'lat',
         'lng',
     ];
+
+    public function getCategory()
+    {
+        return $this->hasOne(MapCategory::class, 'id', 'category_id');
+    }
 }
