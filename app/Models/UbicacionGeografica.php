@@ -133,4 +133,15 @@ class UbicacionGeografica extends Model
     {
         return $this->hasMany(Responsable::class, 'idUbicacionGeografica', 'idUbicacionGeo');
     }
+
+
+public function verificacion_range($idAgenda)
+{
+   $sql = "
+    SELECT name, area, address_id FROM map_polygonal_areas
+    WHERE address_id = ?
+";
+return DB::select($sql, [$idAgenda]);
+}
+
 }

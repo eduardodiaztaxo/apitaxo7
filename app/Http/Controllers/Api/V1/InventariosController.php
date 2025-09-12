@@ -10,6 +10,7 @@ use App\Models\Inv_imagenes;
 use App\Http\Controllers\Controller;
 use App\Models\CrudActivo;
 use App\Models\InvCiclo;
+use App\Models\UbicacionGeografica;
 use Illuminate\Support\Facades\DB;
 use Intervention\Image\Facades\Image;
 use App\Services\ImageService;
@@ -159,6 +160,8 @@ class InventariosController extends Controller
         $inventario->serie               = $request->serie ?? '';
         $inventario->latitud             = $request->latitud ?? 0;
         $inventario->longitud            = $request->longitud ?? 0;
+        $inventario->precision_geo       = $request->precision ?? 0;
+        $inventario->calidad_geo         = $request->calidad ?? 0;
         $inventario->capacidad           = $request->capacidad ?? '';
         $inventario->estado              = intval($request->estado ?? 0);
         $inventario->color               = intval($request->color ?? 0);
@@ -237,6 +240,8 @@ class InventariosController extends Controller
             'idMaterial'          => intval($request->idMaterial ?? null),
             'latitud'             => $request->latitud ?? null,
             'longitud'            => $request->longitud ?? null,
+            'precision_geo'       => $request->precision ?? null,
+            'calidad_geo'         => $request->calidad ?? null,
             'capacidad'           => $request->capacidad,
             'estado'              => intval($request->estado ?? null),
             'color'               => intval($request->color ?? null),
@@ -369,7 +374,8 @@ class InventariosController extends Controller
                 COALESCE(
                     IFNULL(MAX(CASE WHEN id_atributo = 31 THEN label_input ELSE NULL END), 'Texto Abierto 5')
                 ) AS label_texto_abierto_5,
-                 COALESCE(MAX(CASE WHEN id_atributo = 32 THEN id_validacion END), 0) AS conf_fotos
+                COALESCE(MAX(CASE WHEN id_atributo = 32 THEN id_validacion END), 0) AS conf_fotos,
+                COALESCE(MAX(CASE WHEN id_atributo = 33 THEN id_validacion END), 0) AS conf_range_polygonal
 
             FROM inv_atributos 
             WHERE id_grupo = ?";
@@ -1112,6 +1118,18 @@ class InventariosController extends Controller
 
         return [$saved, $failed, $paths];
     }
+
+public function rangoPermitido($idAgenda) {
+    $ubicacion = UbicacionGeografica::find($idAgenda);
+
+    if (!$ubicacion) {
+        return response()->json([], 404); 
+    }
+
+    $puntos = $ubicacion->verificacion_range($idAgenda);
+
+    return response()->json($puntos);
+}
 
 
     protected function rules()

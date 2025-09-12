@@ -147,6 +147,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('configuracion/{id_grupo}', [InventariosController::class, 'configuracion']);
 
+    Route::get('rango-permitido/{idAgenda}', [InventariosController::class, 'rangoPermitido']); 
+
     Route::get('nombre-inputs', [InventariosController::class, 'nombreInputs']);
 
     Route::put('inventario/image/{etiqueta}', [InventariosController::class, 'ImageByEtiqueta']);

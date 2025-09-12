@@ -296,14 +296,13 @@ class CiclosUbicacionesController extends Controller
         }
 
         $user = Auth::user();
-        $usuario = $user->name;
-
+     
+        $usuario = $user?->User;
         $puntos = $cicloObj->ciclo_puntos_users($usuario, $ciclo)->get();
 
-        if ($puntos->count() === 0) {
-                $puntos = $cicloObj->puntos()->get();
+        if ($puntos->isEmpty()) {
+            $puntos = $cicloObj->puntos()->get();
         }
-    
     
         //$zonas = $cicloObj->zonesWithCats()->pluck('zona')->toArray();
         //¿La zona tiene bienes que no están asociados a emplazamientos?
