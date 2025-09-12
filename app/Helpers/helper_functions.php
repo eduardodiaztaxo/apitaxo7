@@ -216,3 +216,29 @@ function keyword_search_terms_from_keyword($keyword, int $length_word = 3)
         }
     );
 }
+
+/**
+ * 
+ * 
+ */
+function do_icon_marker_map($marker_icon, $marker_pin, $color)
+{
+
+
+    $baseUrl = '/image-marker.php';
+
+
+    $icon = !empty($marker_icon) ? $marker_icon : 'circle';
+    $pin = !empty($marker_pin) ? $marker_pin : 'location-dot';
+
+    $urlIcon = $baseUrl . '?app=safin&icon_name=' . $icon . '&pin_name=' . $pin;
+
+    if (!empty($color)) {
+        $color = str_replace('#', '', $color);
+        $urlIconMarker = $urlIcon . '&mark_color=' . $color . '&icon_color=' . $color;
+    } else {
+        $urlIconMarker = $urlIcon . '&mark_color=000000&icon_color=000000';
+    }
+
+    return $urlIconMarker;
+}

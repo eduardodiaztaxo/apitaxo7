@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Resources\V1;
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -39,17 +40,18 @@ class InventariosResource extends JsonResource
                 'id_img',
                 'latitud',
                 'longitud',
-                'precision_geo',   
-                'calidad_geo'    
+                'creado_el',
+                'precision_geo',
+                'calidad_geo'
             )
             ->get();
-    
+
         $activo = $activosInventario->first();
 
         if (!$activo) {
             return [];
         }
-    
+
         $descFamilia = DB::table('dp_familias')
             ->where('id_familia', $activo->id_familia)
             ->select('descripcion_familia')
@@ -60,14 +62,14 @@ class InventariosResource extends JsonResource
             ->where('id_grupo', $activo->id_grupo)
             ->select('descripcion_grupo')
             ->first();
-    
-    
+
+
         $img = DB::table('inv_imagenes')
             ->where('id_img', $activo->id_img)
             ->select('url_imagen')
             ->first();
-    
-            $estadoBien = DB::table('indices_listas_13')
+
+        $estadoBien = DB::table('indices_listas_13')
             ->where('idLista', $activo->estado)
             ->value('descripcion');
 
@@ -88,8 +90,8 @@ class InventariosResource extends JsonResource
         }
 
         $codigoUbicacionN1 = $activo->codigoUbicacion_N1 ?? $activo->codigoUbicacion_N2 ?? $activo->codigoUbicacion_N3 ?? '';
-       
-       $emplazamiento = DB::table('ubicaciones_n1')
+
+        $emplazamiento = DB::table('ubicaciones_n1')
             ->where('codigoUbicacion', 'like', '%' . $codigoUbicacionN1 . '%')
             ->where('idAgenda', $activo->idUbicacionGeo)
             ->select('idUbicacionN1', 'descripcionUbicacion', 'codigoUbicacion')
@@ -119,30 +121,30 @@ class InventariosResource extends JsonResource
         if (!$direccion) {
             return [];
         }
-    
+
         $region = DB::table('regiones')
             ->where('idRegion', $direccion->region)
             ->select('descripcion')
             ->first();
-    
+
         $comuna = DB::table('comunas')
             ->where('idComuna', $direccion->comuna)
             ->select('descripcion')
             ->first();
 
-         $foto = DB::table('inv_imagenes')
-        ->where('etiqueta', $activo->etiqueta)
-        ->orderByDesc('id_img') 
-        ->first(['url_imagen']);
+        $foto = DB::table('inv_imagenes')
+            ->where('etiqueta', $activo->etiqueta)
+            ->orderByDesc('id_img')
+            ->first(['url_imagen']);
 
         $fotoUrl = $foto->url_imagen ?? asset('img/notavailable.jpg');
 
         $imagenes = DB::table('inv_imagenes')
-        ->where('etiqueta', $activo->etiqueta)
-        ->orderByDesc('id_img')
-        ->pluck('url_imagen') // devuelve array de strings
-        ->toArray();
-    
+            ->where('etiqueta', $activo->etiqueta)
+            ->orderByDesc('id_img')
+            ->pluck('url_imagen') // devuelve array de strings
+            ->toArray();
+
         return [
             'id_inventario'        => $activo->id_inventario,
             'cicle_id'             => $activo->id_ciclo,
@@ -161,6 +163,7 @@ class InventariosResource extends JsonResource
             'etiqueta'             => $activo->etiqueta,
             'responsable'          => $activo->responsable ?? 'Sin Registros',
             'creado_por'           => $activo->creado_por ?? 'Sin Registros',
+            'creado_el'            => $activo->creado_el ? date('d/m/Y H:i:s', strtotime($activo->creado_el)) : null,
             'imagenes'             => $imagenes ?? [],
             'fotoUrl'              => $fotoUrl,
             'update_inv'           => $activo->update_inv,
@@ -178,7 +181,7 @@ class InventariosResource extends JsonResource
                     'descripcionUbicacion' => $subEmplazamiento->descripcionUbicacion ?? '',
                 ],
             ],
-           
+
             'ubicacion' => [
                 'idUbicacionGeo' => $activo->idUbicacionGeo,
                 'direccion'      => $direccion->direccion ?? 'No disponible',
