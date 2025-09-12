@@ -47,8 +47,8 @@ class EmplazamientoNivel1Resource extends JsonResource
         $emplazamiento = [
             'id' => $this->idUbicacionN1,
             'codigo' => $this->codigo,
-            'codigoUbicacion' => '',
-            'nombre' => '',
+            'codigoUbicacion' => $this->codigoUbicacion,
+            'nombre' => $this->descripcionUbicacion,
             'idAgenda' => $this->idAgenda,
             'idUbicacionN1' => $this->idUbicacionN1,
             'detalle' => 'Detalle Emplazamiento (N1)',
