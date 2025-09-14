@@ -271,6 +271,30 @@ class DatosActivosController extends Controller
     }
 
 
+    public function countAllByBienesGrupoFamilia(Request $request, int $cycle_id)
+    {
+
+        $objCycle = InvCiclo::find($cycle_id);
+
+
+        if (!$objCycle) {
+            return response()->json([
+                'message' => 'Ciclo no encontrado'
+            ], 404);
+        }
+
+
+        $countBienesGrupoFamilia = $objCycle->bienesGrupoFamiliaByCycle()->count();
+
+
+        return response()->json([
+            'status' => 'OK',
+            'code' => 200,
+            'data' => ['count' => $countBienesGrupoFamilia]
+        ], 200);
+    }
+
+
 
     public function buscarGrupoFamilia($id_familia)
     {

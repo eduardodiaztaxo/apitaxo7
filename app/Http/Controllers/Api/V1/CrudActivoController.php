@@ -317,7 +317,7 @@ class CrudActivoController extends Controller
                     ->first();
 
                 if ($imagenExistente) {
-                    $imagenExistente->url_imagen = $url_pict;
+                    $imagenExistente->url_imagen = $url_pict . $filename . '.jpg';
                     $imagenExistente->origen = $origen;
                     $imagenExistente->picture = $filename . '.jpg';
                     $imagenExistente->updated_at = now();
@@ -326,7 +326,7 @@ class CrudActivoController extends Controller
                     return response()->json([
                         'status' => 'OK',
                         'message' => 'Imagen existente actualizada',
-                        'url' => $url_pict
+                        'url' => $url_pict . $filename . '.jpg'
                     ], 200);
                 }
             }

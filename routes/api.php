@@ -119,6 +119,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('bienes-grupo-familia/{cycle_id}', [DatosActivosController::class, 'showAllByBienesGrupoFamilia']);
 
+    Route::get('bienes-grupo-familia/{cycle_id}/count-all', [DatosActivosController::class, 'countAllByBienesGrupoFamilia']);
+
     Route::get('buscar_grupo_familia/{id_familia}', [DatosActivosController::class, 'buscarGrupoFamilia']);
 
     Route::get('colores', [DatosActivosController::class, 'indiceColores']);
@@ -147,7 +149,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('configuracion/{id_grupo}', [InventariosController::class, 'configuracion']);
 
-    Route::get('rango-permitido/{idAgenda}', [InventariosController::class, 'rangoPermitido']); 
+    Route::get('rango-permitido/{idAgenda}', [InventariosController::class, 'rangoPermitido']);
 
     Route::get('nombre-inputs', [InventariosController::class, 'nombreInputs']);
 
