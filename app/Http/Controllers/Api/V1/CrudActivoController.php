@@ -332,49 +332,99 @@ class CrudActivoController extends Controller
             }
         }
 
-        $filename = '9999_' . $etiqueta;
-        $origen = 'SAFIN_APP';
+        if ($idActivo_Documento) {
 
-        $file = $request->file('imagen');
-        $namefile = $filename . '.jpg';
+            $filename = '9999_' . $etiqueta;
+            $origen = 'SAFIN_APP';
 
-        $path = $file->storeAs(
-            PictureSafinService::getImgSubdir($request->user()->nombre_cliente),
-            $namefile,
-            'taxoImages'
-        );
+            $file = $request->file('imagen');
+            $namefile = $filename . '.jpg';
 
-        $url = Storage::disk('taxoImages')->url($path);
-        $url_pict = dirname($url) . '/';
+            $path = $file->storeAs(
+                PictureSafinService::getImgSubdir($request->user()->nombre_cliente),
+                $namefile,
+                'taxoImages'
+            );
 
-        $ultimo = DB::table('crud_activos_pictures')
-            ->where('id_activo', $idActivo_Documento)
-            ->orderByDesc('id_foto')
-            ->first();
-        //
-        if ($ultimo) {
-            DB::table('crud_activos_pictures')
-                ->where('id_foto', $ultimo->id_foto)
-                ->update([
+            $url = Storage::disk('taxoImages')->url($path);
+            $url_pict = dirname($url) . '/';
+
+            $ultimo = DB::table('crud_activos_pictures')
+                ->where('id_activo', $idActivo_Documento)
+                ->orderByDesc('id_foto')
+                ->first();
+            //
+            if ($ultimo) {
+                DB::table('crud_activos_pictures')
+                    ->where('id_foto', $ultimo->id_foto)
+                    ->update([
+                        'url_picture' => $url_pict,
+                        'picture'     => $filename . '.jpg',
+                        'origen'      => $origen,
+                        'fecha_update' => now()
+                    ]);
+            } else {
+                // Insertar si no existe ninguno
+                DB::table('crud_activos_pictures')->insert([
+                    'id_activo'   => $idActivo_Documento,
                     'url_picture' => $url_pict,
                     'picture'     => $filename . '.jpg',
                     'origen'      => $origen,
                     'fecha_update' => now()
                 ]);
+            }
         } else {
-            // Insertar si no existe ninguno
-            DB::table('crud_activos_pictures')->insert([
-                'id_activo'   => $idActivo_Documento,
-                'url_picture' => $url_pict,
-                'picture'     => $filename . '.jpg',
-                'origen'      => $origen,
-                'fecha_update' => now()
-            ]);
+            $idActivo_Inventario = Inventario::where('etiqueta', '=', $etiqueta)->value('id_inventario');
+
+            if (!$idActivo_Inventario) {
+                return response()->json([
+                    'message' => 'Not Found',
+                    'status' => 'error'
+                ], 404);
+            }
+
+            DB::table('inv_inventario')
+                ->where('id_inventario', '=', $idActivo_Inventario)
+                ->update([
+                    'crud_activo_estado' => 3
+                ]);
+
+
+            $filename = '9999_' . $etiqueta;
+            $origen = 'SAFIN_APP_ACTUALIZADAS';
+            $file = $request->file('imagen');
+            $namefile = $filename . '.jpg';;
+            $path = $file->storeAs(
+                PictureSafinService::getImgSubdir($request->user()->nombre_cliente),
+                $namefile,
+                'taxoImages'
+            );
+
+            $url = Storage::disk('taxoImages')->url($path);
+            $url_pict = dirname($url) . '/';
+
+            if ($request->oldImageUrl) {
+                $imagenExistente = Inv_imagenes::where('etiqueta', $etiqueta)
+                    ->where('url_imagen', $request->oldImageUrl)
+                    ->first();
+
+                if ($imagenExistente) {
+                    $imagenExistente->url_imagen = $url;
+                    $imagenExistente->url_picture = $url_pict;
+                    $imagenExistente->origen = $origen;
+                    $imagenExistente->picture = $filename . '.jpg';
+                    $imagenExistente->updated_at = now();
+                    $imagenExistente->save();
+
+                    return response()->json([
+                        'status' => 'OK',
+                        'message' => 'Imagen existente actualizada',
+                        'url' => $url
+                    ], 200);
+                }
+            }
         }
 
-        // $activo->foto4 = $path;
-
-        // $activo->save();
 
         return response()->json(
             [
