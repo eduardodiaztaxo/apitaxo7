@@ -248,15 +248,15 @@ class InventariosOfflineController extends Controller
         return response()->json($bienes, 200);
     }
 
- public function DiferenciasDirecionesMapa($ciclo)
-{
-    $direcciones = collect(DB::select("
+    public function DiferenciasDirecionesMapa($ciclo)
+    {
+        $direcciones = collect(DB::select("
     SELECT idPunto FROM `inv_ciclos_puntos`
     WHERE idCiclo = $ciclo
     "));
 
 
-     $map = collect(DB::select("
+        $map = collect(DB::select("
      SELECT
     datos_cliente.id_direccion,  
     map_assets_categories.name AS categoria, 
@@ -293,8 +293,8 @@ LEFT JOIN (
     ON map_assets_categories.id = inv_resumen.id_familia
     "));
 
-    return response()->json($map, 200);
-}
+        return response()->json($map, 200);
+    }
 
 
     public function configuracionOffline(array $codigo_grupos)
@@ -384,8 +384,50 @@ LEFT JOIN (
                         COALESCE(
                             IFNULL(MAX(CASE WHEN id_atributo = 31 THEN label_input ELSE NULL END), 'Texto Abierto 5')
                         ) AS label_texto_abierto_5,
+                        
                         COALESCE(MAX(CASE WHEN id_atributo = 32 THEN id_validacion END), 0) AS conf_fotos,
-                        COALESCE(MAX(CASE WHEN id_atributo = 33 THEN id_validacion END), 0) AS conf_range_polygonal
+                        COALESCE(MAX(CASE WHEN id_atributo = 33 THEN id_validacion END), 0) AS conf_range_polygonal,
+                        /** edualejandro */
+                        COALESCE(MAX(CASE WHEN id_atributo = 34 THEN id_validacion END), 0) AS conf_texto_abierto_6,
+                        COALESCE(MAX(CASE WHEN id_atributo = 34 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_6,
+                        COALESCE(MAX(CASE WHEN id_atributo = 34 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_6,
+                        COALESCE(MAX(CASE WHEN id_atributo = 34 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_6,
+                        COALESCE(
+                            IFNULL(MAX(CASE WHEN id_atributo = 34 THEN label_input ELSE NULL END), 'Texto Abierto 6')
+                        ) AS label_texto_abierto_6,
+                        /** edualejandro */
+                        COALESCE(MAX(CASE WHEN id_atributo = 35 THEN id_validacion END), 0) AS conf_texto_abierto_7,
+                        COALESCE(MAX(CASE WHEN id_atributo = 35 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_7,
+                        COALESCE(MAX(CASE WHEN id_atributo = 35 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_7,
+                        COALESCE(MAX(CASE WHEN id_atributo = 35 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_7,
+                        COALESCE(
+                            IFNULL(MAX(CASE WHEN id_atributo = 35 THEN label_input ELSE NULL END), 'Texto Abierto 7')
+                        ) AS label_texto_abierto_7,
+                        /** edualejandro */
+                        COALESCE(MAX(CASE WHEN id_atributo = 36 THEN id_validacion END), 0) AS conf_texto_abierto_8,
+                        COALESCE(MAX(CASE WHEN id_atributo = 36 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_8,
+                        COALESCE(MAX(CASE WHEN id_atributo = 36 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_8,
+                        COALESCE(MAX(CASE WHEN id_atributo = 36 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_8,
+                        COALESCE(
+                            IFNULL(MAX(CASE WHEN id_atributo = 36 THEN label_input ELSE NULL END), 'Texto Abierto 8')
+                        ) AS label_texto_abierto_8,
+                        /** edualejandro */
+                        COALESCE(MAX(CASE WHEN id_atributo = 37 THEN id_validacion END), 0) AS conf_texto_abierto_9,
+                        COALESCE(MAX(CASE WHEN id_atributo = 37 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_9,
+                        COALESCE(MAX(CASE WHEN id_atributo = 37 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_9,
+                        COALESCE(MAX(CASE WHEN id_atributo = 37 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_9,
+                        COALESCE(
+                            IFNULL(MAX(CASE WHEN id_atributo = 37 THEN label_input ELSE NULL END), 'Texto Abierto 9')
+                        ) AS label_texto_abierto_9,
+                        /** edualejandro */
+                        COALESCE(MAX(CASE WHEN id_atributo = 38 THEN id_validacion END), 0) AS conf_texto_abierto_10,
+                        COALESCE(MAX(CASE WHEN id_atributo = 38 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_10,
+                        COALESCE(MAX(CASE WHEN id_atributo = 38 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_10,
+                        COALESCE(MAX(CASE WHEN id_atributo = 38 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_10,
+                        COALESCE(
+                            IFNULL(MAX(CASE WHEN id_atributo = 38 THEN label_input ELSE NULL END), 'Texto Abierto 10')
+                        ) AS label_texto_abierto_10
+
                         
                     FROM inv_atributos 
                     WHERE id_grupo = ?";

@@ -46,6 +46,11 @@ class Inventario extends Model
         'texto_abierto_3',
         'texto_abierto_4',
         'texto_abierto_5',
+        'texto_abierto_6',
+        'texto_abierto_7',
+        'texto_abierto_8',
+        'texto_abierto_9',
+        'texto_abierto_10',
         /** edualejandro */
         'cantidad_img',
         'id_img',

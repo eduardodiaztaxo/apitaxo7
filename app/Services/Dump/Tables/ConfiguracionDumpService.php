@@ -135,7 +135,38 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
             lench_Max_texto_abierto_5 INTEGER,
             label_texto_abierto_5 TEXT,
             conf_fotos INTEGER,
-            conf_range_polygonal INTEGER
+            conf_range_polygonal INTEGER,
+            -- edualejandro
+            conf_texto_abierto_6 INTEGER,
+            tipo_dato_texto_abierto_6 INTEGER,
+            lench_Min_texto_abierto_6 INTEGER,
+            lench_Max_texto_abierto_6 INTEGER,
+            label_texto_abierto_6 TEXT,
+            -- edualejandro
+            conf_texto_abierto_7 INTEGER,
+            tipo_dato_texto_abierto_7 INTEGER,
+            lench_Min_texto_abierto_7 INTEGER,
+            lench_Max_texto_abierto_7 INTEGER,
+            label_texto_abierto_7 TEXT,
+            -- edualejandro
+            conf_texto_abierto_8 INTEGER,
+            tipo_dato_texto_abierto_8 INTEGER,
+            lench_Min_texto_abierto_8 INTEGER,
+            lench_Max_texto_abierto_8 INTEGER,
+            label_texto_abierto_8 TEXT,
+            -- edualejandro
+            conf_texto_abierto_9 INTEGER,
+            tipo_dato_texto_abierto_9 INTEGER,
+            lench_Min_texto_abierto_9 INTEGER,
+            lench_Max_texto_abierto_9 INTEGER,
+            label_texto_abierto_9 TEXT,
+            -- edualejandro
+            conf_texto_abierto_10 INTEGER,
+            tipo_dato_texto_abierto_10 INTEGER,
+            lench_Min_texto_abierto_10 INTEGER,
+            lench_Max_texto_abierto_10 INTEGER,
+            label_texto_abierto_10 TEXT
+
         )
     ");
     }
@@ -216,7 +247,37 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
                 lench_Max_texto_abierto_5,
                 label_texto_abierto_5,
                 conf_fotos,
-                conf_range_polygonal
+                conf_range_polygonal,
+                -- edualejandro
+                conf_texto_abierto_6,
+                tipo_dato_texto_abierto_6,
+                lench_Min_texto_abierto_6,
+                lench_Max_texto_abierto_6,
+                label_texto_abierto_6,
+                -- edualejandro
+                conf_texto_abierto_7,
+                tipo_dato_texto_abierto_7,
+                lench_Min_texto_abierto_7,
+                lench_Max_texto_abierto_7,
+                label_texto_abierto_7,
+                -- edualejandro
+                conf_texto_abierto_8,
+                tipo_dato_texto_abierto_8,
+                lench_Min_texto_abierto_8,
+                lench_Max_texto_abierto_8,
+                label_texto_abierto_8,
+                -- edualejandro
+                conf_texto_abierto_9,
+                tipo_dato_texto_abierto_9,
+                lench_Min_texto_abierto_9,
+                lench_Max_texto_abierto_9,
+                label_texto_abierto_9,
+                -- edualejandro
+                conf_texto_abierto_10,
+                tipo_dato_texto_abierto_10,
+                lench_Min_texto_abierto_10,
+                lench_Max_texto_abierto_10,
+                label_texto_abierto_10
             )
             VALUES (
                 :id_grupo,
@@ -284,7 +345,37 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
                 :lench_Max_texto_abierto_5,
                 :label_texto_abierto_5,
                 :conf_fotos,
-                :conf_range_polygonal
+                :conf_range_polygonal,
+                -- edualejandro
+                :conf_texto_abierto_6,
+                :tipo_dato_texto_abierto_6,
+                :lench_Min_texto_abierto_6,
+                :lench_Max_texto_abierto_6,
+                :label_texto_abierto_6,
+                -- edualejandro
+                :conf_texto_abierto_7,
+                :tipo_dato_texto_abierto_7,
+                :lench_Min_texto_abierto_7,
+                :lench_Max_texto_abierto_7,
+                :label_texto_abierto_7,
+                -- edualejandro
+                :conf_texto_abierto_8,
+                :tipo_dato_texto_abierto_8,
+                :lench_Min_texto_abierto_8,
+                :lench_Max_texto_abierto_8,
+                :label_texto_abierto_8,
+                -- edualejandro
+                :conf_texto_abierto_9,
+                :tipo_dato_texto_abierto_9,
+                :lench_Min_texto_abierto_9,
+                :lench_Max_texto_abierto_9,
+                :label_texto_abierto_9,
+                -- edualejandro
+                :conf_texto_abierto_10,
+                :tipo_dato_texto_abierto_10,
+                :lench_Min_texto_abierto_10,
+                :lench_Max_texto_abierto_10,
+                :label_texto_abierto_10
             )
         ");
 
@@ -356,7 +447,37 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
                 ':lench_Max_texto_abierto_5' => $conf->lench_Max_texto_abierto_5,
                 ':label_texto_abierto_5' => $conf->label_texto_abierto_5,
                 ':conf_fotos' => $conf->conf_fotos,
-                ':conf_range_polygonal' => $conf->conf_range_polygonal
+                ':conf_range_polygonal' => $conf->conf_range_polygonal,
+                // edualejandro
+                ':conf_texto_abierto_6' => $conf->conf_texto_abierto_6,
+                ':tipo_dato_texto_abierto_6' => $conf->tipo_dato_texto_abierto_6,
+                ':lench_Min_texto_abierto_6' => $conf->lench_Min_texto_abierto_6,
+                ':lench_Max_texto_abierto_6' => $conf->lench_Max_texto_abierto_6,
+                ':label_texto_abierto_6' => $conf->label_texto_abierto_6,
+                // edualejandro
+                ':conf_texto_abierto_7' => $conf->conf_texto_abierto_7,
+                ':tipo_dato_texto_abierto_7' => $conf->tipo_dato_texto_abierto_7,
+                ':lench_Min_texto_abierto_7' => $conf->lench_Min_texto_abierto_7,
+                ':lench_Max_texto_abierto_7' => $conf->lench_Max_texto_abierto_7,
+                ':label_texto_abierto_7' => $conf->label_texto_abierto_7,
+                // edualejandro
+                ':conf_texto_abierto_8' => $conf->conf_texto_abierto_8,
+                ':tipo_dato_texto_abierto_8' => $conf->tipo_dato_texto_abierto_8,
+                ':lench_Min_texto_abierto_8' => $conf->lench_Min_texto_abierto_8,
+                ':lench_Max_texto_abierto_8' => $conf->lench_Max_texto_abierto_8,
+                ':label_texto_abierto_8' => $conf->label_texto_abierto_8,
+                // edualejandro
+                ':conf_texto_abierto_9' => $conf->conf_texto_abierto_9,
+                ':tipo_dato_texto_abierto_9' => $conf->tipo_dato_texto_abierto_9,
+                ':lench_Min_texto_abierto_9' => $conf->lench_Min_texto_abierto_9,
+                ':lench_Max_texto_abierto_9' => $conf->lench_Max_texto_abierto_9,
+                ':label_texto_abierto_9' => $conf->label_texto_abierto_9,
+                // edualejandro
+                ':conf_texto_abierto_10' => $conf->conf_texto_abierto_10,
+                ':tipo_dato_texto_abierto_10' => $conf->tipo_dato_texto_abierto_10,
+                ':lench_Min_texto_abierto_10' => $conf->lench_Min_texto_abierto_10,
+                ':lench_Max_texto_abierto_10' => $conf->lench_Max_texto_abierto_10,
+                ':label_texto_abierto_10' => $conf->label_texto_abierto_10
             ]);
         }
     }
