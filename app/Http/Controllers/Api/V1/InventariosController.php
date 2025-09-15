@@ -187,6 +187,13 @@ class InventariosController extends Controller
         $inventario->texto_abierto_3     = $request->texto_abierto_3 ?? null;
         $inventario->texto_abierto_4     = $request->texto_abierto_4 ?? null;
         $inventario->texto_abierto_5     = $request->texto_abierto_5 ?? null;
+        $inventario->texto_abierto_6     = $request->texto_abierto_6 ?? null;
+        $inventario->texto_abierto_7     = $request->texto_abierto_7 ?? null;
+        $inventario->texto_abierto_8     = $request->texto_abierto_8 ?? null;
+        $inventario->texto_abierto_9     = $request->texto_abierto_9 ?? null;
+        $inventario->texto_abierto_10    = $request->texto_abierto_10 ?? null;
+
+
         $inventario->modo                = 'ONLINE';
         $inventario->creado_el           = date('Y-m-d H:i:s');
         $inventario->creado_por          = $usuario;
@@ -261,6 +268,11 @@ class InventariosController extends Controller
             'texto_abierto_3'       => $request->texto_abierto_3 ?? null,
             'texto_abierto_4'       => $request->texto_abierto_4 ?? null,
             'texto_abierto_5'       => $request->texto_abierto_5 ?? null,
+            'texto_abierto_6'       => $request->texto_abierto_6 ?? null,
+            'texto_abierto_7'       => $request->texto_abierto_7 ?? null,
+            'texto_abierto_8'       => $request->texto_abierto_8 ?? null,
+            'texto_abierto_9'       => $request->texto_abierto_9 ?? null,
+            'texto_abierto_10'      => $request->texto_abierto_10 ?? null,
             'crud_activo_estado'    => $estadoBien,
             'modo'                  => 'ONLINE',
             'modificado_el'         => date('Y-m-d H:i:s'),
@@ -375,7 +387,47 @@ class InventariosController extends Controller
                     IFNULL(MAX(CASE WHEN id_atributo = 31 THEN label_input ELSE NULL END), 'Texto Abierto 5')
                 ) AS label_texto_abierto_5,
                 COALESCE(MAX(CASE WHEN id_atributo = 32 THEN id_validacion END), 0) AS conf_fotos,
-                COALESCE(MAX(CASE WHEN id_atributo = 33 THEN id_validacion END), 0) AS conf_range_polygonal
+                COALESCE(MAX(CASE WHEN id_atributo = 33 THEN id_validacion END), 0) AS conf_range_polygonal,
+                /** edualejandro */
+                COALESCE(MAX(CASE WHEN id_atributo = 34 THEN id_validacion END), 0) AS conf_texto_abierto_6,
+                COALESCE(MAX(CASE WHEN id_atributo = 34 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_6,
+                COALESCE(MAX(CASE WHEN id_atributo = 34 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_6,
+                COALESCE(MAX(CASE WHEN id_atributo = 34 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_6,
+                COALESCE(
+                    IFNULL(MAX(CASE WHEN id_atributo = 34 THEN label_input ELSE NULL END), 'Texto Abierto 6')
+                ) AS label_texto_abierto_6,
+                /** edualejandro */
+                COALESCE(MAX(CASE WHEN id_atributo = 35 THEN id_validacion END), 0) AS conf_texto_abierto_7,
+                COALESCE(MAX(CASE WHEN id_atributo = 35 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_7,
+                COALESCE(MAX(CASE WHEN id_atributo = 35 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_7,
+                COALESCE(MAX(CASE WHEN id_atributo = 35 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_7,
+                COALESCE(
+                    IFNULL(MAX(CASE WHEN id_atributo = 35 THEN label_input ELSE NULL END), 'Texto Abierto 7')
+                ) AS label_texto_abierto_7,
+                /** edualejandro */
+                COALESCE(MAX(CASE WHEN id_atributo = 36 THEN id_validacion END), 0) AS conf_texto_abierto_8,
+                COALESCE(MAX(CASE WHEN id_atributo = 36 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_8,
+                COALESCE(MAX(CASE WHEN id_atributo = 36 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_8,
+                COALESCE(MAX(CASE WHEN id_atributo = 36 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_8,
+                COALESCE(
+                    IFNULL(MAX(CASE WHEN id_atributo = 36 THEN label_input ELSE NULL END), 'Texto Abierto 8')
+                ) AS label_texto_abierto_8,
+                /** edualejandro */
+                COALESCE(MAX(CASE WHEN id_atributo = 37 THEN id_validacion END), 0) AS conf_texto_abierto_9,
+                COALESCE(MAX(CASE WHEN id_atributo = 37 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_9,
+                COALESCE(MAX(CASE WHEN id_atributo = 37 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_9,
+                COALESCE(MAX(CASE WHEN id_atributo = 37 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_9,
+                COALESCE(
+                    IFNULL(MAX(CASE WHEN id_atributo = 37 THEN label_input ELSE NULL END), 'Texto Abierto 9')
+                ) AS label_texto_abierto_9,
+                /** edualejandro */
+                COALESCE(MAX(CASE WHEN id_atributo = 38 THEN id_validacion END), 0) AS conf_texto_abierto_10,
+                COALESCE(MAX(CASE WHEN id_atributo = 38 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_10,
+                COALESCE(MAX(CASE WHEN id_atributo = 38 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_10,
+                COALESCE(MAX(CASE WHEN id_atributo = 38 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_10,
+                COALESCE(
+                    IFNULL(MAX(CASE WHEN id_atributo = 38 THEN label_input ELSE NULL END), 'Texto Abierto 10')
+                ) AS label_texto_abierto_10
 
             FROM inv_atributos 
             WHERE id_grupo = ?";
@@ -399,15 +451,15 @@ class InventariosController extends Controller
             $origen = 'SAFIN_APP';
         }
 
-    $existingEtiquetaInventario = Inventario::where('etiqueta', $etiqueta)->first();
-    $existingEtiquetaCrudActivos = CrudActivo::where('etiqueta', $etiqueta)->first();
+        $existingEtiquetaInventario = Inventario::where('etiqueta', $etiqueta)->first();
+        $existingEtiquetaCrudActivos = CrudActivo::where('etiqueta', $etiqueta)->first();
 
-    if ($existingEtiquetaInventario || $existingEtiquetaCrudActivos) {
-        return response()->json([
-            'status' => 'ERROR',
-            'message' => 'La etiqueta ingresada ya existe.',
-        ], 400);
-    }
+        if ($existingEtiquetaInventario || $existingEtiquetaCrudActivos) {
+            return response()->json([
+                'status' => 'ERROR',
+                'message' => 'La etiqueta ingresada ya existe.',
+            ], 400);
+        }
 
         // Calcular id_img de forma segura
         $maxId = DB::table('inv_imagenes')->max('id_img');
@@ -1119,17 +1171,18 @@ class InventariosController extends Controller
         return [$saved, $failed, $paths];
     }
 
-public function rangoPermitido($idAgenda) {
-    $ubicacion = UbicacionGeografica::find($idAgenda);
+    public function rangoPermitido($idAgenda)
+    {
+        $ubicacion = UbicacionGeografica::find($idAgenda);
 
-    if (!$ubicacion) {
-        return response()->json([], 404); 
+        if (!$ubicacion) {
+            return response()->json([], 404);
+        }
+
+        $puntos = $ubicacion->verificacion_range($idAgenda);
+
+        return response()->json($puntos);
     }
-
-    $puntos = $ubicacion->verificacion_range($idAgenda);
-
-    return response()->json($puntos);
-}
 
 
     protected function rules()

@@ -97,7 +97,12 @@ class InventarioDumpService
                 texto_abierto_2 TEXT,
                 texto_abierto_3 TEXT,
                 texto_abierto_4 TEXT,
-                texto_abierto_5 TEXT
+                texto_abierto_5 TEXT,
+                texto_abierto_6 TEXT,
+                texto_abierto_7 TEXT,
+                texto_abierto_8 TEXT,
+                texto_abierto_9 TEXT,
+                texto_abierto_10 TEXT
             );
         ");
     }
@@ -156,7 +161,12 @@ class InventarioDumpService
                 texto_abierto_2,
                 texto_abierto_3,
                 texto_abierto_4,
-                texto_abierto_5
+                texto_abierto_5,
+                texto_abierto_6,
+                texto_abierto_7,
+                texto_abierto_8,
+                texto_abierto_9,
+                texto_abierto_10
             )
             VALUES (
                 :id_invetario,
@@ -203,7 +213,12 @@ class InventarioDumpService
                 :texto_abierto_2,
                 :texto_abierto_3,
                 :texto_abierto_4,
-                :texto_abierto_5
+                :texto_abierto_5,
+                :texto_abierto_6,
+                :texto_abierto_7,
+                :texto_abierto_8,
+                :texto_abierto_9,
+                :texto_abierto_10
             )
         ");
 
@@ -254,7 +269,12 @@ class InventarioDumpService
                 ':texto_abierto_2' => $i->texto_abierto_2 ?? null,
                 ':texto_abierto_3' => $i->texto_abierto_3 ?? null,
                 ':texto_abierto_4' => $i->texto_abierto_4 ?? null,
-                ':texto_abierto_5' => $i->texto_abierto_5 ?? null
+                ':texto_abierto_5' => $i->texto_abierto_5 ?? null,
+                ':texto_abierto_6' => $i->texto_abierto_6 ?? null,
+                ':texto_abierto_7' => $i->texto_abierto_7 ?? null,
+                ':texto_abierto_8' => $i->texto_abierto_8 ?? null,
+                ':texto_abierto_9' => $i->texto_abierto_9 ?? null,
+                ':texto_abierto_10' => $i->texto_abierto_10 ?? null
             ]);
         }
     }
