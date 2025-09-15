@@ -276,6 +276,7 @@ class LoginController extends Controller
         $refreshTokenString = Str::random(64);
 
         $expiration = config('sanctum.refresh_expiration', null);
+       
         $expires_at = $expiration ? Carbon::now()->addMinutes($expiration) : null;
 
         $rt = RefreshToken::create([

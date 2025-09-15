@@ -473,56 +473,72 @@ class EmplazamientoController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, int $id)
-    {
+ public function update(Request $request, int $id)
+{
+    $codigo_ubicacion_n1 = $request->input('codigo_ubicacion_n1');
+    $codigo_ubicacion_sub_nivel = $request->input('codigo_ubicacion_sub_nivel');
+    $id_agenda = $request->input('id_agenda');
 
-        $emplaObj = Emplazamiento::find($id);
+    $validatedData = $request->validate([
+        'nombre_emplazamiento' => 'string|max:255',
+        'ubicacion_emplazamiento' => 'string|max:255',
+        'zona_id' => 'required|exists:ubicaciones_n1,idUbicacionN1',
+        'id_agenda' => 'required|exists:ubicaciones_n1,idAgenda',
+    ]);
 
-        if (!$emplaObj) {
+    $updated = [];
 
-            $emplaObj = EmplazamientoN3::find($id);
+    $emplaN1 = EmplazamientoN1::where('codigoUbicacion', $codigo_ubicacion_n1)
+        ->where('idAgenda', $id_agenda)
+        ->first();
 
-            if (!$emplaObj) {
-                return response()->json([
-                    'status' => 'NOK',
-                    'code' => 404,
-                    'message' => 'Emplazamiento no encontrado'
-                ], 404);
-            }
-        }
-
-        $validatedData = $request->validate([
-            'nombre_emplazamiento' => 'string|max:255',
-            'ubicacion_emplazamiento' => 'string|max:255',
-            'zona_id' => 'required|exists:ubicaciones_n1,idUbicacionN1',
-            'id_agenda' => 'required|exists:ubicaciones_n1,idAgenda',
-        ]);
-
-        $emplaObj->descripcionUbicacion = $validatedData['nombre_emplazamiento'];
-        $emplaObj->save();
-
-        $zona = ZonaPunto::find($validatedData['zona_id']);
-
-        if ($zona) {
-
-            $zona->descripcionUbicacion = $validatedData['ubicacion_emplazamiento'];  // Usando el 'ubicacion_emplazamiento' del request
-            $zona->save();
-        } else {
-            return response()->json([
-                'status' => 'NOK',
-                'code' => 404,
-                'message' => 'Zona no encontrada'
-            ], 404);
-        }
-
-        return response()->json([
-            'status' => 'OK',
-            'message' => 'Emplazamiento y zona actualizados correctamente',
-            'data' => $emplaObj instanceof EmplazamientoN3
-                ? EmplazamientoNivel3Resource::make($emplaObj)
-                : EmplazamientoResource::make($emplaObj),
-        ], 200);
+    if ($emplaN1) {
+        $emplaN1->descripcionUbicacion = $validatedData['nombre_emplazamiento'];
+        $emplaN1->save();
+        $updated['nivel1'] = $emplaN1;
     }
+
+    $emplaSub = null;
+    if (!empty($codigo_ubicacion_sub_nivel)) {
+        $length = strlen($codigo_ubicacion_sub_nivel);
+
+        if ($length >= 6) {
+            $emplaSub = EmplazamientoN3::where('codigoUbicacion', $codigo_ubicacion_sub_nivel)
+                ->where('idAgenda', $id_agenda)
+                ->first();
+        } elseif ($length >= 4) {
+            $emplaSub = EmplazamientoN2::where('codigoUbicacion', $codigo_ubicacion_sub_nivel)
+                ->where('idAgenda', $id_agenda)
+                ->first();
+        }
+
+        if ($emplaSub) {
+            $emplaSub->descripcionUbicacion = $validatedData['nombre_emplazamiento'];
+            $emplaSub->save();
+            $updated['subnivel'] = $emplaSub;
+        }
+    }
+
+    $zona = ZonaPunto::find($validatedData['zona_id']);
+    if ($zona) {
+        $zona->descripcionUbicacion = $validatedData['ubicacion_emplazamiento'];
+        $zona->save();
+        $updated['zona'] = $zona;
+    } else {
+        return response()->json([
+            'status' => 'NOK',
+            'code' => 404,
+            'message' => 'Zona no encontrada'
+        ], 404);
+    }
+
+    return response()->json([
+        'status' => 'OK',
+        'message' => 'Emplazamiento y zona actualizados correctamente',
+        'data' => $updated
+    ], 200);
+}
+
 
     /**
      * Remove the specified resource from storage.
