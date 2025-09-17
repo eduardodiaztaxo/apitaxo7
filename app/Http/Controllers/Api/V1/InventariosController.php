@@ -76,13 +76,13 @@ public function getIdResponsable()
             $etiquetaInventarioHijo = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
             $etiquetaCrudActivoHijo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
 
-            if ($etiquetaInventarioHijo || $etiquetaCrudActivoHijo) {
-                $existeEtiqueta = true;
+            if (!$etiquetaInventarioHijo && !$etiquetaCrudActivoHijo) {
+                return response('La etiqueta padre ' . $request->etiqueta_padre . ' no existe', 400);
             }
         }
 
         if ($existeEtiqueta) {
-            return response('La etiqueta ya existe', 400);
+            return response('La etiqueta ' . $request->etiqueta . ' ya existe', 400);
         }
 
 
@@ -461,7 +461,7 @@ public function getIdResponsable()
         if ($existingEtiquetaInventario || $existingEtiquetaCrudActivos) {
             return response()->json([
                 'status' => 'ERROR',
-                'message' => 'La etiqueta ingresada ya existe.',
+                'message' => 'La etiqueta ' . $etiqueta . ' ingresada ya existe.',
             ], 400);
         }
 
