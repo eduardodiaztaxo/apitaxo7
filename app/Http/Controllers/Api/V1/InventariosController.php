@@ -35,21 +35,20 @@ class InventariosController extends Controller
         return $responsable;
     }
 
-    public function getIdResponsable()
-    {
-        $usuario = Auth::user()->name;
+public function getIdResponsable()
+{
+    $usuario = Auth::user()->name;
 
-        $nombre = DB::table('sec_users')
-            ->where('login', $usuario)
-            ->value('name');
+    $nombre = DB::table('sec_users')
+        ->where('login', $usuario)
+        ->value('name');
 
-        $idResponsable = DB::table('responsables')
-            ->where('name', $nombre)
-            ->value('idResponsable');
+    $idResponsable = DB::table('responsables')
+        ->where('name', $nombre)
+        ->value('idResponsable');
 
-        return $idResponsable;
-    }
-
+    return $idResponsable ?? 0;
+}
 
     public function createinventario(Request $request)
     {
@@ -144,6 +143,9 @@ class InventariosController extends Controller
             $etiquetaPadre = $request->etiqueta_padre;
         }
 
+        $getIdResponsable = $this->getIdResponsable();
+        $responsable = $this->getNombre();
+
         $usuario = Auth::user()->name;
 
         $inventario = new Inventario();
@@ -178,6 +180,8 @@ class InventariosController extends Controller
         $inventario->codigoUbicacion_N2  = $codigoUbicacion_N2 ?? 0;
         $inventario->codigoUbicacion_N1  = $codigoUbicacion_N1 ?? 0;
         $inventario->idUbicacionN3       = $idUbicacionN3 ?? 0;
+        $inventario->responsable         = $responsable;
+        $inventario->idResponsable       = $getIdResponsable;
         $inventario->codigoUbicacionN3   = $codigoUbicacionN3 ?? 0;
         $inventario->etiqueta_padre      = $etiquetaPadre ?? 'Sin Padre';
         /** edualejandro */
@@ -679,6 +683,8 @@ class InventariosController extends Controller
         $usarMapas = isset($idMapaGeo[$item->idUbicacionGeo]);
         $id_bien_final  = $mapaIdListaBienes[$item->id_bien] ?? $item->id_bien;
         $id_marca_final = $mapaIdListaMarcas[$item->id_marca] ?? $item->id_marca;
+        $getIdResponsable = $this->getIdResponsable();
+        $responsable = $this->getNombre();
 
         return [
             'id_grupo'           => $item->id_grupo,
@@ -710,6 +716,8 @@ class InventariosController extends Controller
             'codigoUbicacion_N2' => $usarMapas ? ($mapaCodN2[$item->codigoUbicacion_N2] ?? null) : $item->codigoUbicacion_N2,
             'idUbicacionN3'      => $usarMapas ? ($mapaIdN3[$item->codigoUbicacionN3] ?? null) : $item->idUbicacionN3,
             'codigoUbicacionN3'  => $usarMapas ? ($mapaCodN3[$item->codigoUbicacionN3] ?? null) : $item->codigoUbicacionN3,
+            'responsable'        => $responsable,
+            'idResponsable'      => $getIdResponsable,
             'latitud'            => $item->latitud,
             'longitud'           => $item->longitud,
             'crud_activo_estado' => $item->crud_activo_estado,
