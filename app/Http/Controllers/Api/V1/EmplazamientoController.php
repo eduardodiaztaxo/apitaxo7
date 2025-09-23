@@ -301,6 +301,29 @@ class EmplazamientoController extends Controller
         ], 200);
     }
 
+public function groupEmplazamientosPorOt(int $ciclo)
+{
+    $cicloObj = InvCiclo::find($ciclo);
+
+    if (!$cicloObj) {
+        return response()->json([
+            'status' => 'NOK',
+            'message' => 'Ciclo no encontrado',
+            'code' => 404
+        ], 404);
+    }
+
+    $activos = $cicloObj->activos_with_cats_by_cycle_emplazamiento_por_ot($ciclo);
+
+    return response()->json([
+        'status' => 'OK',
+        'message' => 'Emplazamientos obtenidos correctamente',
+        'data' => [
+            'emplazamientos' => $activos
+        ],
+    ], 200);
+}
+
     public function groupMapDireccionDiferencias(int $idAgenda, int $ciclo)
 {
     $cicloObj = InvCiclo::find($ciclo);
@@ -329,6 +352,38 @@ class EmplazamientoController extends Controller
     ], 200);
 }
 
+public function groupMapDiferenciasOT(int $ciclo)
+{
+    $cicloObj = InvCiclo::find($ciclo);
+
+    if (!$cicloObj) {
+        return response()->json([
+            'status' => 'NOK',
+            'message' => 'Ciclo no encontrado',
+            'code' => 404
+        ], 404);
+    }
+
+    $puntos = $cicloObj->puntos()->pluck('idUbicacionGeo')->toArray();
+
+    if (empty($puntos)) {
+        return response()->json(['status' => 'NOK', 'code' => 404], 404);
+    }
+
+    $diferencias = $cicloObj->diferencias_por_puntos_OT($puntos);
+    $total = array_sum(array_map(function($item) {
+        return $item->q_teorico ?? 0;
+    }, $diferencias));
+
+    return response()->json([
+        'status' => 'OK',
+        'message' => 'Diferencias por OT obtenidas correctamente',
+        'data' => [
+            $diferencias,
+            $total
+        ],
+    ], 200);
+}
     public function moverEmplazamientos(Request $request, string $codigoUbicacion, int $ciclo_id, int $agenda_id, string $etiqueta)
     {
         // Nivel 1

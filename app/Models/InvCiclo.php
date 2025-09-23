@@ -165,6 +165,55 @@ LEFT JOIN (
 return DB::select($sql, [$idAgenda, $idAgenda]);
 }
 
+public function diferencias_por_puntos_OT($puntos)
+{
+     $sql = "
+        SELECT
+            datos_cliente.id_direccion,  
+            map_assets_categories.name AS categoria, 
+            datos_cliente.q_teorico,
+            inv_resumen.q_fisico,
+            descripcion.descripcion,
+            COALESCE(inv_resumen.q_fisico, 0) - COALESCE(datos_cliente.q_teorico, 0) AS diferencia
+        FROM 
+            map_assets_categories 
+        LEFT JOIN (
+            SELECT 
+                ar.address_id AS id_direccion,
+                mak.category_id AS category_id,
+                mak.name AS categoria,
+                COUNT(*) AS q_teorico 
+            FROM 
+                map_marker_assets mak
+            INNER JOIN map_markers_levels_areas lev ON mak.id = lev.marker_id
+            INNER JOIN map_polygonal_areas ar ON lev.area_id = ar.id
+            WHERE 
+                ar.address_id in (" . implode(',', array_fill(0, count($puntos), '?')) . ")
+            GROUP BY ar.address_id, mak.name, mak.category_id
+        ) AS datos_cliente 
+            ON map_assets_categories.id = datos_cliente.category_id
+        LEFT JOIN (
+            SELECT 
+                id_familia, 
+                idUbicacionGeo, 
+                COUNT(*) AS q_fisico
+            FROM inv_inventario 
+            WHERE idUbicacionGeo in (" . implode(',', array_fill(0, count($puntos), '?')) . ")
+            GROUP BY id_familia, idUbicacionGeo
+        ) AS inv_resumen 
+            ON map_assets_categories.id = inv_resumen.id_familia
+             LEFT JOIN (
+            SELECT 
+                descripcion, 
+                idUbicacionGeo
+            FROM ubicaciones_geograficas 
+            WHERE idUbicacionGeo in (" . implode(',', array_fill(0, count($puntos), '?')) . ")
+            GROUP BY descripcion, idUbicacionGeo
+        ) AS descripcion 
+            ON  inv_resumen.idUbicacionGeo = descripcion.idUbicacionGeo
+    ";
+    return DB::select($sql, array_merge($puntos, $puntos, $puntos));
+}
 
 public function activos_with_cats_by_cycle_emplazamiento($cycle_id, $idAgenda)
 {
@@ -243,7 +292,94 @@ public function activos_with_cats_by_cycle_emplazamiento($cycle_id, $idAgenda)
    ]);
 }
 
+public function activos_with_cats_by_cycle_emplazamiento_por_ot($cycle_id)
+{
+   $sql = "
+     SELECT 
+        'D' AS nivel,
+        d.descripcion AS descripcionUbicacion,
+        d.direccion, 
+        NULL AS codigoUbicacion,
+        COUNT(inv.etiqueta) AS num_activos,
+        d.idUbicacionGeo AS idAgenda
+    FROM ubicaciones_geograficas AS d
+    LEFT JOIN inv_inventario AS inv
+        ON inv.idUbicacionGeo = d.idUbicacionGeo
+        AND inv.id_ciclo = ?
+    WHERE d.idUbicacionGeo IN (
+        SELECT idPunto FROM inv_ciclos_puntos WHERE idCiclo = ?
+    )
+    GROUP BY d.idUbicacionGeo, d.descripcion, d.direccion
 
+    UNION ALL
+
+    SELECT 
+        'N1' AS nivel,
+        n1.descripcionUbicacion,
+        NULL AS direccion,
+        n1.codigoUbicacion,
+        COUNT(inv.etiqueta) AS num_activos,
+        n1.idAgenda
+    FROM ubicaciones_n1 AS n1
+    LEFT JOIN inv_inventario AS inv
+        ON inv.idUbicacionGeo = n1.idAgenda
+        AND inv.codigoUbicacion_N1 = n1.codigoUbicacion
+        AND inv.id_ciclo = ?
+        AND (inv.codigoUbicacion_N2 IS NULL OR LENGTH(inv.codigoUbicacion_N2) < 2)
+    WHERE n1.idAgenda IN (
+        SELECT idPunto FROM inv_ciclos_puntos WHERE idCiclo = ?
+    )
+    GROUP BY n1.idAgenda, n1.descripcionUbicacion, n1.codigoUbicacion
+
+    UNION ALL
+
+    SELECT 
+        'N2' AS nivel,
+        n2.descripcionUbicacion,
+        NULL AS direccion,
+        n2.codigoUbicacion,
+        COUNT(inv.etiqueta) AS num_activos,
+        n2.idAgenda
+    FROM ubicaciones_n2 AS n2
+    LEFT JOIN inv_inventario AS inv
+        ON inv.idUbicacionGeo = n2.idAgenda
+        AND inv.codigoUbicacion_N2 = n2.codigoUbicacion
+        AND inv.id_ciclo = ?
+        AND (inv.codigoUbicacionN3 IS NULL OR LENGTH(inv.codigoUbicacionN3) < 2)
+    WHERE n2.idAgenda IN (
+        SELECT idPunto FROM inv_ciclos_puntos WHERE idCiclo = ?
+    )
+    GROUP BY n2.idAgenda, n2.descripcionUbicacion, n2.codigoUbicacion
+
+    UNION ALL
+
+    SELECT 
+        'N3' AS nivel,
+        n3.descripcionUbicacion,
+        NULL AS direccion,
+        n3.codigoUbicacion,
+        COUNT(inv.etiqueta) AS num_activos,
+        n3.idAgenda
+    FROM ubicaciones_n3 AS n3
+    LEFT JOIN inv_inventario AS inv
+        ON inv.idUbicacionGeo = n3.idAgenda
+        AND inv.codigoUbicacionN3 = n3.codigoUbicacion
+        AND inv.id_ciclo = ?
+    WHERE n3.idAgenda IN (
+        SELECT idPunto FROM inv_ciclos_puntos WHERE idCiclo = ?
+    )
+    GROUP BY n3.idAgenda, n3.descripcionUbicacion, n3.codigoUbicacion
+
+    ORDER BY nivel, codigoUbicacion;
+   ";
+
+   return DB::select($sql, [
+       $cycle_id, $cycle_id,   // D
+       $cycle_id, $cycle_id,   // N1
+       $cycle_id, $cycle_id,   // N2
+       $cycle_id, $cycle_id    // N3
+   ]);
+}
     public function zoneSubEmplazamientosWithCats(EmplazamientoN3 $zona)
     {
         $sql = "

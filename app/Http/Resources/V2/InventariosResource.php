@@ -15,13 +15,10 @@ class InventariosResource extends JsonResource
      */
     public function toArray($request)
     {
+        
+        $descFamilia = $this->familia?->descripcion_familia ?? 'Sin familia';
 
-
-        $descFamilia = $this->familia->descripcion_familia;
-
-
-
-        $descGrupo = $this->grupo->descripcion_grupo;
+        $descGrupo = $this->grupo->descripcion_grupo ?? 'Sin grupo';
 
         $estadoObj = $this->estadoBien;
 

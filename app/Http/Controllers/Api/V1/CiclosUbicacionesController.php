@@ -190,7 +190,39 @@ class CiclosUbicacionesController extends Controller
         ]);
     }
 
+public function showAssetsbyCycle(int $ciclo, Request $request)
+{
+    $cicloObj = InvCiclo::find($ciclo);
 
+    if (!$cicloObj) {
+        return response()->json(['status' => 'error', 'code' => 404], 404);
+    }
+
+    $puntos = $cicloObj->puntos()->get();
+
+    if ($puntos->isEmpty()) {
+        return response()->json(['status' => 'error', 'code' => 404, 'message' => 'No hay puntos asociados al ciclo'], 404);
+    }
+
+    $assets = collect();
+
+    foreach ($puntos as $punto) {
+        $addressObj = UbicacionGeografica::find($punto->idUbicacionGeo);
+
+        if ($addressObj) {
+            $queryBuilder = Inventario::queryBuilderInventory_FindInGroupFamily_Pagination($addressObj, $cicloObj, $request);
+            $assets = $assets->concat($queryBuilder->get());
+        }
+    }
+
+    return response()->json([
+        'status' => 'OK',
+        'data' => InventariosResource::collection($assets)
+    ]);
+}
+
+
+    
     /**
      * Display families of the specified resource.
      *
@@ -233,9 +265,36 @@ class CiclosUbicacionesController extends Controller
         ]);
     }
 
+public function showGroupFamiliesByCycle(int $ciclo, Request $request)
+{
+    $cicloObj = InvCiclo::find($ciclo);
 
+    if (!$cicloObj) {
+        return response()->json(['status' => 'error', 'code' => 404], 404);
+    }
 
+    $puntos = $cicloObj->puntos()->get();
 
+    if ($puntos->isEmpty()) {
+        return response()->json(['status' => 'error', 'code' => 404, 'message' => 'No hay puntos asociados al ciclo'], 404);
+    }
+
+    $family_place_resumen = collect();
+
+    foreach ($puntos as $punto) {
+        $addressObj = UbicacionGeografica::find($punto->idUbicacionGeo);
+
+        if ($addressObj) {
+            $queryBuilder = $addressObj->inv_group_families()->where('inv_inventario.id_ciclo', $cicloObj->idCiclo);
+            $family_place_resumen = $family_place_resumen->concat($queryBuilder->get());
+        }
+    }
+
+    return response()->json([
+        'status' => 'OK',
+        'data' => GroupFamilyPlaceResumenResource::make($family_place_resumen)
+    ]);
+}
     /**
      * Display address resource.
      *
@@ -275,9 +334,28 @@ class CiclosUbicacionesController extends Controller
     }
 
 
+public function showAllCycle(Request $request, int $ciclo)
+{
+    $cicloObj = InvCiclo::find($ciclo);
 
+    if (!$cicloObj) {
+        return response()->json(['status' => 'NOK', 'code' => 404], 404);
+    }
 
+    $puntos = $cicloObj->puntos()->get();
 
+    if ($puntos->isEmpty()) {
+        return response()->json(['status' => 'NOK', 'code' => 404], 404);
+    }
+
+    foreach ($puntos as $punto) {
+        $punto->requireActivos = 1;
+        $punto->cycle_id = $cicloObj->idCiclo;
+        $punto->general = 1;
+    }
+
+    return response()->json(UbicacionGeograficaResource::collection($puntos), 200);
+}
 
     /**
      * Display the specified resource.

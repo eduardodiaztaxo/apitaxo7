@@ -228,14 +228,20 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('ciclos/{ciclo}/puntos/{punto}', [CiclosUbicacionesController::class, 'showAll']);
 
+    Route::get('ciclos/{ciclo}/detail', [CiclosUbicacionesController::class, 'showAllCycle']);
+
     Route::get('emplazamientos/{emplazamiento}/{ciclo}/{codigoUbicacion}', [EmplazamientoController::class, 'show']);
 
     Route::get('todos-emplazamientos/{idAgenda}/{ciclo}', [EmplazamientoController::class, 'showTodos']);
 
     Route::get('group-emplazamientos/{idAgenda}/{ciclo}', [EmplazamientoController::class, 'groupEmplazamientos']);
+        
+    Route::get('group-emplazamientos-Ot/{ciclo}', [EmplazamientoController::class, 'groupEmplazamientosPorOt']);
 
     Route::get('group-map-direccion-diferencias/{idAgenda}/{ciclo}', [EmplazamientoController::class, 'groupMapDireccionDiferencias']);
 
+    Route::get('group-map-Ot-diferencias/{ciclo}', [EmplazamientoController::class, 'groupMapDiferenciasOT']);
+    
     Route::put('emplazamientos/{id}', [EmplazamientoController::class, 'update']);
 
     Route::post('emplazamientos/create', [EmplazamientoController::class, 'create']);
@@ -323,10 +329,13 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2')->group(func
 
     Route::get('ciclos/{ciclo}/emplazamientos-n3/{emplazamiento}/group-families', [CiclosEmplazamientosController::class, 'showGroupFamiliesN3']);
 
-
     Route::get('ciclos/{ciclo}/puntos/{punto}/assets', [CiclosUbicacionesController::class, 'showAssets']);
 
+    Route::get('ciclos/{ciclo}/assets', [CiclosUbicacionesController::class, 'showAssetsbyCycle']);
+
     Route::get('ciclos/{ciclo}/puntos/{punto}/group-families', [CiclosUbicacionesController::class, 'showGroupFamilies']);
+
+    Route::get('ciclos/{ciclo}/group-families-OT', [CiclosUbicacionesController::class, 'showGroupFamiliesByCycle']);
 });
 
 Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
