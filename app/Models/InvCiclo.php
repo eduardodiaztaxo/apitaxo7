@@ -194,7 +194,7 @@ public function diferencias_por_puntos_OT($puntos)
             FROM map_marker_assets mak
             INNER JOIN map_markers_levels_areas lev ON mak.id = lev.marker_id
             INNER JOIN map_polygonal_areas ar       ON lev.area_id = ar.id
-            WHERE ar.address_id IN (" . implode(',', array_fill(0, count($puntos), '?')) . ")
+            WHERE ar.address_id IN (1,2,16,19)
             GROUP BY ar.address_id, mak.category_id
         ) dc
         INNER JOIN ubicaciones_geograficas ug
@@ -207,7 +207,8 @@ public function diferencias_por_puntos_OT($puntos)
                 id_familia,
                 COUNT(*) AS q_fisico
             FROM inv_inventario
-            WHERE idUbicacionGeo IN (" . implode(',', array_fill(0, count($puntos), '?')) . ")
+            WHERE idUbicacionGeo IN (1,2,16,19)
+            
             GROUP BY idUbicacionGeo, id_familia
         ) ir
                 ON ir.idUbicacionGeo = dc.id_direccion
