@@ -169,50 +169,55 @@ public function diferencias_por_puntos_OT($puntos)
 {
      $sql = "
         SELECT
-            datos_cliente.id_direccion,  
-            map_assets_categories.name AS categoria, 
-            datos_cliente.q_teorico,
-            inv_resumen.q_fisico,
-            descripcion.descripcion,
-            COALESCE(inv_resumen.q_fisico, 0) - COALESCE(datos_cliente.q_teorico, 0) AS diferencia
-        FROM 
-            map_assets_categories 
-        LEFT JOIN (
+        r.id_direccion,
+        CASE WHEN r.rn = 1 THEN r.descripcion ELSE '' END AS descripcion,
+        r.categoria,
+        r.q_teorico,
+        r.q_fisico,
+        r.diferencia
+    FROM (
+        SELECT
+            dc.id_direccion,
+            ug.descripcion,
+            mac.name AS categoria,
+            dc.q_teorico,
+            COALESCE(ir.q_fisico,0) AS q_fisico,
+            COALESCE(ir.q_fisico,0) - dc.q_teorico AS diferencia,
+            @rn := IF(@prev_dir = dc.id_direccion, @rn + 1, 1) AS rn,
+            @prev_dir := dc.id_direccion
+        FROM (
+            -- 🔹 SOLO direcciones y categorías con teórico
             SELECT 
                 ar.address_id AS id_direccion,
-                mak.category_id AS category_id,
-                mak.name AS categoria,
-                COUNT(*) AS q_teorico 
-            FROM 
-                map_marker_assets mak
+                mak.category_id,
+                COUNT(*) AS q_teorico
+            FROM map_marker_assets mak
             INNER JOIN map_markers_levels_areas lev ON mak.id = lev.marker_id
-            INNER JOIN map_polygonal_areas ar ON lev.area_id = ar.id
-            WHERE 
-                ar.address_id in (" . implode(',', array_fill(0, count($puntos), '?')) . ")
-            GROUP BY ar.address_id, mak.name, mak.category_id
-        ) AS datos_cliente 
-            ON map_assets_categories.id = datos_cliente.category_id
+            INNER JOIN map_polygonal_areas ar       ON lev.area_id = ar.id
+            WHERE ar.address_id IN (" . implode(',', array_fill(0, count($puntos), '?')) . ")
+            GROUP BY ar.address_id, mak.category_id
+        ) dc
+        INNER JOIN ubicaciones_geograficas ug
+                ON ug.idUbicacionGeo = dc.id_direccion
+        INNER JOIN map_assets_categories mac
+                ON mac.id = dc.category_id
         LEFT JOIN (
             SELECT 
-                id_familia, 
-                idUbicacionGeo, 
+                idUbicacionGeo,
+                id_familia,
                 COUNT(*) AS q_fisico
-            FROM inv_inventario 
-            WHERE idUbicacionGeo in (" . implode(',', array_fill(0, count($puntos), '?')) . ")
-            GROUP BY id_familia, idUbicacionGeo
-        ) AS inv_resumen 
-            ON map_assets_categories.id = inv_resumen.id_familia
-             LEFT JOIN (
-            SELECT 
-                descripcion, 
-                idUbicacionGeo
-            FROM ubicaciones_geograficas 
-            WHERE idUbicacionGeo in (" . implode(',', array_fill(0, count($puntos), '?')) . ")
-            GROUP BY descripcion, idUbicacionGeo
-        ) AS descripcion 
-            ON  inv_resumen.idUbicacionGeo = descripcion.idUbicacionGeo
+            FROM inv_inventario
+            WHERE idUbicacionGeo IN (" . implode(',', array_fill(0, count($puntos), '?')) . ")
+            GROUP BY idUbicacionGeo, id_familia
+        ) ir
+                ON ir.idUbicacionGeo = dc.id_direccion
+            AND ir.id_familia    = dc.category_id
+        CROSS JOIN (SELECT @rn := 0, @prev_dir := NULL) vars
+        ORDER BY dc.id_direccion, mac.name
+    ) r
+    ORDER BY r.id_direccion, r.categoria;
     ";
-    return DB::select($sql, array_merge($puntos, $puntos, $puntos));
+    return DB::select($sql, array_merge($puntos, $puntos));
 }
 
 public function activos_with_cats_by_cycle_emplazamiento($cycle_id, $idAgenda)
