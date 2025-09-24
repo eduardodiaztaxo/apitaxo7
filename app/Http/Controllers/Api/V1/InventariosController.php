@@ -455,15 +455,35 @@ public function getIdResponsable()
             $origen = 'SAFIN_APP';
         }
 
-        $existingEtiquetaInventario = Inventario::where('etiqueta', $etiqueta)->first();
-        $existingEtiquetaCrudActivos = CrudActivo::where('etiqueta', $etiqueta)->first();
+    
+        $existeEtiqueta = false;
+        $etiquetaInventario = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta)->value('etiqueta');
+        $etiquetaUnicaCrudActivo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta)->value('etiqueta');
 
-        if ($existingEtiquetaInventario || $existingEtiquetaCrudActivos) {
+        if ($etiquetaInventario || $etiquetaUnicaCrudActivo) {
+            $existeEtiqueta = true;
+        }
+
+        if (!empty($request->etiqueta_padre)) {
+            $etiquetaInventarioHijo = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
+            $etiquetaCrudActivoHijo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
+
+            if (!$etiquetaInventarioHijo && !$etiquetaCrudActivoHijo) {
+                 return response()->json([
+                'status' => 'ERROR',
+                'message' => 'La etiqueta padre ' . $request->etiqueta_padre . ' no existe.',
+            ], 400);
+               
+            }
+        }
+
+        if ($existeEtiqueta) {
             return response()->json([
                 'status' => 'ERROR',
                 'message' => 'La etiqueta ' . $etiqueta . ' ingresada ya existe.',
             ], 400);
         }
+
 
         // Calcular id_img de forma segura
         $maxId = DB::table('inv_imagenes')->max('id_img');
