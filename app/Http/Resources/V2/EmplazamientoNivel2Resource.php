@@ -64,6 +64,15 @@ class EmplazamientoNivel2Resource extends JsonResource
             $emplazamiento['ubicacionPunto'] = UbicacionGeograficaResource::make($this->ubicacionPunto()->first());
         }
 
+        //Transitorio
+        if (isset($this->cycle_id) && $this->cycle_id && isset($this->type_cycle) && $this->type_cycle == 2) {
+            $emplazamiento['num_activos_audit'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
+                ->where('cod_emplazamiento', '=', $this->codigoUbicacion)
+                ->whereIn('audit_status', [1, 3])
+                ->count();
+            $emplazamiento['num_activos_cats_by_cycle'] = isset($emplazamiento['activos']) ? count($emplazamiento['activos']) : $this->activos_with_cats_by_cycle($this->cycle_id)->count();
+        }
+
 
 
         return $emplazamiento;
