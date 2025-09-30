@@ -33,29 +33,29 @@ class InvCiclo extends Model
         );
     }
 
-public function ciclo_puntos_users($usuario = null, $ciclo_id = null)
-{
-    $query = $this->hasManyThrough(
-        UbicacionGeografica::class, 
-        InvUsuariosPunto::class,    
-        'idCiclo',                  
-        'idUbicacionGeo',           
-        'idCiclo',                  
-        'idPunto'                   
-    );
+    public function ciclo_puntos_users($usuario = null, $ciclo_id = null)
+    {
+        $query = $this->hasManyThrough(
+            UbicacionGeografica::class,
+            InvUsuariosPunto::class,
+            'idCiclo',
+            'idUbicacionGeo',
+            'idCiclo',
+            'idPunto'
+        );
 
 
-    if ($usuario) {
-        $query->where('inv_usuarios_puntos.usuario', $usuario);
+        if ($usuario) {
+            $query->where('inv_usuarios_puntos.usuario', $usuario);
+        }
+
+
+        if ($ciclo_id) {
+            $query->where('inv_usuarios_puntos.idCiclo', $ciclo_id);
+        }
+
+        return $query;
     }
-
-
-    if ($ciclo_id) {
-        $query->where('inv_usuarios_puntos.idCiclo', $ciclo_id);
-    }
-
-    return $query;
-}
 
 
 
@@ -92,9 +92,9 @@ public function ciclo_puntos_users($usuario = null, $ciclo_id = null)
      * @return \Illuminate\Support\Collection
      */
 
- public function zoneEmplazamientosWithCats(Emplazamiento $zona)
-{
-    $sql = "
+    public function zoneEmplazamientosWithCats(Emplazamiento $zona)
+    {
+        $sql = "
         SELECT 
             ubicaciones_n2.idUbicacionN2 AS idUbicacionN2,
             crud_activos.ubicacionGeografica AS punto,
@@ -119,14 +119,14 @@ public function ciclo_puntos_users($usuario = null, $ciclo_id = null)
             crud_activos.ubicacionGeografica, 
             crud_activos.ubicacionOrganicaN2";
 
-    $likeCodigo = '%' . $zona->codigoUbicacion . '%';
+        $likeCodigo = '%' . $zona->codigoUbicacion . '%';
 
-    return collect(DB::select($sql, [$this->idCiclo, $zona->idAgenda, $likeCodigo]));
-}
+        return collect(DB::select($sql, [$this->idCiclo, $zona->idAgenda, $likeCodigo]));
+    }
 
-public function diferencias_por_direcciones($cycle_id, $idAgenda)
-{
-   $sql = "
+    public function diferencias_por_direcciones($cycle_id, $idAgenda)
+    {
+        $sql = "
        SELECT
    datos_cliente.id_direccion,  
     map_assets_categories.name AS categoria, 
@@ -162,12 +162,12 @@ LEFT JOIN (
 ) AS inv_resumen 
     ON map_assets_categories.id = inv_resumen.id_familia
 ";
-return DB::select($sql, [$idAgenda, $idAgenda]);
-}
+        return DB::select($sql, [$idAgenda, $idAgenda]);
+    }
 
-public function diferencias_por_puntos_OT($puntos)
-{
-     $sql = "
+    public function diferencias_por_puntos_OT($puntos)
+    {
+        $sql = "
         SELECT
         r.id_direccion,
         CASE WHEN r.rn = 1 THEN r.descripcion ELSE '' END AS descripcion,
@@ -217,12 +217,12 @@ public function diferencias_por_puntos_OT($puntos)
     ) r
     ORDER BY r.id_direccion, r.categoria;
     ";
-    return DB::select($sql, array_merge($puntos, $puntos));
-}
+        return DB::select($sql, array_merge($puntos, $puntos));
+    }
 
-public function activos_with_cats_by_cycle_emplazamiento($cycle_id, $idAgenda)
-{
-   $sql = "
+    public function activos_with_cats_by_cycle_emplazamiento($cycle_id, $idAgenda)
+    {
+        $sql = "
         SELECT 
             'D' AS nivel,
             d.descripcion AS descripcionUbicacion,
@@ -289,17 +289,21 @@ public function activos_with_cats_by_cycle_emplazamiento($cycle_id, $idAgenda)
         ORDER BY nivel, codigoUbicacion;
    ";
 
-   return DB::select($sql, [
-       $cycle_id, $idAgenda,   // Direccion
-       $cycle_id, $idAgenda,   // Emplazamiento N1
-       $cycle_id, $idAgenda,   // Emplazamiento N2
-       $cycle_id, $idAgenda    // Emplazamiento N3
-   ]);
-}
+        return DB::select($sql, [
+            $cycle_id,
+            $idAgenda,   // Direccion
+            $cycle_id,
+            $idAgenda,   // Emplazamiento N1
+            $cycle_id,
+            $idAgenda,   // Emplazamiento N2
+            $cycle_id,
+            $idAgenda    // Emplazamiento N3
+        ]);
+    }
 
-public function activos_with_cats_by_cycle_emplazamiento_por_ot($cycle_id)
-{
-   $sql = "
+    public function activos_with_cats_by_cycle_emplazamiento_por_ot($cycle_id)
+    {
+        $sql = "
      SELECT 
         'D' AS nivel,
         d.descripcion AS descripcionUbicacion,
@@ -378,13 +382,17 @@ public function activos_with_cats_by_cycle_emplazamiento_por_ot($cycle_id)
     ORDER BY nivel, codigoUbicacion;
    ";
 
-   return DB::select($sql, [
-       $cycle_id, $cycle_id,   // D
-       $cycle_id, $cycle_id,   // N1
-       $cycle_id, $cycle_id,   // N2
-       $cycle_id, $cycle_id    // N3
-   ]);
-}
+        return DB::select($sql, [
+            $cycle_id,
+            $cycle_id,   // D
+            $cycle_id,
+            $cycle_id,   // N1
+            $cycle_id,
+            $cycle_id,   // N2
+            $cycle_id,
+            $cycle_id    // N3
+        ]);
+    }
     public function zoneSubEmplazamientosWithCats(EmplazamientoN3 $zona)
     {
         $sql = "
@@ -412,7 +420,7 @@ public function activos_with_cats_by_cycle_emplazamiento_por_ot($cycle_id)
 
 
 
-     public function EmplazamientosWithCatsN1(EmplazamientoN1 $zona)
+    public function EmplazamientosWithCatsN1(EmplazamientoN1 $zona)
     {
         $sql = "
         SELECT DISTINCT
@@ -612,6 +620,16 @@ public function activos_with_cats_by_cycle_emplazamiento_por_ot($cycle_id)
 
 
         return $queryBuilder;
+    }
+
+    public function inv_activos()
+    {
+        return $this->inv_activos_with_child_levels();
+    }
+
+    public function inv_activos_with_child_levels()
+    {
+        return $this->hasMany(Inventario::class, 'id_ciclo');
     }
 
 
