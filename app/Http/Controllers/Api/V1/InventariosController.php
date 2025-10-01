@@ -35,20 +35,20 @@ class InventariosController extends Controller
         return $responsable;
     }
 
-public function getIdResponsable()
-{
-    $usuario = Auth::user()->name;
+    public function getIdResponsable()
+    {
+        $usuario = Auth::user()->name;
 
-    $nombre = DB::table('sec_users')
-        ->where('login', $usuario)
-        ->value('name');
+        $nombre = DB::table('sec_users')
+            ->where('login', $usuario)
+            ->value('name');
 
-    $idResponsable = DB::table('responsables')
-        ->where('name', $nombre)
-        ->value('idResponsable');
+        $idResponsable = DB::table('responsables')
+            ->where('name', $nombre)
+            ->value('idResponsable');
 
-    return $idResponsable ?? 0;
-}
+        return $idResponsable ?? 0;
+    }
 
     public function createinventario(Request $request)
     {
@@ -186,16 +186,16 @@ public function getIdResponsable()
         $inventario->etiqueta_padre      = $etiquetaPadre ?? 'Sin Padre';
         /** edualejandro */
         $inventario->eficiencia          = $request->eficiencia ?? null;
-        $inventario->texto_abierto_1     = $request->texto_abierto_1 ?? null;
-        $inventario->texto_abierto_2     = $request->texto_abierto_2 ?? null;
-        $inventario->texto_abierto_3     = $request->texto_abierto_3 ?? null;
-        $inventario->texto_abierto_4     = $request->texto_abierto_4 ?? null;
-        $inventario->texto_abierto_5     = $request->texto_abierto_5 ?? null;
-        $inventario->texto_abierto_6     = $request->texto_abierto_6 ?? null;
-        $inventario->texto_abierto_7     = $request->texto_abierto_7 ?? null;
-        $inventario->texto_abierto_8     = $request->texto_abierto_8 ?? null;
-        $inventario->texto_abierto_9     = $request->texto_abierto_9 ?? null;
-        $inventario->texto_abierto_10    = $request->texto_abierto_10 ?? null;
+
+
+        //texto_abierto_
+        foreach (array_keys($request->all()) as $key) {
+            $keyString = (string) $key;
+            // Aquí puedes usar $keyString como necesites
+            if (strpos($keyString, 'texto_abierto_') === 0) {
+                $inventario->$keyString = $request->input($keyString) ?? null;
+            }
+        }
 
 
         $inventario->modo                = 'ONLINE';
@@ -239,7 +239,7 @@ public function getIdResponsable()
             $estadoBien = 3;
         }
 
-        Inventario::where('etiqueta', $request->etiqueta)->update([
+        $inv_arr = [
             'id_grupo'            => $request->id_grupo,
             'id_familia'          => $request->id_familia,
             'descripcion_bien'    => $request->descripcion_bien,
@@ -267,21 +267,24 @@ public function getIdResponsable()
             'update_inv'          => 0,
             /** edualejandro */
             'eficiencia'            => $request->eficiencia ?? null,
-            'texto_abierto_1'       => $request->texto_abierto_1 ?? null,
-            'texto_abierto_2'       => $request->texto_abierto_2 ?? null,
-            'texto_abierto_3'       => $request->texto_abierto_3 ?? null,
-            'texto_abierto_4'       => $request->texto_abierto_4 ?? null,
-            'texto_abierto_5'       => $request->texto_abierto_5 ?? null,
-            'texto_abierto_6'       => $request->texto_abierto_6 ?? null,
-            'texto_abierto_7'       => $request->texto_abierto_7 ?? null,
-            'texto_abierto_8'       => $request->texto_abierto_8 ?? null,
-            'texto_abierto_9'       => $request->texto_abierto_9 ?? null,
-            'texto_abierto_10'      => $request->texto_abierto_10 ?? null,
             'crud_activo_estado'    => $estadoBien,
             'modo'                  => 'ONLINE',
             'modificado_el'         => date('Y-m-d H:i:s'),
             'modificado_por'        => $usuario
-        ]);
+        ];
+
+        //texto_abierto_
+        foreach (array_keys($request->all()) as $key) {
+            $keyString = (string) $key;
+            // Aquí puedes usar $keyString como necesites
+            if (strpos($keyString, 'texto_abierto_') === 0) {
+                $inv_arr[$keyString] = $request->input($keyString) ?? null;
+            }
+        }
+
+
+
+        Inventario::where('etiqueta', $request->etiqueta)->update($inv_arr);
 
         $inventarioActualizado = Inventario::where('etiqueta', $request->etiqueta)->first();
 
@@ -438,6 +441,64 @@ public function getIdResponsable()
 
         $validacion = DB::select($sql, [$id_grupo]);
 
+
+
+        $sql = "SELECT 
+        id_lista AS id_lista,
+        CASE
+            WHEN id_atributo = 27 THEN 'texto_abierto_1'
+            WHEN id_atributo = 28 THEN 'texto_abierto_2'
+            WHEN id_atributo = 29 THEN 'texto_abierto_3'
+            WHEN id_atributo = 30 THEN 'texto_abierto_4'
+            WHEN id_atributo = 31 THEN 'texto_abierto_5'
+            WHEN id_atributo = 34 THEN 'texto_abierto_6'
+            WHEN id_atributo = 35 THEN 'texto_abierto_7'
+            WHEN id_atributo = 36 THEN 'texto_abierto_8'
+            WHEN id_atributo = 37 THEN 'texto_abierto_9'
+            WHEN id_atributo = 38 THEN 'texto_abierto_10'
+            ELSE ''
+        END AS input_name,	
+        type_input AS `type`,	
+        CASE
+            WHEN id_validacion = 1 THEN TRUE 
+            ELSE FALSE
+        END AS required,
+        CASE
+            WHEN id_tipo_dato = 1 THEN 'number' 
+            WHEN id_tipo_dato = 2 THEN 'text'
+            ELSE 'text'
+        END AS datatype,
+        valor_minimo AS `min`,
+        valor_maximo AS `max`,
+        label_input AS label
+        FROM inv_atributos WHERE id_atributo >=27 AND id_atributo <= 38 AND id_validacion <> 0 AND id_grupo = ?";
+
+        $inputs = DB::select($sql, [$id_grupo]);
+
+        $inputs_map = [];
+        foreach ($inputs as $input) {
+
+            $options = DB::select("SELECT texto FROM `inv_atributos_input_options` WHERE id_lista = ? ", [$input->id_lista]);
+
+            $options = collect($options);
+
+            $inputs_map[] = [
+                'type'          => $input->type,
+                'input_name'    => $input->input_name,
+                'required'      => $input->required,
+                'min'           => $input->min,
+                'max'           => $input->max,
+                'label'         => $input->label,
+                'options'       => $options->pluck('texto')
+            ];
+        }
+
+
+
+        $validacion[0]->custom_fields = $inputs_map;
+
+
+
         return response()->json($validacion, 200);
     }
 
@@ -455,7 +516,7 @@ public function getIdResponsable()
             $origen = 'SAFIN_APP';
         }
 
-    
+
         $existeEtiqueta = false;
         $etiquetaInventario = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta)->value('etiqueta');
         $etiquetaUnicaCrudActivo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta)->value('etiqueta');
@@ -469,11 +530,10 @@ public function getIdResponsable()
             $etiquetaCrudActivoHijo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
 
             if (!$etiquetaInventarioHijo && !$etiquetaCrudActivoHijo) {
-                 return response()->json([
-                'status' => 'ERROR',
-                'message' => 'La etiqueta padre ' . $request->etiqueta_padre . ' no existe.',
-            ], 400);
-               
+                return response()->json([
+                    'status' => 'ERROR',
+                    'message' => 'La etiqueta padre ' . $request->etiqueta_padre . ' no existe.',
+                ], 400);
             }
         }
 
