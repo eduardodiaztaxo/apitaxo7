@@ -19,7 +19,7 @@ use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\V2\EmplazamientoNivel3Resource;
 use App\Http\Resources\V2\EmplazamientoNivel1Resource;
-
+use App\Services\InvConfigService;
 
 class InventariosOfflineController extends Controller
 {
@@ -435,6 +435,11 @@ LEFT JOIN (
             $resultado = DB::select($sql, [$id_grupo, $id_grupo]);
 
             if (!empty($resultado)) {
+
+                $inputs_map = InvConfigService::getOpenedTextConfigInput((int)$id_grupo);
+
+                $resultado[0]->custom_fields = json_encode($inputs_map);
+
                 $resultados[] = $resultado[0];
             }
         }

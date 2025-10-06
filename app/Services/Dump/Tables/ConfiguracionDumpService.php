@@ -165,7 +165,10 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
             tipo_dato_texto_abierto_10 INTEGER,
             lench_Min_texto_abierto_10 INTEGER,
             lench_Max_texto_abierto_10 INTEGER,
-            label_texto_abierto_10 TEXT
+            label_texto_abierto_10 TEXT,
+
+            -- edualejandro
+            custom_fields TEXT
 
         )
     ");
@@ -277,7 +280,9 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
                 tipo_dato_texto_abierto_10,
                 lench_Min_texto_abierto_10,
                 lench_Max_texto_abierto_10,
-                label_texto_abierto_10
+                label_texto_abierto_10,
+                -- edualejandro
+                custom_fields
             )
             VALUES (
                 :id_grupo,
@@ -375,7 +380,9 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
                 :tipo_dato_texto_abierto_10,
                 :lench_Min_texto_abierto_10,
                 :lench_Max_texto_abierto_10,
-                :label_texto_abierto_10
+                :label_texto_abierto_10,
+                -- edualejandro
+                :custom_fields
             )
         ");
 
@@ -477,7 +484,9 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
                 ':tipo_dato_texto_abierto_10' => $conf->tipo_dato_texto_abierto_10,
                 ':lench_Min_texto_abierto_10' => $conf->lench_Min_texto_abierto_10,
                 ':lench_Max_texto_abierto_10' => $conf->lench_Max_texto_abierto_10,
-                ':label_texto_abierto_10' => $conf->label_texto_abierto_10
+                ':label_texto_abierto_10' => $conf->label_texto_abierto_10,
+                //edualejandro
+                ':custom_fields' => $conf->custom_fields
             ]);
         }
     }
