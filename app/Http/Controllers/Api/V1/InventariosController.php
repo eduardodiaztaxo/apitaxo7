@@ -311,6 +311,21 @@ class InventariosController extends Controller
     ], 200);
 }
 
+public function getInventarioByEtiqueta($etiqueta)
+{
+    $invImagenes = DB::select("
+        SELECT 
+            idLista,
+            id_img,
+            etiqueta,
+            url_imagen
+        FROM inv_imagenes
+        WHERE etiqueta = ?
+    ", [$etiqueta]);
+
+    return response()->json($invImagenes);
+}
+
 
     public function nombreInputs()
     {
