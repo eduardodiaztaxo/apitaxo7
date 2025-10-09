@@ -311,7 +311,7 @@ class InventariosController extends Controller
     ], 200);
 }
 
-public function getInventarioByEtiqueta($etiqueta)
+public function getImagesByEtiqueta($etiqueta)
 {
     $invImagenes = DB::select("
         SELECT 
@@ -326,6 +326,33 @@ public function getInventarioByEtiqueta($etiqueta)
     return response()->json($invImagenes);
 }
 
+    public function deleteImageByEtiqueta($etiqueta, $id_img, $idLista)
+    {
+        $imagen = Inv_imagenes::where('etiqueta', $etiqueta)
+            ->where('id_img', $id_img)
+            ->where('idLista', $idLista)
+            ->first();
+
+        if (!$imagen) {
+            return response()->json([
+                'status'  => 'ERROR',
+                'message' => 'Imagen no encontrada.'
+            ], 404);
+        }
+
+        $filePath = PictureSafinService::getImgSubdir(Auth::user()->nombre_cliente) . '/' . $imagen->picture;
+        if (Storage::disk('taxoImages')->exists($filePath)) {
+            Storage::disk('taxoImages')->delete($filePath);
+        }
+
+        // Eliminar el registro de la base de datos
+        $imagen->delete();
+
+        return response()->json([
+            'status'  => 'OK',
+            'message' => 'Imagen eliminada con éxito.'
+        ], 200);
+    }
 
     public function nombreInputs()
     {
@@ -527,14 +554,14 @@ public function getInventarioByEtiqueta($etiqueta)
         }
 
 
-        // Calcular id_img de forma segura
         $maxId = DB::table('inv_imagenes')->max('id_img');
         $id_img = $maxId !== null ? $maxId + 1 : 1;
 
         $paths = [];
 
         foreach ($request->file('imagenes') as $index => $file) {
-            $filename = '9999_' . $etiqueta . '_' . $index . '.jpg';
+              $idProyecto = $request->user()->proyecto_id ?? '0000'; 
+            $filename = $idProyecto . '_' . $etiqueta . '_' . $index . '.jpg';
 
             $path = $file->storeAs(
                 PictureSafinService::getImgSubdir($request->user()->nombre_cliente),
@@ -612,6 +639,86 @@ public function getInventarioByEtiqueta($etiqueta)
 
         return response()->json(['status' => 'OK', 'data' => $data]);
     }
+
+public function addImageByEtiqueta(Request $request, $etiqueta)
+{
+    $request->validate([
+        'imagenes.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
+    ]);
+
+    try {
+        $origen = 'SAFIN_APP_IMG_NEW';
+
+        // Verificar que la etiqueta exista
+        $existeEtiqueta = DB::table('inv_inventario')->where('etiqueta', $etiqueta)->exists();
+        if (!$existeEtiqueta) {
+            return response()->json([
+                'status'  => 'ERROR',
+                'message' => 'La etiqueta ' . $etiqueta . ' no existe en inventario.',
+            ], 404);
+        }
+
+        $idProyecto = $request->user()->proyecto_id ?? '0000';
+        $id_img = $request->id_img ?? null;
+        $paths = [];
+        $imagenesExistentes = DB::table('inv_imagenes')
+            ->where('etiqueta', $etiqueta)
+            ->count();
+
+        $contador = $imagenesExistentes;
+
+        foreach ($request->file('imagenes') as $file) {
+            $contador++; // Incrementamos en cada iteración
+
+            $filename = $idProyecto . '_' . $etiqueta . '_' . $contador . '.jpg';
+
+            $path = $file->storeAs(
+                PictureSafinService::getImgSubdir($request->user()->nombre_cliente),
+                $filename,
+                'taxoImages'
+            );
+
+            $url = Storage::disk('taxoImages')->url($path);
+            $url_pict = dirname($url) . '/';
+
+            // Guardar en base de datos
+            $img = new Inv_imagenes();
+            $img->etiqueta     = $etiqueta;
+            $img->id_img       = $id_img;  
+            $img->origen       = $origen;
+            $img->picture      = $filename;
+            $img->created_at   = now();
+            $img->updated_at   = now();
+            $img->url_imagen   = $url;
+            $img->url_picture  = $url_pict;
+            $img->id_proyecto  = $idProyecto;
+            $img->save();
+
+            $paths[] = [
+                'id_img'   => $contador,
+                'url'      => $url,
+                'filename' => $filename,
+            ];
+        }
+
+        return response()->json([
+            'status'    => 'OK',
+            'message'   => 'Imágenes agregadas correctamente',
+            'paths'     => $paths,
+            'folderUrl' => $paths[0]['url'] ?? null,
+            'origen'    => $origen,
+        ], 201);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'status'  => 'ERROR',
+            'message' => 'Error al agregar imágenes',
+            'error'   => $e->getMessage(),
+        ], 500);
+    }
+}
+
+
 
     /**
      * Store newly created resources in storage.
