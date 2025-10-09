@@ -155,6 +155,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::put('inventario/image/{etiqueta}', [InventariosController::class, 'ImageByEtiqueta']);
 
+    Route::get('inventario/cycle/{cycle}/etiqueta/{etiqueta}', [InventariosController::class, 'showByEtiqueta']);
+
     Route::post('inventario/{ciclo}/procesar-varios', [InventariosController::class, 'storeInventoryMultiple']);
 
     Route::get('inventarioData/{in_inventario}/{id_ciclo}', [InventariosController::class, 'showData']);
@@ -235,13 +237,13 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('todos-emplazamientos/{idAgenda}/{ciclo}', [EmplazamientoController::class, 'showTodos']);
 
     Route::get('group-emplazamientos/{idAgenda}/{ciclo}', [EmplazamientoController::class, 'groupEmplazamientos']);
-        
+
     Route::get('group-emplazamientos-Ot/{ciclo}', [EmplazamientoController::class, 'groupEmplazamientosPorOt']);
 
     Route::get('group-map-direccion-diferencias/{idAgenda}/{ciclo}', [EmplazamientoController::class, 'groupMapDireccionDiferencias']);
 
     Route::get('group-map-Ot-diferencias/{ciclo}', [EmplazamientoController::class, 'groupMapDiferenciasOT']);
-    
+
     Route::put('emplazamientos/{id}', [EmplazamientoController::class, 'update']);
 
     Route::post('emplazamientos/create', [EmplazamientoController::class, 'create']);
