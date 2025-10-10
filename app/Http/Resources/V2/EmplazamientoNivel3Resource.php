@@ -19,7 +19,7 @@ class EmplazamientoNivel3Resource extends JsonResource
     {
 
 
-        $num_activos_inv = $this->inv_activos()->count();
+        $num_activos_inv = $this->inv_activos()->where('inv_inventario.id_ciclo', $this->cycle_id)->count();
 
         $emplazamiento = [
             'id' => $this->idUbicacionN3,

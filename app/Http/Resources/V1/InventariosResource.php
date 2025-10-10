@@ -9,13 +9,11 @@ class InventariosResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return array|\Illuminate\Contracts\Support\Arrayable|\JsonSerializable
      */
     public function toArray($request)
     {
-        $activosInventario = DB::table('inv_inventario')
+        // Obtener el registro principal del inventario
+        $activo = DB::table('inv_inventario')
             ->where('etiqueta', $this->etiqueta)
             ->select(
                 'id_inventario',
@@ -31,9 +29,9 @@ class InventariosResource extends JsonResource
                 'responsable',
                 'creado_por',
                 'idUbicacionGeo',
+                'codigoUbicacion_N1',
                 'idUbicacionN2',
                 'codigoUbicacion_N2',
-                'codigoUbicacion_N1',
                 'idUbicacionN3',
                 'codigoUbicacionN3',
                 'update_inv',
@@ -44,149 +42,131 @@ class InventariosResource extends JsonResource
                 'precision_geo',
                 'calidad_geo'
             )
-            ->get();
-
-        $activo = $activosInventario->first();
+            ->first();
 
         if (!$activo) {
             return [];
         }
 
+        // Descripciones de grupo y familia
         $descFamilia = DB::table('dp_familias')
             ->where('id_familia', $activo->id_familia)
-            ->select('descripcion_familia')
-            ->first();
-
+            ->value('descripcion_familia');
 
         $descGrupo = DB::table('dp_grupos')
             ->where('id_grupo', $activo->id_grupo)
-            ->select('descripcion_grupo')
-            ->first();
+            ->value('descripcion_grupo');
 
-
-        $img = DB::table('inv_imagenes')
-            ->where('id_img', $activo->id_img)
-            ->select('url_imagen')
-            ->first();
-
+        // Estado del bien
         $estadoBien = DB::table('indices_listas_13')
             ->where('idLista', $activo->estado)
             ->value('descripcion');
 
-        // Buscar en N2
-        $subEmplazamiento = DB::table('ubicaciones_n2')
-            ->where('idUbicacionN2', $activo->idUbicacionN2)
-            ->where('idAgenda', $activo->idUbicacionGeo)
-            ->select('idUbicacionN2', 'descripcionUbicacion', 'codigoUbicacion')
-            ->first();
-
-        // Si no está en N2, buscar en N3
-        if (!$subEmplazamiento) {
+        if (!empty($activo->idUbicacionN3) && $activo->idUbicacionN3 != 0) {
             $subEmplazamiento = DB::table('ubicaciones_n3')
                 ->where('idUbicacionN3', $activo->idUbicacionN3)
                 ->where('idAgenda', $activo->idUbicacionGeo)
                 ->select('idUbicacionN3', 'descripcionUbicacion', 'codigoUbicacion')
                 ->first();
+        } else {
+            $subEmplazamiento = DB::table('ubicaciones_n2')
+                ->where('idUbicacionN2', $activo->idUbicacionN2)
+                ->where('idAgenda', $activo->idUbicacionGeo)
+                ->select('idUbicacionN2', 'descripcionUbicacion', 'codigoUbicacion')
+                ->first();
         }
+        
+        $codigoUbicacionN1 = $activo->codigoUbicacion_N1
+            ?? $activo->codigoUbicacion_N2
+            ?? $activo->codigoUbicacionN3
+            ?? '';
 
-        $codigoUbicacionN1 = $activo->codigoUbicacion_N1 ?? $activo->codigoUbicacion_N2 ?? $activo->codigoUbicacion_N3 ?? '';
-
+        // Buscar emplazamiento N1
         $emplazamiento = DB::table('ubicaciones_n1')
             ->where('codigoUbicacion', 'like', '%' . $codigoUbicacionN1 . '%')
             ->where('idAgenda', $activo->idUbicacionGeo)
             ->select('idUbicacionN1', 'descripcionUbicacion', 'codigoUbicacion')
             ->first();
 
-        // Asignar valores finales
+        // Determinar ID y código final de ubicación
+        $idFinal = 0;
+        $codigoUbicacionFinal = '';
+
         if ($subEmplazamiento) {
-            if (isset($subEmplazamiento->idUbicacionN2)) {
-                $idFinal = $subEmplazamiento->idUbicacionN2;
-            } elseif (isset($subEmplazamiento->idUbicacionN3)) {
-                $idFinal = $subEmplazamiento->idUbicacionN3;
-            }
+            $idFinal = $subEmplazamiento->idUbicacionN2 ?? $subEmplazamiento->idUbicacionN3 ?? 0;
             $codigoUbicacionFinal = $subEmplazamiento->codigoUbicacion ?? '';
         } elseif ($emplazamiento) {
-            $idFinal = $emplazamiento->idUbicacionN1;
+            $idFinal = $emplazamiento->idUbicacionN1 ?? 0;
             $codigoUbicacionFinal = $emplazamiento->codigoUbicacion ?? '';
-        } else {
-            $codigoUbicacionFinal = '';
-            $idFinal = 0;
         }
 
-
+        // Dirección geográfica
         $direccion = DB::table('ubicaciones_geograficas')
             ->where('idUbicacionGeo', $activo->idUbicacionGeo)
             ->select('direccion', 'region', 'comuna')
             ->first();
+
         if (!$direccion) {
             return [];
         }
 
+        // Región y comuna
         $region = DB::table('regiones')
             ->where('idRegion', $direccion->region)
-            ->select('descripcion')
-            ->first();
+            ->value('descripcion');
 
         $comuna = DB::table('comunas')
             ->where('idComuna', $direccion->comuna)
-            ->select('descripcion')
-            ->first();
+            ->value('descripcion');
 
-        $foto = DB::table('inv_imagenes')
-            ->where('etiqueta', $activo->etiqueta)
-            ->orderByDesc('id_img')
-            ->first(['url_imagen']);
-
-        $fotoUrl = $foto->url_imagen ?? asset('img/notavailable.jpg');
-
+        // Imágenes
         $imagenes = DB::table('inv_imagenes')
             ->where('etiqueta', $activo->etiqueta)
             ->orderByDesc('id_img')
-            ->pluck('url_imagen') // devuelve array de strings
+            ->pluck('url_imagen')
             ->toArray();
 
+        $fotoUrl = $imagenes[0] ?? asset('img/notavailable.jpg');
+
+        // Retornar todo el recurso como arreglo
         return [
             'id_inventario'        => $activo->id_inventario,
             'cicle_id'             => $activo->id_ciclo,
             'nombreActivo'         => $activo->descripcion_bien,
-            'descripcionCategoria' => $descFamilia->descripcion_familia ?? 'Desconocida',
-            'codigoUbiacionN1'       => $activo->codigoUbicacion_N1,
-            'codigoUbicacionN2'      => $activo->codigoUbicacion_N2,
-            'CodigoUbicacionN3'      => $activo->codigoUbicacionN3,
+            'descripcionCategoria' => $descFamilia ?? 'Desconocida',
+            'descripcionGrupo'     => $descGrupo ?? 'Sin Registros',
             'marca'                => $activo->descripcion_marca ?: 'Sin Registros',
             'modelo'               => $activo->modelo ?: 'Sin Registros',
             'serie'                => $activo->serie ?: 'Sin Registros',
-            'estadoBien'           => $estadoBien,
-            'descripcionGrupo'    => $descGrupo->descripcion_grupo ?? 'Sin Registros',
-            'descripcionFamilia'  => $descFamilia->descripcion_familia ?? 'Sin Registros',
-            'id_familia'           => $activo->id_familia,
+            'estadoBien'           => $estadoBien ?? 'No definido',
             'etiqueta'             => $activo->etiqueta,
             'responsable'          => $activo->responsable ?? 'Sin Registros',
             'creado_por'           => $activo->creado_por ?? 'Sin Registros',
             'creado_el'            => $activo->creado_el ? date('d/m/Y H:i:s', strtotime($activo->creado_el)) : null,
-            'imagenes'             => $imagenes ?? [],
-            'fotoUrl'              => $fotoUrl,
             'update_inv'           => $activo->update_inv,
-            'foto4'                => $fotoUrl,
             'latitud'              => $activo->latitud,
             'longitud'             => $activo->longitud,
             'accuracyStr'          => $activo->precision_geo,
             'calidadGeo'           => $activo->calidad_geo,
-            'emplazamiento'        => [
-                'id'                => $idFinal,
-                'nombre'            => $emplazamiento->descripcionUbicacion ?? '',
-                'codigoUbicacion'   => $codigoUbicacionFinal,
-                'idAgenda'          => $activo->idUbicacionGeo,
-                'zone_address' => [
+            'fotoUrl'              => $fotoUrl,
+            'imagenes'             => $imagenes ?? [],
+
+            'emplazamiento' => [
+                'id'              => $idFinal,
+                'nombre'          => $emplazamiento->descripcionUbicacion ?? '',
+                'codigoUbicacion' => $codigoUbicacionFinal,
+                'idAgenda'        => $activo->idUbicacionGeo,
+                'zone_address'    => [
                     'descripcionUbicacion' => $subEmplazamiento->descripcionUbicacion ?? '',
+                    'codigoUbicacion'      => $subEmplazamiento->codigoUbicacion ?? '',
                 ],
             ],
 
             'ubicacion' => [
                 'idUbicacionGeo' => $activo->idUbicacionGeo,
                 'direccion'      => $direccion->direccion ?? 'No disponible',
-                'region'         => $region->descripcion ?? 'No disponible',
-                'comuna'         => $comuna->descripcion ?? 'No disponible',
+                'region'         => $region ?? 'No disponible',
+                'comuna'         => $comuna ?? 'No disponible',
             ],
         ];
     }
