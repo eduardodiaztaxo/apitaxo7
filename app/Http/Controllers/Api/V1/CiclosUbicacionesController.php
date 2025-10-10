@@ -214,10 +214,10 @@ class CiclosUbicacionesController extends Controller
             'data' => InventariosResource::collection($assets)
         ]);
 
-        return response()->json([
-            'status' => 'OK',
-            'data' => InventariosResource::collection($assets)
-        ]);
+        // return response()->json([
+        //     'status' => 'OK',
+        //     'data' => InventariosResource::collection($assets)
+        // ]);
     }
 
 
