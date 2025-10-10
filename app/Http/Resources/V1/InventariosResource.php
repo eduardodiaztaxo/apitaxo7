@@ -75,7 +75,7 @@ class InventariosResource extends JsonResource
                 ->select('idUbicacionN2', 'descripcionUbicacion', 'codigoUbicacion')
                 ->first();
         }
-        
+
         $codigoUbicacionN1 = $activo->codigoUbicacion_N1
             ?? $activo->codigoUbicacion_N2
             ?? $activo->codigoUbicacionN3
@@ -134,7 +134,9 @@ class InventariosResource extends JsonResource
             'cicle_id'             => $activo->id_ciclo,
             'nombreActivo'         => $activo->descripcion_bien,
             'descripcionCategoria' => $descFamilia ?? 'Desconocida',
+            'descripcion_familia'  => $descFamilia ?? 'Desconocida',
             'descripcionGrupo'     => $descGrupo ?? 'Sin Registros',
+            'descripcion_grupo'    => $descGrupo ?? 'Sin Registros',
             'marca'                => $activo->descripcion_marca ?: 'Sin Registros',
             'modelo'               => $activo->modelo ?: 'Sin Registros',
             'serie'                => $activo->serie ?: 'Sin Registros',
