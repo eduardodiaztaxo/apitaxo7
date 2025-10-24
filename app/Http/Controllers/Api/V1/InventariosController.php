@@ -312,6 +312,42 @@ class InventariosController extends Controller
         ], 200);
     }
 
+    public function updateAdjustCoordinatesInventory(Request $request, $etiqueta)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'adjusted_lat' => 'required|numeric',
+            'adjusted_lng' => 'required|numeric',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Invalid input',
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        $invObj = Inventario::where('etiqueta', $etiqueta)->first();
+
+        if (!$invObj) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Not Found'
+            ], 404);
+        }
+
+        $invObj->adjusted_lat = $request->adjusted_lat;
+        $invObj->adjusted_lng = $request->adjusted_lng;
+
+        $invObj->save();
+
+        return response()->json([
+            'status' => 'OK',
+            'message' => 'Updated successfully'
+        ]);
+    }
+
 
 
     public function getImagesByEtiqueta($etiqueta)

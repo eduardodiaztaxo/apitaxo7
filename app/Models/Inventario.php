@@ -66,6 +66,8 @@ class Inventario extends Model
         'idResponsable',
         'latitud',
         'longitud',
+        'adjusted_lat',
+        'adjusted_lng',
         'descripcionTipo',
         'observacion',
         'update_inv',

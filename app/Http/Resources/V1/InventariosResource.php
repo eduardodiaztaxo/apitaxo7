@@ -38,6 +38,8 @@ class InventariosResource extends JsonResource
                 'id_img',
                 'latitud',
                 'longitud',
+                'adjusted_lat',
+                'adjusted_lng',
                 'creado_el',
                 'precision_geo',
                 'calidad_geo'
@@ -148,6 +150,8 @@ class InventariosResource extends JsonResource
             'update_inv'           => $activo->update_inv,
             'latitud'              => $activo->latitud,
             'longitud'             => $activo->longitud,
+            'adjusted_lat'         => $activo->adjusted_lat,
+            'adjusted_lng'         => $activo->adjusted_lng,
             'accuracyStr'          => $activo->precision_geo,
             'calidadGeo'           => $activo->calidad_geo,
             'fotoUrl'              => $fotoUrl,
