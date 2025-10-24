@@ -15,10 +15,12 @@ class ColoresDumpService implements DumpSQLiteInterface
      * @var \PDO|null PDO connection instance
      */
     protected $pdo = null;
+    protected $cycle = 0;
 
 
- public function __construct(PDO $pdo)
+ public function __construct(PDO $pdo, int $cycle = 0)
 {
+    $this->cycle = $cycle;
     $this->pdo = $pdo;
 
 }
@@ -39,7 +41,7 @@ class ColoresDumpService implements DumpSQLiteInterface
 
         $datsdActivosCtrl = new DatosActivosController();
 
-       $response = $datsdActivosCtrl->indiceColores();
+       $response = $datsdActivosCtrl->indiceColores($this->cycle);
 
         $jsonContent = $response->getContent();
 

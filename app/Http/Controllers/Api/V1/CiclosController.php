@@ -36,8 +36,6 @@ class CiclosController extends Controller
         $inventarios = InvCiclo::where('estadoCiclo', '=', 1)->whereIn('idCiclo', $ciclos_ids->toArray())->get();
         // $inventarios = InvCiclo::where('estadoCiclo', '<>', 3)->whereIn('idCiclo', $ciclos_ids->toArray())->get();
 
-
-
         return InvCicloResource::collection($inventarios);
     }
 

@@ -107,7 +107,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('puntos/{punto}/responsibles', [ResponsibleController::class, 'showAllByPunto']);
 
-    Route::get('estados', [DatosActivosController::class, 'estados']);
+    Route::get('estados/{ciclo}', [DatosActivosController::class, 'estados']);
 
     Route::get('grupo/{ciclo}', [DatosActivosController::class, 'grupo']);
 
@@ -123,21 +123,21 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('buscar_grupo_familia/{id_familia}', [DatosActivosController::class, 'buscarGrupoFamilia']);
 
-    Route::get('colores', [DatosActivosController::class, 'indiceColores']);
+    Route::get('colores/{cycleid}', [DatosActivosController::class, 'indiceColores']);
 
-    Route::get('estados-operacionales', [DatosActivosController::class, 'estadosOperacional']);
+    Route::get('estados-operacionales/{cycleid}', [DatosActivosController::class, 'estadosOperacional']);
 
-    Route::get('tipos-trabajo', [DatosActivosController::class, 'tipoTrabajo']);
+    Route::get('tipos-trabajo/{cycleid}', [DatosActivosController::class, 'tipoTrabajo']);
 
-    Route::get('cargas-trabajo', [DatosActivosController::class, 'cargaTrabajo']);
+    Route::get('cargas-trabajo/{cycleid}', [DatosActivosController::class, 'cargaTrabajo']);
 
-    Route::get('condiciones-ambientales', [DatosActivosController::class, 'condicionAmbiental']);
+    Route::get('condiciones-ambientales/{cycleid}', [DatosActivosController::class, 'condicionAmbiental']);
 
-    Route::get('estados-conservacion', [DatosActivosController::class, 'estadoConservacion']);
+    Route::get('estados-conservacion/{cycleid}', [DatosActivosController::class, 'estadoConservacion']);
 
-    Route::get('materiales', [DatosActivosController::class, 'material']);
+    Route::get('materiales/{cycleid}', [DatosActivosController::class, 'material']);
 
-    Route::get('formas', [DatosActivosController::class, 'forma']);
+    Route::get('formas/{cycleid}', [DatosActivosController::class, 'forma']);
 
     Route::post('create-bienes', [DatosActivosController::class, 'createBienes']);
 
@@ -147,9 +147,9 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::post('create-inventario', [InventariosController::class, 'createinventario']);
 
-    Route::get('configuracion/{id_grupo}', [InventariosController::class, 'configuracion']);
+    Route::get('configuracion/{id_grupo}/cycle/{cycleid}', [InventariosController::class, 'configuracion']);
 
-    Route::get('activos/images/etiqueta/{etiqueta}', [InventariosController::class, 'getImagesByEtiqueta']);
+    Route::get('activos/images/etiqueta/{etiqueta}/cycle/{cycleid}', [InventariosController::class, 'getImagesByEtiqueta']);
 
     Route::post('activos/delete-image/etiqueta/{etiqueta}/id_img/{id_img}/idLista/{idLista}', [InventariosController::class, 'deleteImageByEtiqueta']);
 
@@ -195,7 +195,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('regiones', [ZonaEmplazamientosController::class, 'regiones']);
 
     Route::get('comunas/{idRegion}', [ZonaEmplazamientosController::class, 'comunas']);
-
+   
     Route::get('ciclos/{ciclo}/zones/{zona}/emplazamientos/{agenda_id}', [ZonaEmplazamientosController::class, 'showByCycleCats']);
 
     Route::get('ciclos/{ciclo}/zones/{zona}/Subemplazamientos/{agenda_id}', [ZonaEmplazamientosController::class, 'CycleCatsNivel3']);

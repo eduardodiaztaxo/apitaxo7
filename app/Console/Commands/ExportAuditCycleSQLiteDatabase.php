@@ -335,7 +335,8 @@ class ExportAuditCycleSQLiteDatabase extends Command
     private function setCargaTrabajo()
     {
         (new CargaTrabajoDumpService(
-            $this->pdo
+            $this->pdo,
+            $this->cycle
         ))->runFromController();
 
         $this->info('carga insertadas en SQLite DB.');
@@ -344,7 +345,8 @@ class ExportAuditCycleSQLiteDatabase extends Command
     private function setColores()
     {
         (new ColoresDumpService(
-            $this->pdo
+            $this->pdo,
+            $this->cycle
         ))->runFromController();
 
         $this->info('colores insertadas en SQLite DB.');
@@ -353,7 +355,8 @@ class ExportAuditCycleSQLiteDatabase extends Command
     private function setCondicionAmbiental()
     {
         (new CondicionAmbientalDumpService(
-            $this->pdo
+            $this->pdo,
+            $this->cycle
         ))->runFromController();
 
         $this->info('condicion ambiental insertadas en SQLite DB.');
@@ -363,7 +366,8 @@ class ExportAuditCycleSQLiteDatabase extends Command
     {
         (new ConfiguracionDumpService(
             $this->pdo,
-            $this->codigo_grupo
+            $this->codigo_grupo,
+            $this->cycle
         ))->runFromController();
 
         $this->info('configuracion insertadas en SQLite DB.');
@@ -371,7 +375,8 @@ class ExportAuditCycleSQLiteDatabase extends Command
     private function setEstadoConservacion()
     {
         (new EstadoConservacionDumpService(
-            $this->pdo
+            $this->pdo,
+            $this->cycle
         ))->runFromController();
 
         $this->info('estado conservacion insertadas en SQLite DB.');
@@ -390,7 +395,8 @@ class ExportAuditCycleSQLiteDatabase extends Command
     private function setForma()
     {
         (new FormasDumpService(
-            $this->pdo
+            $this->pdo,
+            $this->cycle
         ))->runFromController();
 
         $this->info('forma insertadas en SQLite DB.');
@@ -437,7 +443,8 @@ class ExportAuditCycleSQLiteDatabase extends Command
     private function setMaterial()
     {
         (new MaterialDumpService(
-            $this->pdo
+            $this->pdo,
+            $this->cycle
         ))->runFromController();
 
         $this->info('material insertadas en SQLite DB.');
@@ -445,7 +452,8 @@ class ExportAuditCycleSQLiteDatabase extends Command
     private function setOperacional()
     {
         (new OperacionalDumpService(
-            $this->pdo
+            $this->pdo,
+            $this->cycle
         ))->runFromController();
 
         $this->info('operacional insertadas en SQLite DB.');
@@ -454,7 +462,8 @@ class ExportAuditCycleSQLiteDatabase extends Command
     private function setTipoTrabajo()
     {
         (new TipoTrabajoDumpService(
-            $this->pdo
+            $this->pdo,
+            $this->cycle
         ))->runFromController();
 
         $this->info('tipotrabajo insertadas en SQLite DB.');
@@ -463,7 +472,8 @@ class ExportAuditCycleSQLiteDatabase extends Command
     private function setEstado()
     {
         (new EstadoDumpService(
-            $this->pdo
+            $this->pdo,
+            $this->cycle
         ))->runFromController();
 
         $this->info('Estados insertadas en SQLite DB.');
@@ -529,7 +539,8 @@ class ExportAuditCycleSQLiteDatabase extends Command
     {
 
         (new AtributosDumpService(
-            $this->pdo
+            $this->pdo,
+            $this->cycle
         ))->runFromController();
 
 

@@ -19,6 +19,8 @@ class Inventario extends Model
 
 
     protected $fillable = [
+        'id_inventario',
+        'id_proyecto',
         'id_grupo',
         'id_familia',
         'descripcion_bien',

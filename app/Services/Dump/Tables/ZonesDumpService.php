@@ -84,6 +84,7 @@ class ZonesDumpService implements DumpSQLiteInterface
         $this->pdo->exec("
             CREATE TABLE IF NOT EXISTS zonas (
                 codigo TEXT,
+                idProyecto INTEGER,
                 codigoUbicacion TEXT,
                 descripcionUbicacion TEXT,
                 idAgenda INTEGER,
@@ -109,8 +110,9 @@ class ZonesDumpService implements DumpSQLiteInterface
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            INSERT INTO zonas (
+            INSERT OR REPLACE INTO zonas (
                 codigo,
+                idProyecto,
                 codigoUbicacion,
                 descripcionUbicacion,
                 idAgenda,
@@ -125,6 +127,7 @@ class ZonesDumpService implements DumpSQLiteInterface
             )
             VALUES (
                 :codigo,
+                :idProyecto,
                 :codigoUbicacion,
                 :descripcionUbicacion,
                 :idAgenda,
@@ -144,18 +147,19 @@ class ZonesDumpService implements DumpSQLiteInterface
         foreach ($zones as $zona) {
 
             $stmt->execute([
-                ':codigo' => $zona->codigo,
-                ':codigoUbicacion' => $zona->codigoUbicacion,
-                ':descripcionUbicacion' => $zona->descripcionUbicacion,
-                ':idAgenda' => $zona->idAgenda,
-                ':idUbicacionN1' => $zona->idUbicacionN1,
-                ':ciclo_auditoria' => $zona->ciclo_auditoria,
-                ':totalBienes' => $zona->totalBienes,
-                ':num_activos' => $zona->num_activos,
-                ':num_activos_cats_by_cycle' => $zona->num_activos_cats_by_cycle,
-                ':num_activos_inv' => $zona->num_activos_inv,
-                ':num_activos_orphans' => $zona->num_activos_orphans,
-                ':num_total_orphans' => $zona->num_total_orphans
+                ':codigo' => $zona->codigo ?? '',
+                ':idProyecto' => $zona->id_proyecto ?? $zona->idProyecto ?? 0,
+                ':codigoUbicacion' => $zona->codigoUbicacion ?? '',
+                ':descripcionUbicacion' => $zona->descripcionUbicacion ?? '',
+                ':idAgenda' => $zona->idAgenda ?? 0,
+                ':idUbicacionN1' => $zona->idUbicacionN1 ?? 0,
+                ':ciclo_auditoria' => $zona->ciclo_auditoria ?? 0,
+                ':totalBienes' => $zona->totalBienes ?? 0,
+                ':num_activos' => $zona->num_activos ?? 0,
+                ':num_activos_cats_by_cycle' => $zona->num_activos_cats_by_cycle ?? 0,
+                ':num_activos_inv' => $zona->num_activos_inv ?? 0,
+                ':num_activos_orphans' => $zona->num_activos_orphans ?? 0,
+                ':num_total_orphans' => $zona->num_total_orphans ?? 0
             ]);
         }
     }

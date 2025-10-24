@@ -43,7 +43,14 @@ class CyclesDumpService implements DumpSQLiteInterface
 
         $cyclesCtrl = new CiclosController();
 
-        $cycles = $cyclesCtrl->index();
+        $response = $cyclesCtrl->show($this->cycle);
+        
+        // Get the JSON content and decode it
+        $jsonContent = $response->getContent();
+        $data = json_decode($jsonContent);
+        
+        // Convert the single cycle to array format for insert method
+        $cycles = [$data];
 
         $this->insert($cycles);
     }
@@ -64,6 +71,7 @@ class CyclesDumpService implements DumpSQLiteInterface
         $this->pdo->exec("
             CREATE TABLE IF NOT EXISTS ciclos (
                 idCiclo INTEGER PRIMARY KEY,
+                id_proyecto INTEGER,
                 status INTEGER DEFAULT NULL,
                 tipoCiclo INTEGER DEFAULT 0,
                 status_name TEXT,
@@ -87,8 +95,9 @@ class CyclesDumpService implements DumpSQLiteInterface
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            INSERT INTO ciclos (
+            INSERT OR REPLACE INTO ciclos (
                 idCiclo,
+                id_proyecto,
                 status,
                 tipoCiclo,
                 status_name,
@@ -101,6 +110,7 @@ class CyclesDumpService implements DumpSQLiteInterface
             )
             VALUES (
                 :idCiclo,
+                :id_proyecto,
                 :status,
                 :tipoCiclo,
                 :status_name,
@@ -117,11 +127,16 @@ class CyclesDumpService implements DumpSQLiteInterface
 
         foreach ($cycles as $ciclo) {
 
-            $cycle = json_decode($ciclo->toJson());
-
+            // Handle both resource collections and plain objects
+            if (is_object($ciclo) && method_exists($ciclo, 'toJson')) {
+                $cycle = json_decode($ciclo->toJson());
+            } else {
+                $cycle = $ciclo;
+            }
 
             $stmt->execute([
                 ':idCiclo' => $cycle->idCiclo,
+                ':id_proyecto' => $cycle->id_proyecto,
                 ':status' => $cycle->status,
                 ':tipoCiclo' => $cycle->tipoCiclo,
                 ':status_name' => $cycle->status_name,

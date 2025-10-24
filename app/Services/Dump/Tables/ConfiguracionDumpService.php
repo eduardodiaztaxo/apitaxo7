@@ -15,17 +15,20 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
      * @var \PDO|null PDO connection instance
      */
     protected $pdo = null;
+    
 
     /**
      * @var int codigo_grupo string
      */
 
     protected $codigo_grupo = '';
+    protected $cycle = 0;
 
-    public function __construct(PDO $pdo, string $codigo_grupo = '')
+    public function __construct(PDO $pdo, string $codigo_grupo = '', int $cycle = 0)
     {
         $this->pdo = $pdo;
         $this->codigo_grupo = $codigo_grupo;
+        $this->cycle = $cycle;
     }
     /**
      * Run dump from the controller.
@@ -44,7 +47,7 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
 
         $datsdActivosCtrl = new InventariosOfflineController();
 
-        $response = $datsdActivosCtrl->configuracionOffline([$this->codigo_grupo]);
+        $response = $datsdActivosCtrl->configuracionOffline([$this->codigo_grupo], $this->cycle);
 
         $jsonContent = $response->getContent();
 

@@ -19,6 +19,7 @@ class EmplazamientoN3 extends Model
     const UPDATED_AT = 'fechaActualizacion';
 
     protected $fillable = [
+        'idProyecto',
         'idAgenda',
         'descripcionUbicacion',
         'codigoUbicacion',

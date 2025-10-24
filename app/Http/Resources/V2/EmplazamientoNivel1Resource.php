@@ -6,6 +6,7 @@ use App\Http\Resources\V1\UbicacionGeograficaResource;
 use App\Http\Resources\V1\ZonaPuntoResource;
 use App\Models\Inventario;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\DB;
 
 class EmplazamientoNivel1Resource extends JsonResource
 {
@@ -17,30 +18,33 @@ class EmplazamientoNivel1Resource extends JsonResource
      */
     public function toArray($request)
     {
+        
+        $id_proyecto = DB::table('inv_ciclos')
+            ->where('idCiclo', $this->cycle_id)
+            ->value('id_proyecto');
 
-
-        // $num_activos_inv = Inventario::where('inv_inventario.codigoUbicacion_N1', $this->codigoUbicacion)
-        //     ->where('inv_inventario.idUbicacionGeo', $this->idAgenda)
-        //     ->where('inv_inventario.id_ciclo', $this->cycle_id)
-        //     ->count();
-
-        $num_activos_inv = $this->inv_activos()->count();
+        $num_activos_inv = $this->inv_activos()
+            ->where('inv_inventario.id_proyecto', $id_proyecto)
+            ->count();
 
         $num_activos_N1 = Inventario::where('codigoUbicacion_N1', $this->codigoUbicacion)
             ->where('idUbicacionGeo', $this->idAgenda)
             ->where('codigoUbicacion_N2', '<', 2)
             ->where('id_ciclo', $this->cycle_id)
+            ->where('id_proyecto', $id_proyecto)
             ->count();
 
         $num_activos_N2 = Inventario::where('codigoUbicacion_N2', 'LIKE', $this->codigoUbicacion . '%')
             ->where('idUbicacionGeo', $this->idAgenda)
             ->where('codigoUbicacionN3', '<', 2)
             ->where('id_ciclo', $this->cycle_id)
+            ->where('id_proyecto', $id_proyecto)
             ->count();
 
         $num_activos_N3 = Inventario::where('inv_inventario.codigoUbicacionN3', 'LIKE',  $this->codigoUbicacion . '%')
             ->where('inv_inventario.idUbicacionGeo', $this->idAgenda)
             ->where('inv_inventario.id_ciclo', $this->cycle_id)
+            ->where('inv_inventario.id_proyecto', $id_proyecto)
             ->count();
 
 

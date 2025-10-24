@@ -66,7 +66,11 @@ class InventariosController extends Controller
 
         $idAgenda = $request->idAgenda;
 
-        $etiquetaInventario = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta)->value('etiqueta');
+        $id_proyecto = DB::table('inv_ciclos')
+        ->where('idCiclo', $request->id_ciclo)
+        ->value('id_proyecto');
+
+        $etiquetaInventario = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta)->where('id_proyecto', $id_proyecto)->value('etiqueta');
         $etiquetaUnicaCrudActivo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta)->value('etiqueta');
 
         if ($etiquetaInventario || $etiquetaUnicaCrudActivo) {
@@ -112,11 +116,12 @@ class InventariosController extends Controller
         if ($request->clonarDesdeInventario == 'true' && intval($request->conf_fotos) === 0) {
             $imagenes = DB::table('inv_imagenes')
                 ->where('id_img', $request->id_img_clone)
+                ->where('id_proyecto', $id_proyecto)
                 ->get();
 
-            $url_img = DB::table('inv_imagenes')->max('id_img') + 1;
+            $url_img = DB::table('inv_imagenes')->where('id_proyecto', $id_proyecto)->max('id_img') + 1;
             $origen = 'SAFIN_CLONE';
-            $filename = '9999_' . $request->etiqueta;
+            $filename = $id_proyecto . '_' . $request->etiqueta;
 
             foreach ($imagenes as $img) {
                 DB::table('inv_imagenes')->insert([
@@ -126,6 +131,7 @@ class InventariosController extends Controller
                     'picture'    => $filename . '.jpg',
                     'url_imagen' => $img->url_imagen,
                     'url_picture' => $img->url_picture,
+                    'id_proyecto' => $id_proyecto,
                     'created_at' => now()
                 ]);
             }
@@ -147,9 +153,17 @@ class InventariosController extends Controller
         $getIdResponsable = $this->getIdResponsable();
         $responsable = $this->getNombre();
 
+        $ultimo_id_inventario = DB::table('inv_inventario')
+            ->where('id_proyecto', $id_proyecto)
+            ->max('id_inventario');
+        
+        $nuevo_id_inventario = ($ultimo_id_inventario ?? 0) + 1;
+
         $usuario = Auth::user()->name;
 
         $inventario = new Inventario();
+        $inventario->id_inventario       = $nuevo_id_inventario;
+        $inventario->id_proyecto         = $id_proyecto; 
         $inventario->id_grupo            = $request->id_grupo;
         $inventario->id_familia          = $request->id_familia;
         $inventario->descripcion_bien    = $request->descripcion_bien;
@@ -223,8 +237,13 @@ class InventariosController extends Controller
     $etiquetaOriginal = $request->etiqueta_original_editar;
     $etiquetaNueva = $request->etiqueta;
 
+    $id_proyecto = DB::table('inv_ciclos')
+        ->where('idCiclo', $request->id_ciclo)
+        ->value('id_proyecto');
+
     $id_img = DB::table('inv_imagenes')
         ->where('etiqueta', $etiquetaOriginal)
+        ->where('id_proyecto', $id_proyecto)
         ->orderBy('id_img', 'desc')
         ->value('id_img');
 
@@ -280,11 +299,12 @@ class InventariosController extends Controller
         }
     }
 
-    Inventario::where('etiqueta', $etiquetaOriginal)->update($inv_arr);
+    Inventario::where('etiqueta', $etiquetaOriginal)->where('id_proyecto', $id_proyecto)->update($inv_arr);
 
     if ($etiquetaOriginal !== $etiquetaNueva) {
         DB::table('inv_imagenes')
             ->where('etiqueta', $etiquetaOriginal)
+            ->where('id_proyecto', $id_proyecto)
             ->update([
                 'etiqueta'   => $etiquetaNueva,
                 'origen'     => 'SAFIN_APP_ETIQUETA_EDITADA',
@@ -293,13 +313,14 @@ class InventariosController extends Controller
 } else {
     DB::table('inv_imagenes')
         ->where('etiqueta', $etiquetaOriginal)
+        ->where('id_proyecto', $id_proyecto)
         ->update([
-            'origen'     => 'SAFIN_APP_ACTUALIZADO',
+            'origen'     => 'SAFIN_APP_INVENTARIO_ACTUALIZADO',
             'updated_at' => now()
         ]);
 }
 
-    $inventarioActualizado = Inventario::where('etiqueta', $etiquetaNueva)->first();
+    $inventarioActualizado = Inventario::where('etiqueta', $etiquetaNueva)->where('id_proyecto', $id_proyecto)->first();
 
     if ($inventarioActualizado) {
         $inventarioActualizado->fillCodeAndIDSEmplazamientos();
@@ -311,7 +332,7 @@ class InventariosController extends Controller
     ], 200);
 }
 
-public function getImagesByEtiqueta($etiqueta)
+public function getImagesByEtiqueta($etiqueta, $cycleid)
 {
     $invImagenes = DB::select("
         SELECT 
@@ -321,13 +342,19 @@ public function getImagesByEtiqueta($etiqueta)
             url_imagen
         FROM inv_imagenes
         WHERE etiqueta = ?
-    ", [$etiqueta]);
+        AND id_proyecto = (
+            SELECT id_proyecto 
+            FROM inv_ciclos 
+            WHERE idCiclo = ?
+        )
+    ", [$etiqueta, $cycleid]);
 
     return response()->json($invImagenes);
 }
 
     public function deleteImageByEtiqueta($etiqueta, $id_img, $idLista)
     {
+        
         $imagen = Inv_imagenes::where('etiqueta', $etiqueta)
             ->where('id_img', $id_img)
             ->where('idLista', $idLista)
@@ -374,8 +401,13 @@ public function getImagesByEtiqueta($etiqueta)
     }
 
 
-    public function configuracion($id_grupo)
+    public function configuracion($id_grupo, $cycleid)
     {
+
+        $id_proyecto = DB::table('inv_ciclos')
+            ->where('idCiclo', $cycleid)
+            ->value('id_proyecto');
+
         $sql = "SELECT 
                 COALESCE(MAX(CASE WHEN id_atributo = 2 THEN id_validacion END), 0) AS conf_marca,
                 COALESCE(MAX(CASE WHEN id_atributo = 3 THEN id_validacion END), 0) AS conf_modelo,
@@ -495,12 +527,13 @@ public function getImagesByEtiqueta($etiqueta)
                 ) AS label_texto_abierto_10
 
             FROM inv_atributos 
-            WHERE id_grupo = ?";
+            WHERE id_grupo = ?
+            AND id_proyecto = ?";
 
-        $validacion = DB::select($sql, [$id_grupo]);
+        $validacion = DB::select($sql, [$id_grupo, $id_proyecto]);
 
 
-        $inputs_map = InvConfigService::getOpenedTextConfigInput((int)$id_grupo);
+        $inputs_map = InvConfigService::getOpenedTextConfigInput((int)$id_grupo, (int)$id_proyecto);
 
 
 
@@ -525,9 +558,12 @@ public function getImagesByEtiqueta($etiqueta)
             $origen = 'SAFIN_APP';
         }
 
+        $id_proyecto = DB::table('inv_ciclos')
+            ->where('idCiclo', $request->id_ciclo)
+            ->value('id_proyecto');
 
         $existeEtiqueta = false;
-        $etiquetaInventario = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta)->value('etiqueta');
+        $etiquetaInventario = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta)->where('id_proyecto', $id_proyecto)->value('etiqueta');
         $etiquetaUnicaCrudActivo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta)->value('etiqueta');
 
         if ($etiquetaInventario || $etiquetaUnicaCrudActivo) {
@@ -535,7 +571,7 @@ public function getImagesByEtiqueta($etiqueta)
         }
 
         if (!empty($request->etiqueta_padre)) {
-            $etiquetaInventarioHijo = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
+            $etiquetaInventarioHijo = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta_padre)->where('id_proyecto', $id_proyecto)->value('etiqueta');
             $etiquetaCrudActivoHijo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
 
             if (!$etiquetaInventarioHijo && !$etiquetaCrudActivoHijo) {
@@ -554,14 +590,13 @@ public function getImagesByEtiqueta($etiqueta)
         }
 
 
-        $maxId = DB::table('inv_imagenes')->max('id_img');
+        $maxId = DB::table('inv_imagenes')->where('id_proyecto', $id_proyecto)->max('id_img');
         $id_img = $maxId !== null ? $maxId + 1 : 1;
 
         $paths = [];
 
-        foreach ($request->file('imagenes') as $index => $file) {
-              $idProyecto = $request->user()->proyecto_id ?? '0000'; 
-            $filename = $idProyecto . '_' . $etiqueta . '_' . $index . '.jpg';
+        foreach ($request->file('imagenes') as $index => $file) { 
+            $filename = $id_proyecto . '_' . $etiqueta . '_' . $index . '.jpg';
 
             $path = $file->storeAs(
                 PictureSafinService::getImgSubdir($request->user()->nombre_cliente),
@@ -573,6 +608,7 @@ public function getImagesByEtiqueta($etiqueta)
             $url_pict = dirname($url) . '/';
 
             $img = new Inv_imagenes();
+            $img->id_proyecto = $id_proyecto;
             $img->etiqueta = $etiqueta;
             $img->id_img = $id_img;
             $img->origen = $origen;
@@ -624,7 +660,7 @@ public function getImagesByEtiqueta($etiqueta)
 
 
         $request->validate([
-            'ciclo_id'          => 'required|integer|exists:inv_ciclos,idCiclo',
+            'ciclo_id' => 'required|integer|exists:inv_ciclos,idCiclo',
         ]);
 
 
@@ -658,7 +694,10 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
             ], 404);
         }
 
-        $idProyecto = $request->user()->proyecto_id ?? '0000';
+        $idProyecto = DB::table('inv_ciclos')
+            ->where('idCiclo', $request->cycle_id)
+            ->value('id_proyecto');
+
         $id_img = $request->id_img ?? null;
         $paths = [];
         $imagenesExistentes = DB::table('inv_imagenes')
@@ -668,7 +707,7 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         $contador = $imagenesExistentes;
 
         foreach ($request->file('imagenes') as $file) {
-            $contador++; // Incrementamos en cada iteración
+            $contador++; 
 
             $filename = $idProyecto . '_' . $etiqueta . '_' . $contador . '.jpg';
 
@@ -772,7 +811,7 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         $files = $this->procesarZipImagenes($request, $images);
 
         //Guardar activos e imágenes
-        [$saved, $failed, $paths] = $this->guardarActivosConImagenes($assets, $files, $request->user()->nombre_cliente);
+        [$saved, $failed, $paths] = $this->guardarActivosConImagenes($assets, $files, $request->user()->nombre_cliente, $ciclo);
 
         return response()->json([
             'status' => 'OK',
@@ -828,6 +867,17 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         $errors = [];
         $images = [];
 
+        // Obtener el último id_inventario una sola vez al inicio
+        $id_proyecto = DB::table('inv_ciclos')
+            ->where('idCiclo', $ciclo)
+            ->value('id_proyecto');
+
+        $ultimo_id_inventario = DB::table('inv_inventario')
+            ->where('id_proyecto', $id_proyecto)
+            ->max('id_inventario');
+        
+        $siguiente_id_inventario = ($ultimo_id_inventario ?? 0) + 1;
+
         foreach ($items as $key => $item) {
             $validator = Validator::make((array) $item, $this->rules());
             if ($validator->fails()) {
@@ -835,9 +885,12 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
                 continue;
             }
 
-            $activo = $this->mapActivo($item, $ciclo, $usuario, $idMapaGeo, $idMapaN1_Codigo, $mapaIdN2, $mapaCodN2, $mapaIdN3, $mapaCodN3, $mapaIdListaBienes, $mapaIdListaMarcas);
+            $activo = $this->mapActivo($item, $ciclo, $usuario, $idMapaGeo, $idMapaN1_Codigo, $mapaIdN2, $mapaCodN2, $mapaIdN3, $mapaCodN3, $mapaIdListaBienes, $mapaIdListaMarcas, $siguiente_id_inventario);
             $assets[] = $activo;
             $images[] = ['etiqueta' => $item->etiqueta, 'images' => $item->images];
+            
+            // Incrementar para el siguiente item
+            $siguiente_id_inventario++;
         }
 
         return [$assets, $errors, $images];
@@ -846,7 +899,7 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
     /**
      * Mapear un item
      */
-    private function mapActivo($item, $ciclo, $usuario, $idMapaGeo, $idMapaN1_Codigo, $mapaIdN2, $mapaCodN2, $mapaIdN3, $mapaCodN3, $mapaIdListaBienes, $mapaIdListaMarcas)
+    private function mapActivo($item, $ciclo, $usuario, $idMapaGeo, $idMapaN1_Codigo, $mapaIdN2, $mapaCodN2, $mapaIdN3, $mapaCodN3, $mapaIdListaBienes, $mapaIdListaMarcas, $id_inventario)
     {
         // Determinar si se usa
         $usarMapas = isset($idMapaGeo[$item->idUbicacionGeo]);
@@ -855,7 +908,13 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         $getIdResponsable = $this->getIdResponsable();
         $responsable = $this->getNombre();
 
+        $id_proyecto = DB::table('inv_ciclos')
+            ->where('idCiclo', $ciclo)
+            ->value('id_proyecto');
+
         return [
+            'id_inventario'      => $id_inventario,
+            'id_proyecto'        => $id_proyecto,
             'id_grupo'           => $item->id_grupo,
             'id_familia'         => $item->id_familia,
             'descripcion_bien'   => $item->descripcion_bien,
@@ -919,6 +978,10 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         $direcciones = $direccionesJson ? json_decode($direccionesJson) : [];
         $idMapaGeo = [];
 
+        $id_proyecto = DB::table('inv_ciclos')
+            ->where('idCiclo', $ciclo)
+            ->value('id_proyecto');
+
         foreach ($direcciones as $d) {
             $idRegion = DB::table('regiones')->where('descripcion', $d->region)->value('idRegion');
             $idComuna = DB::table('comunas')->where('descripcion', $d->comuna)->value('idComuna');
@@ -926,6 +989,7 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
             $existeUbicacion = DB::table('ubicaciones_geograficas')
                 ->where([
                     ['descripcion', '=', $d->descripcion],
+                    ['idProyecto', '=', $id_proyecto],
                     ['zona', '=', $d->zona],
                     ['region', '=', $idRegion],
                     ['comuna', '=', $idComuna],
@@ -933,7 +997,7 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
                 ])->value('idUbicacionGeo');
 
             $idUbicacionInsertada = $existeUbicacion ?: DB::table('ubicaciones_geograficas')->insertGetId([
-                'idProyecto'    => $ciclo,
+                'idProyecto'    => $id_proyecto,
                 'codigoCliente' => $d->codigoCliente,
                 'descripcion'   => $d->descripcion,
                 'zona'          => $d->zona,
@@ -965,12 +1029,23 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         $data = $json ? json_decode($json) : [];
         $mapaCodigo = [];
 
+        $id_proyecto = DB::table('inv_ciclos')
+            ->where('idCiclo', $ciclo)
+            ->value('id_proyecto');
+
         foreach ($data as $n1) {
             $idAgendaReal = $this->obtenerIdAgendaActualizado($n1->idAgenda, $idMapaGeo);
-            $codigoExistente = DB::table('ubicaciones_n1')->where('idAgenda', $idAgendaReal)->max('codigoUbicacion');
+
+        $codigoExistente = DB::table('ubicaciones_n1')
+            ->where('idProyecto', $id_proyecto)
+            ->where('idAgenda', $idAgendaReal)
+            ->max('codigoUbicacion');
+
             $nuevoCodigo = $codigoExistente ? str_pad(((int) $codigoExistente) + 1, 2, '0', STR_PAD_LEFT) : $n1->codigoUbicacion;
 
-            $registro = DB::table('ubicaciones_n1')->where('idAgenda', $idAgendaReal)
+            $registro = DB::table('ubicaciones_n1')
+                ->where('idAgenda', $idAgendaReal)
+                ->where('idProyecto', $id_proyecto)
                 ->where('descripcionUbicacion', $n1->nombre)
                 ->first();
 
@@ -978,7 +1053,7 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
 
             if (!$registro) {
                 DB::table('ubicaciones_n1')->insert([
-                    'idProyecto'           => $ciclo,
+                    'idProyecto'           => $id_proyecto,
                     'idAgenda'             => $idAgendaReal,
                     'codigoUbicacion'      => $nuevoCodigo,
                     'descripcionUbicacion' => $n1->nombre,
@@ -1005,11 +1080,16 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         $mapaId = [];
         $mapaCodigo = [];
 
+        $id_proyecto = DB::table('inv_ciclos')
+            ->where('idCiclo', $ciclo)
+            ->value('id_proyecto');
+
         foreach ($data as $n2) {
             $idAgendaReal = $this->obtenerIdAgendaActualizado($n2->idAgenda, $idMapaGeo);
 
             $existeCodigo = DB::table('ubicaciones_n2')
                 ->where('idAgenda', $idAgendaReal)
+                ->where('idProyecto', $id_proyecto)
                 ->where('codigoUbicacion', $n2->codigoUbicacion)
                 ->exists();
 
@@ -1019,6 +1099,7 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
 
                 $codigoExistente = DB::table('ubicaciones_n2')
                     ->where('idAgenda', $idAgendaReal)
+                    ->where('idProyecto', $id_proyecto)
                     ->where('codigoUbicacion', 'like', $prefijo . '%')
                     ->selectRaw("MAX(CAST(codigoUbicacion AS UNSIGNED)) as maximo")
                     ->value('maximo');
@@ -1028,13 +1109,15 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
                 $nuevoCodigo = $n2->codigoUbicacion;
             }
 
-            $registro = DB::table('ubicaciones_n2')->where('idAgenda', $idAgendaReal)
+            $registro = DB::table('ubicaciones_n2')
+                ->where('idAgenda', $idAgendaReal)
+                ->where('idProyecto', $id_proyecto)
                 ->where('descripcionUbicacion', $n2->nombre)
                 ->first();
 
             if (!$registro) {
                 $idInsertado = DB::table('ubicaciones_n2')->insertGetId([
-                    'idProyecto'           => $ciclo,
+                    'idProyecto'           => $id_proyecto,
                     'idAgenda'             => $idAgendaReal,
                     'codigoUbicacion'      => $nuevoCodigo,
                     'descripcionUbicacion' => $n2->nombre,
@@ -1063,12 +1146,16 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         $data = $json ? json_decode($json) : [];
         $mapaId = [];
         $mapaCodigo = [];
+        $id_proyecto = DB::table('inv_ciclos')
+            ->where('idCiclo', $ciclo)
+            ->value('id_proyecto');
 
         foreach ($data as $n3) {
             $idAgendaReal = $this->obtenerIdAgendaActualizado($n3->idAgenda, $idMapaGeo);
 
             $existeCodigo = DB::table('ubicaciones_n3')
                 ->where('idAgenda', $idAgendaReal)
+                ->where('idProyecto', $id_proyecto)
                 ->where('codigoUbicacion', $n3->codigoUbicacion)
                 ->exists();
 
@@ -1078,6 +1165,7 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
 
                 $codigoExistente = DB::table('ubicaciones_n3')
                     ->where('idAgenda', $idAgendaReal)
+                    ->where('idProyecto', $id_proyecto)
                     ->where('codigoUbicacion', 'like', $prefijo . '%')
                     ->selectRaw("MAX(CAST(codigoUbicacion AS UNSIGNED)) as maximo")
                     ->value('maximo');
@@ -1087,13 +1175,15 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
                 $nuevoCodigo = $n3->codigoUbicacion;
             }
 
-            $registro = DB::table('ubicaciones_n3')->where('idAgenda', $idAgendaReal)
-                ->where('descripcionUbicacion', $n3->nombre)
-                ->first();
+            $registro = DB::table('ubicaciones_n3')
+            ->where('idAgenda', $idAgendaReal)
+            ->where('idProyecto', $id_proyecto)
+            ->where('descripcionUbicacion', $n3->nombre)
+            ->first();
 
             if (!$registro) {
                 $idInsertado = DB::table('ubicaciones_n3')->insertGetId([
-                    'idProyecto'           => $ciclo,
+                    'idProyecto'           => $id_proyecto,
                     'idAgenda'             => $idAgendaReal,
                     'codigoUbicacion'      => $nuevoCodigo,
                     'descripcionUbicacion' => $n3->nombre,
@@ -1123,30 +1213,38 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         $bienes = $json ? json_decode($json) : [];
         $mapaIdListaBienes = [];
 
+        $id_proyecto = DB::table('inv_ciclos')
+            ->where('idCiclo', $ciclo)
+            ->value('id_proyecto');
+
         foreach ($bienes as $bien) {
             $existeBien = DB::table('inv_bienes_nuevos')
                 ->where('descripcion', $bien->descripcion)
                 ->where('idAtributo', $bien->idAtributo)
+                ->where('idProyecto', $id_proyecto)
                 ->where('id_familia', $bien->id_familia)
                 ->first();
 
             if (!$existeBien) {
                 $maxListaIndicelista = DB::table('indices_listas')
                     ->where('idAtributo', $bien->idAtributo)
+                    ->where('idProyecto', $id_proyecto)
                     ->where('idIndice', $bien->id_familia)
                     ->max('idLista');
 
                 $maxListaBienes = DB::table('inv_bienes_nuevos')
                     ->where('idAtributo', $bien->idAtributo)
+                    ->where('idProyecto', $id_proyecto)
                     ->where('id_familia', $bien->id_familia)
                     ->max('idLista');
 
                 $newIdLista = max($maxListaIndicelista ?? 0, $maxListaBienes ?? 0) + 1;
 
+
                 DB::table('inv_bienes_nuevos')->insert([
                     'idLista'          => $newIdLista,
                     'idIndice'         => $bien->idIndice,
-                    'idProyecto'       => $ciclo,
+                    'idProyecto'       => $id_proyecto,
                     'descripcion'      => $bien->descripcion,
                     'observacion'      => $bien->observacion,
                     'idAtributo'       => $bien->idAtributo,
@@ -1174,31 +1272,38 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
     {
         $marcas = $json ? json_decode($json) : [];
         $mapaIdListaMarcas = [];
+        $id_proyecto = DB::table('inv_ciclos')
+                ->where('idCiclo', $ciclo)
+                ->value('id_proyecto');
 
         foreach ($marcas as $marca) {
             $existeMarca = DB::table('inv_marcas_nuevos')
                 ->where('descripcion', $marca->descripcion)
                 ->where('idAtributo', $marca->idAtributo)
+                ->where('idProyecto', $id_proyecto)
                 ->where('id_familia', $marca->id_familia)
                 ->first();
 
             if (!$existeMarca) {
                 $maxListaIndicelista = DB::table('indices_listas')
                     ->where('idAtributo', $marca->idAtributo)
+                    ->where('idProyecto', $id_proyecto)
                     ->where('idIndice', $marca->id_familia)
                     ->max('idLista');
 
                 $maxListaMarcas = DB::table('inv_marcas_nuevos')
                     ->where('idAtributo', $marca->idAtributo)
+                    ->where('idProyecto', $id_proyecto)
                     ->where('id_familia', $marca->id_familia)
                     ->max('idLista');
 
                 $newIdLista = max($maxListaIndicelista ?? 0, $maxListaMarcas ?? 0) + 1;
+              
 
                 DB::table('inv_marcas_nuevos')->insert([
                     'idLista'          => $newIdLista,
                     'idIndice'         => $marca->idIndice,
-                    'idProyecto'       => $ciclo,
+                    'idProyecto'       => $id_proyecto,
                     'descripcion'      => $marca->descripcion,
                     'observacion'      => $marca->observacion,
                     'idAtributo'       => $marca->idAtributo,
@@ -1273,13 +1378,17 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
     /**
      * Guardar Img
      */
-    private function guardarActivosConImagenes(array $assets, array $files, string $cliente)
+    private function guardarActivosConImagenes(array $assets, array $files, string $cliente, int $ciclo)
     {
         $saved = [];
         $failed = [];
         $paths = [];
 
-        $id_img = DB::table('inv_imagenes')->max('id_img') + 1;
+         $id_proyecto = DB::table('inv_ciclos')
+                ->where('idCiclo', $ciclo)
+                ->value('id_proyecto');
+
+        $id_img = DB::table('inv_imagenes')->where('id_proyecto', $id_proyecto)->max('id_img') + 1;
         $idsi = [];
 
 
@@ -1301,7 +1410,7 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
                 $activo['id_img'] = $activo['id_img'] ?? 1;
             }
 
-            $existsInv = Inventario::where('etiqueta', $activo['etiqueta'])->first();
+            $existsInv = Inventario::where('etiqueta', $activo['etiqueta'])->where('id_proyecto', $id_proyecto)->first();
             $existsCrud = CrudActivo::where('etiqueta', $activo['etiqueta'])->first();
 
             if (!$existsInv && !$existsCrud) {
@@ -1324,7 +1433,7 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
                 $activo = collect($assets)->firstWhere('etiqueta', $etiqueta);
                 if ($activo && $activo['crud_activo_estado'] == 3) continue;
 
-                $filename = '9999_' . $etiqueta . '_' . $filekey . '.jpg';
+                $filename = $id_proyecto . '_' . $etiqueta . '_' . $filekey . '.jpg';
                 $path = $file['file']->storeAs(
                     PictureSafinService::getImgSubdir($cliente),
                     $filename,
@@ -1335,6 +1444,7 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
                 $url_pict = dirname($url) . '/';
 
                 $img = new Inv_imagenes();
+                $img->id_proyecto = $id_proyecto;
                 $img->etiqueta = $etiqueta;
                 $img->origen = $origen;
                 $img->picture = $filename;

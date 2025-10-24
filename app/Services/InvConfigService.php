@@ -8,7 +8,7 @@ class InvConfigService
 {
 
 
-    public static function getOpenedTextConfigInput(int $id_grupo): array
+    public static function getOpenedTextConfigInput(int $id_grupo, int $id_proyecto): array
     {
         $sql = "SELECT 
         id_lista AS id_lista,
@@ -38,9 +38,9 @@ class InvConfigService
         valor_minimo AS `min`,
         valor_maximo AS `max`,
         label_input AS label
-        FROM inv_atributos WHERE id_atributo >=27 AND id_atributo <= 38 AND id_validacion <> 0 AND id_grupo = ?";
+        FROM inv_atributos WHERE id_atributo >=27 AND id_atributo <= 38 AND id_validacion <> 0 AND id_grupo = ? AND id_proyecto = ?";
 
-        $inputs = DB::select($sql, [$id_grupo]);
+        $inputs = DB::select($sql, [$id_grupo, $id_proyecto]);
 
         $inputs_map = [];
         foreach ($inputs as $input) {
@@ -59,8 +59,6 @@ class InvConfigService
                 'options'       => $options->pluck('texto')
             ];
         }
-
-
 
         return $inputs_map;
     }

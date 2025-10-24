@@ -53,8 +53,13 @@ class CiclosUbicacionesController extends Controller
             'comuna'            => 'exists:comunas,idComuna'
         ]);
         $codigoCliente = $this->generarCodigoCliente();
+  
+        $id_proyecto = DB::table('inv_ciclos')
+            ->where('idCiclo', $request->ciclo_auditoria)
+            ->value('id_proyecto');
+            
         $ubicacion = DB::table('ubicaciones_geograficas')->insertGetId([
-            'idProyecto'    => $request->ciclo_auditoria,
+            'idProyecto'    => $id_proyecto,
             'codigoCliente' => $codigoCliente,
             'descripcion'   => $request->descripcion,
             'direccion'     => $request->direccion,
@@ -108,20 +113,19 @@ class CiclosUbicacionesController extends Controller
 
     public function generarCodigoCliente()
     {
-        $letras = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $numeros = '0123456789';
-        $codigo = '';
-        do {
-            $codigo = '';
-            for ($i = 0; $i < 4; $i++) {
-                $codigo .= $letras[rand(0, strlen($letras) - 1)];
-            }
-            for ($i = 0; $i < 4; $i++) {
-                $codigo .= $numeros[rand(0, strlen($numeros) - 1)];
-            }
-            $existe = DB::table('ubicaciones_geograficas')->where('codigoCliente', $codigo)->exists();
-        } while ($existe);
-        return $codigo;
+       
+        $ultimoCodigo = DB::table('ubicaciones_geograficas')
+            ->whereRaw('codigoCliente REGEXP "^[0-9]+$"')  
+            ->orderByRaw('CAST(codigoCliente AS UNSIGNED) DESC')
+            ->value('codigoCliente');
+        
+        if ($ultimoCodigo) {
+            $nuevoCodigo = intval($ultimoCodigo) + 1;
+        } else {
+            $nuevoCodigo = 1;
+        }
+  
+        return str_pad($nuevoCodigo, 4, '0', STR_PAD_LEFT);
     }
     /**
      * Display the specified resource.

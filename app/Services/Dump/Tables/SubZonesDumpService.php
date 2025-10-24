@@ -41,7 +41,11 @@ public function runFromController(): void
 {
     $this->createTable();
 
-    $stmt = $this->pdo->query("SELECT codigoUbicacion, idAgenda FROM zonas");
+    $id_proyecto = DB::table('inv_ciclos')
+        ->where('idCiclo', $this->cycle)
+        ->value('id_proyecto');
+
+    $stmt = $this->pdo->query("SELECT codigoUbicacion, idAgenda FROM zonas Where idProyecto = $id_proyecto");
     $zonas = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
     $allSubzonas = [];
@@ -49,6 +53,7 @@ public function runFromController(): void
     foreach ($zonas as $zona) {
         $subzonasZona = \DB::table('ubicaciones_n2')
             ->where('codigoUbicacion', 'like', '%' . $zona['codigoUbicacion'] . '%')
+            ->where('idProyecto', $id_proyecto)
             ->where('idAgenda', $zona['idAgenda'])
             ->get()
             ->toArray();
