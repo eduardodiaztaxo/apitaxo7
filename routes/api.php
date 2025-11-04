@@ -159,6 +159,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::put('inventario/ajustar-coordenadas/etiqueta/{etiqueta}', [InventariosController::class, 'updateAdjustCoordinatesInventory']);
 
+    Route::put('inventario/ajustar-coordenadas-debug-data/etiqueta/{etiqueta}', [InventariosController::class, 'updateAdjustCoordinatesInventoryDebugData']);
+
     Route::get('nombre-inputs', [InventariosController::class, 'nombreInputs']);
 
     Route::put('inventario/image/{etiqueta}', [InventariosController::class, 'ImageByEtiqueta']);
