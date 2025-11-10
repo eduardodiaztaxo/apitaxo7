@@ -57,6 +57,10 @@ class CiclosUbicacionesController extends Controller
         $id_proyecto = DB::table('inv_ciclos')
             ->where('idCiclo', $request->ciclo_auditoria)
             ->value('id_proyecto');
+
+             $id_proyecto = DB::table('inv_ciclos')
+            ->where('idCiclo', $request->ciclo_auditoria)
+            ->value('id_proyecto');
             
         $ubicacion = DB::table('ubicaciones_geograficas')->insertGetId([
             'idProyecto'    => $id_proyecto,
@@ -68,6 +72,7 @@ class CiclosUbicacionesController extends Controller
             'newApp'        => 1,
             'modo'          => 'ONLINE'
         ]);
+
 
         if (!$ubicacion) {
             return response()->json([
@@ -85,6 +90,15 @@ class CiclosUbicacionesController extends Controller
             'id_estado'             => 2,
             'auditoria_general'     => 0,
             'modo'                  => 'ONLINE',
+        ]);
+
+        $puntos_usuario = DB::table('puntos_usuario')->insert([
+            'idUbicacionGeo' => $ubicacion, 
+            'login' => $request->user()->name, 
+            'fechaAsignacion' => date('Y-m-d H:i:s'),
+            'estado' => 1,
+            'totalBienes' => 0,
+            'id_proyecto' => $id_proyecto
         ]);
 
         $ciclo = $request->ciclo_auditoria;
