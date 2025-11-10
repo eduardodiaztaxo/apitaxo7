@@ -96,8 +96,8 @@ class CiclosUbicacionesController extends Controller
             'idUbicacionGeo' => $ubicacion, 
             'login' => $request->user()->name, 
             'fechaAsignacion' => date('Y-m-d H:i:s'),
-            'estado' => 1,
-            'totalBienes' => 0,
+            'estado' => '1',
+            'totalBienes' => '0',
             'id_proyecto' => $id_proyecto
         ]);
 
