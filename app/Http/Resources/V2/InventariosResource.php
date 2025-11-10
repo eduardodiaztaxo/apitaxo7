@@ -51,7 +51,7 @@ class InventariosResource extends JsonResource
 
         $comuna = $comunaObj ? $comunaObj->descripcion : 'No disponible';
 
-        $fotos = $this->imagenes()->get();
+        $fotos = $this->imagenes()->where('id_proyecto', $id_proyecto)->get();
 
         $foto = $fotos->first();
 
@@ -59,8 +59,7 @@ class InventariosResource extends JsonResource
 
         $imagenes = $fotos
             ->sortByDesc('id_img')
-            ->pluck('url_imagen') 
-            ->where('idProyecto', $id_proyecto)// devuelve array de strings
+            ->pluck('url_imagen')
             ->toArray();
 
         return [
