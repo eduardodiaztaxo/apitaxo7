@@ -87,7 +87,7 @@ class CiclosUbicacionesController extends Controller
             'idPunto'               => $ubicacion,
             'usuario'               => $request->user()->name,
             'fechaCreacion'         => date('Y-m-d'),
-            'id_estado'             => 2,
+            'id_estado'             => 1,
             'auditoria_general'     => 0,
             'modo'                  => 'ONLINE',
         ]);
