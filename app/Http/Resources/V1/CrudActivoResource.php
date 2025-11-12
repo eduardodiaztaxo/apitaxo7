@@ -66,8 +66,8 @@ class CrudActivoResource extends JsonResource
 
         $activo['organica_n2'] = $this->emplazamiento;
 
-        $activo['depreciable'] = $this->depreciableRelation->descripcion;
-
+        $activo['depreciable'] = $this->depreciableRelation?->descripcion;
+        
         $activo['fotoUrl'] = null;
 
         if ($request->user())
