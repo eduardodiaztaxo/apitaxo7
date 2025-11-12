@@ -43,13 +43,41 @@ class DatosActivosController extends Controller
 
 
 
-    public function estados(int $cycle)
+    public function estados($cycle)
     {
-        $id_proyecto = DB::table('inv_ciclos')
-            ->where('idCiclo', $cycle)
-            ->value('id_proyecto');
+        $id_proyectos = [];
 
-        $collection = IndiceListaEstado::where('idProyecto', $id_proyecto)->get();
+        if (is_numeric($cycle) && $cycle !== 'NaN') {
+            $cycle = (int)$cycle;
+            $id_proyecto = DB::table('inv_ciclos')
+                ->where('idCiclo', $cycle)
+                ->value('id_proyecto');
+            
+            if ($id_proyecto) {
+                $id_proyectos = [$id_proyecto];
+            }
+        } else {
+            //auditoría y scan_bienes
+            $usuario = Auth::user()->name;
+            $id_proyectos = DB::table('inv_ciclos_usuarios')
+                ->where('usuario', $usuario)
+                ->distinct()
+                ->pluck('id_proyecto')
+                ->toArray();
+        }
+
+        if (empty($id_proyectos)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No se encontró proyecto para el usuario'
+            ], 404);
+        }
+
+        $collection = IndiceListaEstado::whereIn('idProyecto', $id_proyectos)
+            ->get()
+            ->unique('descripcion')
+            ->values();
+        
         return response()->json($collection, 200);
     }
 
@@ -329,94 +357,317 @@ class DatosActivosController extends Controller
     }
     public function bienes_Marcas($id_familia, $ciclo)
     {
+        $id_proyectos = [];
 
-        $id_proyecto = DB::table('inv_ciclos')
-            ->where('idCiclo', $ciclo)
-            ->value('id_proyecto');
+        if (is_numeric($ciclo) && $ciclo !== 'NaN') {
+            $ciclo = (int)$ciclo;
+            $id_proyecto = DB::table('inv_ciclos')
+                ->where('idCiclo', $ciclo)
+                ->value('id_proyecto');
+            
+            if ($id_proyecto) {
+                $id_proyectos = [$id_proyecto];
+            }
+        } else {
+            //auditoria y scan_bienes
+            $usuario = Auth::user()->name;
+            $id_proyectos = DB::table('inv_ciclos_usuarios')
+                ->where('usuario', $usuario)
+                ->distinct()
+                ->pluck('id_proyecto')
+                ->toArray();
+        }
 
+        if (empty($id_proyectos)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No se encontró proyecto para el usuario'
+            ], 404);
+        }
+
+        // Buscar marcas en todos los proyectos del usuario
         $marcas = DB::table('inv_marcas_nuevos')
             ->where('id_familia', $id_familia)
-            ->where('idProyecto', $id_proyecto)
+            ->whereIn('idProyecto', $id_proyectos)
             ->get();
 
         $indices = DB::table('indices_listas')
             ->where('id_familia', $id_familia)
-            ->where('idProyecto', $id_proyecto)
+            ->whereIn('idProyecto', $id_proyectos)
             ->where('idAtributo', 2)
             ->get();
 
-        $resultado = $marcas->concat($indices);
+        // Combinar y eliminar duplicados por descripción
+        $resultado = $marcas->concat($indices)
+            ->unique('descripcion')
+            ->values();
 
         return response()->json($resultado, 200);
     }
 
-    public function indiceColores(int $cycle)
+    public function indiceColores($cycle)
     {
-        $id_proyecto = DB::table('inv_ciclos')
-            ->where('idCiclo', $cycle)
-            ->value('id_proyecto');
+        $id_proyectos = [];
 
-        $collection = IndiceListaColores::where('idProyecto', $id_proyecto)->get();
+        if (is_numeric($cycle) && $cycle !== 'NaN') {
+            $cycle = (int)$cycle;
+            $id_proyecto = DB::table('inv_ciclos')
+                ->where('idCiclo', $cycle)
+                ->value('id_proyecto');
+            
+            if ($id_proyecto) {
+                $id_proyectos = [$id_proyecto];
+            }
+        } else {
+            //auditoría y scan_bienes
+            $usuario = Auth::user()->name;
+            $id_proyectos = DB::table('inv_ciclos_usuarios')
+                ->where('usuario', $usuario)
+                ->distinct()
+                ->pluck('id_proyecto')
+                ->toArray();
+        }
+
+        if (empty($id_proyectos)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No se encontró proyecto para el usuario'
+            ], 404);
+        }
+
+        $collection = IndiceListaColores::whereIn('idProyecto', $id_proyectos)
+            ->get()
+            ->unique('descripcion')
+            ->values();
+        
         return response()->json($collection, 200);
     }
 
-    public function estadosOperacional(int $cycle)
+    public function estadosOperacional($cycle)
     {
-        $id_proyecto = DB::table('inv_ciclos')
-            ->where('idCiclo', $cycle)
-            ->value('id_proyecto');
+        $id_proyectos = [];
 
-        $collection = IndiceListaOperacional::where('idProyecto', $id_proyecto)->get();
+        if (is_numeric($cycle) && $cycle !== 'NaN') {
+            $cycle = (int)$cycle;
+            $id_proyecto = DB::table('inv_ciclos')
+                ->where('idCiclo', $cycle)
+                ->value('id_proyecto');
+            
+            if ($id_proyecto) {
+                $id_proyectos = [$id_proyecto];
+            }
+        } else {
+            //auditoría y scan_bienes
+            $usuario = Auth::user()->name;
+            $id_proyectos = DB::table('inv_ciclos_usuarios')
+                ->where('usuario', $usuario)
+                ->distinct()
+                ->pluck('id_proyecto')
+                ->toArray();
+        }
+
+        if (empty($id_proyectos)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No se encontró proyecto para el usuario'
+            ], 404);
+        }
+
+        $collection = IndiceListaOperacional::whereIn('idProyecto', $id_proyectos)
+            ->get()
+            ->unique('descripcion')
+            ->values();
+        
         return response()->json($collection, 200);
     }
 
-    public function tipoTrabajo(int $cycle)
+    public function tipoTrabajo($cycle)
     {
-        $id_proyecto = DB::table('inv_ciclos')
-            ->where('idCiclo', $cycle)
-            ->value('id_proyecto');
+        $id_proyectos = [];
 
-        $collection = IndiceListaTipoTrabajo::where('idProyecto', $id_proyecto)->get();
+        if (is_numeric($cycle) && $cycle !== 'NaN') {
+            $cycle = (int)$cycle;
+            $id_proyecto = DB::table('inv_ciclos')
+                ->where('idCiclo', $cycle)
+                ->value('id_proyecto');
+            
+            if ($id_proyecto) {
+                $id_proyectos = [$id_proyecto];
+            }
+        } else {
+            //auditoría y scan_bienes
+            $usuario = Auth::user()->name;
+            $id_proyectos = DB::table('inv_ciclos_usuarios')
+                ->where('usuario', $usuario)
+                ->distinct()
+                ->pluck('id_proyecto')
+                ->toArray();
+        }
+
+        if (empty($id_proyectos)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No se encontró proyecto para el usuario'
+            ], 404);
+        }
+
+        $collection = IndiceListaTipoTrabajo::whereIn('idProyecto', $id_proyectos)
+            ->get()
+            ->unique('descripcion')
+            ->values();
+        
         return response()->json($collection, 200);
     }
 
-    public function cargaTrabajo(int $cycle)
+    public function cargaTrabajo($cycle)
     {
-        $id_proyecto = DB::table('inv_ciclos')
-            ->where('idCiclo', $cycle)
-            ->value('id_proyecto');
+        $id_proyectos = [];
 
-        $collection = IndiceListaCargaTrabajo::where('idProyecto', $id_proyecto)->get();
+        if (is_numeric($cycle) && $cycle !== 'NaN') {
+            $cycle = (int)$cycle;
+            $id_proyecto = DB::table('inv_ciclos')
+                ->where('idCiclo', $cycle)
+                ->value('id_proyecto');
+            
+            if ($id_proyecto) {
+                $id_proyectos = [$id_proyecto];
+            }
+        } else {
+            //auditoría y scan_bienes
+            $usuario = Auth::user()->name;
+            $id_proyectos = DB::table('inv_ciclos_usuarios')
+                ->where('usuario', $usuario)
+                ->distinct()
+                ->pluck('id_proyecto')
+                ->toArray();
+        }
+
+        if (empty($id_proyectos)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No se encontró proyecto para el usuario'
+            ], 404);
+        }
+
+        $collection = IndiceListaCargaTrabajo::whereIn('idProyecto', $id_proyectos)
+            ->get()
+            ->unique('descripcion')
+            ->values();
+        
         return response()->json($collection, 200);
     }
 
-    public function estadoConservacion(int $cycle)
+    public function estadoConservacion($cycle)
     {
-        $id_proyecto = DB::table('inv_ciclos')
-            ->where('idCiclo', $cycle)
-            ->value('id_proyecto');
+        $id_proyectos = [];
 
-        $collection = IndiceListaConservacion::where('idProyecto', $id_proyecto)->get();
+        if (is_numeric($cycle) && $cycle !== 'NaN') {
+            $cycle = (int)$cycle;
+            $id_proyecto = DB::table('inv_ciclos')
+                ->where('idCiclo', $cycle)
+                ->value('id_proyecto');
+            
+            if ($id_proyecto) {
+                $id_proyectos = [$id_proyecto];
+            }
+        } else {
+            //auditoría y scan_bienes
+            $usuario = Auth::user()->name;
+            $id_proyectos = DB::table('inv_ciclos_usuarios')
+                ->where('usuario', $usuario)
+                ->distinct()
+                ->pluck('id_proyecto')
+                ->toArray();
+        }
+
+        if (empty($id_proyectos)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No se encontró proyecto para el usuario'
+            ], 404);
+        }
+
+        $collection = IndiceListaConservacion::whereIn('idProyecto', $id_proyectos)
+            ->get()
+            ->unique('descripcion')
+            ->values();
+        
         return response()->json($collection, 200);
     }
 
-    public function condicionAmbiental(int $cycle)
+    public function condicionAmbiental($cycle)
     {
-        $id_proyecto = DB::table('inv_ciclos')
-            ->where('idCiclo', $cycle)
-            ->value('id_proyecto');
+        $id_proyectos = [];
 
-        $collection = IndiceListaCondicionAmbiental::where('idProyecto', $id_proyecto)->get();
+        if (is_numeric($cycle) && $cycle !== 'NaN') {
+            $cycle = (int)$cycle;
+            $id_proyecto = DB::table('inv_ciclos')
+                ->where('idCiclo', $cycle)
+                ->value('id_proyecto');
+            
+            if ($id_proyecto) {
+                $id_proyectos = [$id_proyecto];
+            }
+        } else {
+            //auditoría y scan_bienes
+            $usuario = Auth::user()->name;
+            $id_proyectos = DB::table('inv_ciclos_usuarios')
+                ->where('usuario', $usuario)
+                ->distinct()
+                ->pluck('id_proyecto')
+                ->toArray();
+        }
+
+        if (empty($id_proyectos)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No se encontró proyecto para el usuario'
+            ], 404);
+        }
+
+        $collection = IndiceListaCondicionAmbiental::whereIn('idProyecto', $id_proyectos)
+            ->get()
+            ->unique('descripcion')
+            ->values();
+        
         return response()->json($collection, 200);
     }
 
-    public function material(int $cycle)
+    public function material($cycle)
     {
-        $id_proyecto = DB::table('inv_ciclos')
-            ->where('idCiclo', $cycle)
-            ->value('id_proyecto');
+        $id_proyectos = [];
 
-        $collection = IndiceListaMaterial::where('idProyecto', $id_proyecto)->get();
+        if (is_numeric($cycle) && $cycle !== 'NaN') {
+            $cycle = (int)$cycle;
+            $id_proyecto = DB::table('inv_ciclos')
+                ->where('idCiclo', $cycle)
+                ->value('id_proyecto');
+            
+            if ($id_proyecto) {
+                $id_proyectos = [$id_proyecto];
+            }
+        } else {
+            //auditoría y scan_bienes
+            $usuario = Auth::user()->name;
+            $id_proyectos = DB::table('inv_ciclos_usuarios')
+                ->where('usuario', $usuario)
+                ->distinct()
+                ->pluck('id_proyecto')
+                ->toArray();
+        }
+
+        if (empty($id_proyectos)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No se encontró proyecto para el usuario'
+            ], 404);
+        }
+
+        $collection = IndiceListaMaterial::whereIn('idProyecto', $id_proyectos)
+            ->get()
+            ->unique('descripcion')
+            ->values();
+        
         return response()->json($collection, 200);
     }
 
@@ -429,13 +680,41 @@ class DatosActivosController extends Controller
      */
 
 
-    public function forma(int $cycle)
+    public function forma($cycle)
     {
-        $id_proyecto = DB::table('inv_ciclos')
-            ->where('idCiclo', $cycle)
-            ->value('id_proyecto');
+        $id_proyectos = [];
 
-        $collection = IndiceListaForma::where('idProyecto', $id_proyecto)->get();
+        if (is_numeric($cycle) && $cycle !== 'NaN') {
+            $cycle = (int)$cycle;
+            $id_proyecto = DB::table('inv_ciclos')
+                ->where('idCiclo', $cycle)
+                ->value('id_proyecto');
+            
+            if ($id_proyecto) {
+                $id_proyectos = [$id_proyecto];
+            }
+        } else {
+            //auditoría y scan_bienes
+            $usuario = Auth::user()->name;
+            $id_proyectos = DB::table('inv_ciclos_usuarios')
+                ->where('usuario', $usuario)
+                ->distinct()
+                ->pluck('id_proyecto')
+                ->toArray();
+        }
+
+        if (empty($id_proyectos)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No se encontró proyecto para el usuario'
+            ], 404);
+        }
+
+        $collection = IndiceListaForma::whereIn('idProyecto', $id_proyectos)
+            ->get()
+            ->unique('descripcion')
+            ->values();
+        
         return response()->json($collection, 200);
     }
 
