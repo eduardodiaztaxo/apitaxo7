@@ -100,6 +100,7 @@ class ZonaEmplazamientosController extends Controller
 
             foreach ($subEmplas as $sub) {
                 $sub->cycle_id = $ciclo;
+                $sub->type_cycle = $cicloObj->idTipoCiclo;
                 $emplazamientos->push($sub);
             }
         }
