@@ -151,7 +151,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('activos/images/etiqueta/{etiqueta}/cycle/{cycleid}/idActivo/{idActivo}', [InventariosController::class, 'getImagesByEtiqueta']);
 
-    Route::post('activos/delete-image/etiqueta/{etiqueta}/id_img/{id_img}/idLista/{idLista}', [InventariosController::class, 'deleteImageByEtiqueta']);
+    Route::post('activos/delete-image/etiqueta/{etiqueta}/id_img/{id_img}/idLista/{idLista}/idActivo/${idActivo}', [InventariosController::class, 'deleteImageByEtiqueta']);
 
     Route::post('inventario/add-image/{etiqueta}', [InventariosController::class, 'addImageByEtiqueta']);
 

@@ -366,9 +366,36 @@ public function getImagesByEtiqueta($etiqueta, $cycleid, $idActivo)
     return response()->json($invImagenes);
 }
 
-    public function deleteImageByEtiqueta($etiqueta, $id_img, $idLista)
+    public function deleteImageByEtiqueta($etiqueta, $id_img, $idLista, $idActivo = null)
     {
-        
+        if (!empty($idActivo)) {
+            $imagen = DB::table('crud_activos_pictures')
+                ->where('id_activo', $idActivo)
+                ->where('id_foto', $idLista)
+                ->first();
+
+            if (!$imagen) {
+                return response()->json([
+                    'status'  => 'ERROR',
+                    'message' => 'Imagen no encontrada en crud_activos_pictures.'
+                ], 404);
+            }
+
+            $filePath = PictureSafinService::getImgSubdir(Auth::user()->nombre_cliente) . '/' . $imagen->picture;
+            if (Storage::disk('taxoImages')->exists($filePath)) {
+                Storage::disk('taxoImages')->delete($filePath);
+            }
+
+            DB::table('crud_activos_pictures')
+                ->where('id_foto', $imagen->id_foto)
+                ->delete();
+
+            return response()->json([
+                'status'  => 'OK',
+                'message' => 'Imagen eliminada con éxito de crud_activos_pictures.'
+            ], 200);
+        }
+
         $imagen = Inv_imagenes::where('etiqueta', $etiqueta)
             ->where('id_img', $id_img)
             ->where('idLista', $idLista)
@@ -377,7 +404,7 @@ public function getImagesByEtiqueta($etiqueta, $cycleid, $idActivo)
         if (!$imagen) {
             return response()->json([
                 'status'  => 'ERROR',
-                'message' => 'Imagen no encontrada.'
+                'message' => 'Imagen no encontrada en inventario.'
             ], 404);
         }
 
@@ -386,12 +413,11 @@ public function getImagesByEtiqueta($etiqueta, $cycleid, $idActivo)
             Storage::disk('taxoImages')->delete($filePath);
         }
 
-        // Eliminar el registro de la base de datos
         $imagen->delete();
 
         return response()->json([
             'status'  => 'OK',
-            'message' => 'Imagen eliminada con éxito.'
+            'message' => 'Imagen eliminada con éxito del inventario.'
         ], 200);
     }
 
@@ -699,26 +725,52 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
     try {
         $origen = 'SAFIN_APP_IMG_NEW';
 
-        // Verificar que la etiqueta exista
-        $existeEtiqueta = DB::table('inv_inventario')->where('etiqueta', $etiqueta)->exists();
-        if (!$existeEtiqueta) {
-            return response()->json([
-                'status'  => 'ERROR',
-                'message' => 'La etiqueta ' . $etiqueta . ' no existe en inventario.',
-            ], 404);
+        $esCrudActivo = empty($request->cycle_id) && !empty($request->idActivo);
+
+        // Validar según el tipo
+        if ($esCrudActivo) {
+            $existeEtiqueta = DB::table('crud_activos')->where('etiqueta', $etiqueta)->exists();
+            if (!$existeEtiqueta) {
+                return response()->json([
+                    'status'  => 'ERROR',
+                    'message' => 'La etiqueta ' . $etiqueta . ' no existe en crud_activos.',
+                ], 404);
+            }
+        } else {
+            $existeEtiqueta = DB::table('inv_inventario')->where('etiqueta', $etiqueta)->exists();
+            if (!$existeEtiqueta) {
+                return response()->json([
+                    'status'  => 'ERROR',
+                    'message' => 'La etiqueta ' . $etiqueta . ' no existe en inventario.',
+                ], 404);
+            }
         }
-
-        $idProyecto = DB::table('inv_ciclos')
-            ->where('idCiclo', $request->cycle_id)
-            ->value('id_proyecto');
-
+        
         $id_img = $request->id_img ?? null;
         $paths = [];
-        $imagenesExistentes = DB::table('inv_imagenes')
-            ->where('etiqueta', $etiqueta)
-            ->count();
+        $idProyecto = null;
 
-        $contador = $imagenesExistentes;
+        if ($esCrudActivo) {
+            $imagenesExistentes = DB::table('crud_activos_pictures')
+                ->where('etiqueta', $etiqueta)
+                ->where('id_activo', $request->idActivo)
+                ->count();
+            
+            $contador = $imagenesExistentes;
+            $idProyecto = '9999'; // Proyecto macro
+
+        } else {
+            // Guardar en inv_imagenes (inventario)
+            $idProyecto = DB::table('inv_ciclos')
+                ->where('idCiclo', $request->cycle_id)
+                ->value('id_proyecto');
+
+            $imagenesExistentes = DB::table('inv_imagenes')
+                ->where('etiqueta', $etiqueta)
+                ->count();
+            
+            $contador = $imagenesExistentes;
+        }
 
         foreach ($request->file('imagenes') as $file) {
             $contador++; 
@@ -734,18 +786,28 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
             $url = Storage::disk('taxoImages')->url($path);
             $url_pict = dirname($url) . '/';
 
-            // Guardar en base de datos
-            $img = new Inv_imagenes();
-            $img->etiqueta     = $etiqueta;
-            $img->id_img       = $id_img;  
-            $img->origen       = $origen;
-            $img->picture      = $filename;
-            $img->created_at   = now();
-            $img->updated_at   = now();
-            $img->url_imagen   = $url;
-            $img->url_picture  = $url_pict;
-            $img->id_proyecto  = $idProyecto;
-            $img->save();
+            if ($esCrudActivo) {
+                DB::table('crud_activos_pictures')->insert([
+                    'id_activo'    => $request->idActivo,
+                    'etiqueta'     => $etiqueta,
+                    'url_picture'  => $url_pict,
+                    'picture'      => $filename,
+                    'origen'       => $origen,
+                    'fecha_update' => now()
+                ]);
+            } else {
+                $img = new Inv_imagenes();
+                $img->etiqueta     = $etiqueta;
+                $img->id_img       = $id_img;  
+                $img->origen       = $origen;
+                $img->picture      = $filename;
+                $img->created_at   = now();
+                $img->updated_at   = now();
+                $img->url_imagen   = $url;
+                $img->url_picture  = $url_pict;
+                $img->id_proyecto  = $idProyecto;
+                $img->save();
+            }
 
             $paths[] = [
                 'id_img'   => $contador,
@@ -760,6 +822,7 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
             'paths'     => $paths,
             'folderUrl' => $paths[0]['url'] ?? null,
             'origen'    => $origen,
+            'tipo'      => $esCrudActivo ? 'crud_activo' : 'inventario',
         ], 201);
 
     } catch (\Exception $e) {
@@ -770,7 +833,6 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         ], 500);
     }
 }
-
 
 
     /**
