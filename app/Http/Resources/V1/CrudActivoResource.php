@@ -68,11 +68,20 @@ class CrudActivoResource extends JsonResource
 
         $activo['depreciable'] = $this->depreciableRelation?->descripcion;
         
-        $activo['fotoUrl'] = null;
+        // Obtener imágenes de crud_activos_pictures
+        $imagenes = DB::table('crud_activos_pictures')
+            ->where('id_activo', $this->idActivo)
+            ->orderByDesc('id_foto')
+            ->select(DB::raw("CONCAT(url_picture, picture) as url_imagen"))
+            ->pluck('url_imagen')
+            ->toArray();
 
-        if ($request->user())
+        $activo['fotoUrl'] = $imagenes[0] ?? null;
+
+        if ($request->user() && !$activo['fotoUrl'])
             $activo['fotoUrl'] = $this->activoService->getUrlAsset($this->resource, $request->user());
 
+        $activo['imagenes'] = $imagenes ?? [];
 
         $ubicacion = $this->ubicacionGeografica()->first();
 
