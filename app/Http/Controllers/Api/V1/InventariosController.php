@@ -751,8 +751,8 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         $idProyecto = null;
 
         if ($esCrudActivo) {
+            // Contar imágenes existentes solo por id_activo
             $imagenesExistentes = DB::table('crud_activos_pictures')
-                ->where('etiqueta', $etiqueta)
                 ->where('id_activo', $request->idActivo)
                 ->count();
             
@@ -789,10 +789,9 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
             if ($esCrudActivo) {
                 DB::table('crud_activos_pictures')->insert([
                     'id_activo'    => $request->idActivo,
-                    'etiqueta'     => $etiqueta,
-                    'url_picture'  => $url_pict,
                     'picture'      => $filename,
                     'origen'       => $origen,
+                    'url_picture'  => $url_pict,
                     'fecha_update' => now()
                 ]);
             } else {
