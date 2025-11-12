@@ -332,8 +332,22 @@ class InventariosController extends Controller
     ], 200);
 }
 
-public function getImagesByEtiqueta($etiqueta, $cycleid)
+public function getImagesByEtiqueta($etiqueta, $cycleid, $idActivo)
 {
+    if (empty($cycleid) && !empty($idActivo)) {
+        $crudImagenes = DB::select("
+            SELECT 
+                id_foto as idLista,
+                id_foto as id_img,
+                '' as etiqueta,
+                CONCAT(url_picture, picture) as url_imagen
+            FROM crud_activos_pictures
+            WHERE id_activo = ?
+        ", [$idActivo]);
+
+        return response()->json($crudImagenes);
+    }
+
     $invImagenes = DB::select("
         SELECT 
             idLista,
