@@ -791,7 +791,8 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
                     'id_activo'    => $request->idActivo,
                     'picture'      => $filename,
                     'origen'       => $origen,
-                    'url_picture'  => $url_pict,
+                    'url_picture'  => $url,
+                    'url_imagen'   => $url_pict,
                     'fecha_update' => now()
                 ]);
             } else {
