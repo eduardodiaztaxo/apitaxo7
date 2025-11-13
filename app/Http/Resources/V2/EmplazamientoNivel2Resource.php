@@ -21,16 +21,23 @@ class EmplazamientoNivel2Resource extends JsonResource
     public function toArray($request)
     {
 
+        $id_proyecto = DB::table('inv_ciclos')
+            ->where('idCiclo', $this->cycle_id)
+            ->value('id_proyecto');
 
-        $num_activos_inv = $this->inv_activos()->count();
+        $num_activos_inv = $this->inv_activos()
+            ->where('inv_inventario.id_proyecto', $id_proyecto)
+            ->count();
 
         $num_activos_N2 = Inventario::where('inv_inventario.idUbicacionN2', $this->idUbicacionN2)
             ->where('inv_inventario.id_ciclo', $this->cycle_id)
+            ->where('inv_inventario.id_proyecto', $id_proyecto)
             ->where('codigoUbicacionN3', '<', 2)
             ->count();
 
         $num_activos_N3 = Inventario::where('inv_inventario.codigoUbicacionN3', 'LIKE', $this->codigoUbicacion . '%')
             ->where('inv_inventario.idUbicacionGeo', $this->idAgenda)
+            ->where('inv_inventario.id_proyecto', $id_proyecto)
             ->where('inv_inventario.id_ciclo', $this->cycle_id)
             ->count();
 

@@ -6,6 +6,7 @@ use App\Http\Resources\V1\UbicacionGeograficaResource;
 use App\Http\Resources\V1\ZonaPuntoResource;
 use App\Models\Inventario;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\DB;
 
 class EmplazamientoNivel3Resource extends JsonResource
 {
@@ -18,8 +19,11 @@ class EmplazamientoNivel3Resource extends JsonResource
     public function toArray($request)
     {
 
+        $id_proyecto = DB::table('inv_ciclos')
+            ->where('idCiclo', $this->cycle_id)
+            ->value('id_proyecto');
 
-        $num_activos_inv = $this->inv_activos()->where('inv_inventario.id_ciclo', $this->cycle_id)->count();
+        $num_activos_inv = $this->inv_activos()->where('inv_inventario.id_ciclo', $this->cycle_id)->where('inv_inventario.id_proyecto', $id_proyecto)->count();
 
         $emplazamiento = [
             'id' => $this->idUbicacionN3,

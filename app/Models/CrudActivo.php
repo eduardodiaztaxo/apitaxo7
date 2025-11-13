@@ -24,21 +24,7 @@ class CrudActivo extends Model
     'observacion',
     'latitud',
     'longitud',
-    'material',
-    'forma',
-    'color',
-    'estadoConservacion',
-    'estadoOperacional',
-    'tipoTrabajo',
-    'cargaTrabajo',
-    'condicionAmbiental',
-    'capacidad',
-    'eficiencia',
-    'texto_abierto_1',
-    'texto_abierto_2',
-    'texto_abierto_3',
-    'texto_abierto_4',
-    'texto_abierto_5',
+    'creado_por',
 ];
 
 
@@ -185,7 +171,8 @@ class CrudActivo extends Model
 
     public function estadoBienRelation()
     {
-        return $this->belongsTo(IndiceLista13::class, 'apoyaBrazosRuedas', 'idLista');
+        return $this->belongsTo(IndiceLista13::class, 'apoyaBrazosRuedas', 'idLista')
+            ->limit(1);  
     }
 
     public function categoria()

@@ -15,7 +15,10 @@ class InventariosResource extends JsonResource
      */
     public function toArray($request)
     {
-        
+         $id_proyecto = DB::table('inv_ciclos')
+            ->where('idCiclo', $this->id_ciclo)
+            ->value('id_proyecto');
+
         $descFamilia = $this->familia?->descripcion_familia ?? 'Sin familia';
 
         $descGrupo = $this->grupo->descripcion_grupo ?? 'Sin grupo';
@@ -48,7 +51,7 @@ class InventariosResource extends JsonResource
 
         $comuna = $comunaObj ? $comunaObj->descripcion : 'No disponible';
 
-        $fotos = $this->imagenes()->get();
+        $fotos = $this->imagenes()->where('id_proyecto', $id_proyecto)->get();
 
         $foto = $fotos->first();
 
@@ -56,7 +59,7 @@ class InventariosResource extends JsonResource
 
         $imagenes = $fotos
             ->sortByDesc('id_img')
-            ->pluck('url_imagen') // devuelve array de strings
+            ->pluck('url_imagen')
             ->toArray();
 
         return [

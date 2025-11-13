@@ -23,6 +23,7 @@ class EmplazamientoN1 extends Model
 
 
     protected $fillable = [
+        'idProyecto',
         'idAgenda',
         'descripcionUbicacion',
         'codigoUbicacion',

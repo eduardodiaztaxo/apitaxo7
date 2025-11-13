@@ -53,7 +53,8 @@ class InventarioDumpService
 
         $this->pdo->exec("
             CREATE TABLE IF NOT EXISTS inventario (
-                id_inventario INTEGER PRIMARY KEY,
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                id_inventario INTEGER,
                 id_grupo INTEGER NOT NULL,
                 id_familia INTEGER NOT NULL,
                 descripcion_bien TEXT,
@@ -117,6 +118,7 @@ class InventarioDumpService
         // Insertar datos
         $stmt = $this->pdo->prepare("
             INSERT INTO inventario (
+                id,
                 id_inventario,
                 id_grupo,
                 id_familia,
@@ -169,7 +171,8 @@ class InventarioDumpService
                 texto_abierto_10
             )
             VALUES (
-                :id_invetario,
+                :id,
+                :id_inventario,
                 :id_grupo,
                 :id_familia,
                 :descripcion_bien,
@@ -225,7 +228,8 @@ class InventarioDumpService
         foreach ($invt as $i) {
 
             $stmt->execute([
-                ':id_invetario' => $i->id_inventario ?? 0,
+                ':id' => $i->id ?? 0,
+                ':id_inventario' => $i->id_inventario ?? 0,
                 ':id_grupo' => $i->id_grupo ?? 0,
                 ':id_familia' => $i->id_familia ?? 0,
                 ':descripcion_bien' => $i->descripcion_bien ?? '',

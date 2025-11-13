@@ -74,9 +74,13 @@ class EmplazamientoController extends Controller
         } else {
             $code = $zonaId . '01';
         }
+   
+        $id_proyecto = DB::table('inv_ciclos')
+            ->where('idCiclo', $request->ciclo_auditoria)
+            ->value('id_proyecto');
 
         $data = [
-            'idProyecto'            => $request->ciclo_auditoria,
+            'idProyecto'            => $id_proyecto,
             'idAgenda'              => $request->agenda_id,
             'descripcionUbicacion'  => $request->descripcion,
             'codigoUbicacion'       => $code,
@@ -141,9 +145,12 @@ class EmplazamientoController extends Controller
         $nuevoSufijo = str_pad(($maxSecuencia + 1), 2, '0', STR_PAD_LEFT);
         $nuevoCodigoUbicacionN3 = $baseCodigo . $nuevoSufijo;
 
+        $id_proyecto = DB::table('inv_ciclos')
+            ->where('idCiclo', $request->ciclo)
+            ->value('id_proyecto');
 
         $data = [
-            'idProyecto'           => $request->ciclo,
+            'idProyecto'           => $id_proyecto,
             'idAgenda'             => $request->agenda_id,
             'descripcionUbicacion' => $request->descripcion,
             'codigoUbicacion'      => $nuevoCodigoUbicacionN3,

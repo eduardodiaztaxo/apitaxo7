@@ -29,8 +29,13 @@ class InventariosOfflineController extends Controller
 
     public function inventarioPorCicloOfflineInventario($ciclo)
     {
+          $id_proyecto = DB::table('inv_ciclos')
+            ->where('idCiclo', $ciclo)
+            ->value('id_proyecto');
+
         $collection = DB::table('inv_inventario')
             ->where('id_ciclo', $ciclo)
+            ->where('id_proyecto', $id_proyecto)
             ->get();
 
         return response()->json($collection, 200);
@@ -45,6 +50,9 @@ class InventariosOfflineController extends Controller
 
     public function familia(int $ciclo, array $codigo_grupos)
     {
+           $id_proyecto = DB::table('inv_ciclos')
+            ->where('idCiclo', $ciclo)
+            ->value('id_proyecto');
 
         if (count($codigo_grupos) === 1 && is_string($codigo_grupos[0])) {
             $codigo_grupos = explode(',', $codigo_grupos[0]);
@@ -68,11 +76,12 @@ class InventariosOfflineController extends Controller
             AND inv_ciclos_categorias.id_grupo = dp_familias.id_grupo
             AND inv_ciclos_categorias.idCiclo = ?
             AND inv_ciclos_categorias.id_grupo IN ($placeholders)
+            AND inv_ciclos_categorias.id_proyecto = ?
         WHERE IFNULL(inv_ciclos_categorias.id_familia, '0') <> '0'
         ORDER BY dp_grupos.descripcion_grupo, dp_familias.descripcion_familia
     ";
 
-        $params = array_merge([$ciclo], $codigo_grupos);
+        $params = array_merge([$ciclo], $codigo_grupos, [$id_proyecto]);
 
         $idsFamilia = DB::select($sql, $params);
 
@@ -105,8 +114,12 @@ class InventariosOfflineController extends Controller
         return response()->json($ComunasObj, 200);
     }
 
-    public function showNameInput()
+    public function showNameInput(int $ciclo)
     {
+
+        $id_proyecto = DB::table('inv_ciclos')
+            ->where('idCiclo', $ciclo)
+            ->value('id_proyecto');
 
         $atributosObj = collect(DB::select("
      SELECT 
@@ -117,6 +130,7 @@ class InventariosOfflineController extends Controller
         INNER JOIN inv_tipos_atributos as t
         WHERE iv.id_atributo IN (27,28,29,30,31)
         AND iv.id_atributo = t.id_atributo
+        AND iv.id_proyecto = $id_proyecto
 "));
 
         if ($atributosObj->isEmpty()) {
@@ -128,7 +142,11 @@ class InventariosOfflineController extends Controller
 
     public function CycleCatsNivel3($ciclo)
     {
-        $zonaObjs = EmplazamientoN3::all();
+           $id_proyecto = DB::table('inv_ciclos')
+            ->where('idCiclo', $ciclo)
+            ->value('id_proyecto');
+
+        $zonaObjs = EmplazamientoN3::where('idProyecto', $id_proyecto)->get();
 
         if ($zonaObjs->isEmpty()) {
             return response()->json([
@@ -157,8 +175,8 @@ class InventariosOfflineController extends Controller
 
 
             $subEmplas = empty($emplaCats)
-                ? $zonaObj->subemplazamientosNivel3()->get()
-                : $zonaObj->subemplazamientosNivel3()->whereIn('idUbicacionN3', $emplaCats)->get();
+                ? $zonaObj->subemplazamientosNivel3()->where('idProyecto', $id_proyecto)->get()
+                : $zonaObj->subemplazamientosNivel3()->where('idProyecto', $id_proyecto)->whereIn('idUbicacionN3', $emplaCats)->get();
 
             foreach ($subEmplas as $sub) {
                 $sub->cycle_id = $ciclo;
@@ -173,7 +191,11 @@ class InventariosOfflineController extends Controller
 
     public function CycleCatsNivel1($ciclo)
     {
-        $zonaObjs = EmplazamientoN1::all();
+        $id_proyecto = DB::table('inv_ciclos')
+            ->where('idCiclo', $ciclo)
+            ->value('id_proyecto');
+
+        $zonaObjs = EmplazamientoN1::where('idProyecto', $id_proyecto)->get();
 
         if ($zonaObjs->isEmpty()) {
             return response()->json([
@@ -200,8 +222,8 @@ class InventariosOfflineController extends Controller
             $emplaCats = $cicloObj->EmplazamientosWithCatsN1($zonaObj)->pluck('idUbicacionN1')->toArray();
 
             $subEmplas = empty($emplaCats)
-                ? $zonaObj->zoneEmplazamientosN1()->get()
-                : $zonaObj->zoneEmplazamientosN1()->whereIn('idUbicacionN1', $emplaCats)->get();
+                ? $zonaObj->zoneEmplazamientosN1()->where('idProyecto', $id_proyecto)->get()
+                : $zonaObj->zoneEmplazamientosN1()->where('idProyecto', $id_proyecto)->whereIn('idUbicacionN1', $emplaCats)->get();
 
             foreach ($subEmplas as $sub) {
                 $sub->cycle_id = $ciclo;
@@ -217,31 +239,79 @@ class InventariosOfflineController extends Controller
 
     public function MarcasPorCicloOfflineInventario($ciclo)
     {
-        $marcas = DB::table('inv_marcas_nuevos')
-            ->where('ciclo_inventario', $ciclo)
-            ->get();
+        try {
+            $id_proyecto = DB::table('inv_ciclos')
+                ->where('idCiclo', $ciclo)
+                ->value('id_proyecto');
 
-        $indices = DB::table('indices_listas')
-            ->where('idAtributo', 2)
-            ->get();
+         
+            $tableExists = DB::select("SHOW TABLES LIKE 'inv_marcas_nuevos'");
+            
+            $marcas = collect();
+            if (!empty($tableExists)) {
+                $marcas = DB::table('inv_marcas_nuevos')
+                    ->where('id_proyecto', $id_proyecto)
+                    ->where('ciclo_inventario', $ciclo)
+                    ->get();
+            }
 
-        $resultado = $marcas->concat($indices);
-        return response()->json($resultado, 200);
+            $indices = DB::table('indices_listas')
+                ->where('idProyecto', $id_proyecto)
+                ->where('idAtributo', 2)
+                ->get();
+
+            $resultado = $marcas->concat($indices);
+            return response()->json($resultado, 200);
+        } catch (\Exception $e) {
+            
+            $id_proyecto = DB::table('inv_ciclos')
+                ->where('idCiclo', $ciclo)
+                ->value('id_proyecto');
+
+            $indices = DB::table('indices_listas')
+                ->where('idProyecto', $id_proyecto)
+                ->where('idAtributo', 2)
+                ->get();
+
+            return response()->json($indices, 200);
+        }
     }
 
     public function MarcasNuevasOfflineInventario($ciclo)
     {
-        $marcas = DB::table('inv_marcas_nuevos')
-            ->where('ciclo_inventario', $ciclo)
-            ->get();
+        try {
+            $id_proyecto = DB::table('inv_ciclos')
+                ->where('idCiclo', $ciclo)
+                ->value('id_proyecto');
 
+            // Check if table exists first
+            $tableExists = DB::select("SHOW TABLES LIKE 'inv_marcas_nuevos'");
+            
+            if (empty($tableExists)) {
+                return response()->json([], 200);
+            }
 
-        return response()->json($marcas, 200);
+            $marcas = DB::table('inv_marcas_nuevos')
+                ->where('ciclo_inventario', $ciclo)
+                ->where('idProyecto', $id_proyecto)
+                ->get();
+
+            return response()->json($marcas, 200);
+        } catch (\Exception $e) {
+            // Return empty array if table doesn't exist or any other error
+            return response()->json([], 200);
+        }
     }
 
     public function BienesNuevosOfflineInventario($ciclo)
     {
+
+        $id_proyecto = DB::table('inv_ciclos')
+            ->where('idCiclo', $ciclo)
+            ->value('id_proyecto');
+
         $bienes = DB::table('inv_bienes_nuevos')
+            ->where('idProyecto', $id_proyecto)
             ->where('ciclo_inventario', $ciclo)
             ->get();
 
@@ -297,8 +367,12 @@ LEFT JOIN (
     }
 
 
-    public function configuracionOffline(array $codigo_grupos)
+    public function configuracionOffline(array $codigo_grupos, $cycleid)
     {
+        $id_proyecto = DB::table('inv_ciclos')
+            ->where('idCiclo', $cycleid)
+            ->value('id_proyecto');
+
         if (count($codigo_grupos) === 1 && is_string($codigo_grupos[0])) {
             $codigo_grupos = explode(',', $codigo_grupos[0]);
             $codigo_grupos = array_map('intval', $codigo_grupos);
@@ -430,13 +504,14 @@ LEFT JOIN (
 
                         
                     FROM inv_atributos 
-                    WHERE id_grupo = ?";
+                    WHERE id_grupo = ?
+                    AND id_proyecto = ?";
 
-            $resultado = DB::select($sql, [$id_grupo, $id_grupo]);
+            $resultado = DB::select($sql, [$id_grupo, $id_grupo, $id_proyecto]);
 
             if (!empty($resultado)) {
 
-                $inputs_map = InvConfigService::getOpenedTextConfigInput((int)$id_grupo);
+                $inputs_map = InvConfigService::getOpenedTextConfigInput((int)$id_grupo, (int)$id_proyecto);
 
                 $resultado[0]->custom_fields = json_encode($inputs_map);
 

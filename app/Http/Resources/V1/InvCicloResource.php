@@ -38,6 +38,7 @@ class InvCicloResource extends JsonResource
        
         return [
             'idCiclo'           => $this->idCiclo,
+            'id_proyecto'       => $this->id_proyecto,
             'status'            => $this->estadoCiclo,
             'tipoCiclo'         => $this->idTipoCiclo,
             'status_name'       => $estadoDescripcion ?? 'Desconocido',

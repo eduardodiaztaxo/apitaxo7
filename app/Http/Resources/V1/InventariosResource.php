@@ -50,7 +50,6 @@ class InventariosResource extends JsonResource
             return [];
         }
 
-        // Descripciones de grupo y familia
         $descFamilia = DB::table('dp_familias')
             ->where('id_familia', $activo->id_familia)
             ->value('descripcion_familia');
@@ -59,7 +58,6 @@ class InventariosResource extends JsonResource
             ->where('id_grupo', $activo->id_grupo)
             ->value('descripcion_grupo');
 
-        // Estado del bien
         $estadoBien = DB::table('indices_listas_13')
             ->where('idLista', $activo->estado)
             ->value('descripcion');
@@ -83,14 +81,12 @@ class InventariosResource extends JsonResource
             ?? $activo->codigoUbicacionN3
             ?? '';
 
-        // Buscar emplazamiento N1
         $emplazamiento = DB::table('ubicaciones_n1')
             ->where('codigoUbicacion', 'like', '%' . $codigoUbicacionN1 . '%')
             ->where('idAgenda', $activo->idUbicacionGeo)
             ->select('idUbicacionN1', 'descripcionUbicacion', 'codigoUbicacion')
             ->first();
 
-        // Determinar ID y código final de ubicación
         $idFinal = 0;
         $codigoUbicacionFinal = '';
 
@@ -102,7 +98,6 @@ class InventariosResource extends JsonResource
             $codigoUbicacionFinal = $emplazamiento->codigoUbicacion ?? '';
         }
 
-        // Dirección geográfica
         $direccion = DB::table('ubicaciones_geograficas')
             ->where('idUbicacionGeo', $activo->idUbicacionGeo)
             ->select('direccion', 'region', 'comuna')
@@ -112,7 +107,6 @@ class InventariosResource extends JsonResource
             return [];
         }
 
-        // Región y comuna
         $region = DB::table('regiones')
             ->where('idRegion', $direccion->region)
             ->value('descripcion');
@@ -121,7 +115,6 @@ class InventariosResource extends JsonResource
             ->where('idComuna', $direccion->comuna)
             ->value('descripcion');
 
-        // Imágenes
         $imagenes = DB::table('inv_imagenes')
             ->where('etiqueta', $activo->etiqueta)
             ->orderByDesc('id_img')
@@ -130,7 +123,6 @@ class InventariosResource extends JsonResource
 
         $fotoUrl = $imagenes[0] ?? asset('img/notavailable.jpg');
 
-        // Retornar todo el recurso como arreglo
         return [
             'id_inventario'        => $activo->id_inventario,
             'cicle_id'             => $activo->id_ciclo,

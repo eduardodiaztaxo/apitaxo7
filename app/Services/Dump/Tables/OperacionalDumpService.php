@@ -15,11 +15,13 @@ class OperacionalDumpService implements DumpSQLiteInterface
      * @var \PDO|null PDO connection instance
      */
     protected $pdo = null;
+    protected $cycle = 0;
 
 
- public function __construct(PDO $pdo)
+ public function __construct(PDO $pdo, int $cycle = 0)
 {
     $this->pdo = $pdo;
+    $this->cycle = $cycle;
 
 }
     /**
@@ -39,7 +41,7 @@ class OperacionalDumpService implements DumpSQLiteInterface
 
         $datsdActivosCtrl = new DatosActivosController();
 
-       $response = $datsdActivosCtrl->estadosOperacional();
+       $response = $datsdActivosCtrl->estadosOperacional($this->cycle);
 
         $jsonContent = $response->getContent();
 

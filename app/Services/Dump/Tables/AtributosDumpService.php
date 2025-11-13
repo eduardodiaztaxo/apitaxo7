@@ -16,13 +16,12 @@ class AtributosDumpService implements DumpSQLiteInterface
      * @var \PDO|null PDO connection instance
      */
     protected $pdo = null;
+    protected $cycle = 0;
 
-
-
-
-    public function __construct(PDO $pdo)
+    public function __construct(PDO $pdo, int $cycle = 0)
     {
         $this->pdo = $pdo;
+        $this->cycle = $cycle;
 
     }
 
@@ -43,7 +42,7 @@ class AtributosDumpService implements DumpSQLiteInterface
 
         $zonasEmplaCtrl = new InventariosOfflineController();
 
-        $response = $zonasEmplaCtrl->showNameInput();
+        $response = $zonasEmplaCtrl->showNameInput($this->cycle);
 
         $jsonContent = $response->getContent();
 

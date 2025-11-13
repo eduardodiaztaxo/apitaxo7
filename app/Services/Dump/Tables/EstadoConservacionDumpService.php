@@ -15,11 +15,13 @@ class EstadoConservacionDumpService implements DumpSQLiteInterface
      * @var \PDO|null PDO connection instance
      */
     protected $pdo = null;
+    protected $cycle = 0;
 
 
- public function __construct(PDO $pdo)
-{
-    $this->pdo = $pdo;
+    public function __construct(PDO $pdo, int $cycle = 0)
+    {
+        $this->pdo = $pdo;
+        $this->cycle = $cycle;
 
 }
     /**
@@ -39,7 +41,7 @@ class EstadoConservacionDumpService implements DumpSQLiteInterface
 
         $datsdActivosCtrl = new DatosActivosController();
 
-       $response = $datsdActivosCtrl->estadoConservacion();
+       $response = $datsdActivosCtrl->estadoConservacion($this->cycle);
 
         $jsonContent = $response->getContent();
 

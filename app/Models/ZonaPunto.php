@@ -22,6 +22,7 @@ class ZonaPunto extends Model
 
 
     protected $fillable = [
+        'idProyecto',
         'idAgenda',
         'descripcionUbicacion',
         'codigoUbicacion',

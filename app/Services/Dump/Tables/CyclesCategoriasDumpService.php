@@ -4,6 +4,7 @@ namespace App\Services\Dump\Tables;
 
 use App\Services\Dump\Tables\DumpSQLiteInterface;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\DB;
 use PDO;
 
 class CyclesCategoriasDumpService implements DumpSQLiteInterface
@@ -35,7 +36,12 @@ class CyclesCategoriasDumpService implements DumpSQLiteInterface
     {
         $this->createTable();
 
-        $categorias = \App\Models\Inv_ciclos_categorias::where('idCiclo', $this->cycle)->get();
+
+    $id_proyecto = DB::table('inv_ciclos')
+        ->where('idCiclo', $this->cycle)
+        ->value('id_proyecto');
+
+        $categorias = \App\Models\Inv_ciclos_categorias::where('idCiclo', $this->cycle)->where('id_proyecto', $id_proyecto)->get();
 
         $this->insert($categorias->toArray());
     }
@@ -48,6 +54,7 @@ class CyclesCategoriasDumpService implements DumpSQLiteInterface
         $this->pdo->exec("
             CREATE TABLE IF NOT EXISTS ciclos_categorias (
                 idCiclo INTEGER,
+                id_proyecto INTEGER,
                 categoria1 TEXT,
                 categoria2 TEXT,
                 categoria3 TEXT,
@@ -68,8 +75,9 @@ class CyclesCategoriasDumpService implements DumpSQLiteInterface
     public function insert(array|AnonymousResourceCollection $categorias): void
     {
         $stmt = $this->pdo->prepare("
-            INSERT INTO ciclos_categorias (
+            INSERT OR REPLACE INTO ciclos_categorias (
                 idCiclo,
+                id_proyecto,
                 categoria1,
                 categoria2,
                 categoria3,
@@ -79,6 +87,7 @@ class CyclesCategoriasDumpService implements DumpSQLiteInterface
                 id_familia
             ) VALUES (
                 :idCiclo,
+                :id_proyecto,
                 :categoria1,
                 :categoria2,
                 :categoria3,
@@ -96,6 +105,7 @@ class CyclesCategoriasDumpService implements DumpSQLiteInterface
 
             $stmt->execute([
                 ':idCiclo'         => $c->idCiclo ?? null,
+                ':id_proyecto'     => $c->id_proyecto ?? null,
                 ':categoria1'      => $c->categoria1 ?? null,
                 ':categoria2'      => $c->categoria2 ?? null,
                 ':categoria3'      => $c->categoria3 ?? null,

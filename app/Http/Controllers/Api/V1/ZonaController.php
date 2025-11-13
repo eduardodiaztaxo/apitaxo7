@@ -11,6 +11,7 @@ use App\Http\Resources\V1\UbicacionGeograficaResource;
 use App\Models\ZonaPunto;
 use App\Services\PlaceService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ZonaController extends Controller
 {
@@ -56,8 +57,12 @@ class ZonaController extends Controller
         $cicloAuditoria = $request->ciclo_auditoria;
         $code = $placeService->getNewZoneCode($punto);
 
+        $id_proyecto = DB::table('inv_ciclos')
+        ->where('idCiclo', $request->ciclo_auditoria)
+        ->value('id_proyecto');
+
         $data = [
-            'idProyecto'            => $request->ciclo_auditoria,
+            'idProyecto'            => $id_proyecto,
             'idAgenda'              => $request->punto_id,
             'descripcionUbicacion'  => $request->descripcion,
             'codigoUbicacion'       => $code,

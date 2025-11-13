@@ -493,7 +493,7 @@ LEFT JOIN (
     public function bienesGrupoFamiliaByCycle()
     {
         $sql =
-            "(
+            "
 
             SELECT 
                 dp_grupos.descripcion_grupo AS descripcion_grupo,
@@ -521,10 +521,11 @@ LEFT JOIN (
             LEFT JOIN inv_ciclos_categorias 
                 ON inv_ciclos_categorias.id_familia = dp_familias.id_familia
             AND inv_ciclos_categorias.id_grupo = dp_familias.id_grupo
-            AND inv_ciclos_categorias.idCiclo = $this->idCiclo 
+            AND inv_ciclos_categorias.idCiclo = ? 
             INNER JOIN inv_bienes_nuevos 
                 ON dp_familias.id_familia = inv_bienes_nuevos.id_familia
                 AND inv_bienes_nuevos.idAtributo = 1
+                AND inv_bienes_nuevos.idProyecto = ?
             WHERE IFNULL(inv_ciclos_categorias.id_familia, '0') <> '0'
         
         
@@ -558,17 +559,17 @@ LEFT JOIN (
             LEFT JOIN inv_ciclos_categorias 
                 ON inv_ciclos_categorias.id_familia = dp_familias.id_familia
             AND inv_ciclos_categorias.id_grupo = dp_familias.id_grupo
-            AND inv_ciclos_categorias.idCiclo = $this->idCiclo 
+            AND inv_ciclos_categorias.idCiclo = ? 
             INNER JOIN indices_listas 
                 ON dp_familias.id_familia = indices_listas.id_familia
                 AND indices_listas.idAtributo = 1
+                AND indices_listas.idProyecto = ?
             WHERE IFNULL(inv_ciclos_categorias.id_familia, '0') <> '0'
-        
-        ) AS bienes_grupos_familia_by_cycle
         
         ";
 
-        return DB::table(DB::raw($sql));
+        return DB::table(DB::raw("($sql) as bienes_grupos_familia_by_cycle"))
+            ->addBinding([$this->idCiclo, $this->id_proyecto, $this->idCiclo, $this->id_proyecto]);
     }
 
 
