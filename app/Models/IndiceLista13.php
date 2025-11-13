@@ -9,5 +9,5 @@ class IndiceLista13 extends Model
 {
     use HasFactory;
 
-    protected $table = 'indices_listas_13';
+    protected $table = 'ind_list_estado';
 }

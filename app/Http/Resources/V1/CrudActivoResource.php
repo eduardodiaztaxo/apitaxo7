@@ -60,7 +60,7 @@ class CrudActivoResource extends JsonResource
 
         $activo['responsable'] = $this->responsable ? $this->responsable->name : null;
 
-        $activo['creado_por'] = $this->creado_por ? $this->creado_por : null;
+        $activo['creado_por'] = $this->responsable ? $this->responsable->name : null;
 
         $activo['organica_n1'] = $this->zona;
 

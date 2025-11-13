@@ -117,7 +117,8 @@ class CrudActivo extends Model
         {
             return $this->belongsTo(IndiceLista::class, 'marca', 'idLista')
                 ->where('idAtributo', 2)
-                ->where('id_familia', $this->id_familia);
+                ->where('id_familia', $this->id_familia)
+                ->where('idProyecto', $this->id_proyecto);
         }
 
     public function modeloRelation()
@@ -171,7 +172,8 @@ class CrudActivo extends Model
 
     public function estadoBienRelation()
     {
-        return $this->belongsTo(IndiceLista13::class, 'apoyaBrazosRuedas', 'idLista');
+        return $this->belongsTo(IndiceLista13::class, 'apoyaBrazosRuedas', 'idLista')
+            ->where('idProyecto', $this->id_proyecto);  
     }
 
     public function categoria()
