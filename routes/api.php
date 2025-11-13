@@ -159,7 +159,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::put('inventario/ajustar-coordenadas/etiqueta/{etiqueta}', [InventariosController::class, 'updateAdjustCoordinatesInventory']);
 
-    Route::put('inventario/ajustar-coordenadas-debug-data/etiqueta/{etiqueta}', [InventariosController::class, 'updateAdjustCoordinatesInventoryDebugData']);
+    Route::put('inventario/{ciclo}/ajustar-coordenadas-debug-data/etiqueta/{etiqueta}', [InventariosController::class, 'updateAdjustCoordinatesInventoryDebugData']);
 
     Route::get('nombre-inputs', [InventariosController::class, 'nombreInputs']);
 
@@ -201,7 +201,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('regiones', [ZonaEmplazamientosController::class, 'regiones']);
 
     Route::get('comunas/{idRegion}', [ZonaEmplazamientosController::class, 'comunas']);
-   
+
     Route::get('ciclos/{ciclo}/zones/{zona}/emplazamientos/{agenda_id}', [ZonaEmplazamientosController::class, 'showByCycleCats']);
 
     Route::get('ciclos/{ciclo}/zones/{zona}/Subemplazamientos/{agenda_id}', [ZonaEmplazamientosController::class, 'CycleCatsNivel3']);

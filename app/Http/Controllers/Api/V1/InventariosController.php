@@ -440,7 +440,7 @@ class InventariosController extends Controller
         ]);
     }
 
-    public function updateAdjustCoordinatesInventoryDebugData(Request $request, $etiqueta)
+    public function updateAdjustCoordinatesInventoryDebugData(Request $request, $ciclo, $etiqueta)
     {
         $validator = Validator::make($request->all(), [
             'adjusted_lat' => 'required|numeric',
@@ -455,7 +455,17 @@ class InventariosController extends Controller
             ], 422);
         }
 
-        $invObj = Inventario::where('etiqueta', $etiqueta)->first();
+
+        $cycleObj = InvCiclo::find($ciclo);
+
+        if (!$cycleObj) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Cycle Not Found'
+            ], 404);
+        }
+
+        $invObj = Inventario::where('etiqueta', $etiqueta)->where('id_proyecto', $cycleObj->id_proyecto)->first();
 
         if (!$invObj) {
             return response()->json([
@@ -1728,7 +1738,7 @@ class InventariosController extends Controller
         }
 
         //
-        $activo = Inventario::where('etiqueta', '=', $etiqueta)->first();
+        $activo = Inventario::where('etiqueta', '=', $etiqueta)->where('id_proyecto', '=', $cicloObj->id_proyecto)->first();
 
 
         if (!$activo) {
