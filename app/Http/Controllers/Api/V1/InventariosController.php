@@ -716,6 +716,7 @@ public function getImagesByEtiqueta($etiqueta, $cycleid, $idActivo)
         return response()->json(['status' => 'OK', 'data' => $data]);
     }
 
+
 public function addImageByEtiqueta(Request $request, $etiqueta)
 {
     $request->validate([
@@ -751,13 +752,16 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         $idProyecto = null;
 
         if ($esCrudActivo) {
-            // Contar imágenes existentes solo por id_activo
-            $imagenesExistentes = DB::table('crud_activos_pictures')
-                ->where('id_activo', $request->idActivo)
-                ->count();
-            
-            $contador = $imagenesExistentes;
             $idProyecto = '9999'; // Proyecto macro
+
+            // Obtener el número máximo usado en los nombres de archivo
+            $maxNumero = DB::table('crud_activos_pictures')
+                ->where('id_activo', $request->idActivo)
+                ->selectRaw("MAX(CAST(SUBSTRING_INDEX(picture, '_', -1) AS UNSIGNED)) as max_num")
+                ->value('max_num');
+            
+            // Si no hay imágenes, empezar desde 0, sino desde el máximo encontrado
+            $contador = $maxNumero ?? 0;
 
         } else {
             // Guardar en inv_imagenes (inventario)
@@ -765,11 +769,13 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
                 ->where('idCiclo', $request->cycle_id)
                 ->value('id_proyecto');
 
-            $imagenesExistentes = DB::table('inv_imagenes')
+            // Obtener el número máximo usado en los nombres de archivo
+            $maxNumero = DB::table('inv_imagenes')
                 ->where('etiqueta', $etiqueta)
-                ->count();
+                ->selectRaw("MAX(CAST(REPLACE(SUBSTRING_INDEX(picture, '_', -1), '.jpg', '') AS UNSIGNED)) as max_num")
+                ->value('max_num');
             
-            $contador = $imagenesExistentes;
+            $contador = $maxNumero ?? 0;
         }
 
         foreach ($request->file('imagenes') as $file) {
