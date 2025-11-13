@@ -82,22 +82,6 @@ class CrudActivoController extends Controller
 
     public function showActivos($etiqueta)
     {
-        // Consulta en inv_inventario
-        $sql1 = "
-        SELECT 
-            inv.*, 
-            grupos.descripcion_grupo, 
-            familias.descripcion_familia
-        FROM inv_inventario AS inv
-        LEFT JOIN dp_grupos AS grupos ON inv.id_grupo = grupos.id_grupo
-        LEFT JOIN dp_familias AS familias ON inv.id_familia = familias.id_familia
-        WHERE inv.etiqueta = ?
-    ";
-
-        $data = DB::select($sql1, [$etiqueta]);
-
-        //consulta en crud_activos
-        if (empty($data)) {
             $sql2 = "
             SELECT 
                 crud.*, 
@@ -110,7 +94,7 @@ class CrudActivoController extends Controller
         ";
 
             $data = DB::select($sql2, [$etiqueta]);
-        }
+        
 
         return response()->json($data, 200);
     }
