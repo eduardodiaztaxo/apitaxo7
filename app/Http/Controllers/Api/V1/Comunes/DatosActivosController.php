@@ -59,10 +59,10 @@ class DatosActivosController extends Controller
         } else {
             //auditoría y scan_bienes
             $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('inv_ciclos_usuarios')
-                ->where('usuario', $usuario)
+            $id_proyectos = DB::table('sec_user_proyectos')
+                ->where('login', $usuario)
                 ->distinct()
-                ->pluck('id_proyecto')
+                ->pluck('idProyecto')
                 ->toArray();
         }
 
@@ -371,10 +371,10 @@ class DatosActivosController extends Controller
         } else {
             //auditoria y scan_bienes
             $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('inv_ciclos_usuarios')
-                ->where('usuario', $usuario)
+            $id_proyectos = DB::table('sec_user_proyectos')
+                ->where('login', $usuario)
                 ->distinct()
-                ->pluck('id_proyecto')
+                ->pluck('idProyecto')
                 ->toArray();
         }
 
