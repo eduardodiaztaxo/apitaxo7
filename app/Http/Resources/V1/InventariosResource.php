@@ -38,6 +38,8 @@ class InventariosResource extends JsonResource
                 'id_img',
                 'latitud',
                 'longitud',
+                'adjusted_lat',
+                'adjusted_lng',
                 'creado_el',
                 'precision_geo',
                 'calidad_geo'
@@ -73,7 +75,7 @@ class InventariosResource extends JsonResource
                 ->select('idUbicacionN2', 'descripcionUbicacion', 'codigoUbicacion')
                 ->first();
         }
-        
+
         $codigoUbicacionN1 = $activo->codigoUbicacion_N1
             ?? $activo->codigoUbicacion_N2
             ?? $activo->codigoUbicacionN3
@@ -126,7 +128,9 @@ class InventariosResource extends JsonResource
             'cicle_id'             => $activo->id_ciclo,
             'nombreActivo'         => $activo->descripcion_bien,
             'descripcionCategoria' => $descFamilia ?? 'Desconocida',
+            'descripcion_familia'  => $descFamilia ?? 'Desconocida',
             'descripcionGrupo'     => $descGrupo ?? 'Sin Registros',
+            'descripcion_grupo'    => $descGrupo ?? 'Sin Registros',
             'marca'                => $activo->descripcion_marca ?: 'Sin Registros',
             'modelo'               => $activo->modelo ?: 'Sin Registros',
             'serie'                => $activo->serie ?: 'Sin Registros',
@@ -138,6 +142,8 @@ class InventariosResource extends JsonResource
             'update_inv'           => $activo->update_inv,
             'latitud'              => $activo->latitud,
             'longitud'             => $activo->longitud,
+            'adjusted_lat'         => $activo->adjusted_lat,
+            'adjusted_lng'         => $activo->adjusted_lng,
             'accuracyStr'          => $activo->precision_geo,
             'calidadGeo'           => $activo->calidad_geo,
             'fotoUrl'              => $fotoUrl,
