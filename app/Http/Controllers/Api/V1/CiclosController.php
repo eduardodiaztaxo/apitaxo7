@@ -33,8 +33,13 @@ class CiclosController extends Controller
 
 
         //solo aceptar en ejecucion
-        $inventarios = InvCiclo::where('estadoCiclo', '=', 1)->whereIn('idCiclo', $ciclos_ids->toArray())->get();
-        // $inventarios = InvCiclo::where('estadoCiclo', '<>', 3)->whereIn('idCiclo', $ciclos_ids->toArray())->get();
+        $invQueryBuilder = InvCiclo::where('estadoCiclo', '=', 1)->whereIn('idCiclo', $ciclos_ids->toArray());
+
+        if ($request->type) {
+            $invQueryBuilder = $invQueryBuilder->where('idTipoCiclo', $request->type);
+        }
+
+        $inventarios = $invQueryBuilder->get();
 
         return InvCicloResource::collection($inventarios);
     }
