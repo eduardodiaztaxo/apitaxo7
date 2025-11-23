@@ -197,6 +197,20 @@ class CiclosUbicacionesController extends Controller
 
         $queryBuilder = Inventario::queryBuilderInventory_FindInGroupFamily_Pagination($addressObj, $cicloObj, $request);
 
+        if ($request->adjusted_geo || $request->adjusted_geo == 0) {
+            if ($request->adjusted_geo == 0) {
+
+                $queryBuilder->where(function ($query) {
+                    $query->whereNull('inv_inventario.adjusted_lat')->orWhereNull('inv_inventario.adjusted_lng');
+                });
+            } else if ($request->adjusted_geo == 1) {
+
+                $queryBuilder->where(function ($query) {
+                    $query->whereNotNull('inv_inventario.adjusted_lat')->whereNotNull('inv_inventario.adjusted_lng');
+                });
+            }
+        }
+
         $assets = $queryBuilder->get();
 
         //

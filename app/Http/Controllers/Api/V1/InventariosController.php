@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Inv_imagenes;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\V1\InventariosResource;
 use App\Models\CrudActivo;
 use App\Models\InvCiclo;
 use App\Models\UbicacionGeografica;
@@ -225,17 +226,17 @@ class InventariosController extends Controller
     }
 
 
-   public function updateinventario(Request $request)
-{
-    $request->validate([
-        'id_grupo'   => 'required|integer',
-        'id_familia' => 'required|integer',
-        'etiqueta'   => 'required|string',
-        'id_ciclo'   => 'required|integer|exists:inv_ciclos,idCiclo',
-    ]);
+    public function updateinventario(Request $request)
+    {
+        $request->validate([
+            'id_grupo'   => 'required|integer',
+            'id_familia' => 'required|integer',
+            'etiqueta'   => 'required|string',
+            'id_ciclo'   => 'required|integer|exists:inv_ciclos,idCiclo',
+        ]);
 
-    $etiquetaOriginal = $request->etiqueta_original_editar;
-    $etiquetaNueva = $request->etiqueta;
+        $etiquetaOriginal = $request->etiqueta_original_editar;
+        $etiquetaNueva = $request->etiqueta;
 
     $id_proyecto = DB::table('inv_ciclos')
         ->where('idCiclo', $request->id_ciclo)
@@ -322,49 +323,195 @@ class InventariosController extends Controller
 
     $inventarioActualizado = Inventario::where('etiqueta', $etiquetaNueva)->where('id_proyecto', $id_proyecto)->first();
 
-    if ($inventarioActualizado) {
-        $inventarioActualizado->fillCodeAndIDSEmplazamientos();
+
+        if (intval($request->padre) === 1) {
+            $etiquetaPadre = $request->etiqueta;
+        } elseif (intval($request->padre) === 2) {
+            $etiquetaPadre = $request->etiqueta_padre;
+        }
+
+        $estadoBien = $request->actualizarBien > 0 ? 3 : 0;
+        $usuario = Auth::user()->name;
+
+        $inv_arr = [
+            'id_grupo'            => $request->id_grupo,
+            'id_familia'          => $request->id_familia,
+            'descripcion_bien'    => $request->descripcion_bien,
+            'id_marca'            => $request->id_marca,
+            'descripcion_marca'   => $request->descripcion_marca,
+            'modelo'              => $request->modelo,
+            'serie'               => $request->serie,
+            'idForma'             => intval($request->idForma ?? null),
+            'idMaterial'          => intval($request->idMaterial ?? null),
+            'latitud'             => $request->latitud ?? null,
+            'longitud'            => $request->longitud ?? null,
+            'precision_geo'       => $request->precision ?? null,
+            'calidad_geo'         => $request->calidad ?? null,
+            'capacidad'           => $request->capacidad,
+            'estado'              => intval($request->estado ?? null),
+            'color'               => intval($request->color ?? null),
+            'tipo_trabajo'        => intval($request->tipo_trabajo ?? null),
+            'carga_trabajo'       => intval($request->carga_trabajo ?? null),
+            'estado_operacional'  => intval($request->estado_operacional ?? null),
+            'estado_conservacion' => intval($request->estado_conservacion ?? null),
+            'condicion_ambiental' => intval($request->condicion_ambiental ?? null),
+            'cantidad_img'        => $request->cantidad_img,
+            'id_img'              => $idImg,
+            'etiqueta_padre'      => $etiquetaPadre ?? 'Sin Padre',
+            'update_inv'          => 0,
+            'eficiencia'          => $request->eficiencia ?? null,
+            'crud_activo_estado'  => $estadoBien,
+            'modo'                => 'ONLINE',
+            'modificado_el'       => date('Y-m-d H:i:s'),
+            'modificado_por'      => $usuario,
+            'etiqueta'            => $etiquetaNueva,
+        ];
+
+        foreach (array_keys($request->all()) as $key) {
+            if (strpos((string)$key, 'texto_abierto_') === 0) {
+                $inv_arr[$key] = $request->input($key) ?? null;
+            }
+        }
+
+        Inventario::where('etiqueta', $etiquetaOriginal)->update($inv_arr);
+
+        if ($etiquetaOriginal !== $etiquetaNueva) {
+            DB::table('inv_imagenes')
+                ->where('etiqueta', $etiquetaOriginal)
+                ->update([
+                    'etiqueta'   => $etiquetaNueva,
+                    'origen'     => 'SAFIN_APP_ETIQUETA_EDITADA',
+                    'updated_at' => now()
+                ]);
+        } else {
+            DB::table('inv_imagenes')
+                ->where('etiqueta', $etiquetaOriginal)
+                ->update([
+                    'origen'     => 'SAFIN_APP_ACTUALIZADO',
+                    'updated_at' => now()
+                ]);
+        }
+
+        $inventarioActualizado = Inventario::where('etiqueta', $etiquetaNueva)->first();
+
+        if ($inventarioActualizado) {
+            $inventarioActualizado->fillCodeAndIDSEmplazamientos();
+        }
+
+        return response()->json([
+            'message'    => 'Inventario actualizado con éxito',
+            'inventario' => $inventarioActualizado
+        ], 200);
     }
 
-    return response()->json([
-        'message'    => 'Inventario actualizado con éxito',
-        'inventario' => $inventarioActualizado
-    ], 200);
-}
+    public function updateAdjustCoordinatesInventory(Request $request, $etiqueta)
+    {
+        $validator = Validator::make($request->all(), [
+            'adjusted_lat' => 'required|numeric',
+            'adjusted_lng' => 'required|numeric',
+        ]);
 
-public function getImagesByEtiqueta($etiqueta, $cycleid, $idActivo)
-{
-    if (empty($cycleid) && !empty($idActivo)) {
-        $crudImagenes = DB::select("
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Invalid input',
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        $invObj = Inventario::where('etiqueta', $etiqueta)->first();
+
+        if (!$invObj) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Not Found'
+            ], 404);
+        }
+
+        $invObj->adjusted_lat = $request->adjusted_lat;
+        $invObj->adjusted_lng = $request->adjusted_lng;
+
+        $invObj->save();
+
+        return response()->json([
+            'status' => 'OK',
+            'message' => 'Updated successfully'
+        ]);
+    }
+
+    public function updateAdjustCoordinatesInventoryDebugData(Request $request, $etiqueta)
+    {
+        $validator = Validator::make($request->all(), [
+            'adjusted_lat' => 'required|numeric',
+            'adjusted_lng' => 'required|numeric',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Invalid input',
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        $invObj = Inventario::where('etiqueta', $etiqueta)->first();
+
+        if (!$invObj) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Not Found'
+            ], 404);
+        }
+
+        $invObj->adjusted_lat = $request->adjusted_lat;
+        $invObj->adjusted_lng = $request->adjusted_lng;
+
+        $invObj->fix_quality = $request->fix_quality;
+        $invObj->satellites = $request->satellites;
+        $invObj->sd_lat = $request->sd_lat;
+        $invObj->sd_lon = $request->sd_lon;
+
+        $invObj->save();
+
+        return response()->json([
+            'status' => 'OK',
+            'message' => 'Updated successfully'
+        ]);
+    }
+
+    public function getImagesByEtiqueta($etiqueta, $cycleid, $idActivo)
+    {
+        if (empty($cycleid) && !empty($idActivo)) {
+            $crudImagenes = DB::select("
+                SELECT 
+                    id_foto as idLista,
+                    id_foto as id_img,
+                    '' as etiqueta,
+                    CONCAT(url_picture, picture) as url_imagen
+                FROM crud_activos_pictures
+                WHERE id_activo = ?
+            ", [$idActivo]);
+
+            return response()->json($crudImagenes);
+        }
+
+        $invImagenes = DB::select("
             SELECT 
-                id_foto as idLista,
-                id_foto as id_img,
-                '' as etiqueta,
-                CONCAT(url_picture, picture) as url_imagen
-            FROM crud_activos_pictures
-            WHERE id_activo = ?
-        ", [$idActivo]);
+                idLista,
+                id_img,
+                etiqueta,
+                url_imagen
+            FROM inv_imagenes
+            WHERE etiqueta = ?
+            AND id_proyecto = (
+                SELECT id_proyecto 
+                FROM inv_ciclos 
+                WHERE idCiclo = ?
+            )
+        ", [$etiqueta, $cycleid]);
 
-        return response()->json($crudImagenes);
+        return response()->json($invImagenes);
     }
-
-    $invImagenes = DB::select("
-        SELECT 
-            idLista,
-            id_img,
-            etiqueta,
-            url_imagen
-        FROM inv_imagenes
-        WHERE etiqueta = ?
-        AND id_proyecto = (
-            SELECT id_proyecto 
-            FROM inv_ciclos 
-            WHERE idCiclo = ?
-        )
-    ", [$etiqueta, $cycleid]);
-
-    return response()->json($invImagenes);
-}
 
     public function deleteImageByEtiqueta($etiqueta, $id_img, $idLista, $idActivo = null)
     {
@@ -695,7 +842,7 @@ public function getImagesByEtiqueta($etiqueta, $cycleid, $idActivo)
 
     public function getFromServerToLocalDevice(int $ciclo, Request $request)
     {
-        $request->merge(['ciclo_id'         => $ciclo]);
+        $request->merge(['ciclo_id' => $ciclo]);
 
 
 
@@ -723,12 +870,11 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         'imagenes.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
     ]);
 
-    try {
-        $origen = 'SAFIN_APP_IMG_NEW';
+        try {
+            $origen = 'SAFIN_APP_IMG_NEW';
 
         $esCrudActivo = empty($request->cycle_id) && !empty($request->idActivo);
 
-        // Validar según el tipo
         if ($esCrudActivo) {
             $existeEtiqueta = DB::table('crud_activos')->where('etiqueta', $etiqueta)->exists();
             if (!$existeEtiqueta) {
@@ -752,24 +898,20 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         $idProyecto = null;
 
         if ($esCrudActivo) {
-            $idProyecto = '9999'; // Proyecto macro
+            $idProyecto = '9999'; 
 
-            // Obtener el número máximo usado en los nombres de archivo
             $maxNumero = DB::table('crud_activos_pictures')
                 ->where('id_activo', $request->idActivo)
                 ->selectRaw("MAX(CAST(SUBSTRING_INDEX(picture, '_', -1) AS UNSIGNED)) as max_num")
                 ->value('max_num');
             
-            // Si no hay imágenes, empezar desde 0, sino desde el máximo encontrado
             $contador = $maxNumero ?? 0;
 
         } else {
-            // Guardar en inv_imagenes (inventario)
             $idProyecto = DB::table('inv_ciclos')
                 ->where('idCiclo', $request->cycle_id)
                 ->value('id_proyecto');
 
-            // Obtener el número máximo usado en los nombres de archivo
             $maxNumero = DB::table('inv_imagenes')
                 ->where('etiqueta', $etiqueta)
                 ->selectRaw("MAX(CAST(REPLACE(SUBSTRING_INDEX(picture, '_', -1), '.jpg', '') AS UNSIGNED)) as max_num")
@@ -839,7 +981,6 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         ], 500);
     }
 }
-
 
     /**
      * Store newly created resources in storage.
@@ -1557,6 +1698,45 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         $puntos = $ubicacion->verificacion_range($idAgenda);
 
         return response()->json($puntos);
+    }
+
+
+    /**
+     * Display the specified resource.
+     *
+     * @param int  $cycle
+     * @param int  $etiqueta
+     * @return \Illuminate\Http\Response
+     */
+    public function showByEtiqueta(int $cycle, string $etiqueta)
+    {
+
+        $cicloObj = InvCiclo::find($cycle);
+
+        if (!$cicloObj) {
+            return response()->json([
+                'status' => 'NOK',
+                'message' => 'Ciclo no encontrado',
+                'code' => 404
+            ], 404);
+        }
+
+        //
+        $activo = Inventario::where('etiqueta', '=', $etiqueta)->first();
+
+
+        if (!$activo) {
+            return response()->json([
+                "message" => "Not Found",
+                "status"  => "error"
+            ], 404);
+        }
+
+
+
+
+        $resource = new InventariosResource($activo);
+        return response()->json($resource, 200);
     }
 
 

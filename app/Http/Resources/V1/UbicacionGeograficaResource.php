@@ -77,7 +77,7 @@ class UbicacionGeograficaResource extends JsonResource
 
         $auditoria_general = isset($this->auditoria_general) ? $this->auditoria_general : 0;
 
-      
+
         $address = [
             'idUbicacionGeo' => $this->idUbicacionGeo,
             'codigoCliente' => $this->codigoCliente,
@@ -101,13 +101,13 @@ class UbicacionGeograficaResource extends JsonResource
             'num_cats_by_cycle' => 0
         ];
 
-           if ($this->general === 1) {
-                $detalle = [
-                    'detalle' => 'Detalle General',
-                ];
+        if ($this->general === 1) {
+            $detalle = [
+                'detalle' => 'Detalle General',
+            ];
 
-                $address['detalle'] = $detalle['detalle'];
-            }
+            $address['detalle'] = $detalle['detalle'];
+        }
 
         if (isset($this->cycle_id) && $this->cycle_id) {
 
@@ -117,6 +117,12 @@ class UbicacionGeograficaResource extends JsonResource
 
             $address['num_activos_cats_by_cycle'] = $this->activos_with_cats_by_cycle($this->cycle_id)->count();
             $address['num_activos_inv_cats_by_cycle'] = $this->activos_with_cats_inv_by_cycle($this->cycle_id, $this->idUbicacionGeo)->count();
+
+            /** Geo Adjust */
+            $address['num_activos_geo_adjust'] = $this->activos_with_cats_inv_by_cycle($this->cycle_id, $this->idUbicacionGeo)
+                ->whereNotNull('adjusted_lat')
+                ->whereNotNull('adjusted_lng')
+                ->count();
 
             $coll = $this->cats_by_cycle($this->cycle_id);
 
