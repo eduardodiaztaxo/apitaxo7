@@ -45,35 +45,21 @@ class DatosActivosController extends Controller
 
     public function estados($cycle)
     {
-        $id_proyectos = [];
-
-        if (is_numeric($cycle) && $cycle !== 'NaN') {
-            $cycle = (int)$cycle;
-            $id_proyecto = DB::table('inv_ciclos')
-                ->where('idCiclo', $cycle)
-                ->value('id_proyecto');
-            
-            if ($id_proyecto) {
-                $id_proyectos = [$id_proyecto];
-            }
-        } else {
+       
             //auditoría y scan_bienes
             $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('sec_user_proyectos')
+            $id_proyecto = DB::table('sec_user_proyectos')
                 ->where('login', $usuario)
-                ->distinct()
-                ->pluck('idProyecto')
-                ->toArray();
-        }
-
-        if (empty($id_proyectos)) {
+                ->value('idProyecto');
+        
+        if (!$id_proyecto) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'No se encontró proyecto para el usuario'
             ], 404);
         }
 
-        $collection = IndiceListaEstado::whereIn('idProyecto', $id_proyectos)
+        $collection = IndiceListaEstado::where('idProyecto', $id_proyecto)
             ->get()
             ->unique('descripcion')
             ->values();
@@ -357,26 +343,10 @@ class DatosActivosController extends Controller
     }
     public function bienes_Marcas($id_familia, $ciclo)
     {
-        $id_proyectos = [];
-
-        if (is_numeric($ciclo) && $ciclo !== 'NaN') {
-            $ciclo = (int)$ciclo;
-            $id_proyecto = DB::table('inv_ciclos')
-                ->where('idCiclo', $ciclo)
-                ->value('id_proyecto');
-            
-            if ($id_proyecto) {
-                $id_proyectos = [$id_proyecto];
-            }
-        } else {
-            //auditoria y scan_bienes
-            $usuario = Auth::user()->name;
+          $usuario = Auth::user()->name;
             $id_proyectos = DB::table('sec_user_proyectos')
                 ->where('login', $usuario)
-                ->distinct()
-                ->pluck('idProyecto')
-                ->toArray();
-        }
+                ->value('idProyecto');
 
         if (empty($id_proyectos)) {
             return response()->json([
@@ -385,7 +355,6 @@ class DatosActivosController extends Controller
             ], 404);
         }
 
-        // Buscar marcas en todos los proyectos del usuario
         $marcas = DB::table('inv_marcas_nuevos')
             ->where('id_familia', $id_familia)
             ->whereIn('idProyecto', $id_proyectos)
@@ -407,26 +376,10 @@ class DatosActivosController extends Controller
 
     public function indiceColores($cycle)
     {
-        $id_proyectos = [];
-
-        if (is_numeric($cycle) && $cycle !== 'NaN') {
-            $cycle = (int)$cycle;
-            $id_proyecto = DB::table('inv_ciclos')
-                ->where('idCiclo', $cycle)
-                ->value('id_proyecto');
-            
-            if ($id_proyecto) {
-                $id_proyectos = [$id_proyecto];
-            }
-        } else {
-            //auditoría y scan_bienes
-            $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('inv_ciclos_usuarios')
-                ->where('usuario', $usuario)
-                ->distinct()
-                ->pluck('id_proyecto')
-                ->toArray();
-        }
+         $usuario = Auth::user()->name;
+            $id_proyectos = DB::table('sec_user_proyectos')
+                ->where('login', $usuario)
+                ->value('idProyecto');
 
         if (empty($id_proyectos)) {
             return response()->json([
@@ -445,26 +398,10 @@ class DatosActivosController extends Controller
 
     public function estadosOperacional($cycle)
     {
-        $id_proyectos = [];
-
-        if (is_numeric($cycle) && $cycle !== 'NaN') {
-            $cycle = (int)$cycle;
-            $id_proyecto = DB::table('inv_ciclos')
-                ->where('idCiclo', $cycle)
-                ->value('id_proyecto');
-            
-            if ($id_proyecto) {
-                $id_proyectos = [$id_proyecto];
-            }
-        } else {
-            //auditoría y scan_bienes
-            $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('inv_ciclos_usuarios')
-                ->where('usuario', $usuario)
-                ->distinct()
-                ->pluck('id_proyecto')
-                ->toArray();
-        }
+        $usuario = Auth::user()->name;
+            $id_proyectos = DB::table('sec_user_proyectos')
+                ->where('login', $usuario)
+                ->value('idProyecto');
 
         if (empty($id_proyectos)) {
             return response()->json([
@@ -483,26 +420,11 @@ class DatosActivosController extends Controller
 
     public function tipoTrabajo($cycle)
     {
-        $id_proyectos = [];
 
-        if (is_numeric($cycle) && $cycle !== 'NaN') {
-            $cycle = (int)$cycle;
-            $id_proyecto = DB::table('inv_ciclos')
-                ->where('idCiclo', $cycle)
-                ->value('id_proyecto');
-            
-            if ($id_proyecto) {
-                $id_proyectos = [$id_proyecto];
-            }
-        } else {
-            //auditoría y scan_bienes
-            $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('inv_ciclos_usuarios')
-                ->where('usuario', $usuario)
-                ->distinct()
-                ->pluck('id_proyecto')
-                ->toArray();
-        }
+   $usuario = Auth::user()->name;
+            $id_proyectos = DB::table('sec_user_proyectos')
+                ->where('login', $usuario)
+                ->value('idProyecto');
 
         if (empty($id_proyectos)) {
             return response()->json([
@@ -521,26 +443,10 @@ class DatosActivosController extends Controller
 
     public function cargaTrabajo($cycle)
     {
-        $id_proyectos = [];
-
-        if (is_numeric($cycle) && $cycle !== 'NaN') {
-            $cycle = (int)$cycle;
-            $id_proyecto = DB::table('inv_ciclos')
-                ->where('idCiclo', $cycle)
-                ->value('id_proyecto');
-            
-            if ($id_proyecto) {
-                $id_proyectos = [$id_proyecto];
-            }
-        } else {
-            //auditoría y scan_bienes
-            $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('inv_ciclos_usuarios')
-                ->where('usuario', $usuario)
-                ->distinct()
-                ->pluck('id_proyecto')
-                ->toArray();
-        }
+         $usuario = Auth::user()->name;
+            $id_proyectos = DB::table('sec_user_proyectos')
+                ->where('login', $usuario)
+                ->value('idProyecto');
 
         if (empty($id_proyectos)) {
             return response()->json([
@@ -559,26 +465,10 @@ class DatosActivosController extends Controller
 
     public function estadoConservacion($cycle)
     {
-        $id_proyectos = [];
-
-        if (is_numeric($cycle) && $cycle !== 'NaN') {
-            $cycle = (int)$cycle;
-            $id_proyecto = DB::table('inv_ciclos')
-                ->where('idCiclo', $cycle)
-                ->value('id_proyecto');
-            
-            if ($id_proyecto) {
-                $id_proyectos = [$id_proyecto];
-            }
-        } else {
-            //auditoría y scan_bienes
-            $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('inv_ciclos_usuarios')
-                ->where('usuario', $usuario)
-                ->distinct()
-                ->pluck('id_proyecto')
-                ->toArray();
-        }
+        $usuario = Auth::user()->name;
+            $id_proyectos = DB::table('sec_user_proyectos')
+                ->where('login', $usuario)
+                ->value('idProyecto');
 
         if (empty($id_proyectos)) {
             return response()->json([
@@ -597,26 +487,10 @@ class DatosActivosController extends Controller
 
     public function condicionAmbiental($cycle)
     {
-        $id_proyectos = [];
-
-        if (is_numeric($cycle) && $cycle !== 'NaN') {
-            $cycle = (int)$cycle;
-            $id_proyecto = DB::table('inv_ciclos')
-                ->where('idCiclo', $cycle)
-                ->value('id_proyecto');
-            
-            if ($id_proyecto) {
-                $id_proyectos = [$id_proyecto];
-            }
-        } else {
-            //auditoría y scan_bienes
-            $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('inv_ciclos_usuarios')
-                ->where('usuario', $usuario)
-                ->distinct()
-                ->pluck('id_proyecto')
-                ->toArray();
-        }
+        $ $usuario = Auth::user()->name;
+            $id_proyectos = DB::table('sec_user_proyectos')
+                ->where('login', $usuario)
+                ->value('idProyecto');
 
         if (empty($id_proyectos)) {
             return response()->json([
@@ -635,26 +509,10 @@ class DatosActivosController extends Controller
 
     public function material($cycle)
     {
-        $id_proyectos = [];
-
-        if (is_numeric($cycle) && $cycle !== 'NaN') {
-            $cycle = (int)$cycle;
-            $id_proyecto = DB::table('inv_ciclos')
-                ->where('idCiclo', $cycle)
-                ->value('id_proyecto');
-            
-            if ($id_proyecto) {
-                $id_proyectos = [$id_proyecto];
-            }
-        } else {
-            //auditoría y scan_bienes
-            $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('inv_ciclos_usuarios')
-                ->where('usuario', $usuario)
-                ->distinct()
-                ->pluck('id_proyecto')
-                ->toArray();
-        }
+        $usuario = Auth::user()->name;
+            $id_proyectos = DB::table('sec_user_proyectos')
+                ->where('login', $usuario)
+                ->value('idProyecto');
 
         if (empty($id_proyectos)) {
             return response()->json([
@@ -682,26 +540,10 @@ class DatosActivosController extends Controller
 
     public function forma($cycle)
     {
-        $id_proyectos = [];
-
-        if (is_numeric($cycle) && $cycle !== 'NaN') {
-            $cycle = (int)$cycle;
-            $id_proyecto = DB::table('inv_ciclos')
-                ->where('idCiclo', $cycle)
-                ->value('id_proyecto');
-            
-            if ($id_proyecto) {
-                $id_proyectos = [$id_proyecto];
-            }
-        } else {
-            //auditoría y scan_bienes
-            $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('inv_ciclos_usuarios')
-                ->where('usuario', $usuario)
-                ->distinct()
-                ->pluck('id_proyecto')
-                ->toArray();
-        }
+        $usuario = Auth::user()->name;
+            $id_proyectos = DB::table('sec_user_proyectos')
+                ->where('login', $usuario)
+                ->value('idProyecto');
 
         if (empty($id_proyectos)) {
             return response()->json([
