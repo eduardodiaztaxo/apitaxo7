@@ -23,6 +23,16 @@ class InvConfigService
             WHEN id_atributo = 36 THEN 'texto_abierto_8'
             WHEN id_atributo = 37 THEN 'texto_abierto_9'
             WHEN id_atributo = 38 THEN 'texto_abierto_10'
+            WHEN id_atributo = 39 THEN 'texto_abierto_11'
+            WHEN id_atributo = 40 THEN 'texto_abierto_12'
+            WHEN id_atributo = 41 THEN 'texto_abierto_13'
+            WHEN id_atributo = 42 THEN 'texto_abierto_14'
+            WHEN id_atributo = 43 THEN 'texto_abierto_15'
+            WHEN id_atributo = 44 THEN 'texto_abierto_16'
+            WHEN id_atributo = 45 THEN 'texto_abierto_17'
+            WHEN id_atributo = 46 THEN 'texto_abierto_18'
+            WHEN id_atributo = 47 THEN 'texto_abierto_19'
+            WHEN id_atributo = 48 THEN 'texto_abierto_20'
             ELSE ''
         END AS input_name,	
         type_input AS `type`,	
