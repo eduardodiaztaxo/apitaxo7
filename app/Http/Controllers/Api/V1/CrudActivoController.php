@@ -147,9 +147,11 @@ class CrudActivoController extends Controller
         $activo = CrudActivo::where('etiqueta', '=', $etiqueta)->first();
 
         if (!$activo) {
-            $etiqueta = Inventario::where('etiqueta', '=', $etiqueta)->first();
-            $resource = new InventariosResource($etiqueta);
-            return response()->json($resource, 200);
+            $activo = Inventario::where('etiqueta', '=', $etiqueta)->first();
+            if ($activo) {
+                $resource = new InventariosResource($activo);
+                return response()->json($resource, 200);
+            }
         }
 
         if (!$activo) {
