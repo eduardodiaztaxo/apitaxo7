@@ -38,7 +38,7 @@ class InvConfigService
         valor_minimo AS `min`,
         valor_maximo AS `max`,
         label_input AS label
-        FROM inv_atributos WHERE id_atributo IN (27,28,29,30,31,34,35,36,37,38) 
+        FROM inv_atributos WHERE id_atributo IN (27,28,29,30,31,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48) 
         AND id_validacion <> 0 AND id_grupo = ?";
 
         $inputs = DB::select($sql, [$id_grupo]);
