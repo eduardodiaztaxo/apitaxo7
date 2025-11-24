@@ -45,13 +45,13 @@ class DatosActivosController extends Controller
 
     public function estados($cycle)
     {
-       
-            //auditoría y scan_bienes
-            $usuario = Auth::user()->name;
-            $id_proyecto = DB::table('sec_user_proyectos')
-                ->where('login', $usuario)
-                ->value('idProyecto');
-        
+
+        //auditoría y scan_bienes
+        $usuario = Auth::user()->name;
+        $id_proyecto = DB::table('sec_user_proyectos')
+            ->where('login', $usuario)
+            ->value('idProyecto');
+
         if (!$id_proyecto) {
             return response()->json([
                 'status' => 'error',
@@ -63,7 +63,7 @@ class DatosActivosController extends Controller
             ->get()
             ->unique('descripcion')
             ->values();
-        
+
         return response()->json($collection, 200);
     }
 
@@ -236,7 +236,7 @@ class DatosActivosController extends Controller
     public function showAllByBienesGrupoFamilia(Request $request, int $cycle_id)
     {
 
-    
+
         $objCycle = InvCiclo::find($cycle_id);
 
 
@@ -343,10 +343,11 @@ class DatosActivosController extends Controller
     }
     public function bienes_Marcas($id_familia, $ciclo)
     {
-          $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('sec_user_proyectos')
-                ->where('login', $usuario)
-                ->value('idProyecto');
+        $usuario = Auth::user()->name;
+        $id_proyectos = DB::table('sec_user_proyectos')
+            ->where('login', $usuario)
+            ->pluck('idProyecto')
+            ->toArray();
 
         if (empty($id_proyectos)) {
             return response()->json([
@@ -376,10 +377,10 @@ class DatosActivosController extends Controller
 
     public function indiceColores($cycle)
     {
-         $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('sec_user_proyectos')
-                ->where('login', $usuario)
-                ->value('idProyecto');
+        $usuario = Auth::user()->name;
+        $id_proyectos = DB::table('sec_user_proyectos')
+            ->where('login', $usuario)
+            ->value('idProyecto');
 
         if (empty($id_proyectos)) {
             return response()->json([
@@ -392,16 +393,16 @@ class DatosActivosController extends Controller
             ->get()
             ->unique('descripcion')
             ->values();
-        
+
         return response()->json($collection, 200);
     }
 
     public function estadosOperacional($cycle)
     {
         $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('sec_user_proyectos')
-                ->where('login', $usuario)
-                ->value('idProyecto');
+        $id_proyectos = DB::table('sec_user_proyectos')
+            ->where('login', $usuario)
+            ->value('idProyecto');
 
         if (empty($id_proyectos)) {
             return response()->json([
@@ -414,17 +415,17 @@ class DatosActivosController extends Controller
             ->get()
             ->unique('descripcion')
             ->values();
-        
+
         return response()->json($collection, 200);
     }
 
     public function tipoTrabajo($cycle)
     {
 
-   $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('sec_user_proyectos')
-                ->where('login', $usuario)
-                ->value('idProyecto');
+        $usuario = Auth::user()->name;
+        $id_proyectos = DB::table('sec_user_proyectos')
+            ->where('login', $usuario)
+            ->value('idProyecto');
 
         if (empty($id_proyectos)) {
             return response()->json([
@@ -437,16 +438,16 @@ class DatosActivosController extends Controller
             ->get()
             ->unique('descripcion')
             ->values();
-        
+
         return response()->json($collection, 200);
     }
 
     public function cargaTrabajo($cycle)
     {
-         $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('sec_user_proyectos')
-                ->where('login', $usuario)
-                ->value('idProyecto');
+        $usuario = Auth::user()->name;
+        $id_proyectos = DB::table('sec_user_proyectos')
+            ->where('login', $usuario)
+            ->value('idProyecto');
 
         if (empty($id_proyectos)) {
             return response()->json([
@@ -459,16 +460,16 @@ class DatosActivosController extends Controller
             ->get()
             ->unique('descripcion')
             ->values();
-        
+
         return response()->json($collection, 200);
     }
 
     public function estadoConservacion($cycle)
     {
         $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('sec_user_proyectos')
-                ->where('login', $usuario)
-                ->value('idProyecto');
+        $id_proyectos = DB::table('sec_user_proyectos')
+            ->where('login', $usuario)
+            ->value('idProyecto');
 
         if (empty($id_proyectos)) {
             return response()->json([
@@ -481,16 +482,16 @@ class DatosActivosController extends Controller
             ->get()
             ->unique('descripcion')
             ->values();
-        
+
         return response()->json($collection, 200);
     }
 
     public function condicionAmbiental($cycle)
     {
-        $ $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('sec_user_proyectos')
-                ->where('login', $usuario)
-                ->value('idProyecto');
+        $$usuario = Auth::user()->name;
+        $id_proyectos = DB::table('sec_user_proyectos')
+            ->where('login', $usuario)
+            ->value('idProyecto');
 
         if (empty($id_proyectos)) {
             return response()->json([
@@ -503,16 +504,16 @@ class DatosActivosController extends Controller
             ->get()
             ->unique('descripcion')
             ->values();
-        
+
         return response()->json($collection, 200);
     }
 
     public function material($cycle)
     {
         $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('sec_user_proyectos')
-                ->where('login', $usuario)
-                ->value('idProyecto');
+        $id_proyectos = DB::table('sec_user_proyectos')
+            ->where('login', $usuario)
+            ->value('idProyecto');
 
         if (empty($id_proyectos)) {
             return response()->json([
@@ -525,7 +526,7 @@ class DatosActivosController extends Controller
             ->get()
             ->unique('descripcion')
             ->values();
-        
+
         return response()->json($collection, 200);
     }
 
@@ -541,9 +542,9 @@ class DatosActivosController extends Controller
     public function forma($cycle)
     {
         $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('sec_user_proyectos')
-                ->where('login', $usuario)
-                ->value('idProyecto');
+        $id_proyectos = DB::table('sec_user_proyectos')
+            ->where('login', $usuario)
+            ->value('idProyecto');
 
         if (empty($id_proyectos)) {
             return response()->json([
@@ -556,7 +557,7 @@ class DatosActivosController extends Controller
             ->get()
             ->unique('descripcion')
             ->values();
-        
+
         return response()->json($collection, 200);
     }
 
@@ -610,8 +611,8 @@ class DatosActivosController extends Controller
         }
 
         $id_proyecto = DB::table('inv_ciclos')
-        ->where('idCiclo', $request->ciclo_inventario)
-        ->value('id_proyecto');
+            ->where('idCiclo', $request->ciclo_inventario)
+            ->value('id_proyecto');
 
         $usuario = Auth::user()->name;
 
@@ -673,10 +674,10 @@ class DatosActivosController extends Controller
         }
 
         $usuario = Auth::user()->name;
-        
+
         $id_proyecto = DB::table('inv_ciclos')
-        ->where('idCiclo', $request->ciclo_inventario)
-        ->value('id_proyecto');
+            ->where('idCiclo', $request->ciclo_inventario)
+            ->value('id_proyecto');
 
         $marcas = new Inventario_marcas();
         $marcas->idLista     = $newIdLista;
