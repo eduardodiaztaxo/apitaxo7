@@ -66,8 +66,9 @@ class CrudActivoResource extends JsonResource
 
         $activo['organica_n2'] = $this->emplazamiento;
 
-        $activo['depreciable'] = $this->depreciableRelation?->descripcion;
-        
+        $activo['depreciable'] = isset($this->depreciableRelation->descripcion) ? $this->depreciableRelation->descripcion : null;
+
+
         // Obtener imágenes de crud_activos_pictures
         $imagenes = DB::table('crud_activos_pictures')
             ->where('id_activo', $this->idActivo)
