@@ -195,7 +195,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('regiones', [ZonaEmplazamientosController::class, 'regiones']);
 
     Route::get('comunas/{idRegion}', [ZonaEmplazamientosController::class, 'comunas']);
-   
+
     Route::get('ciclos/{ciclo}/zones/{zona}/emplazamientos/{agenda_id}', [ZonaEmplazamientosController::class, 'showByCycleCats']);
 
     Route::get('ciclos/{ciclo}/zones/{zona}/Subemplazamientos/{agenda_id}', [ZonaEmplazamientosController::class, 'CycleCatsNivel3']);
@@ -241,13 +241,13 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('todos-emplazamientos/{idAgenda}/{ciclo}', [EmplazamientoController::class, 'showTodos']);
 
     Route::get('group-emplazamientos/{idAgenda}/{ciclo}', [EmplazamientoController::class, 'groupEmplazamientos']);
-        
+
     Route::get('group-emplazamientos-Ot/{ciclo}', [EmplazamientoController::class, 'groupEmplazamientosPorOt']);
 
     Route::get('group-map-direccion-diferencias/{idAgenda}/{ciclo}', [EmplazamientoController::class, 'groupMapDireccionDiferencias']);
 
     Route::get('group-map-Ot-diferencias/{ciclo}', [EmplazamientoController::class, 'groupMapDiferenciasOT']);
-    
+
     Route::put('emplazamientos/{id}', [EmplazamientoController::class, 'update']);
 
     Route::post('emplazamientos/create', [EmplazamientoController::class, 'create']);
@@ -292,6 +292,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::apiResource('maps/areas', MapPolygonController::class)->only(['index', 'store', 'update', 'destroy']);
 
     Route::apiResource('maps/markers', MapMarkerController::class)->only(['index', 'store', 'update', 'destroy']);
+
+    Route::get('maps/area-by-address/{address_id}', [MapPolygonController::class, 'showPolygonByAddress']);
 
     Route::get('maps/areas/base', [MapPolygonController::class, 'indexBase']);
 
