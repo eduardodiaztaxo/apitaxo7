@@ -43,6 +43,26 @@ class InvConfigService
             WHEN id_atributo = 56 THEN 'texto_abierto_28'
             WHEN id_atributo = 57 THEN 'texto_abierto_29'
             WHEN id_atributo = 58 THEN 'texto_abierto_30'
+            WHEN id_atributo = 59 THEN 'texto_abierto_31'
+            WHEN id_atributo = 60 THEN 'texto_abierto_32'
+            WHEN id_atributo = 61 THEN 'texto_abierto_33'
+            WHEN id_atributo = 62 THEN 'texto_abierto_34'
+            WHEN id_atributo = 63 THEN 'texto_abierto_35'
+            WHEN id_atributo = 64 THEN 'texto_abierto_36'
+            WHEN id_atributo = 65 THEN 'texto_abierto_37'
+            WHEN id_atributo = 66 THEN 'texto_abierto_38'
+            WHEN id_atributo = 67 THEN 'texto_abierto_39'
+            WHEN id_atributo = 68 THEN 'texto_abierto_40'
+            WHEN id_atributo = 69 THEN 'texto_abierto_41'
+            WHEN id_atributo = 70 THEN 'texto_abierto_42'
+            WHEN id_atributo = 71 THEN 'texto_abierto_43'
+            WHEN id_atributo = 72 THEN 'texto_abierto_44'
+            WHEN id_atributo = 73 THEN 'texto_abierto_45'
+            WHEN id_atributo = 74 THEN 'texto_abierto_46'
+            WHEN id_atributo = 75 THEN 'texto_abierto_47'
+            WHEN id_atributo = 76 THEN 'texto_abierto_48'
+            WHEN id_atributo = 77 THEN 'texto_abierto_49'
+            WHEN id_atributo = 78 THEN 'texto_abierto_50'
             ELSE ''
         END AS input_name,	
         type_input AS `type`,	
@@ -58,7 +78,7 @@ class InvConfigService
         valor_minimo AS `min`,
         valor_maximo AS `max`,
         label_input AS label
-        FROM inv_atributos WHERE id_atributo IN (27,28,29,30,31,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58) AND id_validacion != 0 AND id_grupo = ? AND id_proyecto = ?";
+        FROM inv_atributos WHERE id_atributo IN (27,28,29,30,31,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78) AND id_validacion != 0 AND id_grupo = ? AND id_proyecto = ?";
 
         $inputs = DB::select($sql, [$id_grupo, $id_proyecto]);
 
