@@ -128,7 +128,7 @@ class CrudActivoController extends Controller
     public function showByEtiqueta(Request $request, $etiqueta)
     {
         //
-        $activo = CrudActivo::where('etiqueta', '=', $etiqueta)->first();
+        $activo = CrudActivo::where('etiqueta', '=', $etiqueta)->orWhere('codigo_cliente', '=', $etiqueta)->first();
 
         if (!$activo) {
             $activo = Inventario::where('etiqueta', '=', $etiqueta)->first();

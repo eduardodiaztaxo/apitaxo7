@@ -162,9 +162,7 @@ class MapPolygonController extends Controller
      */
     public function showPolygonByAddress(Request $request, int $address_id)
     {
-        $request->validate([
-            'address_id' => 'required|string|max:255',
-        ]);
+
 
         $area = MapPolygonalArea::where('address_id', '=', $address_id)->first();
 
