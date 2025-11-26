@@ -15,6 +15,7 @@ class MapMarkerAsset extends Model
         'category_id',
         'lat',
         'lng',
+        'fix_quality'
     ];
 
     public function getCategory()
