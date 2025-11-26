@@ -343,12 +343,12 @@ class DatosActivosController extends Controller
     }
     public function bienes_Marcas($id_familia, $ciclo)
     {
-          $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('sec_user_proyectos')
-                ->where('login', $usuario)
-                ->value('idProyecto');
+        $usuario = Auth::user()->name;
+        $id_proyecto = DB::table('sec_user_proyectos')
+            ->where('login', $usuario)
+            ->value('idProyecto');
 
-        if (empty($id_proyectos)) {
+        if (empty($id_proyecto)) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'No se encontró proyecto para el usuario'
@@ -357,16 +357,15 @@ class DatosActivosController extends Controller
 
         $marcas = DB::table('inv_marcas_nuevos')
             ->where('id_familia', $id_familia)
-            ->whereIn('idProyecto', $id_proyectos)
+            ->where('idProyecto', $id_proyecto)
             ->get();
 
         $indices = DB::table('indices_listas')
             ->where('id_familia', $id_familia)
-            ->whereIn('idProyecto', $id_proyectos)
+            ->where('idProyecto', $id_proyecto)
             ->where('idAtributo', 2)
             ->get();
 
-        // Combinar y eliminar duplicados por descripción
         $resultado = $marcas->concat($indices)
             ->unique('descripcion')
             ->values();
@@ -376,19 +375,19 @@ class DatosActivosController extends Controller
 
     public function indiceColores($cycle)
     {
-         $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('sec_user_proyectos')
-                ->where('login', $usuario)
-                ->value('idProyecto');
+        $usuario = Auth::user()->name;
+        $id_proyecto = DB::table('sec_user_proyectos')
+            ->where('login', $usuario)
+            ->value('idProyecto');
 
-        if (empty($id_proyectos)) {
+        if (empty($id_proyecto)) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'No se encontró proyecto para el usuario'
             ], 404);
         }
 
-        $collection = IndiceListaColores::whereIn('idProyecto', $id_proyectos)
+        $collection = IndiceListaColores::where('idProyecto', $id_proyecto)
             ->get()
             ->unique('descripcion')
             ->values();
@@ -399,18 +398,18 @@ class DatosActivosController extends Controller
     public function estadosOperacional($cycle)
     {
         $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('sec_user_proyectos')
-                ->where('login', $usuario)
-                ->value('idProyecto');
+        $id_proyecto = DB::table('sec_user_proyectos')
+            ->where('login', $usuario)
+            ->value('idProyecto');
 
-        if (empty($id_proyectos)) {
+        if (empty($id_proyecto)) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'No se encontró proyecto para el usuario'
+                'message' => 'No se encontró proyecto para el usuario ' . $usuario
             ], 404);
         }
 
-        $collection = IndiceListaOperacional::whereIn('idProyecto', $id_proyectos)
+        $collection = IndiceListaOperacional::where('idProyecto', $id_proyecto)
             ->get()
             ->unique('descripcion')
             ->values();
@@ -420,20 +419,19 @@ class DatosActivosController extends Controller
 
     public function tipoTrabajo($cycle)
     {
+        $usuario = Auth::user()->name;
+        $id_proyecto = DB::table('sec_user_proyectos')
+            ->where('login', $usuario)
+            ->value('idProyecto');
 
-   $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('sec_user_proyectos')
-                ->where('login', $usuario)
-                ->value('idProyecto');
-
-        if (empty($id_proyectos)) {
+        if (empty($id_proyecto)) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'No se encontró proyecto para el usuario'
             ], 404);
         }
 
-        $collection = IndiceListaTipoTrabajo::whereIn('idProyecto', $id_proyectos)
+        $collection = IndiceListaTipoTrabajo::where('idProyecto', $id_proyecto)
             ->get()
             ->unique('descripcion')
             ->values();
@@ -443,19 +441,19 @@ class DatosActivosController extends Controller
 
     public function cargaTrabajo($cycle)
     {
-         $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('sec_user_proyectos')
-                ->where('login', $usuario)
-                ->value('idProyecto');
+        $usuario = Auth::user()->name;
+        $id_proyecto = DB::table('sec_user_proyectos')
+            ->where('login', $usuario)
+            ->value('idProyecto');
 
-        if (empty($id_proyectos)) {
+        if (empty($id_proyecto)) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'No se encontró proyecto para el usuario'
             ], 404);
         }
 
-        $collection = IndiceListaCargaTrabajo::whereIn('idProyecto', $id_proyectos)
+        $collection = IndiceListaCargaTrabajo::where('idProyecto', $id_proyecto)
             ->get()
             ->unique('descripcion')
             ->values();
@@ -466,18 +464,18 @@ class DatosActivosController extends Controller
     public function estadoConservacion($cycle)
     {
         $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('sec_user_proyectos')
-                ->where('login', $usuario)
-                ->value('idProyecto');
+        $id_proyecto = DB::table('sec_user_proyectos')
+            ->where('login', $usuario)
+            ->value('idProyecto');
 
-        if (empty($id_proyectos)) {
+        if (empty($id_proyecto)) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'No se encontró proyecto para el usuario'
             ], 404);
         }
 
-        $collection = IndiceListaConservacion::whereIn('idProyecto', $id_proyectos)
+        $collection = IndiceListaConservacion::where('idProyecto', $id_proyecto)
             ->get()
             ->unique('descripcion')
             ->values();
@@ -487,19 +485,19 @@ class DatosActivosController extends Controller
 
     public function condicionAmbiental($cycle)
     {
-        $ $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('sec_user_proyectos')
-                ->where('login', $usuario)
-                ->value('idProyecto');
+        $usuario = Auth::user()->name;
+        $id_proyecto = DB::table('sec_user_proyectos')
+            ->where('login', $usuario)
+            ->value('idProyecto');
 
-        if (empty($id_proyectos)) {
+        if (empty($id_proyecto)) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'No se encontró proyecto para el usuario'
             ], 404);
         }
 
-        $collection = IndiceListaCondicionAmbiental::whereIn('idProyecto', $id_proyectos)
+        $collection = IndiceListaCondicionAmbiental::where('idProyecto', $id_proyecto)
             ->get()
             ->unique('descripcion')
             ->values();
@@ -510,18 +508,18 @@ class DatosActivosController extends Controller
     public function material($cycle)
     {
         $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('sec_user_proyectos')
-                ->where('login', $usuario)
-                ->value('idProyecto');
+        $id_proyecto = DB::table('sec_user_proyectos')
+            ->where('login', $usuario)
+            ->value('idProyecto');
 
-        if (empty($id_proyectos)) {
+        if (empty($id_proyecto)) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'No se encontró proyecto para el usuario'
             ], 404);
         }
 
-        $collection = IndiceListaMaterial::whereIn('idProyecto', $id_proyectos)
+        $collection = IndiceListaMaterial::where('idProyecto', $id_proyecto)
             ->get()
             ->unique('descripcion')
             ->values();
@@ -541,18 +539,18 @@ class DatosActivosController extends Controller
     public function forma($cycle)
     {
         $usuario = Auth::user()->name;
-            $id_proyectos = DB::table('sec_user_proyectos')
-                ->where('login', $usuario)
-                ->value('idProyecto');
+        $id_proyecto = DB::table('sec_user_proyectos')
+            ->where('login', $usuario)
+            ->value('idProyecto');
 
-        if (empty($id_proyectos)) {
+        if (empty($id_proyecto)) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'No se encontró proyecto para el usuario'
             ], 404);
         }
 
-        $collection = IndiceListaForma::whereIn('idProyecto', $id_proyectos)
+        $collection = IndiceListaForma::where('idProyecto', $id_proyecto)
             ->get()
             ->unique('descripcion')
             ->values();
