@@ -82,7 +82,7 @@ class CrudActivoController extends Controller
 
     public function showActivos($etiqueta)
     {
-            $sql2 = "
+        $sql2 = "
             SELECT 
                 crud.*, 
                 grupos.descripcion_grupo, 
@@ -93,8 +93,8 @@ class CrudActivoController extends Controller
             WHERE crud.etiqueta = ?
         ";
 
-            $data = DB::select($sql2, [$etiqueta]);
-        
+        $data = DB::select($sql2, [$etiqueta]);
+
 
         return response()->json($data, 200);
     }
@@ -128,12 +128,14 @@ class CrudActivoController extends Controller
     public function showByEtiqueta(Request $request, $etiqueta)
     {
         //
-        $activo = CrudActivo::where('etiqueta', '=', $etiqueta)->first();
+        $activo = CrudActivo::where('etiqueta', '=', $etiqueta)->orWhere('codigo_cliente', '=', $etiqueta)->first();
 
         if (!$activo) {
-            $etiqueta = Inventario::where('etiqueta', '=', $etiqueta)->first();
-            $resource = new InventariosResource($etiqueta);
-            return response()->json($resource, 200);
+            $activo = Inventario::where('etiqueta', '=', $etiqueta)->first();
+            if ($activo) {
+                $resource = new InventariosResource($activo);
+                return response()->json($resource, 200);
+            }
         }
 
         if (!$activo) {
@@ -250,7 +252,7 @@ class CrudActivoController extends Controller
         ]);
 
         $idActivo_Documento = CrudActivo::where('etiqueta', '=', $etiqueta)->value('idActivo');
-      
+
         $id_proyecto = DB::table('inv_ciclos')
             ->where('idCiclo', $request->cycle_id)
             ->value('id_proyecto');
@@ -275,7 +277,7 @@ class CrudActivoController extends Controller
             $origen = 'SAFIN_APP_ACTUALIZADA_IMAGEN';
             $file = $request->file('imagen');
             $namefile = $filename . '.jpg';
-            
+
             $path = $file->storeAs(
                 PictureSafinService::getImgSubdir($request->user()->nombre_cliente),
                 $namefile,

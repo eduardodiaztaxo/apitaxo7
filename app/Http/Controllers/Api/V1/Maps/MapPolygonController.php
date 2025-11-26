@@ -154,6 +154,29 @@ class MapPolygonController extends Controller
     }
 
 
+    /**
+     * Display the specified polygon by address id.
+     *
+     * @param  int  $address_id
+     * @return \Illuminate\Http\Response
+     */
+    public function showPolygonByAddress(Request $request, int $address_id)
+    {
+
+
+        $area = MapPolygonalArea::where('address_id', '=', $address_id)->first();
+
+        if (!$area) {
+            return response()->json(['error' => 'Map area not found for the given address'], 404);
+        }
+
+        return response()->json(
+            MapPolygonalAreaResource::make($area),
+            200
+        );
+    }
+
+
 
     /**
      * Display the specified resource.

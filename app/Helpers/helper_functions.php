@@ -196,7 +196,7 @@ function keyword_is_searcheable($keyword)
 
     $possible_name_words = keyword_search_terms_from_keyword($keyword);
 
-    return $keyword && $keyword != '' && count($possible_name_words) > 0 && strlen($possible_name_words[0]) > 2;
+    return $keyword && $keyword != '' && count($possible_name_words) > 0 && (isset($possible_name_words[0]) && strlen($possible_name_words[0]) > 2);
 }
 
 /**
