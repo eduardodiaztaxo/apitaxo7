@@ -511,6 +511,7 @@ class DatosActivosController extends Controller
         $id_proyecto = DB::table('sec_user_proyectos')
             ->where('login', $usuario)
             ->value('idProyecto');
+            
 
         if (empty($id_proyecto)) {
             return response()->json([
