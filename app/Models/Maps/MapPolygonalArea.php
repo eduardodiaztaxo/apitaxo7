@@ -50,8 +50,9 @@ class MapPolygonalArea extends Model
                 'inv_id' =>  $inventario->id_inventario,
                 'category_id' => $inventario->id_familia,
                 'name' => $inventario->descripcion_bien,
-                'lat' => (float)$inventario->latitud,
-                'lng' => (float)$inventario->longitud,
+                'fix_quality' => $inventario->fix_quality,
+                'lat' => $inventario->adjusted_lat ? (float)$inventario->adjusted_lat : (float)$inventario->latitud,
+                'lng' => $inventario->adjusted_lng ? (float)$inventario->adjusted_lng : (float)$inventario->longitud,
                 'created_at' => now(),
                 'updated_at' => now()
             ]);

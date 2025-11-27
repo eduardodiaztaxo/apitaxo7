@@ -12,6 +12,7 @@ class MapMarkerAsset extends Model
     protected $fillable = [
         'inv_id',
         'name',
+        'fix_quality',
         'category_id',
         'lat',
         'lng',
