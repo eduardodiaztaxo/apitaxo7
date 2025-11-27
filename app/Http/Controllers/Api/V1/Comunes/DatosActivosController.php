@@ -60,9 +60,7 @@ class DatosActivosController extends Controller
         }
 
         $collection = IndiceListaEstado::where('idProyecto', $id_proyecto)
-            ->get()
-            ->unique('descripcion')
-            ->values();
+            ->get();
 
         return response()->json($collection, 200);
     }
@@ -388,9 +386,7 @@ class DatosActivosController extends Controller
         }
 
         $collection = IndiceListaColores::where('idProyecto', $id_proyecto)
-            ->get()
-            ->unique('descripcion')
-            ->values();
+            ->get();
 
         return response()->json($collection, 200);
     }
@@ -410,9 +406,7 @@ class DatosActivosController extends Controller
         }
 
         $collection = IndiceListaOperacional::where('idProyecto', $id_proyecto)
-            ->get()
-            ->unique('descripcion')
-            ->values();
+            ->get();
 
         return response()->json($collection, 200);
     }
@@ -432,9 +426,7 @@ class DatosActivosController extends Controller
         }
 
         $collection = IndiceListaTipoTrabajo::where('idProyecto', $id_proyecto)
-            ->get()
-            ->unique('descripcion')
-            ->values();
+            ->get();
 
         return response()->json($collection, 200);
     }
@@ -454,9 +446,7 @@ class DatosActivosController extends Controller
         }
 
         $collection = IndiceListaCargaTrabajo::where('idProyecto', $id_proyecto)
-            ->get()
-            ->unique('descripcion')
-            ->values();
+            ->get();
 
         return response()->json($collection, 200);
     }
@@ -476,9 +466,7 @@ class DatosActivosController extends Controller
         }
 
         $collection = IndiceListaConservacion::where('idProyecto', $id_proyecto)
-            ->get()
-            ->unique('descripcion')
-            ->values();
+            ->get();
 
         return response()->json($collection, 200);
     }
@@ -498,9 +486,7 @@ class DatosActivosController extends Controller
         }
 
         $collection = IndiceListaCondicionAmbiental::where('idProyecto', $id_proyecto)
-            ->get()
-            ->unique('descripcion')
-            ->values();
+            ->get();
 
         return response()->json($collection, 200);
     }
@@ -511,7 +497,7 @@ class DatosActivosController extends Controller
         $id_proyecto = DB::table('sec_user_proyectos')
             ->where('login', $usuario)
             ->value('idProyecto');
-            
+
 
         if (empty($id_proyecto)) {
             return response()->json([
@@ -521,9 +507,7 @@ class DatosActivosController extends Controller
         }
 
         $collection = IndiceListaMaterial::where('idProyecto', $id_proyecto)
-            ->get()
-            ->unique('material')
-            ->values();
+            ->get();
 
         return response()->json($collection, 200);
     }
@@ -552,9 +536,7 @@ class DatosActivosController extends Controller
         }
 
         $collection = IndiceListaForma::where('idProyecto', $id_proyecto)
-            ->get()
-            ->unique('forma')
-            ->values();
+            ->get();
 
         return response()->json($collection, 200);
     }
