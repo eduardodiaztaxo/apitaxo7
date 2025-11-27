@@ -521,7 +521,7 @@ class DatosActivosController extends Controller
 
         $collection = IndiceListaMaterial::where('idProyecto', $id_proyecto)
             ->get()
-            ->unique('descripcion')
+            ->unique('material')
             ->values();
 
         return response()->json($collection, 200);
@@ -552,7 +552,7 @@ class DatosActivosController extends Controller
 
         $collection = IndiceListaForma::where('idProyecto', $id_proyecto)
             ->get()
-            ->unique('descripcion')
+            ->unique('forma')
             ->values();
 
         return response()->json($collection, 200);
