@@ -626,7 +626,7 @@ class DatosActivosController extends Controller
     {
         $request->validate([
             'descripcion'       => 'required|string',
-            'idAtributo'        => 'required|exists:indices_listas,idAtributo',
+            'idAtributo'        => 'required',
             'id_familia'        => 'required|exists:dp_familias,id_familia',
             'ciclo_inventario'  => 'required|exists:inv_ciclos,idCiclo'
         ]);
