@@ -84,7 +84,8 @@ class MapPolygonalArea extends Model
         return $this->belongsTo(UbicacionGeografica::class, 'address_id', 'idUbicacionGeo');
     }
 
-    function isPointInsidePolygon($lat, $lng, $polygon)
+
+    public static function isCoordinateInsideArea($lat, $lng, $polygon)
     {
         $inside = false;
         $j = count($polygon) - 1;
@@ -105,6 +106,11 @@ class MapPolygonalArea extends Model
         }
 
         return $inside;
+    }
+
+    function isPointInsidePolygon($lat, $lng, $polygon)
+    {
+        return self::isCoordinateInsideArea($lat, $lng, $polygon);
     }
 
     public function updateMinMaxLatLng()

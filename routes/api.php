@@ -310,6 +310,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('maps/land-markers', [MapLandMarkerController::class, 'index']);
 
+    Route::get('maps/landmarkers-by-area/{area_id}', [MapLandMarkerController::class, 'indexByArea']);
+
     Route::get('ciclos/{ciclo}/emplazamientos/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssetsN2']);
 });
 

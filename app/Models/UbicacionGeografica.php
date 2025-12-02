@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Maps\MapPolygonalArea;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\JoinClause;
@@ -135,13 +136,19 @@ class UbicacionGeografica extends Model
     }
 
 
-public function verificacion_range($idAgenda)
-{
-   $sql = "
-    SELECT name, area, address_id FROM map_polygonal_areas
-    WHERE address_id = ?
-";
-return DB::select($sql, [$idAgenda]);
-}
+    public function verificacion_range($idAgenda)
+    {
+        $sql = "
+            SELECT name, area, address_id FROM map_polygonal_areas
+            WHERE address_id = ?
+        ";
+        return DB::select($sql, [$idAgenda]);
+    }
 
+    public function getIsPolygonAttribute()
+    {
+        $area = MapPolygonalArea::where('address_id', $this->idUbicacionGeo)->first();
+
+        return $area ? true : false;
+    }
 }
