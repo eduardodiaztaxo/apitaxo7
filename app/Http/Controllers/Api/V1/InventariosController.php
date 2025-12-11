@@ -799,8 +799,7 @@ class InventariosController extends Controller
     public function ImageByEtiqueta(Request $request, $etiqueta)
     {
         $request->validate([
-            'imagenes.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
-            'id_ciclo'   => 'required|integer|exists:inv_ciclos,idCiclo',
+            'imagenes.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240'
         ]);
 
         if ($request->conf_fotos != 0 && strtolower($request->tipo) == 'true') {
@@ -829,7 +828,7 @@ class InventariosController extends Controller
             }
         }
 
-        if ($existeEtiqueta) {
+        if ($existeEtiqueta && $request->update_inv == 'false') {
             return response()->json([
                 'status' => 'ERROR',
                 'message' => 'La etiqueta ' . $etiqueta . ' ingresada ya existe.',

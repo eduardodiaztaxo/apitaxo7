@@ -160,7 +160,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('nombre-inputs', [InventariosController::class, 'nombreInputs']);
 
-    Route::put('inventario/image/{etiqueta}/ciclo/{ciclo}', [InventariosController::class, 'ImageByEtiqueta']);
+    Route::put('inventario/image/{etiqueta}', [InventariosController::class, 'ImageByEtiqueta']);
 
     Route::post('inventario/{ciclo}/procesar-varios', [InventariosController::class, 'storeInventoryMultiple']);
 
