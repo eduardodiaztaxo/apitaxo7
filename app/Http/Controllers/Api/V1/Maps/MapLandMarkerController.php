@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Maps;
 
 use App\Http\Controllers\Controller;
 use App\Models\Maps\MapLandMarker;
+use App\Models\Maps\MapPolygonalArea;
 use Illuminate\Http\Request;
 
 class MapLandMarkerController extends Controller
@@ -24,6 +25,40 @@ class MapLandMarkerController extends Controller
         );
     }
 
+    public function indexByArea($area_id)
+    {
+        //
+        $area = MapPolygonalArea::find($area_id);
+
+
+        while ($area->parent_id > 0 && $area->parent_id !== null) {
+            $area = MapPolygonalArea::find($area->parent_id);
+        }
+
+        if (!$area) {
+            return response()->json([
+                'message' => 'Area not found'
+            ], 404);
+        }
+
+        $markers = [];
+
+        $landmarkers = MapLandMarker::all();
+
+
+
+        foreach ($landmarkers as $marker) {
+            if ($area->isPointInsidePolygon($marker->latitude, $marker->longitude, json_decode($area->area, true))) {
+                $markers[] = $marker;
+            }
+        }
+
+        return response()->json(
+            $markers,
+            200
+        );
+    }
+
     /**
      * Show the form for creating a new resource.
      *
@@ -32,6 +67,7 @@ class MapLandMarkerController extends Controller
     public function create()
     {
         //
+
     }
 
     /**
