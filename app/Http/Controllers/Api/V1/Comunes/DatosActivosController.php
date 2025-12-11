@@ -24,6 +24,7 @@ use App\Models\Inv_ciclos_categorias;
 use Illuminate\Support\Facades\Auth;
 use App\Models\InvCiclo;
 use Illuminate\Support\Facades\DB;
+use App\Services\ProyectoUsuarioService;
 
 
 class DatosActivosController extends Controller
@@ -45,12 +46,7 @@ class DatosActivosController extends Controller
 
     public function estados($cycle)
     {
-
-        //auditoría y scan_bienes
-        $usuario = Auth::user()->name;
-        $id_proyecto = DB::table('sec_user_proyectos')
-            ->where('login', $usuario)
-            ->value('idProyecto');
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         if (!$id_proyecto) {
             return response()->json([
@@ -68,9 +64,7 @@ class DatosActivosController extends Controller
 
     public function grupo($ciclo)
     {
-        $id_proyecto = DB::table('inv_ciclos')
-            ->where('idCiclo', $ciclo)
-            ->value('id_proyecto');
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         $idsGrupos = DB::select("
                 SELECT 
@@ -129,10 +123,7 @@ class DatosActivosController extends Controller
 
     public function bienesGrupoFamilia($idCiclo)
     {
-        // Paso 1: Obtener familias con estado ≠ 0
-        $id_proyecto = DB::table('inv_ciclos')
-            ->where('idCiclo', $idCiclo)
-            ->value('id_proyecto');
+      $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         $familias = DB::select("
         SELECT 
@@ -234,9 +225,7 @@ class DatosActivosController extends Controller
     public function showAllByBienesGrupoFamilia(Request $request, int $cycle_id)
     {
 
-
         $objCycle = InvCiclo::find($cycle_id);
-
 
         if (!$objCycle) {
             return response()->json([
@@ -252,17 +241,12 @@ class DatosActivosController extends Controller
             !!keyword_is_searcheable($request->keyword)
         ) {
 
-
-
             $bienesGrupoFamilia = $objCycle->bienesGrupoFamiliaByCycle()
                 ->where(function ($query) use ($complete_word) {
                     $query->where('descripcion', 'LIKE', "%$complete_word%");
                     $query->orWhere('descripcion_grupo', 'LIKE', "%$complete_word%");
                     $query->orWhere('descripcion_familia', 'LIKE', "%$complete_word%");
                 });
-
-
-
 
             if (count($possible_name_words) > 1) {
 
@@ -341,10 +325,7 @@ class DatosActivosController extends Controller
     }
     public function bienes_Marcas($id_familia, $ciclo)
     {
-        $usuario = Auth::user()->name;
-        $id_proyecto = DB::table('sec_user_proyectos')
-            ->where('login', $usuario)
-            ->value('idProyecto');
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         if (empty($id_proyecto)) {
             return response()->json([
@@ -373,10 +354,7 @@ class DatosActivosController extends Controller
 
     public function indiceColores($cycle)
     {
-        $usuario = Auth::user()->name;
-        $id_proyecto = DB::table('sec_user_proyectos')
-            ->where('login', $usuario)
-            ->value('idProyecto');
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         if (empty($id_proyecto)) {
             return response()->json([
@@ -393,15 +371,12 @@ class DatosActivosController extends Controller
 
     public function estadosOperacional($cycle)
     {
-        $usuario = Auth::user()->name;
-        $id_proyecto = DB::table('sec_user_proyectos')
-            ->where('login', $usuario)
-            ->value('idProyecto');
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         if (empty($id_proyecto)) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'No se encontró proyecto para el usuario ' . $usuario
+                'message' => 'No se encontró proyecto para el usuario'
             ], 404);
         }
 
@@ -413,10 +388,7 @@ class DatosActivosController extends Controller
 
     public function tipoTrabajo($cycle)
     {
-        $usuario = Auth::user()->name;
-        $id_proyecto = DB::table('sec_user_proyectos')
-            ->where('login', $usuario)
-            ->value('idProyecto');
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         if (empty($id_proyecto)) {
             return response()->json([
@@ -433,10 +405,7 @@ class DatosActivosController extends Controller
 
     public function cargaTrabajo($cycle)
     {
-        $usuario = Auth::user()->name;
-        $id_proyecto = DB::table('sec_user_proyectos')
-            ->where('login', $usuario)
-            ->value('idProyecto');
+     $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         if (empty($id_proyecto)) {
             return response()->json([
@@ -453,10 +422,7 @@ class DatosActivosController extends Controller
 
     public function estadoConservacion($cycle)
     {
-        $usuario = Auth::user()->name;
-        $id_proyecto = DB::table('sec_user_proyectos')
-            ->where('login', $usuario)
-            ->value('idProyecto');
+     $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         if (empty($id_proyecto)) {
             return response()->json([
@@ -473,10 +439,7 @@ class DatosActivosController extends Controller
 
     public function condicionAmbiental($cycle)
     {
-        $usuario = Auth::user()->name;
-        $id_proyecto = DB::table('sec_user_proyectos')
-            ->where('login', $usuario)
-            ->value('idProyecto');
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         if (empty($id_proyecto)) {
             return response()->json([
@@ -493,11 +456,7 @@ class DatosActivosController extends Controller
 
     public function material($cycle)
     {
-        $usuario = Auth::user()->name;
-        $id_proyecto = DB::table('sec_user_proyectos')
-            ->where('login', $usuario)
-            ->value('idProyecto');
-
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         if (empty($id_proyecto)) {
             return response()->json([
@@ -519,14 +478,9 @@ class DatosActivosController extends Controller
      * @param  \App\Models\IndiceListaForma  
      * @return \Illuminate\Http\Response
      */
-
-
     public function forma($cycle)
     {
-        $usuario = Auth::user()->name;
-        $id_proyecto = DB::table('sec_user_proyectos')
-            ->where('login', $usuario)
-            ->value('idProyecto');
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         if (empty($id_proyecto)) {
             return response()->json([
@@ -590,9 +544,7 @@ class DatosActivosController extends Controller
             $newIdLista = max($maxListaIndicelista, $maxListaMarcasNuevos) + 1;
         }
 
-        $id_proyecto = DB::table('inv_ciclos')
-            ->where('idCiclo', $request->ciclo_inventario)
-            ->value('id_proyecto');
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         $usuario = Auth::user()->name;
 
@@ -655,9 +607,7 @@ class DatosActivosController extends Controller
 
         $usuario = Auth::user()->name;
 
-        $id_proyecto = DB::table('inv_ciclos')
-            ->where('idCiclo', $request->ciclo_inventario)
-            ->value('id_proyecto');
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         $marcas = new Inventario_marcas();
         $marcas->idLista     = $newIdLista;

@@ -57,9 +57,7 @@ class ZonaController extends Controller
         $cicloAuditoria = $request->ciclo_auditoria;
         $code = $placeService->getNewZoneCode($punto);
 
-        $id_proyecto = DB::table('inv_ciclos')
-        ->where('idCiclo', $request->ciclo_auditoria)
-        ->value('id_proyecto');
+       $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         $data = [
             'idProyecto'            => $id_proyecto,

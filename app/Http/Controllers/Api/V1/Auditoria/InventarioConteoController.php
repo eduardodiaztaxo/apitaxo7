@@ -237,7 +237,6 @@ class InventarioConteoController extends Controller
         $request->validate([
             'items'             => 'required|json',
             'ciclo_id'          => 'required|integer|exists:inv_ciclos,idCiclo',
-
             'emplazamiento_id'  => 'required|integer|exists:ubicaciones_n2,idUbicacionN2',
         ]);
 

@@ -15,9 +15,7 @@ class InventariosResource extends JsonResource
      */
     public function toArray($request)
     {
-         $id_proyecto = DB::table('inv_ciclos')
-            ->where('idCiclo', $this->id_ciclo)
-            ->value('id_proyecto');
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         $descFamilia = $this->familia?->descripcion_familia ?? 'Sin familia';
 

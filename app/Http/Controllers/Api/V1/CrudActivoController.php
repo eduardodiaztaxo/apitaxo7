@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Inventario;
 use App\Services\ActivoService;
 use App\Services\ImageService;
+use App\Services\ActivoFinderService;
+use App\Services\ProyectoUsuarioService;
 use Illuminate\Http\Request;
 use App\Services\Imagenes\PictureSafinService;
 use Illuminate\Support\Facades\Storage;
@@ -125,18 +127,11 @@ class CrudActivoController extends Controller
      * @param int  $etiqueta
      * @return \Illuminate\Http\Response
      */
-    public function showByEtiqueta(Request $request, $etiqueta)
+ 
+   public function showByEtiqueta(Request $request, $etiqueta, $ciclo)
     {
-        //
-        $activo = CrudActivo::where('etiqueta', '=', $etiqueta)->orWhere('codigo_cliente', '=', $etiqueta)->first();
-
-        if (!$activo) {
-            $activo = Inventario::where('etiqueta', '=', $etiqueta)->first();
-            if ($activo) {
-                $resource = new InventariosResource($activo);
-                return response()->json($resource, 200);
-            }
-        }
+        
+        $activo = ActivoFinderService::findByEtiquetaAndCiclo($etiqueta, $ciclo);
 
         if (!$activo) {
             return response()->json([
@@ -144,12 +139,15 @@ class CrudActivoController extends Controller
                 "status"  => "error"
             ], 404);
         }
-        $activo->requireUbicacion = 1;
 
+        if ($activo instanceof Inventario) {
+            return response()->json(new InventariosResource($activo), 200);
+        }
+
+        $activo->requireUbicacion = 1;
         $activo->requireEmplazamiento = 1;
 
-        $resource = new CrudActivoResource($activo);
-        return response()->json($resource, 200);
+        return response()->json(new CrudActivoResource($activo), 200);
     }
 
 
@@ -251,29 +249,31 @@ class CrudActivoController extends Controller
             'imagen' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
         ]);
 
-        $idActivo_Documento = CrudActivo::where('etiqueta', '=', $etiqueta)->value('idActivo');
+        $idActivo = ActivoFinderService::getIdByEtiquetaAndCiclo($etiqueta, $request->cycle_id);
+        $id_proyecto = ActivoFinderService::getIdProyectoByCiclo($request->cycle_id);
 
-        $id_proyecto = DB::table('inv_ciclos')
-            ->where('idCiclo', $request->cycle_id)
-            ->value('id_proyecto');
+        if (!$idActivo) {
+            return response()->json([
+                'message' => 'Not Found',
+                'status' => 'error'
+            ], 404);
+        }
 
-        if (!$idActivo_Documento) {
-            $idActivo_Inventario = Inventario::where('etiqueta', '=', $etiqueta)
-                ->where('id_proyecto', '=', $id_proyecto)
-                ->value('id_inventario');
+        if (!$id_proyecto) {
+            //caso de scan bienes
+            $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+        }
 
-            if (!$idActivo_Inventario) {
-                return response()->json([
-                    'message' => 'Not Found',
-                    'status' => 'error'
-                ], 404);
-            }
+        $ciclo = InvCiclo::find($request->cycle_id);
+        $esInventario = $ciclo && $ciclo->idTipoCiclo == ActivoFinderService::TIPO_INVENTARIO;
 
+        if ($esInventario) {
+            // Actualizar estado en inventario
             DB::table('inv_inventario')
-                ->where('id_inventario', '=', $idActivo_Inventario)
+                ->where('id_inventario', '=', $idActivo)
                 ->update(['crud_activo_estado' => 3]);
 
-            $filename = '9999_' . $etiqueta;
+            $filename = $id_proyecto . '_' . $etiqueta;
             $origen = 'SAFIN_APP_ACTUALIZADA_IMAGEN';
             $file = $request->file('imagen');
             $namefile = $filename . '.jpg';
@@ -299,6 +299,7 @@ class CrudActivoController extends Controller
                     $imagenExistente->origen = $origen;
                     $imagenExistente->picture = $filename . '.jpg';
                     $imagenExistente->updated_at = now();
+                    $imagenExistente->id_proyecto = $id_proyecto;
                     $imagenExistente->save();
 
                     return response()->json([
@@ -309,15 +310,28 @@ class CrudActivoController extends Controller
                 }
             }
 
+            // Si no hay imagen existente, crear nueva
+            $nuevaImagen = new Inv_imagenes();
+            $nuevaImagen->etiqueta = $etiqueta;
+            $nuevaImagen->id_proyecto = $id_proyecto;
+            $nuevaImagen->url_imagen = $url_pict . $filename . '.jpg';
+            $nuevaImagen->url_picture = $url_pict;
+            $nuevaImagen->origen = $origen;
+            $nuevaImagen->picture = $filename . '.jpg';
+            $nuevaImagen->created_at = now();
+            $nuevaImagen->updated_at = now();
+            $nuevaImagen->save();
+
             return response()->json([
                 'status' => 'OK',
+                'message' => 'Nueva imagen creada',
                 'path' => $path,
-                'url' => $url
+                'url' => $url_pict . $filename . '.jpg'
             ], 201);
         }
 
-
-        $filename = '9999_' . $etiqueta;
+        // Es auditoría (crud_activos)
+        $filename = $id_proyecto . '_' . $etiqueta;
         $origen = 'SAFIN_APP';
         $file = $request->file('imagen');
         $namefile = $filename . '.jpg';
@@ -332,7 +346,7 @@ class CrudActivoController extends Controller
         $url_pict = dirname($url) . '/';
 
         $ultimo = DB::table('crud_activos_pictures')
-            ->where('id_activo', $idActivo_Documento)
+            ->where('id_activo', $idActivo)
             ->orderByDesc('id_foto')
             ->first();
 
@@ -343,15 +357,17 @@ class CrudActivoController extends Controller
                     'url_picture' => $url_pict,
                     'picture' => $filename . '.jpg',
                     'origen' => $origen,
-                    'fecha_update' => now()
+                    'fecha_update' => now(),
+                    'idProyecto'   => $id_proyecto,
                 ]);
         } else {
             DB::table('crud_activos_pictures')->insert([
-                'id_activo' => $idActivo_Documento,
+                'id_activo' => $idActivo,
                 'url_picture' => $url_pict,
                 'picture' => $filename . '.jpg',
                 'origen' => $origen,
-                'fecha_update' => now()
+                'fecha_update' => now(),
+                'idProyecto'   => $id_proyecto,
             ]);
         }
 
@@ -443,16 +459,17 @@ class CrudActivoController extends Controller
         ], 200);
     }
 
-
-    public function marcasDisponibles(Request $request, $etiqueta)
+//se agrego el ciclo para las marcas disponibles
+    public function marcasDisponibles(Request $request, $etiqueta, $ciclo)
     {
-
-        $activo = CrudActivo::where('etiqueta', '=', $etiqueta)->first();
+        $activo = ActivoFinderService::findByEtiquetaAndCiclo($etiqueta, $ciclo);
 
         if (!$activo) {
-            $activo = Inventario::where('etiqueta', '=', $etiqueta)->first();
+            return response()->json([
+                "message" => "Not Found",
+                "status"  => "error"
+            ], 404);
         }
-
 
         $collection = $activo->marcasDisponibles()->get();
         return response()->json($collection, 200);

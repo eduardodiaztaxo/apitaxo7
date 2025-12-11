@@ -17,6 +17,8 @@ use Intervention\Image\Facades\Image;
 use App\Services\ImageService;
 use App\Services\Imagenes\PictureSafinService;
 use App\Services\InvConfigService;
+use App\Services\ActivoFinderService;
+use App\Services\ProyectoUsuarioService;
 use DateTime;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -67,22 +69,18 @@ class InventariosController extends Controller
 
         $idAgenda = $request->idAgenda;
 
-        $id_proyecto = DB::table('inv_ciclos')
-        ->where('idCiclo', $request->id_ciclo)
-        ->value('id_proyecto');
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
-        $etiquetaInventario = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta)->where('id_proyecto', $id_proyecto)->value('etiqueta');
-        $etiquetaUnicaCrudActivo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta)->value('etiqueta');
+        $activoExiste = ActivoFinderService::findByEtiquetaAndCiclo($request->etiqueta, $request->id_ciclo);
 
-        if ($etiquetaInventario || $etiquetaUnicaCrudActivo) {
+        if ($activoExiste) {
             $existeEtiqueta = true;
         }
 
         if (!empty($request->etiqueta_padre)) {
-            $etiquetaInventarioHijo = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
-            $etiquetaCrudActivoHijo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
+            $etiquetaPadreExiste = ActivoFinderService::findByEtiquetaAndCiclo($request->etiqueta_padre, $request->id_ciclo);
 
-            if (!$etiquetaInventarioHijo && !$etiquetaCrudActivoHijo) {
+            if (!$etiquetaPadreExiste) {
                 return response('La etiqueta padre ' . $request->etiqueta_padre . ' no existe', 400);
             }
         }
@@ -238,9 +236,7 @@ class InventariosController extends Controller
         $etiquetaOriginal = $request->etiqueta_original_editar;
         $etiquetaNueva = $request->etiqueta;
 
-    $id_proyecto = DB::table('inv_ciclos')
-        ->where('idCiclo', $request->id_ciclo)
-        ->value('id_proyecto');
+    $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
     $id_img = DB::table('inv_imagenes')
         ->where('etiqueta', $etiquetaOriginal)
@@ -495,26 +491,50 @@ class InventariosController extends Controller
             return response()->json($crudImagenes);
         }
 
-        $invImagenes = DB::select("
-            SELECT 
-                idLista,
-                id_img,
-                etiqueta,
-                url_imagen
-            FROM inv_imagenes
-            WHERE etiqueta = ?
-            AND id_proyecto = (
-                SELECT id_proyecto 
-                FROM inv_ciclos 
-                WHERE idCiclo = ?
-            )
-        ", [$etiqueta, $cycleid]);
+        $ciclo = InvCiclo::find($cycleid);
 
-        return response()->json($invImagenes);
+        if (!$ciclo) {
+            return response()->json([]);
+        }
+
+        if ($ciclo->idTipoCiclo == ActivoFinderService::TIPO_INVENTARIO) {
+            $invImagenes = DB::select("
+                SELECT 
+                    idLista,
+                    id_img,
+                    etiqueta,
+                    url_imagen
+                FROM inv_imagenes
+                WHERE etiqueta = ?
+                AND id_proyecto = ?
+            ", [$etiqueta, $ciclo->id_proyecto]);
+
+            return response()->json($invImagenes);
+        }
+
+        $idActivoCrud = ActivoFinderService::getIdByEtiquetaAndCiclo($etiqueta, $cycleid);
+
+        if (!$idActivoCrud) {
+            return response()->json([]);
+        }
+
+        $crudImagenes = DB::select("
+            SELECT 
+                id_foto as idLista,
+                id_foto as id_img,
+                ? as etiqueta,
+                CONCAT(url_picture, picture) as url_imagen
+            FROM crud_activos_pictures
+            WHERE id_activo = ?
+        ", [$etiqueta, $idActivoCrud]);
+
+        return response()->json($crudImagenes);
     }
 
-    public function deleteImageByEtiqueta($etiqueta, $id_img, $idLista, $idActivo = null)
+   // se le pasa el ciclo
+    public function deleteImageByEtiqueta($etiqueta, $id_img, $idLista, $idActivo = null, $cycleid)
     {
+        // Si viene idActivo directamente, eliminar de crud_activos_pictures
         if (!empty($idActivo)) {
             $imagen = DB::table('crud_activos_pictures')
                 ->where('id_activo', $idActivo)
@@ -543,28 +563,78 @@ class InventariosController extends Controller
             ], 200);
         }
 
-        $imagen = Inv_imagenes::where('etiqueta', $etiqueta)
-            ->where('id_img', $id_img)
-            ->where('idLista', $idLista)
-            ->first();
+        // Obtener el ciclo para determinar el tipo
+        $ciclo = InvCiclo::find($cycleid);
 
-        if (!$imagen) {
+        if (!$ciclo) {
             return response()->json([
                 'status'  => 'ERROR',
-                'message' => 'Imagen no encontrada en inventario.'
+                'message' => 'Ciclo no encontrado.'
             ], 404);
         }
 
-        $filePath = PictureSafinService::getImgSubdir(Auth::user()->nombre_cliente) . '/' . $imagen->picture;
+        // Si es ciclo tipo 1 (inventario), eliminar de inv_imagenes
+        if ($ciclo->idTipoCiclo == ActivoFinderService::TIPO_INVENTARIO) {
+            $imagen = Inv_imagenes::where('etiqueta', $etiqueta)
+                ->where('id_img', $id_img)
+                ->where('idLista', $idLista)
+                ->where('id_proyecto', $ciclo->id_proyecto)
+                ->first();
+
+            if (!$imagen) {
+                return response()->json([
+                    'status'  => 'ERROR',
+                    'message' => 'Imagen no encontrada en inventario.'
+                ], 404);
+            }
+
+            $filePath = PictureSafinService::getImgSubdir(Auth::user()->nombre_cliente) . '/' . $imagen->picture;
+            if (Storage::disk('taxoImages')->exists($filePath)) {
+                Storage::disk('taxoImages')->delete($filePath);
+            }
+
+            $imagen->delete();
+
+            return response()->json([
+                'status'  => 'OK',
+                'message' => 'Imagen eliminada con éxito del inventario.'
+            ], 200);
+        }
+
+        // Si es ciclo tipo 2 (auditoría), eliminar de crud_activos_pictures
+        $idActivoCrud = ActivoFinderService::getIdByEtiquetaAndCiclo($etiqueta, $cycleid);
+
+        if (!$idActivoCrud) {
+            return response()->json([
+                'status'  => 'ERROR',
+                'message' => 'Activo no encontrado.'
+            ], 404);
+        }
+
+        $imagenCrud = DB::table('crud_activos_pictures')
+            ->where('id_activo', $idActivoCrud)
+            ->where('id_foto', $idLista)
+            ->first();
+
+        if (!$imagenCrud) {
+            return response()->json([
+                'status'  => 'ERROR',
+                'message' => 'Imagen no encontrada en crud_activos_pictures.'
+            ], 404);
+        }
+
+        $filePath = PictureSafinService::getImgSubdir(Auth::user()->nombre_cliente) . '/' . $imagenCrud->picture;
         if (Storage::disk('taxoImages')->exists($filePath)) {
             Storage::disk('taxoImages')->delete($filePath);
         }
 
-        $imagen->delete();
+        DB::table('crud_activos_pictures')
+            ->where('id_foto', $imagenCrud->id_foto)
+            ->delete();
 
         return response()->json([
             'status'  => 'OK',
-            'message' => 'Imagen eliminada con éxito del inventario.'
+            'message' => 'Imagen eliminada con éxito de crud_activos_pictures.'
         ], 200);
     }
 
@@ -591,9 +661,7 @@ class InventariosController extends Controller
     public function configuracion($id_grupo, $cycleid)
     {
 
-        $id_proyecto = DB::table('inv_ciclos')
-            ->where('idCiclo', $cycleid)
-            ->value('id_proyecto');
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         $sql = "SELECT 
                 COALESCE(MAX(CASE WHEN id_atributo = 2 THEN id_validacion END), 0) AS conf_marca,
@@ -719,24 +787,20 @@ class InventariosController extends Controller
 
         $validacion = DB::select($sql, [$id_grupo, $id_proyecto]);
 
-
         $inputs_map = InvConfigService::getOpenedTextConfigInput((int)$id_grupo, (int)$id_proyecto);
 
-
-
         $validacion[0]->custom_fields = $inputs_map;
-
-
 
         return response()->json($validacion, 200);
     }
 
 
-
+//recibe el ciclo y la etiqueta
     public function ImageByEtiqueta(Request $request, $etiqueta)
     {
         $request->validate([
             'imagenes.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
+            'id_ciclo'   => 'required|integer|exists:inv_ciclos,idCiclo',
         ]);
 
         if ($request->conf_fotos != 0 && strtolower($request->tipo) == 'true') {
@@ -745,23 +809,19 @@ class InventariosController extends Controller
             $origen = 'SAFIN_APP';
         }
 
-        $id_proyecto = DB::table('inv_ciclos')
-            ->where('idCiclo', $request->id_ciclo)
-            ->value('id_proyecto');
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         $existeEtiqueta = false;
-        $etiquetaInventario = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta)->where('id_proyecto', $id_proyecto)->value('etiqueta');
-        $etiquetaUnicaCrudActivo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta)->value('etiqueta');
+        $activoExiste = ActivoFinderService::findByEtiquetaAndCiclo($request->etiqueta, $request->id_ciclo);
 
-        if ($etiquetaInventario || $etiquetaUnicaCrudActivo) {
+        if ($activoExiste) {
             $existeEtiqueta = true;
         }
 
         if (!empty($request->etiqueta_padre)) {
-            $etiquetaInventarioHijo = DB::table('inv_inventario')->where('etiqueta', $request->etiqueta_padre)->where('id_proyecto', $id_proyecto)->value('etiqueta');
-            $etiquetaCrudActivoHijo = DB::table('crud_activos')->where('etiqueta', $request->etiqueta_padre)->value('etiqueta');
+            $etiquetaPadreExiste = ActivoFinderService::findByEtiquetaAndCiclo($request->etiqueta_padre, $request->id_ciclo);
 
-            if (!$etiquetaInventarioHijo && !$etiquetaCrudActivoHijo) {
+            if (!$etiquetaPadreExiste) {
                 return response()->json([
                     'status' => 'ERROR',
                     'message' => 'La etiqueta padre ' . $request->etiqueta_padre . ' no existe.',
@@ -863,57 +923,50 @@ class InventariosController extends Controller
         return response()->json(['status' => 'OK', 'data' => $data]);
     }
 
-
+//pasarle el ciclo y la etiqueta
 public function addImageByEtiqueta(Request $request, $etiqueta)
 {
     $request->validate([
-        'imagenes.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
+        'imagenes.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240'
     ]);
 
-        try {
-            $origen = 'SAFIN_APP_IMG_NEW';
+    try {
+        $origen = 'SAFIN_APP_IMG_NEW';
+        $cycleId = $request->cycle_id ?? null;
 
-        $esCrudActivo = empty($request->cycle_id) && !empty($request->idActivo);
-
-        if ($esCrudActivo) {
-            $existeEtiqueta = DB::table('crud_activos')->where('etiqueta', $etiqueta)->exists();
-            if (!$existeEtiqueta) {
-                return response()->json([
-                    'status'  => 'ERROR',
-                    'message' => 'La etiqueta ' . $etiqueta . ' no existe en crud_activos.',
-                ], 404);
-            }
-        } else {
-            $existeEtiqueta = DB::table('inv_inventario')->where('etiqueta', $etiqueta)->exists();
-            if (!$existeEtiqueta) {
-                return response()->json([
-                    'status'  => 'ERROR',
-                    'message' => 'La etiqueta ' . $etiqueta . ' no existe en inventario.',
-                ], 404);
-            }
+        // Buscar activo usando ActivoFinderService
+        $activoExiste = ActivoFinderService::findByEtiquetaAndCiclo($etiqueta, $cycleId);
+        
+        if (!$activoExiste) {
+            return response()->json([
+                'status'  => 'ERROR',
+                'message' => 'La etiqueta ' . $etiqueta . ' no existe.',
+            ], 404);
         }
+
+        // Determinar si es crud_activo basado en el tipo de modelo retornado
+        $esCrudActivo = $activoExiste instanceof \App\Models\CrudActivo;
         
         $id_img = $request->id_img ?? null;
         $paths = [];
-        $idProyecto = null;
+        
+        $idProyecto = ProyectoUsuarioService::getIdProyecto();
 
         if ($esCrudActivo) {
-            $idProyecto = '9999'; 
+            // Obtener idActivo: puede venir del request (scan de bienes) o del modelo
+            $idActivo = $request->idActivo ?? $activoExiste->idActivo;
 
             $maxNumero = DB::table('crud_activos_pictures')
-                ->where('id_activo', $request->idActivo)
+                ->where('id_activo', $idActivo)
                 ->selectRaw("MAX(CAST(SUBSTRING_INDEX(picture, '_', -1) AS UNSIGNED)) as max_num")
                 ->value('max_num');
             
             $contador = $maxNumero ?? 0;
 
         } else {
-            $idProyecto = DB::table('inv_ciclos')
-                ->where('idCiclo', $request->cycle_id)
-                ->value('id_proyecto');
-
             $maxNumero = DB::table('inv_imagenes')
                 ->where('etiqueta', $etiqueta)
+                ->where('id_proyecto', $idProyecto)
                 ->selectRaw("MAX(CAST(REPLACE(SUBSTRING_INDEX(picture, '_', -1), '.jpg', '') AS UNSIGNED)) as max_num")
                 ->value('max_num');
             
@@ -936,12 +989,13 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
 
             if ($esCrudActivo) {
                 DB::table('crud_activos_pictures')->insert([
-                    'id_activo'    => $request->idActivo,
+                    'id_activo'    => $idActivo,
                     'picture'      => $filename,
                     'origen'       => $origen,
                     'url_picture'  => $url_pict,
                     'url_imagen'   => $url,
-                    'fecha_update' => now()
+                    'fecha_update' => now(),
+                    'idProyecto'   => $idProyecto,
                 ]);
             } else {
                 $img = new Inv_imagenes();
@@ -1090,10 +1144,7 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         $errors = [];
         $images = [];
 
-        // Obtener el último id_inventario una sola vez al inicio
-        $id_proyecto = DB::table('inv_ciclos')
-            ->where('idCiclo', $ciclo)
-            ->value('id_proyecto');
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         $ultimo_id_inventario = DB::table('inv_inventario')
             ->where('id_proyecto', $id_proyecto)
@@ -1131,9 +1182,7 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         $getIdResponsable = $this->getIdResponsable();
         $responsable = $this->getNombre();
 
-        $id_proyecto = DB::table('inv_ciclos')
-            ->where('idCiclo', $ciclo)
-            ->value('id_proyecto');
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         return [
             'id_inventario'      => $id_inventario,
@@ -1201,9 +1250,7 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         $direcciones = $direccionesJson ? json_decode($direccionesJson) : [];
         $idMapaGeo = [];
 
-        $id_proyecto = DB::table('inv_ciclos')
-            ->where('idCiclo', $ciclo)
-            ->value('id_proyecto');
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         foreach ($direcciones as $d) {
             $idRegion = DB::table('regiones')->where('descripcion', $d->region)->value('idRegion');
@@ -1252,9 +1299,7 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         $data = $json ? json_decode($json) : [];
         $mapaCodigo = [];
 
-        $id_proyecto = DB::table('inv_ciclos')
-            ->where('idCiclo', $ciclo)
-            ->value('id_proyecto');
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         foreach ($data as $n1) {
             $idAgendaReal = $this->obtenerIdAgendaActualizado($n1->idAgenda, $idMapaGeo);
@@ -1303,9 +1348,7 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         $mapaId = [];
         $mapaCodigo = [];
 
-        $id_proyecto = DB::table('inv_ciclos')
-            ->where('idCiclo', $ciclo)
-            ->value('id_proyecto');
+       $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         foreach ($data as $n2) {
             $idAgendaReal = $this->obtenerIdAgendaActualizado($n2->idAgenda, $idMapaGeo);
@@ -1369,9 +1412,7 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         $data = $json ? json_decode($json) : [];
         $mapaId = [];
         $mapaCodigo = [];
-        $id_proyecto = DB::table('inv_ciclos')
-            ->where('idCiclo', $ciclo)
-            ->value('id_proyecto');
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         foreach ($data as $n3) {
             $idAgendaReal = $this->obtenerIdAgendaActualizado($n3->idAgenda, $idMapaGeo);
@@ -1436,9 +1477,7 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         $bienes = $json ? json_decode($json) : [];
         $mapaIdListaBienes = [];
 
-        $id_proyecto = DB::table('inv_ciclos')
-            ->where('idCiclo', $ciclo)
-            ->value('id_proyecto');
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         foreach ($bienes as $bien) {
             $existeBien = DB::table('inv_bienes_nuevos')
@@ -1495,9 +1534,7 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
     {
         $marcas = $json ? json_decode($json) : [];
         $mapaIdListaMarcas = [];
-        $id_proyecto = DB::table('inv_ciclos')
-                ->where('idCiclo', $ciclo)
-                ->value('id_proyecto');
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         foreach ($marcas as $marca) {
             $existeMarca = DB::table('inv_marcas_nuevos')
@@ -1607,9 +1644,7 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         $failed = [];
         $paths = [];
 
-         $id_proyecto = DB::table('inv_ciclos')
-                ->where('idCiclo', $ciclo)
-                ->value('id_proyecto');
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         $id_img = DB::table('inv_imagenes')->where('id_proyecto', $id_proyecto)->max('id_img') + 1;
         $idsi = [];
@@ -1633,8 +1668,7 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
                 $activo['id_img'] = $activo['id_img'] ?? 1;
             }
 
-            $existsInv = Inventario::where('etiqueta', $activo['etiqueta'])->where('id_proyecto', $id_proyecto)->first();
-            $existsCrud = CrudActivo::where('etiqueta', $activo['etiqueta'])->first();
+            [$existsInv, $existsCrud] = ActivoFinderService::checkExistsByEtiquetaAndCiclo($activo['etiqueta'], $ciclo);
 
             if (!$existsInv && !$existsCrud) {
                 $asset = Inventario::create($activo);
@@ -1724,16 +1758,12 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         //
         $activo = Inventario::where('etiqueta', '=', $etiqueta)->first();
 
-
         if (!$activo) {
             return response()->json([
                 "message" => "Not Found",
                 "status"  => "error"
             ], 404);
         }
-
-
-
 
         $resource = new InventariosResource($activo);
         return response()->json($resource, 200);

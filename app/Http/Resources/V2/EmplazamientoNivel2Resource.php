@@ -7,6 +7,7 @@ use App\Http\Resources\V1\ZonaPuntoResource;
 use App\Models\Inv_ciclos_categorias;
 use App\Models\InvConteoRegistro;
 use App\Models\Inventario;
+use App\Services\ProyectoUsuarioService;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\DB;
 
@@ -21,9 +22,7 @@ class EmplazamientoNivel2Resource extends JsonResource
     public function toArray($request)
     {
 
-        $id_proyecto = DB::table('inv_ciclos')
-            ->where('idCiclo', $this->cycle_id)
-            ->value('id_proyecto');
+       $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         $num_activos_inv = $this->inv_activos()
             ->where('inv_inventario.id_proyecto', $id_proyecto)

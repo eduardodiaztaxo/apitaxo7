@@ -74,7 +74,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
         'makePassword'
     ]);
 
-    Route::get('activos/etiqueta/{etiqueta}', [CrudActivoController::class, 'showByEtiqueta']);
+    Route::get('activos/etiqueta/{etiqueta}/ciclo/{ciclo}', [CrudActivoController::class, 'showByEtiqueta']);
 
     Route::get('activos/inventario/{id}', [CrudActivoController::class, 'showInventoryByID']);
 
@@ -152,7 +152,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('activos/images/etiqueta/{etiqueta}/cycle/{cycleid}/idActivo/{idActivo}', [InventariosController::class, 'getImagesByEtiqueta']);
 
-    Route::post('activos/delete-image/etiqueta/{etiqueta}/id_img/{id_img}/idLista/{idLista}/idActivo/{idActivo?}', [InventariosController::class, 'deleteImageByEtiqueta']);
+    Route::post('activos/delete-image/etiqueta/{etiqueta}/id_img/{id_img}/idLista/{idLista}/idActivo/{idActivo?}/cycle/{cycleid}', [InventariosController::class, 'deleteImageByEtiqueta']);
 
     Route::post('inventario/add-image/{etiqueta}', [InventariosController::class, 'addImageByEtiqueta']);
 
@@ -160,7 +160,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('nombre-inputs', [InventariosController::class, 'nombreInputs']);
 
-    Route::put('inventario/image/{etiqueta}', [InventariosController::class, 'ImageByEtiqueta']);
+    Route::put('inventario/image/{etiqueta}/ciclo/{ciclo}', [InventariosController::class, 'ImageByEtiqueta']);
 
     Route::post('inventario/{ciclo}/procesar-varios', [InventariosController::class, 'storeInventoryMultiple']);
 
@@ -170,7 +170,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('localizacion/{etiqueta}', [CrudActivoController::class, 'localizacion']);
 
-    Route::get('marcas-disponibles/{etiqueta}', [CrudActivoController::class, 'marcasDisponibles']);
+    Route::get('marcas-disponibles/{etiqueta}/{ciclo}', [CrudActivoController::class, 'marcasDisponibles']);
 
     Route::get('ciclos', [CiclosController::class, 'index']);
 
