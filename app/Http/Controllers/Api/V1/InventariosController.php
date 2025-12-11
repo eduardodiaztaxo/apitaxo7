@@ -11,6 +11,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\InventariosResource;
 use App\Models\CrudActivo;
 use App\Models\InvCiclo;
+use App\Models\Responsable;
 use App\Models\UbicacionGeografica;
 use Illuminate\Support\Facades\DB;
 use Intervention\Image\Facades\Image;
@@ -151,8 +152,16 @@ class InventariosController extends Controller
             $etiquetaPadre = $request->etiqueta_padre;
         }
 
-        $getIdResponsable = $this->getIdResponsable();
-        $responsable = $this->getNombre();
+        // If the responsible ID is provided in the request, use it; otherwise, get it from the authenticated user
+        if ($request->idResponsable) {
+            $getIdResponsable = $request->idResponsable;
+            $responsable = Responsable::find($getIdResponsable)->name ?? null;
+        } else {
+            $getIdResponsable = $this->getIdResponsable();
+            $responsable = $this->getNombre();
+        }
+
+
 
         $ultimo_id_inventario = DB::table('inv_inventario')
             ->where('id_proyecto', $id_proyecto)
@@ -202,6 +211,7 @@ class InventariosController extends Controller
         $inventario->etiqueta_padre      = $etiquetaPadre ?? 'Sin Padre';
         /** edualejandro */
         $inventario->eficiencia          = $request->eficiencia ?? null;
+
 
 
         //texto_abierto_
@@ -260,6 +270,15 @@ class InventariosController extends Controller
         $estadoBien = $request->actualizarBien > 0 ? 3 : 0;
         $usuario = Auth::user()->name;
 
+        // If the responsible ID is provided in the request, use it; otherwise, get it from the authenticated user
+        if ($request->idResponsable) {
+            $getIdResponsable = $request->idResponsable;
+            $responsable = Responsable::find($getIdResponsable)->name ?? null;
+        } else {
+            $getIdResponsable = $this->getIdResponsable();
+            $responsable = $this->getNombre();
+        }
+
         $inv_arr = [
             'id_grupo'            => $request->id_grupo,
             'id_familia'          => $request->id_familia,
@@ -292,6 +311,8 @@ class InventariosController extends Controller
             'modificado_el'       => date('Y-m-d H:i:s'),
             'modificado_por'      => $usuario,
             'etiqueta'            => $etiquetaNueva,
+            'idResponsable'       => $getIdResponsable,
+            'responsable'         => $responsable
         ];
 
         foreach (array_keys($request->all()) as $key) {
@@ -627,87 +648,8 @@ class InventariosController extends Controller
                 COALESCE(MAX(CASE WHEN id_atributo = 26 THEN valor_minimo END), 0) AS lench_Min_eficiencia,
                 COALESCE(MAX(CASE WHEN id_atributo = 26 THEN valor_maximo END), 0) AS lench_Max_eficiencia,
                 /** edualejandro */
-                COALESCE(MAX(CASE WHEN id_atributo = 27 THEN id_validacion END), 0) AS conf_texto_abierto_1,
-                COALESCE(MAX(CASE WHEN id_atributo = 27 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_1,
-                COALESCE(MAX(CASE WHEN id_atributo = 27 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_1,
-                COALESCE(MAX(CASE WHEN id_atributo = 27 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_1,
-                COALESCE(
-                    IFNULL(MAX(CASE WHEN id_atributo = 27 THEN label_input ELSE NULL END), 'Texto Abierto 1')
-                ) AS label_texto_abierto_1,
-                /** edualejandro */
-                COALESCE(MAX(CASE WHEN id_atributo = 28 THEN id_validacion END), 0) AS conf_texto_abierto_2,
-                COALESCE(MAX(CASE WHEN id_atributo = 28 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_2,
-                COALESCE(MAX(CASE WHEN id_atributo = 28 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_2,
-                COALESCE(MAX(CASE WHEN id_atributo = 28 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_2,
-                COALESCE(
-                    IFNULL(MAX(CASE WHEN id_atributo = 28 THEN label_input ELSE NULL END), 'Texto Abierto 2')
-                ) AS label_texto_abierto_2,
-                /** edualejandro */
-                COALESCE(MAX(CASE WHEN id_atributo = 29 THEN id_validacion END), 0) AS conf_texto_abierto_3,
-                COALESCE(MAX(CASE WHEN id_atributo = 29 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_3,
-                COALESCE(MAX(CASE WHEN id_atributo = 29 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_3,
-                COALESCE(MAX(CASE WHEN id_atributo = 29 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_3,
-                COALESCE(
-                    IFNULL(MAX(CASE WHEN id_atributo = 29 THEN label_input ELSE NULL END), 'Texto Abierto 3')
-                ) AS label_texto_abierto_3,
-                /** edualejandro */
-                COALESCE(MAX(CASE WHEN id_atributo = 30 THEN id_validacion END), 0) AS conf_texto_abierto_4,
-                COALESCE(MAX(CASE WHEN id_atributo = 30 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_4,
-                COALESCE(MAX(CASE WHEN id_atributo = 30 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_4,
-                COALESCE(MAX(CASE WHEN id_atributo = 30 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_4,
-                COALESCE(
-                    IFNULL(MAX(CASE WHEN id_atributo = 30 THEN label_input ELSE NULL END), 'Texto Abierto 4')
-                ) AS label_texto_abierto_4,
-                /** edualejandro */
-                COALESCE(MAX(CASE WHEN id_atributo = 31 THEN id_validacion END), 0) AS conf_texto_abierto_5,
-                COALESCE(MAX(CASE WHEN id_atributo = 31 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_5,
-                COALESCE(MAX(CASE WHEN id_atributo = 31 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_5,
-                COALESCE(MAX(CASE WHEN id_atributo = 31 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_5,
-                COALESCE(
-                    IFNULL(MAX(CASE WHEN id_atributo = 31 THEN label_input ELSE NULL END), 'Texto Abierto 5')
-                ) AS label_texto_abierto_5,
-                COALESCE(MAX(CASE WHEN id_atributo = 32 THEN id_validacion END), 0) AS conf_fotos,
-                COALESCE(MAX(CASE WHEN id_atributo = 33 THEN id_validacion END), 0) AS conf_range_polygonal,
-                /** edualejandro */
-                COALESCE(MAX(CASE WHEN id_atributo = 34 THEN id_validacion END), 0) AS conf_texto_abierto_6,
-                COALESCE(MAX(CASE WHEN id_atributo = 34 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_6,
-                COALESCE(MAX(CASE WHEN id_atributo = 34 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_6,
-                COALESCE(MAX(CASE WHEN id_atributo = 34 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_6,
-                COALESCE(
-                    IFNULL(MAX(CASE WHEN id_atributo = 34 THEN label_input ELSE NULL END), 'Texto Abierto 6')
-                ) AS label_texto_abierto_6,
-                /** edualejandro */
-                COALESCE(MAX(CASE WHEN id_atributo = 35 THEN id_validacion END), 0) AS conf_texto_abierto_7,
-                COALESCE(MAX(CASE WHEN id_atributo = 35 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_7,
-                COALESCE(MAX(CASE WHEN id_atributo = 35 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_7,
-                COALESCE(MAX(CASE WHEN id_atributo = 35 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_7,
-                COALESCE(
-                    IFNULL(MAX(CASE WHEN id_atributo = 35 THEN label_input ELSE NULL END), 'Texto Abierto 7')
-                ) AS label_texto_abierto_7,
-                /** edualejandro */
-                COALESCE(MAX(CASE WHEN id_atributo = 36 THEN id_validacion END), 0) AS conf_texto_abierto_8,
-                COALESCE(MAX(CASE WHEN id_atributo = 36 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_8,
-                COALESCE(MAX(CASE WHEN id_atributo = 36 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_8,
-                COALESCE(MAX(CASE WHEN id_atributo = 36 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_8,
-                COALESCE(
-                    IFNULL(MAX(CASE WHEN id_atributo = 36 THEN label_input ELSE NULL END), 'Texto Abierto 8')
-                ) AS label_texto_abierto_8,
-                /** edualejandro */
-                COALESCE(MAX(CASE WHEN id_atributo = 37 THEN id_validacion END), 0) AS conf_texto_abierto_9,
-                COALESCE(MAX(CASE WHEN id_atributo = 37 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_9,
-                COALESCE(MAX(CASE WHEN id_atributo = 37 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_9,
-                COALESCE(MAX(CASE WHEN id_atributo = 37 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_9,
-                COALESCE(
-                    IFNULL(MAX(CASE WHEN id_atributo = 37 THEN label_input ELSE NULL END), 'Texto Abierto 9')
-                ) AS label_texto_abierto_9,
-                /** edualejandro */
-                COALESCE(MAX(CASE WHEN id_atributo = 38 THEN id_validacion END), 0) AS conf_texto_abierto_10,
-                COALESCE(MAX(CASE WHEN id_atributo = 38 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_10,
-                COALESCE(MAX(CASE WHEN id_atributo = 38 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_10,
-                COALESCE(MAX(CASE WHEN id_atributo = 38 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_10,
-                COALESCE(
-                    IFNULL(MAX(CASE WHEN id_atributo = 38 THEN label_input ELSE NULL END), 'Texto Abierto 10')
-                ) AS label_texto_abierto_10
+                COALESCE(MAX(CASE WHEN id_atributo = 79 THEN id_validacion END), 0) AS conf_responsable
+
 
             FROM inv_atributos 
             WHERE id_grupo = ?
