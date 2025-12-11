@@ -11,6 +11,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\InventariosResource;
 use App\Models\CrudActivo;
 use App\Models\InvCiclo;
+use App\Models\Responsable;
 use App\Models\UbicacionGeografica;
 use Illuminate\Support\Facades\DB;
 use Intervention\Image\Facades\Image;
@@ -149,20 +150,28 @@ class InventariosController extends Controller
             $etiquetaPadre = $request->etiqueta_padre;
         }
 
-        $getIdResponsable = $this->getIdResponsable();
-        $responsable = $this->getNombre();
+        // If the responsible ID is provided in the request, use it; otherwise, get it from the authenticated user
+        if ($request->idResponsable) {
+            $getIdResponsable = $request->idResponsable;
+            $responsable = Responsable::find($getIdResponsable)->name ?? null;
+        } else {
+            $getIdResponsable = $this->getIdResponsable();
+            $responsable = $this->getNombre();
+        }
+
+
 
         $ultimo_id_inventario = DB::table('inv_inventario')
             ->where('id_proyecto', $id_proyecto)
             ->max('id_inventario');
-        
+
         $nuevo_id_inventario = ($ultimo_id_inventario ?? 0) + 1;
 
         $usuario = Auth::user()->name;
 
         $inventario = new Inventario();
         $inventario->id_inventario       = $nuevo_id_inventario;
-        $inventario->id_proyecto         = $id_proyecto; 
+        $inventario->id_proyecto         = $id_proyecto;
         $inventario->id_grupo            = $request->id_grupo;
         $inventario->id_familia          = $request->id_familia;
         $inventario->descripcion_bien    = $request->descripcion_bien;
@@ -202,6 +211,7 @@ class InventariosController extends Controller
         $inventario->eficiencia          = $request->eficiencia ?? null;
 
 
+
         //texto_abierto_
         foreach (array_keys($request->all()) as $key) {
             $keyString = (string) $key;
@@ -236,88 +246,99 @@ class InventariosController extends Controller
         $etiquetaOriginal = $request->etiqueta_original_editar;
         $etiquetaNueva = $request->etiqueta;
 
-    $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
-    $id_img = DB::table('inv_imagenes')
-        ->where('etiqueta', $etiquetaOriginal)
-        ->where('id_proyecto', $id_proyecto)
-        ->orderBy('id_img', 'desc')
-        ->value('id_img');
-
-    $idImg = $id_img ?? null;
-
-
-    if (intval($request->padre) === 1) {
-        $etiquetaPadre = $request->etiqueta;
-    } elseif (intval($request->padre) === 2) {
-        $etiquetaPadre = $request->etiqueta_padre;
-    }
-
-    $estadoBien = $request->actualizarBien > 0 ? 3 : 0;
-    $usuario = Auth::user()->name;
-
-    $inv_arr = [
-        'id_grupo'            => $request->id_grupo,
-        'id_familia'          => $request->id_familia,
-        'descripcion_bien'    => $request->descripcion_bien,
-        'id_marca'            => $request->id_marca,
-        'descripcion_marca'   => $request->descripcion_marca,
-        'modelo'              => $request->modelo,
-        'serie'               => $request->serie,
-        'idForma'             => intval($request->idForma ?? null),
-        'idMaterial'          => intval($request->idMaterial ?? null),
-        'latitud'             => $request->latitud ?? null,
-        'longitud'            => $request->longitud ?? null,
-        'precision_geo'       => $request->precision ?? null,
-        'calidad_geo'         => $request->calidad ?? null,
-        'capacidad'           => $request->capacidad,
-        'estado'              => intval($request->estado ?? null),
-        'color'               => intval($request->color ?? null),
-        'tipo_trabajo'        => intval($request->tipo_trabajo ?? null),
-        'carga_trabajo'       => intval($request->carga_trabajo ?? null),
-        'estado_operacional'  => intval($request->estado_operacional ?? null),
-        'estado_conservacion' => intval($request->estado_conservacion ?? null),
-        'condicion_ambiental' => intval($request->condicion_ambiental ?? null),
-        'cantidad_img'        => $request->cantidad_img,
-        'id_img'              => $idImg,
-        'etiqueta_padre'      => $etiquetaPadre ?? 'Sin Padre',
-        'update_inv'          => 0,
-        'eficiencia'          => $request->eficiencia ?? null,
-        'crud_activo_estado'  => $estadoBien,
-        'modo'                => 'ONLINE',
-        'modificado_el'       => date('Y-m-d H:i:s'),
-        'modificado_por'      => $usuario,
-        'etiqueta'            => $etiquetaNueva,
-    ];
-
-    foreach (array_keys($request->all()) as $key) {
-        if (strpos((string)$key, 'texto_abierto_') === 0) {
-            $inv_arr[$key] = $request->input($key) ?? null;
-        }
-    }
-
-    Inventario::where('etiqueta', $etiquetaOriginal)->where('id_proyecto', $id_proyecto)->update($inv_arr);
-
-    if ($etiquetaOriginal !== $etiquetaNueva) {
-        DB::table('inv_imagenes')
+        $id_img = DB::table('inv_imagenes')
             ->where('etiqueta', $etiquetaOriginal)
             ->where('id_proyecto', $id_proyecto)
-            ->update([
-                'etiqueta'   => $etiquetaNueva,
-                'origen'     => 'SAFIN_APP_ETIQUETA_EDITADA',
-            'updated_at' => now()
-        ]);
-} else {
-    DB::table('inv_imagenes')
-        ->where('etiqueta', $etiquetaOriginal)
-        ->where('id_proyecto', $id_proyecto)
-        ->update([
-            'origen'     => 'SAFIN_APP_INVENTARIO_ACTUALIZADO',
-            'updated_at' => now()
-        ]);
-}
+            ->orderBy('id_img', 'desc')
+            ->value('id_img');
 
-    $inventarioActualizado = Inventario::where('etiqueta', $etiquetaNueva)->where('id_proyecto', $id_proyecto)->first();
+        $idImg = $id_img ?? null;
+
+
+        if (intval($request->padre) === 1) {
+            $etiquetaPadre = $request->etiqueta;
+        } elseif (intval($request->padre) === 2) {
+            $etiquetaPadre = $request->etiqueta_padre;
+        }
+
+        $estadoBien = $request->actualizarBien > 0 ? 3 : 0;
+        $usuario = Auth::user()->name;
+
+        // If the responsible ID is provided in the request, use it; otherwise, get it from the authenticated user
+        if ($request->idResponsable) {
+            $getIdResponsable = $request->idResponsable;
+            $responsable = Responsable::find($getIdResponsable)->name ?? null;
+        } else {
+            $getIdResponsable = $this->getIdResponsable();
+            $responsable = $this->getNombre();
+        }
+
+        $inv_arr = [
+            'id_grupo'            => $request->id_grupo,
+            'id_familia'          => $request->id_familia,
+            'descripcion_bien'    => $request->descripcion_bien,
+            'id_marca'            => $request->id_marca,
+            'descripcion_marca'   => $request->descripcion_marca,
+            'modelo'              => $request->modelo,
+            'serie'               => $request->serie,
+            'idForma'             => intval($request->idForma ?? null),
+            'idMaterial'          => intval($request->idMaterial ?? null),
+            'latitud'             => $request->latitud ?? null,
+            'longitud'            => $request->longitud ?? null,
+            'precision_geo'       => $request->precision ?? null,
+            'calidad_geo'         => $request->calidad ?? null,
+            'capacidad'           => $request->capacidad,
+            'estado'              => intval($request->estado ?? null),
+            'color'               => intval($request->color ?? null),
+            'tipo_trabajo'        => intval($request->tipo_trabajo ?? null),
+            'carga_trabajo'       => intval($request->carga_trabajo ?? null),
+            'estado_operacional'  => intval($request->estado_operacional ?? null),
+            'estado_conservacion' => intval($request->estado_conservacion ?? null),
+            'condicion_ambiental' => intval($request->condicion_ambiental ?? null),
+            'cantidad_img'        => $request->cantidad_img,
+            'id_img'              => $idImg,
+            'etiqueta_padre'      => $etiquetaPadre ?? 'Sin Padre',
+            'update_inv'          => 0,
+            'eficiencia'          => $request->eficiencia ?? null,
+            'crud_activo_estado'  => $estadoBien,
+            'modo'                => 'ONLINE',
+            'modificado_el'       => date('Y-m-d H:i:s'),
+            'modificado_por'      => $usuario,
+            'etiqueta'            => $etiquetaNueva,
+            'idResponsable'       => $getIdResponsable,
+            'responsable'         => $responsable
+        ];
+
+        foreach (array_keys($request->all()) as $key) {
+            if (strpos((string)$key, 'texto_abierto_') === 0) {
+                $inv_arr[$key] = $request->input($key) ?? null;
+            }
+        }
+
+        Inventario::where('etiqueta', $etiquetaOriginal)->where('id_proyecto', $id_proyecto)->update($inv_arr);
+
+        if ($etiquetaOriginal !== $etiquetaNueva) {
+            DB::table('inv_imagenes')
+                ->where('etiqueta', $etiquetaOriginal)
+                ->where('id_proyecto', $id_proyecto)
+                ->update([
+                    'etiqueta'   => $etiquetaNueva,
+                    'origen'     => 'SAFIN_APP_ETIQUETA_EDITADA',
+                    'updated_at' => now()
+                ]);
+        } else {
+            DB::table('inv_imagenes')
+                ->where('etiqueta', $etiquetaOriginal)
+                ->where('id_proyecto', $id_proyecto)
+                ->update([
+                    'origen'     => 'SAFIN_APP_INVENTARIO_ACTUALIZADO',
+                    'updated_at' => now()
+                ]);
+        }
+
+        $inventarioActualizado = Inventario::where('etiqueta', $etiquetaNueva)->where('id_proyecto', $id_proyecto)->first();
 
 
         if (intval($request->padre) === 1) {
@@ -531,7 +552,7 @@ class InventariosController extends Controller
         return response()->json($crudImagenes);
     }
 
-   // se le pasa el ciclo
+    // se le pasa el ciclo
     public function deleteImageByEtiqueta($etiqueta, $id_img, $idLista, $idActivo = null, $cycleid)
     {
         // Si viene idActivo directamente, eliminar de crud_activos_pictures
@@ -548,10 +569,9 @@ class InventariosController extends Controller
                 ], 404);
             }
 
-            $filePath = PictureSafinService::getImgSubdir(Auth::user()->nombre_cliente) . '/' . $imagen->picture;
-            if (Storage::disk('taxoImages')->exists($filePath)) {
-                Storage::disk('taxoImages')->delete($filePath);
-            }
+
+
+            ImageService::deleteImageInMainOrSecondDisk(Auth::user()->nombre_cliente, $imagen->picture);
 
             DB::table('crud_activos_pictures')
                 ->where('id_foto', $imagen->id_foto)
@@ -588,10 +608,7 @@ class InventariosController extends Controller
                 ], 404);
             }
 
-            $filePath = PictureSafinService::getImgSubdir(Auth::user()->nombre_cliente) . '/' . $imagen->picture;
-            if (Storage::disk('taxoImages')->exists($filePath)) {
-                Storage::disk('taxoImages')->delete($filePath);
-            }
+            ImageService::deleteImageInMainOrSecondDisk(Auth::user()->nombre_cliente, $imagen->picture);
 
             $imagen->delete();
 
@@ -627,6 +644,7 @@ class InventariosController extends Controller
         if (Storage::disk('taxoImages')->exists($filePath)) {
             Storage::disk('taxoImages')->delete($filePath);
         }
+        ImageService::deleteImageInMainOrSecondDisk(Auth::user()->nombre_cliente, $imagen->picture);
 
         DB::table('crud_activos_pictures')
             ->where('id_foto', $imagenCrud->id_foto)
@@ -699,87 +717,8 @@ class InventariosController extends Controller
                 COALESCE(MAX(CASE WHEN id_atributo = 26 THEN valor_minimo END), 0) AS lench_Min_eficiencia,
                 COALESCE(MAX(CASE WHEN id_atributo = 26 THEN valor_maximo END), 0) AS lench_Max_eficiencia,
                 /** edualejandro */
-                COALESCE(MAX(CASE WHEN id_atributo = 27 THEN id_validacion END), 0) AS conf_texto_abierto_1,
-                COALESCE(MAX(CASE WHEN id_atributo = 27 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_1,
-                COALESCE(MAX(CASE WHEN id_atributo = 27 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_1,
-                COALESCE(MAX(CASE WHEN id_atributo = 27 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_1,
-                COALESCE(
-                    IFNULL(MAX(CASE WHEN id_atributo = 27 THEN label_input ELSE NULL END), 'Texto Abierto 1')
-                ) AS label_texto_abierto_1,
-                /** edualejandro */
-                COALESCE(MAX(CASE WHEN id_atributo = 28 THEN id_validacion END), 0) AS conf_texto_abierto_2,
-                COALESCE(MAX(CASE WHEN id_atributo = 28 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_2,
-                COALESCE(MAX(CASE WHEN id_atributo = 28 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_2,
-                COALESCE(MAX(CASE WHEN id_atributo = 28 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_2,
-                COALESCE(
-                    IFNULL(MAX(CASE WHEN id_atributo = 28 THEN label_input ELSE NULL END), 'Texto Abierto 2')
-                ) AS label_texto_abierto_2,
-                /** edualejandro */
-                COALESCE(MAX(CASE WHEN id_atributo = 29 THEN id_validacion END), 0) AS conf_texto_abierto_3,
-                COALESCE(MAX(CASE WHEN id_atributo = 29 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_3,
-                COALESCE(MAX(CASE WHEN id_atributo = 29 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_3,
-                COALESCE(MAX(CASE WHEN id_atributo = 29 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_3,
-                COALESCE(
-                    IFNULL(MAX(CASE WHEN id_atributo = 29 THEN label_input ELSE NULL END), 'Texto Abierto 3')
-                ) AS label_texto_abierto_3,
-                /** edualejandro */
-                COALESCE(MAX(CASE WHEN id_atributo = 30 THEN id_validacion END), 0) AS conf_texto_abierto_4,
-                COALESCE(MAX(CASE WHEN id_atributo = 30 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_4,
-                COALESCE(MAX(CASE WHEN id_atributo = 30 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_4,
-                COALESCE(MAX(CASE WHEN id_atributo = 30 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_4,
-                COALESCE(
-                    IFNULL(MAX(CASE WHEN id_atributo = 30 THEN label_input ELSE NULL END), 'Texto Abierto 4')
-                ) AS label_texto_abierto_4,
-                /** edualejandro */
-                COALESCE(MAX(CASE WHEN id_atributo = 31 THEN id_validacion END), 0) AS conf_texto_abierto_5,
-                COALESCE(MAX(CASE WHEN id_atributo = 31 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_5,
-                COALESCE(MAX(CASE WHEN id_atributo = 31 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_5,
-                COALESCE(MAX(CASE WHEN id_atributo = 31 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_5,
-                COALESCE(
-                    IFNULL(MAX(CASE WHEN id_atributo = 31 THEN label_input ELSE NULL END), 'Texto Abierto 5')
-                ) AS label_texto_abierto_5,
-                COALESCE(MAX(CASE WHEN id_atributo = 32 THEN id_validacion END), 0) AS conf_fotos,
-                COALESCE(MAX(CASE WHEN id_atributo = 33 THEN id_validacion END), 0) AS conf_range_polygonal,
-                /** edualejandro */
-                COALESCE(MAX(CASE WHEN id_atributo = 34 THEN id_validacion END), 0) AS conf_texto_abierto_6,
-                COALESCE(MAX(CASE WHEN id_atributo = 34 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_6,
-                COALESCE(MAX(CASE WHEN id_atributo = 34 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_6,
-                COALESCE(MAX(CASE WHEN id_atributo = 34 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_6,
-                COALESCE(
-                    IFNULL(MAX(CASE WHEN id_atributo = 34 THEN label_input ELSE NULL END), 'Texto Abierto 6')
-                ) AS label_texto_abierto_6,
-                /** edualejandro */
-                COALESCE(MAX(CASE WHEN id_atributo = 35 THEN id_validacion END), 0) AS conf_texto_abierto_7,
-                COALESCE(MAX(CASE WHEN id_atributo = 35 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_7,
-                COALESCE(MAX(CASE WHEN id_atributo = 35 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_7,
-                COALESCE(MAX(CASE WHEN id_atributo = 35 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_7,
-                COALESCE(
-                    IFNULL(MAX(CASE WHEN id_atributo = 35 THEN label_input ELSE NULL END), 'Texto Abierto 7')
-                ) AS label_texto_abierto_7,
-                /** edualejandro */
-                COALESCE(MAX(CASE WHEN id_atributo = 36 THEN id_validacion END), 0) AS conf_texto_abierto_8,
-                COALESCE(MAX(CASE WHEN id_atributo = 36 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_8,
-                COALESCE(MAX(CASE WHEN id_atributo = 36 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_8,
-                COALESCE(MAX(CASE WHEN id_atributo = 36 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_8,
-                COALESCE(
-                    IFNULL(MAX(CASE WHEN id_atributo = 36 THEN label_input ELSE NULL END), 'Texto Abierto 8')
-                ) AS label_texto_abierto_8,
-                /** edualejandro */
-                COALESCE(MAX(CASE WHEN id_atributo = 37 THEN id_validacion END), 0) AS conf_texto_abierto_9,
-                COALESCE(MAX(CASE WHEN id_atributo = 37 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_9,
-                COALESCE(MAX(CASE WHEN id_atributo = 37 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_9,
-                COALESCE(MAX(CASE WHEN id_atributo = 37 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_9,
-                COALESCE(
-                    IFNULL(MAX(CASE WHEN id_atributo = 37 THEN label_input ELSE NULL END), 'Texto Abierto 9')
-                ) AS label_texto_abierto_9,
-                /** edualejandro */
-                COALESCE(MAX(CASE WHEN id_atributo = 38 THEN id_validacion END), 0) AS conf_texto_abierto_10,
-                COALESCE(MAX(CASE WHEN id_atributo = 38 THEN id_tipo_dato END), 0) AS tipo_dato_texto_abierto_10,
-                COALESCE(MAX(CASE WHEN id_atributo = 38 THEN valor_minimo END), 0) AS lench_Min_texto_abierto_10,
-                COALESCE(MAX(CASE WHEN id_atributo = 38 THEN valor_maximo END), 0) AS lench_Max_texto_abierto_10,
-                COALESCE(
-                    IFNULL(MAX(CASE WHEN id_atributo = 38 THEN label_input ELSE NULL END), 'Texto Abierto 10')
-                ) AS label_texto_abierto_10
+                COALESCE(MAX(CASE WHEN id_atributo = 79 THEN id_validacion END), 0) AS conf_responsable
+
 
             FROM inv_atributos 
             WHERE id_grupo = ?
@@ -795,7 +734,7 @@ class InventariosController extends Controller
     }
 
 
-//recibe el ciclo y la etiqueta
+    //recibe el ciclo y la etiqueta
     public function ImageByEtiqueta(Request $request, $etiqueta)
     {
         $request->validate([
@@ -841,16 +780,11 @@ class InventariosController extends Controller
 
         $paths = [];
 
-        foreach ($request->file('imagenes') as $index => $file) { 
+        foreach ($request->file('imagenes') as $index => $file) {
+
             $filename = $id_proyecto . '_' . $etiqueta . '_' . $index . '.jpg';
 
-            $path = $file->storeAs(
-                PictureSafinService::getImgSubdir($request->user()->nombre_cliente),
-                $filename,
-                'taxoImages'
-            );
-
-            $url = Storage::disk('taxoImages')->url($path);
+            $url = ImageService::saveImageInMainOrSecondDisk($file, $request->user()->nombre_cliente, $filename);
             $url_pict = dirname($url) . '/';
 
             $img = new Inv_imagenes();
@@ -922,118 +856,111 @@ class InventariosController extends Controller
         return response()->json(['status' => 'OK', 'data' => $data]);
     }
 
-//pasarle el ciclo y la etiqueta
-public function addImageByEtiqueta(Request $request, $etiqueta)
-{
-    $request->validate([
-        'imagenes.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240'
-    ]);
 
-    try {
-        $origen = 'SAFIN_APP_IMG_NEW';
-        $cycleId = $request->cycle_id ?? null;
+    public function addImageByEtiqueta(Request $request, $etiqueta)
+    {
+        $request->validate([
+            'imagenes.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
+        ]);
 
-        // Buscar activo usando ActivoFinderService
-        $activoExiste = ActivoFinderService::findByEtiquetaAndCiclo($etiqueta, $cycleId);
-        
-        if (!$activoExiste) {
-            return response()->json([
-                'status'  => 'ERROR',
-                'message' => 'La etiqueta ' . $etiqueta . ' no existe.',
-            ], 404);
-        }
+        try {
+            $origen = 'SAFIN_APP_IMG_NEW';
+            $cycleId = $request->cycle_id ?? null;
 
-        // Determinar si es crud_activo basado en el tipo de modelo retornado
-        $esCrudActivo = $activoExiste instanceof \App\Models\CrudActivo;
-        
-        $id_img = $request->id_img ?? null;
-        $paths = [];
-        
-        $idProyecto = ProyectoUsuarioService::getIdProyecto();
+            // Buscar activo usando ActivoFinderService
+            $activoExiste = ActivoFinderService::findByEtiquetaAndCiclo($etiqueta, $cycleId);
 
-        if ($esCrudActivo) {
-            // Obtener idActivo: puede venir del request (scan de bienes) o del modelo
-            $idActivo = $request->idActivo ?? $activoExiste->idActivo;
-
-            $maxNumero = DB::table('crud_activos_pictures')
-                ->where('id_activo', $idActivo)
-                ->selectRaw("MAX(CAST(SUBSTRING_INDEX(picture, '_', -1) AS UNSIGNED)) as max_num")
-                ->value('max_num');
-            
-            $contador = $maxNumero ?? 0;
-
-        } else {
-            $maxNumero = DB::table('inv_imagenes')
-                ->where('etiqueta', $etiqueta)
-                ->where('id_proyecto', $idProyecto)
-                ->selectRaw("MAX(CAST(REPLACE(SUBSTRING_INDEX(picture, '_', -1), '.jpg', '') AS UNSIGNED)) as max_num")
-                ->value('max_num');
-            
-            $contador = $maxNumero ?? 0;
-        }
-
-        foreach ($request->file('imagenes') as $file) {
-            $contador++; 
-
-            $filename = $idProyecto . '_' . $etiqueta . '_' . $contador . '.jpg';
-
-            $path = $file->storeAs(
-                PictureSafinService::getImgSubdir($request->user()->nombre_cliente),
-                $filename,
-                'taxoImages'
-            );
-
-            $url = Storage::disk('taxoImages')->url($path);
-            $url_pict = dirname($url) . '/';
-
-            if ($esCrudActivo) {
-                DB::table('crud_activos_pictures')->insert([
-                    'id_activo'    => $idActivo,
-                    'picture'      => $filename,
-                    'origen'       => $origen,
-                    'url_picture'  => $url_pict,
-                    'url_imagen'   => $url,
-                    'fecha_update' => now(),
-                    'idProyecto'   => $idProyecto,
-                ]);
-            } else {
-                $img = new Inv_imagenes();
-                $img->etiqueta     = $etiqueta;
-                $img->id_img       = $id_img;  
-                $img->origen       = $origen;
-                $img->picture      = $filename;
-                $img->created_at   = now();
-                $img->updated_at   = now();
-                $img->url_imagen   = $url;
-                $img->url_picture  = $url_pict;
-                $img->id_proyecto  = $idProyecto;
-                $img->save();
+            if (!$activoExiste) {
+                return response()->json([
+                    'status'  => 'ERROR',
+                    'message' => 'La etiqueta ' . $etiqueta . ' no existe.',
+                ], 404);
             }
 
-            $paths[] = [
-                'id_img'   => $contador,
-                'url'      => $url,
-                'filename' => $filename,
-            ];
+            // Determinar si es crud_activo basado en el tipo de modelo retornado
+            $esCrudActivo = $activoExiste instanceof \App\Models\CrudActivo;
+
+            $id_img = $request->id_img ?? null;
+            $paths = [];
+
+            $idProyecto = ProyectoUsuarioService::getIdProyecto();
+
+            if ($esCrudActivo) {
+                // Obtener idActivo: puede venir del request (scan de bienes) o del modelo
+                $idActivo = $request->idActivo ?? $activoExiste->idActivo;
+
+                $maxNumero = DB::table('crud_activos_pictures')
+                    ->where('id_activo', $idActivo)
+                    ->selectRaw("MAX(CAST(SUBSTRING_INDEX(picture, '_', -1) AS UNSIGNED)) as max_num")
+                    ->value('max_num');
+
+                $contador = $maxNumero ?? 0;
+            } else {
+                $maxNumero = DB::table('inv_imagenes')
+                    ->where('etiqueta', $etiqueta)
+                    ->where('id_proyecto', $idProyecto)
+                    ->selectRaw("MAX(CAST(REPLACE(SUBSTRING_INDEX(picture, '_', -1), '.jpg', '') AS UNSIGNED)) as max_num")
+                    ->value('max_num');
+
+                $contador = $maxNumero ?? 0;
+            }
+
+            foreach ($request->file('imagenes') as $file) {
+                $contador++;
+
+                $filename = $idProyecto . '_' . $etiqueta . '_' . $contador . '.jpg';
+
+                $url = ImageService::saveImageInMainOrSecondDisk($file, $request->user()->nombre_cliente, $filename);
+
+                $url_pict = dirname($url) . '/';
+
+                if ($esCrudActivo) {
+                    DB::table('crud_activos_pictures')->insert([
+                        'id_activo'    => $idActivo,
+                        'picture'      => $filename,
+                        'origen'       => $origen,
+                        'url_picture'  => $url_pict,
+                        'url_imagen'   => $url,
+                        'fecha_update' => now(),
+                        'idProyecto'   => $idProyecto,
+                    ]);
+                } else {
+                    $img = new Inv_imagenes();
+                    $img->etiqueta     = $etiqueta;
+                    $img->id_img       = $id_img;
+                    $img->origen       = $origen;
+                    $img->picture      = $filename;
+                    $img->created_at   = now();
+                    $img->updated_at   = now();
+                    $img->url_imagen   = $url;
+                    $img->url_picture  = $url_pict;
+                    $img->id_proyecto  = $idProyecto;
+                    $img->save();
+                }
+
+                $paths[] = [
+                    'id_img'   => $contador,
+                    'url'      => $url,
+                    'filename' => $filename,
+                ];
+            }
+
+            return response()->json([
+                'status'    => 'OK',
+                'message'   => 'Imágenes agregadas correctamente',
+                'paths'     => $paths,
+                'folderUrl' => $paths[0]['url'] ?? null,
+                'origen'    => $origen,
+                'tipo'      => $esCrudActivo ? 'crud_activo' : 'inventario',
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => 'ERROR',
+                'message' => 'Error al agregar imágenes',
+                'error'   => $e->getMessage(),
+            ], 500);
         }
-
-        return response()->json([
-            'status'    => 'OK',
-            'message'   => 'Imágenes agregadas correctamente',
-            'paths'     => $paths,
-            'folderUrl' => $paths[0]['url'] ?? null,
-            'origen'    => $origen,
-            'tipo'      => $esCrudActivo ? 'crud_activo' : 'inventario',
-        ], 201);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'status'  => 'ERROR',
-            'message' => 'Error al agregar imágenes',
-            'error'   => $e->getMessage(),
-        ], 500);
     }
-}
 
     /**
      * Store newly created resources in storage.
@@ -1148,7 +1075,7 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         $ultimo_id_inventario = DB::table('inv_inventario')
             ->where('id_proyecto', $id_proyecto)
             ->max('id_inventario');
-        
+
         $siguiente_id_inventario = ($ultimo_id_inventario ?? 0) + 1;
 
         foreach ($items as $key => $item) {
@@ -1161,7 +1088,7 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
             $activo = $this->mapActivo($item, $ciclo, $usuario, $idMapaGeo, $idMapaN1_Codigo, $mapaIdN2, $mapaCodN2, $mapaIdN3, $mapaCodN3, $mapaIdListaBienes, $mapaIdListaMarcas, $siguiente_id_inventario);
             $assets[] = $activo;
             $images[] = ['etiqueta' => $item->etiqueta, 'images' => $item->images];
-            
+
             // Incrementar para el siguiente item
             $siguiente_id_inventario++;
         }
@@ -1303,10 +1230,10 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         foreach ($data as $n1) {
             $idAgendaReal = $this->obtenerIdAgendaActualizado($n1->idAgenda, $idMapaGeo);
 
-        $codigoExistente = DB::table('ubicaciones_n1')
-            ->where('idProyecto', $id_proyecto)
-            ->where('idAgenda', $idAgendaReal)
-            ->max('codigoUbicacion');
+            $codigoExistente = DB::table('ubicaciones_n1')
+                ->where('idProyecto', $id_proyecto)
+                ->where('idAgenda', $idAgendaReal)
+                ->max('codigoUbicacion');
 
             $nuevoCodigo = $codigoExistente ? str_pad(((int) $codigoExistente) + 1, 2, '0', STR_PAD_LEFT) : $n1->codigoUbicacion;
 
@@ -1347,7 +1274,7 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
         $mapaId = [];
         $mapaCodigo = [];
 
-       $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         foreach ($data as $n2) {
             $idAgendaReal = $this->obtenerIdAgendaActualizado($n2->idAgenda, $idMapaGeo);
@@ -1439,10 +1366,10 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
             }
 
             $registro = DB::table('ubicaciones_n3')
-            ->where('idAgenda', $idAgendaReal)
-            ->where('idProyecto', $id_proyecto)
-            ->where('descripcionUbicacion', $n3->nombre)
-            ->first();
+                ->where('idAgenda', $idAgendaReal)
+                ->where('idProyecto', $id_proyecto)
+                ->where('descripcionUbicacion', $n3->nombre)
+                ->first();
 
             if (!$registro) {
                 $idInsertado = DB::table('ubicaciones_n3')->insertGetId([
@@ -1557,7 +1484,7 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
                     ->max('idLista');
 
                 $newIdLista = max($maxListaIndicelista ?? 0, $maxListaMarcas ?? 0) + 1;
-              
+
 
                 DB::table('inv_marcas_nuevos')->insert([
                     'idLista'          => $newIdLista,
@@ -1690,13 +1617,8 @@ public function addImageByEtiqueta(Request $request, $etiqueta)
                 if ($activo && $activo['crud_activo_estado'] == 3) continue;
 
                 $filename = $id_proyecto . '_' . $etiqueta . '_' . $filekey . '.jpg';
-                $path = $file['file']->storeAs(
-                    PictureSafinService::getImgSubdir($cliente),
-                    $filename,
-                    'taxoImages'
-                );
 
-                $url = Storage::disk('taxoImages')->url($path);
+                $url = ImageService::saveImageInMainOrSecondDisk($file['file'], $cliente, $filename);
                 $url_pict = dirname($url) . '/';
 
                 $img = new Inv_imagenes();

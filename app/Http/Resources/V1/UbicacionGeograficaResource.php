@@ -87,6 +87,7 @@ class UbicacionGeograficaResource extends JsonResource
             'ciudad'        => $this->ciudad,
             'comuna'        => $this->comuna()->first()?->descripcion,
             'direccion'     => $this->direccion,
+            'isPolygon'     => $this->is_polygon ? 1 : 0,
             'idPunto'       => $this->idPunto,
             'estadoGeo'     => $this->estadoGeo,
             'id_estado'     => ($id_estado && $descripcionEstado) ? $id_estado : 1,

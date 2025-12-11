@@ -41,16 +41,29 @@ return [
             'url' => env('APP_URL') . '/storage',
             'visibility' => 'public',
         ],
-       
+
         'taxo' => [
             'driver' => 'local',
             'root' => env('TAXOFILES'),
         ],
-        
+
         'taxoImages' => [
             'driver'     => 'local',
             'root'       => env('TAXOIMAGES'),
             'url'        => env('TAXOIMAGES_URL'),
+            'visibility' => 'public',
+        ],
+
+
+        'win_server' => [
+            'driver' => 'local',
+            'root' => env('WIN_FILES'),
+        ],
+
+        'win_images' => [
+            'driver'     => 'local',
+            'root'       => env('WIN_IMAGES'),
+            'url'        => env('WIN_IMAGES_URL'),
             'visibility' => 'public',
         ],
 

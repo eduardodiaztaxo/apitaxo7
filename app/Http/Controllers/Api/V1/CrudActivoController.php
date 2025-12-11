@@ -278,13 +278,9 @@ class CrudActivoController extends Controller
             $file = $request->file('imagen');
             $namefile = $filename . '.jpg';
 
-            $path = $file->storeAs(
-                PictureSafinService::getImgSubdir($request->user()->nombre_cliente),
-                $namefile,
-                'taxoImages'
-            );
 
-            $url = Storage::disk('taxoImages')->url($path);
+            $url = ImageService::saveImageInMainOrSecondDisk($file, $request->user()->nombre_cliente, $namefile);
+
             $url_pict = dirname($url) . '/';
 
             if ($request->oldImageUrl) {
@@ -336,13 +332,10 @@ class CrudActivoController extends Controller
         $file = $request->file('imagen');
         $namefile = $filename . '.jpg';
 
-        $path = $file->storeAs(
-            PictureSafinService::getImgSubdir($request->user()->nombre_cliente),
-            $namefile,
-            'taxoImages'
-        );
 
-        $url = Storage::disk('taxoImages')->url($path);
+
+        $url = ImageService::saveImageInMainOrSecondDisk($file, $request->user()->nombre_cliente, $namefile);
+
         $url_pict = dirname($url) . '/';
 
         $ultimo = DB::table('crud_activos_pictures')
