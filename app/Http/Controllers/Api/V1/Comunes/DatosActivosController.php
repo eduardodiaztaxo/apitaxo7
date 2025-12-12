@@ -44,7 +44,7 @@ class DatosActivosController extends Controller
 
 
 
-    public function estados($cycle)
+    public function estados()
     {
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
@@ -323,7 +323,7 @@ class DatosActivosController extends Controller
             'grupo' => $grupo[0]
         ], 200);
     }
-    public function bienes_Marcas($id_familia, $ciclo)
+    public function bienes_Marcas($id_familia)
     {
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
@@ -352,7 +352,7 @@ class DatosActivosController extends Controller
         return response()->json($resultado, 200);
     }
 
-    public function indiceColores($cycle)
+    public function indiceColores()
     {
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
@@ -369,7 +369,7 @@ class DatosActivosController extends Controller
         return response()->json($collection, 200);
     }
 
-    public function estadosOperacional($cycle)
+    public function estadosOperacional()
     {
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
@@ -386,7 +386,7 @@ class DatosActivosController extends Controller
         return response()->json($collection, 200);
     }
 
-    public function tipoTrabajo($cycle)
+    public function tipoTrabajo()
     {
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
@@ -403,7 +403,7 @@ class DatosActivosController extends Controller
         return response()->json($collection, 200);
     }
 
-    public function cargaTrabajo($cycle)
+    public function cargaTrabajo()
     {
      $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
@@ -420,7 +420,7 @@ class DatosActivosController extends Controller
         return response()->json($collection, 200);
     }
 
-    public function estadoConservacion($cycle)
+    public function estadoConservacion()
     {
      $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
@@ -437,7 +437,7 @@ class DatosActivosController extends Controller
         return response()->json($collection, 200);
     }
 
-    public function condicionAmbiental($cycle)
+    public function condicionAmbiental()
     {
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
@@ -454,7 +454,7 @@ class DatosActivosController extends Controller
         return response()->json($collection, 200);
     }
 
-    public function material($cycle)
+    public function material()
     {
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
@@ -478,7 +478,7 @@ class DatosActivosController extends Controller
      * @param  \App\Models\IndiceListaForma  
      * @return \Illuminate\Http\Response
      */
-    public function forma($cycle)
+    public function forma()
     {
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 

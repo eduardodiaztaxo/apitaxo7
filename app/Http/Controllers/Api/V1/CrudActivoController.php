@@ -274,7 +274,7 @@ class CrudActivoController extends Controller
                 ->update(['crud_activo_estado' => 3]);
 
             $filename = $id_proyecto . '_' . $etiqueta;
-            $origen = 'SAFIN_APP_ACTUALIZADA_IMAGEN';
+            $origen = 'SAFIN_APP_IMAGEN_ACTUALIZADA';
             $file = $request->file('imagen');
             $namefile = $filename . '.jpg';
 
@@ -321,14 +321,13 @@ class CrudActivoController extends Controller
             return response()->json([
                 'status' => 'OK',
                 'message' => 'Nueva imagen creada',
-                'path' => $path,
                 'url' => $url_pict . $filename . '.jpg'
             ], 201);
         }
 
         // Es auditoría (crud_activos)
         $filename = $id_proyecto . '_' . $etiqueta;
-        $origen = 'SAFIN_APP';
+        $origen = 'SAFIN_APP_IMAGEN_ACTUALIZADA';
         $file = $request->file('imagen');
         $namefile = $filename . '.jpg';
 
@@ -366,7 +365,6 @@ class CrudActivoController extends Controller
 
         return response()->json([
             'status' => 'OK',
-            'path' => $path,
             'url' => $url
         ], 201);
     }

@@ -108,13 +108,13 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('puntos/{punto}/responsibles', [ResponsibleController::class, 'showAllByPunto']);
 
-    Route::get('estados/{ciclo}', [DatosActivosController::class, 'estados']);
+    Route::get('estados', [DatosActivosController::class, 'estados']);
 
     Route::get('grupo/{ciclo}', [DatosActivosController::class, 'grupo']);
 
     Route::get('familia/{codigo_grupo}/{ciclo}', [DatosActivosController::class, 'familia']);
 
-    Route::get('bienes_marcas/{id_familia}/{ciclo}', [DatosActivosController::class, 'bienes_Marcas']);
+    Route::get('bienes_marcas/{id_familia}', [DatosActivosController::class, 'bienes_Marcas']);
 
     Route::get('bienes_grupo_familia/{idCiclo}', [DatosActivosController::class, 'bienesGrupoFamilia']);
 
@@ -124,21 +124,21 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('buscar_grupo_familia/{id_familia}', [DatosActivosController::class, 'buscarGrupoFamilia']);
 
-    Route::get('colores/{cycleid}', [DatosActivosController::class, 'indiceColores']);
+    Route::get('colores', [DatosActivosController::class, 'indiceColores']);
 
-    Route::get('estados-operacionales/{cycleid}', [DatosActivosController::class, 'estadosOperacional']);
+    Route::get('estados-operacionales', [DatosActivosController::class, 'estadosOperacional']);
 
-    Route::get('tipos-trabajo/{cycleid}', [DatosActivosController::class, 'tipoTrabajo']);
+    Route::get('tipos-trabajo', [DatosActivosController::class, 'tipoTrabajo']);
 
-    Route::get('cargas-trabajo/{cycleid}', [DatosActivosController::class, 'cargaTrabajo']);
+    Route::get('cargas-trabajo', [DatosActivosController::class, 'cargaTrabajo']);
 
-    Route::get('condiciones-ambientales/{cycleid}', [DatosActivosController::class, 'condicionAmbiental']);
+    Route::get('condiciones-ambientales', [DatosActivosController::class, 'condicionAmbiental']);
 
-    Route::get('estados-conservacion/{cycleid}', [DatosActivosController::class, 'estadoConservacion']);
+    Route::get('estados-conservacion', [DatosActivosController::class, 'estadoConservacion']);
 
-    Route::get('materiales/{cycleid}', [DatosActivosController::class, 'material']);
+    Route::get('materiales', [DatosActivosController::class, 'material']);
 
-    Route::get('formas/{cycleid}', [DatosActivosController::class, 'forma']);
+    Route::get('formas', [DatosActivosController::class, 'forma']);
 
     Route::post('create-bienes', [DatosActivosController::class, 'createBienes']);
 
