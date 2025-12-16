@@ -24,6 +24,7 @@ use App\Models\Inv_ciclos_categorias;
 use Illuminate\Support\Facades\Auth;
 use App\Models\InvCiclo;
 use Illuminate\Support\Facades\DB;
+use App\Services\ActivoFinderService;
 use App\Services\ProyectoUsuarioService;
 
 

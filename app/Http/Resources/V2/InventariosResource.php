@@ -4,6 +4,7 @@ namespace App\Http\Resources\V2;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Services\ActivoFinderService;
 use App\Services\ProyectoUsuarioService;
 
 class InventariosResource extends JsonResource

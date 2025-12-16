@@ -7,6 +7,7 @@ use App\Http\Resources\V1\ZonaPuntoResource;
 use App\Models\Inv_ciclos_categorias;
 use App\Models\InvConteoRegistro;
 use App\Models\Inventario;
+use App\Services\ActivoFinderService;
 use App\Services\ProyectoUsuarioService;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\DB;
