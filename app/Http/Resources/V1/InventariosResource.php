@@ -58,7 +58,7 @@ class InventariosResource extends JsonResource
             ->where('id_grupo', $activo->id_grupo)
             ->value('descripcion_grupo');
 
-        $estadoBien = DB::table('indices_listas_13')
+        $estadoBien = DB::table('ind_list_estado')
             ->where('idLista', $activo->estado)
             ->value('descripcion');
 

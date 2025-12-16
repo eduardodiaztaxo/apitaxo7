@@ -79,7 +79,7 @@ class InventariosController extends Controller
         }
 
         if (!empty($request->etiqueta_padre)) {
-            $etiquetaPadreExiste = ActivoFinderService::findByEtiquetaAndCiclo($request->etiqueta_padre, $request->id_ciclo);
+            $etiquetaPadreExiste = ActivoFinderService::findByEtiquetaPadreAndCiclo($request->etiqueta_padre, $request->id_ciclo);
 
             if (!$etiquetaPadreExiste) {
                 return response('La etiqueta padre ' . $request->etiqueta_padre . ' no existe', 400);
@@ -757,7 +757,7 @@ class InventariosController extends Controller
         }
 
         if (!empty($request->etiqueta_padre)) {
-            $etiquetaPadreExiste = ActivoFinderService::findByEtiquetaAndCiclo($request->etiqueta_padre, $request->id_ciclo);
+            $etiquetaPadreExiste = ActivoFinderService::findByEtiquetaPadreAndCiclo($request->etiqueta_padre, $request->id_ciclo);
 
             if (!$etiquetaPadreExiste) {
                 return response()->json([

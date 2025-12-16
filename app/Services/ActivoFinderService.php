@@ -53,22 +53,12 @@ class ActivoFinderService
                          ->first();
     }
 
-    /**
-     * Obtener ID del activo según tipo de ciclo
-     * - Tipo 1: id_inventario
-     * - Tipo 2: idActivo
-     *
-     * @param  string  $identificador
-     * @param  int  $cicloId
-     * @return int|null
-     */
-    public static function getIdByEtiquetaAndCiclo($identificador, $cicloId)
+        public static function findByEtiquetaPadreAndCiclo($identificador, $cicloId)
     {
-        // Si cicloId es 0 o null, es scan de bienes -> ir a crud_activos 
         if (!$cicloId) {
-            return CrudActivo::where('etiqueta', '=', $identificador)
+            return CrudActivo::where('etiqueta_padre', '=', $identificador)
                              ->orWhere('codigo_cliente', '=', $identificador)
-                             ->value('idActivo');
+                             ->first();
         }
 
         $ciclo = InvCiclo::find($cicloId);
@@ -79,20 +69,98 @@ class ActivoFinderService
 
         // Inventario
         if ($ciclo->idTipoCiclo == self::TIPO_INVENTARIO) {
-            $query = Inventario::where('etiqueta', '=', $identificador);
+            $query = Inventario::where('etiqueta_padre', '=', $identificador);
             
             if ($ciclo->id_proyecto) {
                 $query->where('id_proyecto', '=', $ciclo->id_proyecto);
             }
             
-            return $query->value('id_inventario');
+            return $query->first();
         }
 
         // Auditoría
-        return CrudActivo::where('etiqueta', '=', $identificador)
+        return CrudActivo::where('etiqueta_padre', '=', $identificador)
                          ->orWhere('codigo_cliente', '=', $identificador)
+                         ->first();
+    }
+
+    /**
+     * Obtener ID del activo según tipo de ciclo
+     * - Tipo 1: id_inventario
+     * - Tipo 2: idActivo
+     *
+     * @param  string  $identificador
+     * @param  int  $cicloId
+     * @return int|null
+     */
+    // public static function getIdByEtiquetaAndCiclo($identificador, $cicloId)
+    // {
+    //     // Si cicloId es 0 o null, es scan de bienes -> ir a crud_activos 
+    //     if (!$cicloId) {
+    //         return CrudActivo::where('etiqueta', '=', $identificador)
+    //                          ->orWhere('codigo_cliente', '=', $identificador)
+    //                          ->value('idActivo');
+    //     }
+
+    //     $ciclo = InvCiclo::find($cicloId);
+
+    //     if (!$ciclo) {
+    //         return null;
+    //     }
+
+    //     // Inventario
+    //     if ($ciclo->idTipoCiclo == self::TIPO_INVENTARIO) {
+    //         $query = Inventario::where('etiqueta', '=', $identificador);
+            
+    //         if ($ciclo->id_proyecto) {
+    //             $query->where('id_proyecto', '=', $ciclo->id_proyecto);
+    //         }
+            
+    //         return $query->value('id_inventario');
+    //     }
+
+    //     // Auditoría
+    //     return CrudActivo::where('etiqueta', '=', $identificador)
+    //                      ->orWhere('codigo_cliente', '=', $identificador)
+    //                      ->value('idActivo');
+    // }
+
+public static function getIdByEtiquetaAndCiclo($identificador, $cicloId)
+{
+    // Scan libre (sin ciclo)
+    if (!$cicloId) {
+        return CrudActivo::where('etiqueta', $identificador)
+                         ->orWhere('codigo_cliente', $identificador)
                          ->value('idActivo');
     }
+
+    $ciclo = InvCiclo::find($cicloId);
+
+    if (!$ciclo) {
+        return null;
+    }
+
+    // Inventario (tipo 1)
+    if ($ciclo->idTipoCiclo == self::TIPO_INVENTARIO) {
+
+        $query = Inventario::where('etiqueta', $identificador);
+
+        if ($ciclo->id_proyecto) {
+            $query->where('id_proyecto', $ciclo->id_proyecto);
+        }
+
+        return $query->value('id_inventario');
+    }
+
+    // Auditoría (tipo 2)
+    if ($ciclo->idTipoCiclo == self::TIPO_AUDITORIA) {
+        return CrudActivo::where('etiqueta', $identificador)
+                         ->orWhere('codigo_cliente', $identificador)
+                         ->value('idActivo');
+    }
+
+    return null;
+}
 
     /**
      * Obtener id_proyecto del ciclo
