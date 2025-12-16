@@ -12,7 +12,7 @@ use App\Models\InvCiclo;
 use App\Models\InvCicloPunto;
 use App\Models\Inventario;
 use App\Models\UbicacionGeografica;
-use App\Services\ProyectoUsuarioService;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
