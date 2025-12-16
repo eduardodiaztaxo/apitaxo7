@@ -8,6 +8,7 @@ use App\Http\Resources\V1\crudActivoInventarioResource;
 use App\Models\InvConteoRegistro;
 use App\Models\Inv_ciclos_categorias;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Services\ActivoFinderService;
 use App\Services\ProyectoUsuarioService;
 use Illuminate\Support\Facades\Storage;
 

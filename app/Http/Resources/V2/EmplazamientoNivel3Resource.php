@@ -5,6 +5,7 @@ namespace App\Http\Resources\V2;
 use App\Http\Resources\V1\UbicacionGeograficaResource;
 use App\Http\Resources\V1\ZonaPuntoResource;
 use App\Models\Inventario;
+use App\Services\ActivoFinderService;
 use App\Services\ProyectoUsuarioService;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\DB;

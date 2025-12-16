@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Api\V1\ZonaEmplazamientosController;
 use App\Services\Dump\Tables\DumpSQLiteInterface;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use App\Services\ActivoFinderService;
+use App\Services\ProyectoUsuarioService;
 use PDO;
 
 class SubZonesDumpService implements DumpSQLiteInterface

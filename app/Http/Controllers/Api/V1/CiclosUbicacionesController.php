@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\GroupFamilyPlaceResumenResource;
 use App\Http\Resources\V1\InventariosResource;
 use App\Http\Resources\V1\UbicacionGeograficaResource;
+use App\Services\ActivoFinderService;
+use App\Services\ProyectoUsuarioService;
 use App\Models\InvCiclo;
 use App\Models\InvCicloPunto;
 use App\Models\Inventario;
