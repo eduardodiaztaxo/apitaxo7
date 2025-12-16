@@ -421,7 +421,7 @@ class InventariosController extends Controller
         ], 200);
     }
 
-    public function updateAdjustCoordinatesInventory(Request $request, $etiqueta)
+    public function updateAdjustCoordinatesInventory(Request $request, $ciclo, $etiqueta)
     {
         $validator = Validator::make($request->all(), [
             'adjusted_lat' => 'required|numeric',
@@ -456,7 +456,7 @@ class InventariosController extends Controller
         ]);
     }
 
-    public function updateAdjustCoordinatesInventoryDebugData(Request $request, $etiqueta)
+    public function updateAdjustCoordinatesInventoryDebugData(Request $request, $ciclo, $etiqueta)
     {
         $validator = Validator::make($request->all(), [
             'adjusted_lat' => 'required|numeric',
