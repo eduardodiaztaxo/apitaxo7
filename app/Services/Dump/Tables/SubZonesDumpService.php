@@ -41,9 +41,7 @@ public function runFromController(): void
 {
     $this->createTable();
 
-    $id_proyecto = DB::table('inv_ciclos')
-        ->where('idCiclo', $this->cycle)
-        ->value('id_proyecto');
+    $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
     $stmt = $this->pdo->query("SELECT codigoUbicacion, idAgenda FROM zonas Where idProyecto = $id_proyecto");
     $zonas = $stmt->fetchAll(\PDO::FETCH_ASSOC);

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Services\Imagenes\PictureSafinService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Encoders\JpegEncoder;
@@ -100,5 +101,78 @@ class ImageService
         );
 
         return $path;
+    }
+
+    /**
+     * Save image in main disk or second disk if fails.
+     *
+     * @param  \Illuminate\Http\UploadedFile $file 
+     * @param  string  $customer_name   the customer name to build the subdir
+     * @param  string  $namefile
+     * @return string|null the URL of the saved image or null if both saves fail
+     */
+    public static function saveImageInMainOrSecondDisk(UploadedFile $file, string $customer_name, string $namefile): string|null
+    {
+        $url = null;
+
+        try {
+
+            $path = $file->storeAs(
+                PictureSafinService::getImgSubdir($customer_name),
+                $namefile,
+                'win_images'
+            );
+
+            $url = Storage::disk('win_images')->url($path);
+        } catch (\Exception $e) {
+
+            try {
+
+                $path = $file->storeAs(
+                    PictureSafinService::getImgSubdir($customer_name),
+                    $namefile,
+                    'taxoImages'
+                );
+
+                $url = Storage::disk('taxoImages')->url($path);
+            } catch (\Exception $e) {
+            }
+        }
+
+
+        return $url;
+    }
+
+    /**
+     * Delete image in main disk or second disk if exists.
+     *
+     * @param  string  $customer_name   the customer name to build the subdir
+     * @param  string  $namefile
+     * @return bool true if deleted, false otherwise
+     */
+    public static function deleteImageInMainOrSecondDisk(string $customer_name, string $namefile): bool
+    {
+        $deleted = false;
+
+
+
+
+        try {
+
+            $path = PictureSafinService::getImgSubdir($customer_name) . '/' . $namefile;
+
+            $deleted = Storage::disk('win_images')->delete($path);
+        } catch (\Exception $e) {
+
+            try {
+
+                $path = PictureSafinService::getImgSubdir($customer_name) . '/' . $namefile;
+
+                $deleted = Storage::disk('taxoImages')->delete($path);
+            } catch (\Exception $e) {
+            }
+        }
+
+        return $deleted;
     }
 }

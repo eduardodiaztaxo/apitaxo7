@@ -7,6 +7,7 @@ use App\Http\Resources\V1\EmplazamientoResource;
 use App\Http\Resources\V2\EmplazamientoNivel3Resource;
 use App\Http\Resources\V2\EmplazamientoNivel1Resource;
 use App\Http\Resources\V2\EmplazamientoNivel2Resource;
+use App\Services\ProyectoUsuarioService;
 use App\Models\InvCiclo;
 use App\Models\ZonaPunto;
 use App\Models\UbicacionGeografica;
@@ -135,8 +136,6 @@ class ZonaEmplazamientosController extends Controller
         foreach ($zonaObjs as $zonaObj) {
             $emplaCats = $cicloObj->zoneSubEmplazamientosWithCats($zonaObj)->pluck('idUbicacionN3')->toArray();
 
-
-
             $subEmplas = empty($emplaCats)
                 ? $zonaObj->subemplazamientosNivel3()->get()
                 : $zonaObj->subemplazamientosNivel3()->whereIn('idUbicacionN3', $emplaCats)->get();
@@ -146,8 +145,6 @@ class ZonaEmplazamientosController extends Controller
                 $emplazamientos->push($sub);
             }
         }
-
-
 
         return response()->json(EmplazamientoNivel3Resource::collection($emplazamientos), 200);
     }

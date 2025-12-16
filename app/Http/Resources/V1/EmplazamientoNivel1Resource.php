@@ -8,6 +8,7 @@ use App\Http\Resources\V1\crudActivoInventarioResource;
 use App\Models\InvConteoRegistro;
 use App\Models\Inv_ciclos_categorias;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Services\ProyectoUsuarioService;
 use Illuminate\Support\Facades\Storage;
 
 class EmplazamientoNivel1Resource extends JsonResource
@@ -20,70 +21,86 @@ class EmplazamientoNivel1Resource extends JsonResource
      */
     public function toArray($request)
     {
+        // Obtener el tipo de ciclo
+        $tipoCiclo = null;
+        if (isset($this->cycle_id) && $this->cycle_id) {
+            $tipoCiclo = DB::table('inv_ciclos')
+                ->where('idCiclo', $this->cycle_id)
+                ->value('idTipoCiclo');
+        }
 
-        $activosCollection = $this->activos()
-            ->select(
-                'crud_activos.etiqueta',
-                'crud_activos.categoriaN3',
-                'crud_activos.id_familia',
-                'crud_activos.id_grupo',
-                'crud_activos.nombreActivo',
-                'crud_activos.idIndice',
-                DB::raw("COALESCE(CONCAT(crud_activos_pictures.url_picture, '/', crud_activos_pictures.picture), 'https://api.taxochile.cl/img/notavailable.jpg') AS foto4")
-            )
-            ->leftJoin(DB::raw('(
-            SELECT id_foto, id_activo, url_picture, picture
-            FROM crud_activos_pictures
-            WHERE (id_foto, id_activo) IN (
-                SELECT MAX(id_foto), id_activo
+        // Solo consultar activos si el ciclo no es tipo 1
+        $activosCollection = collect([]);
+        if ($tipoCiclo != 1) {
+            $activosCollection = $this->activos()
+                ->select(
+                    'crud_activos.etiqueta',
+                    'crud_activos.categoriaN3',
+                    'crud_activos.id_familia',
+                    'crud_activos.id_grupo',
+                    'crud_activos.nombreActivo',
+                    'crud_activos.idIndice',
+                    DB::raw("COALESCE(CONCAT(crud_activos_pictures.url_picture, '/', crud_activos_pictures.picture), 'https://api.taxochile.cl/img/notavailable.jpg') AS foto4")
+                )
+                ->leftJoin(DB::raw('(
+                SELECT id_foto, id_activo, url_picture, picture
                 FROM crud_activos_pictures
-                GROUP BY id_activo
-            )
-        ) as crud_activos_pictures'), 'crud_activos_pictures.id_activo', '=', 'crud_activos.idActivo')
-        ->where('crud_activos.tipoCambio', '!=', 200)
-         ->where('crud_activos.ubicacionOrganicaN1', '=', $this->codigoUbicacion)
-        ->get();
-
-        $activosInventario = DB::table('inv_inventario')
-            ->leftJoin('categoria_n3', 'inv_inventario.id_familia', '=', 'categoria_n3.id_familia')
-            ->leftJoin('inv_imagenes', 'inv_inventario.id_img', '=', 'inv_imagenes.id_img')
-            ->where('inv_inventario.codigoUbicacion_N1', '=', $this->codigoUbicacion)
-            ->where('inv_inventario.id_ciclo', $this->cycle_id)
-            ->select(
-                'inv_inventario.id_ciclo',
-                'inv_inventario.id_inventario',
-                'inv_inventario.etiqueta',
-                'categoria_n3.codigoCategoria',
-                'inv_inventario.id_familia',
-                'inv_inventario.id_grupo',
-                'inv_inventario.descripcion_bien',
-                'inv_inventario.modelo',
-                'inv_inventario.serie',
-                'inv_inventario.descripcion_marca',
-                'inv_inventario.codigoUbicacion_N1',
-                'inv_inventario.update_inv',
-                'categoria_n3.descripcionCategoria',
-                DB::raw('MIN(inv_imagenes.url_imagen) as url_imagen')
-            )
-            ->groupBy(
-                'inv_inventario.id_ciclo',
-                'inv_inventario.id_inventario',
-                'inv_inventario.etiqueta',
-                'categoria_n3.codigoCategoria',
-                'inv_inventario.id_familia',
-                'inv_inventario.id_grupo',
-                'inv_inventario.descripcion_bien',
-                'inv_inventario.modelo',
-                'inv_inventario.serie',
-                'inv_inventario.descripcion_marca',
-                'inv_inventario.codigoUbicacion_N1',
-                'inv_inventario.update_inv',
-                'categoria_n3.descripcionCategoria'
-            )
+                WHERE (id_foto, id_activo) IN (
+                    SELECT MAX(id_foto), id_activo
+                    FROM crud_activos_pictures
+                    GROUP BY id_activo
+                )
+            ) as crud_activos_pictures'), 'crud_activos_pictures.id_activo', '=', 'crud_activos.idActivo')
+            ->where('crud_activos.tipoCambio', '!=', 200)
+            ->where('crud_activos.ubicacionOrganicaN1', '=', $this->codigoUbicacion)
             ->get();
+        }
 
+        // Solo consultar inventario si el ciclo es tipo 1
+        $activosInventario = collect([]);
+        if ($tipoCiclo == 1 && isset($this->cycle_id)) {
+            $activosInventario = DB::table('inv_inventario')
+                ->leftJoin('categoria_n3', 'inv_inventario.id_familia', '=', 'categoria_n3.id_familia')
+                ->leftJoin('inv_imagenes', 'inv_inventario.id_img', '=', 'inv_imagenes.id_img')
+                ->where('inv_inventario.codigoUbicacion_N1', '=', $this->codigoUbicacion)
+                ->where('inv_inventario.id_ciclo', $this->cycle_id)
+                ->select(
+                    'inv_inventario.id_ciclo',
+                    'inv_inventario.id_inventario',
+                    'inv_inventario.etiqueta',
+                    'categoria_n3.codigoCategoria',
+                    'inv_inventario.id_familia',
+                    'inv_inventario.id_grupo',
+                    'inv_inventario.descripcion_bien',
+                    'inv_inventario.modelo',
+                    'inv_inventario.serie',
+                    'inv_inventario.descripcion_marca',
+                    'inv_inventario.codigoUbicacion_N1',
+                    'inv_inventario.update_inv',
+                    'categoria_n3.descripcionCategoria',
+                    DB::raw('MIN(inv_imagenes.url_imagen) as url_imagen')
+                )
+                ->groupBy(
+                    'inv_inventario.id_ciclo',
+                    'inv_inventario.id_inventario',
+                    'inv_inventario.etiqueta',
+                    'categoria_n3.codigoCategoria',
+                    'inv_inventario.id_familia',
+                    'inv_inventario.id_grupo',
+                    'inv_inventario.descripcion_bien',
+                    'inv_inventario.modelo',
+                    'inv_inventario.serie',
+                    'inv_inventario.descripcion_marca',
+                    'inv_inventario.codigoUbicacion_N1',
+                    'inv_inventario.update_inv',
+                    'categoria_n3.descripcionCategoria'
+                )
+                ->get();
+        }
 
-        $activosInventario = $activosInventario->map(function ($activo) {
+        // Procesar activosInventario solo si el ciclo es tipo 1
+        if ($tipoCiclo == 1) {
+            $activosInventario = $activosInventario->map(function ($activo) {
             $firstImageUrl = "https://api.taxochile.cl/img/notavailable.jpg"; // URL por defecto
 
             if (!empty($activo->url_imagen)) {
@@ -128,6 +145,7 @@ class EmplazamientoNivel1Resource extends JsonResource
                 'fotoUrl' => $firstImageUrl,
             ];
         });
+        }
 
     
         $emplazamiento = [
@@ -163,18 +181,10 @@ class EmplazamientoNivel1Resource extends JsonResource
                 ->toArray();
 
             if (isset($this->cycle_id) && $this->cycle_id) {
-                $activosByCycle = $this->activos_with_cats_by_cycle($this->cycle_id, $this->idAgenda, $this->codigoUbicacion)
-                    ->whereIn('crud_activos.id_grupo', $categorias)
-                    ->get()
-                    ->map(function ($activo) {
-                        return (new CrudActivoLiteResource($activo, $this->cycle_id, $this->idAgenda))->toArray(request());
-                    });
-
-                $emplazamiento['num_activos'] = $activosByCycle->count();
-
-                // Verificar si está vacío
-                if ($activosByCycle->isEmpty()) {
-
+                
+                // Determinar la fuente de datos según el tipo de ciclo
+                if ($tipoCiclo == 1) {
+                    // Tipo 1: Consultar desde inv_inventario
                     $idsGrupos = DB::select("
                 SELECT 
                     dp_grupos.descripcion_grupo,
@@ -193,7 +203,6 @@ class EmplazamientoNivel1Resource extends JsonResource
             ", [$this->cycle_id]);
 
                     $ids = collect($idsGrupos)->pluck('id_grupo')->unique()->values()->toArray();
-
                     $activosInventarioFiltrados = $activosInventario->whereIn('id_grupo', $ids);
 
                     $activosInventarioArray = $activosInventarioFiltrados->map(function ($activo) {
@@ -202,8 +211,18 @@ class EmplazamientoNivel1Resource extends JsonResource
 
                     $emplazamiento['activos'] = $activosInventarioArray;
                     $emplazamiento['num_activos'] = count($emplazamiento['activos']);
+                    
                 } else {
+                    // Tipo 2 o null: Consultar desde crud_activos
+                    $activosByCycle = $this->activos_with_cats_by_cycle($this->cycle_id, $this->idAgenda, $this->codigoUbicacion)
+                        ->whereIn('crud_activos.id_grupo', $categorias)
+                        ->get()
+                        ->map(function ($activo) {
+                            return (new CrudActivoLiteResource($activo, $this->cycle_id, $this->idAgenda))->toArray(request());
+                        });
+
                     $emplazamiento['activos'] = $activosByCycle;
+                    $emplazamiento['num_activos'] = $activosByCycle->count();
                 }
             }
         }
@@ -213,7 +232,20 @@ class EmplazamientoNivel1Resource extends JsonResource
                 ->where('cod_emplazamiento', '=', $this->codigoUbicacion)
                 ->whereIn('audit_status', [1, 3])
                 ->count();
-            $emplazamiento['num_activos_cats_by_cycle'] = isset($emplazamiento['activos']) ? count($emplazamiento['activos']) : $this->activos_with_cats_by_cycle($this->cycle_id)->count();
+            
+            // Calcular num_activos_cats_by_cycle según el tipo de ciclo
+            if (isset($emplazamiento['activos'])) {
+                $emplazamiento['num_activos_cats_by_cycle'] = count($emplazamiento['activos']);
+            } else {
+                // Si no hay activos en el arreglo, contar según el tipo de ciclo
+                if ($tipoCiclo == 1) {
+                    // Para tipo 1, contar desde inv_inventario
+                    $emplazamiento['num_activos_cats_by_cycle'] = 0;
+                } else {
+                    // Para tipo 2, usar el método existente
+                    $emplazamiento['num_activos_cats_by_cycle'] = $this->activos_with_cats_by_cycle($this->cycle_id)->count();
+                }
+            }
         }
 
         return $emplazamiento;

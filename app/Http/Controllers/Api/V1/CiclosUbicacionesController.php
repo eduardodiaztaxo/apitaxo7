@@ -54,9 +54,7 @@ class CiclosUbicacionesController extends Controller
         ]);
         $codigoCliente = $this->generarCodigoCliente();
   
-       $id_proyecto = DB::table('inv_ciclos')
-        ->where('idCiclo', $request->ciclo_auditoria)
-        ->value('id_proyecto');
+       $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
     $ubicacion = DB::table('ubicaciones_geograficas')->insertGetId([
         'idProyecto'    => $id_proyecto,

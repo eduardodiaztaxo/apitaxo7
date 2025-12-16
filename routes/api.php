@@ -74,7 +74,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
         'makePassword'
     ]);
 
-    Route::get('activos/etiqueta/{etiqueta}', [CrudActivoController::class, 'showByEtiqueta']);
+    Route::get('activos/etiqueta/{etiqueta}/ciclo/{ciclo}', [CrudActivoController::class, 'showByEtiqueta']);
 
     Route::get('activos/inventario/{id}', [CrudActivoController::class, 'showInventoryByID']);
 
@@ -108,13 +108,13 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('puntos/{punto}/responsibles', [ResponsibleController::class, 'showAllByPunto']);
 
-    Route::get('estados/{ciclo}', [DatosActivosController::class, 'estados']);
+    Route::get('estados', [DatosActivosController::class, 'estados']);
 
     Route::get('grupo/{ciclo}', [DatosActivosController::class, 'grupo']);
 
     Route::get('familia/{codigo_grupo}/{ciclo}', [DatosActivosController::class, 'familia']);
 
-    Route::get('bienes_marcas/{id_familia}/{ciclo}', [DatosActivosController::class, 'bienes_Marcas']);
+    Route::get('bienes_marcas/{id_familia}', [DatosActivosController::class, 'bienes_Marcas']);
 
     Route::get('bienes_grupo_familia/{idCiclo}', [DatosActivosController::class, 'bienesGrupoFamilia']);
 
@@ -124,21 +124,21 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('buscar_grupo_familia/{id_familia}', [DatosActivosController::class, 'buscarGrupoFamilia']);
 
-    Route::get('colores/{cycleid}', [DatosActivosController::class, 'indiceColores']);
+    Route::get('colores', [DatosActivosController::class, 'indiceColores']);
 
-    Route::get('estados-operacionales/{cycleid}', [DatosActivosController::class, 'estadosOperacional']);
+    Route::get('estados-operacionales', [DatosActivosController::class, 'estadosOperacional']);
 
-    Route::get('tipos-trabajo/{cycleid}', [DatosActivosController::class, 'tipoTrabajo']);
+    Route::get('tipos-trabajo', [DatosActivosController::class, 'tipoTrabajo']);
 
-    Route::get('cargas-trabajo/{cycleid}', [DatosActivosController::class, 'cargaTrabajo']);
+    Route::get('cargas-trabajo', [DatosActivosController::class, 'cargaTrabajo']);
 
-    Route::get('condiciones-ambientales/{cycleid}', [DatosActivosController::class, 'condicionAmbiental']);
+    Route::get('condiciones-ambientales', [DatosActivosController::class, 'condicionAmbiental']);
 
-    Route::get('estados-conservacion/{cycleid}', [DatosActivosController::class, 'estadoConservacion']);
+    Route::get('estados-conservacion', [DatosActivosController::class, 'estadoConservacion']);
 
-    Route::get('materiales/{cycleid}', [DatosActivosController::class, 'material']);
+    Route::get('materiales', [DatosActivosController::class, 'material']);
 
-    Route::get('formas/{cycleid}', [DatosActivosController::class, 'forma']);
+    Route::get('formas', [DatosActivosController::class, 'forma']);
 
     Route::post('create-bienes', [DatosActivosController::class, 'createBienes']);
 
@@ -152,7 +152,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('activos/images/etiqueta/{etiqueta}/cycle/{cycleid}/idActivo/{idActivo}', [InventariosController::class, 'getImagesByEtiqueta']);
 
-    Route::post('activos/delete-image/etiqueta/{etiqueta}/id_img/{id_img}/idLista/{idLista}/idActivo/{idActivo?}', [InventariosController::class, 'deleteImageByEtiqueta']);
+    Route::post('activos/delete-image/etiqueta/{etiqueta}/id_img/{id_img}/idLista/{idLista}/idActivo/{idActivo?}/cycle/{cycleid}', [InventariosController::class, 'deleteImageByEtiqueta']);
 
     Route::post('inventario/add-image/{etiqueta}', [InventariosController::class, 'addImageByEtiqueta']);
 
@@ -170,7 +170,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('localizacion/{etiqueta}', [CrudActivoController::class, 'localizacion']);
 
-    Route::get('marcas-disponibles/{etiqueta}', [CrudActivoController::class, 'marcasDisponibles']);
+    Route::get('marcas-disponibles/{etiqueta}/{ciclo}', [CrudActivoController::class, 'marcasDisponibles']);
 
     Route::get('ciclos', [CiclosController::class, 'index']);
 
