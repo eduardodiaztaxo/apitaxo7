@@ -4,6 +4,8 @@ namespace App\Services\Dump\Tables;
 
 use App\Services\Dump\Tables\DumpSQLiteInterface;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use App\Services\ActivoFinderService;
+use App\Services\ProyectoUsuarioService;
 use Illuminate\Support\Facades\DB;
 use PDO;
 
