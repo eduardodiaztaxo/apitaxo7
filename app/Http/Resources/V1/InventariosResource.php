@@ -14,7 +14,7 @@ class InventariosResource extends JsonResource
     {
         // Obtener el registro principal del inventario
         $activo = DB::table('inv_inventario')
-            ->where('etiqueta', $this->etiqueta)
+            ->where('id_inventario', $this->id_inventario)
             ->select(
                 'id_inventario',
                 'id_ciclo',

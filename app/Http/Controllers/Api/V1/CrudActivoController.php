@@ -127,10 +127,11 @@ class CrudActivoController extends Controller
      * @param int  $etiqueta
      * @return \Illuminate\Http\Response
      */
- 
-   public function showByEtiqueta(Request $request, $etiqueta, $ciclo)
+
+    public function showByEtiqueta(Request $request, $etiqueta, $ciclo)
     {
-        
+
+
         $activo = ActivoFinderService::findByEtiquetaAndCiclo($etiqueta, $ciclo);
 
         if (!$activo) {
@@ -146,6 +147,8 @@ class CrudActivoController extends Controller
 
         $activo->requireUbicacion = 1;
         $activo->requireEmplazamiento = 1;
+
+
 
         return response()->json(new CrudActivoResource($activo), 200);
     }
@@ -450,7 +453,7 @@ class CrudActivoController extends Controller
         ], 200);
     }
 
-//se agrego el ciclo para las marcas disponibles
+    //se agrego el ciclo para las marcas disponibles
     public function marcasDisponibles(Request $request, $etiqueta, $ciclo)
     {
         $activo = ActivoFinderService::findByEtiquetaAndCiclo($etiqueta, $ciclo);

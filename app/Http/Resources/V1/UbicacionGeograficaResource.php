@@ -112,64 +112,83 @@ class UbicacionGeograficaResource extends JsonResource
 
         if (isset($this->cycle_id) && $this->cycle_id) {
 
-            $codigoUbicacion = ZonaPunto::where('idAgenda', '=', $this->idUbicacionGeo)
-                ->pluck('codigoUbicacion')
-                ->toArray();
+            if ($this->idTipoCiclo == 2) {
+                $address['num_activos_cats_by_cycle'] = $this->activos_with_cats_by_cycle($this->cycle_id)->count();
+                $address['num_activos_inv_cats_by_cycle'] = 0;
 
-            $address['num_activos_cats_by_cycle'] = $this->activos_with_cats_by_cycle($this->cycle_id)->count();
-            $address['num_activos_inv_cats_by_cycle'] = $this->activos_with_cats_inv_by_cycle($this->cycle_id, $this->idUbicacionGeo)->count();
+                /** Geo Adjust */
+                $address['num_activos_geo_adjust'] = 0;
 
-            /** Geo Adjust */
-            $address['num_activos_geo_adjust'] = $this->activos_with_cats_inv_by_cycle($this->cycle_id, $this->idUbicacionGeo)
-                ->whereNotNull('adjusted_lat')
-                ->whereNotNull('adjusted_lng')
-                ->count();
+                $coll = $this->cats_by_cycle($this->cycle_id);
 
-            $coll = $this->cats_by_cycle($this->cycle_id);
+                $address['num_cats_by_cycle']       = $coll->pluck('categoriaN1')->unique()->count();
+                $address['num_subcats_n2_by_cycle'] = $coll->pluck('categoriaN2')->unique()->count();
+                $address['num_subcats_n3_by_cycle'] = $coll->pluck('categoriaN3')->unique()->count();
 
-            $address['num_cats_by_cycle']       = $coll->pluck('categoriaN1')->unique()->count();
-            $address['num_subcats_n2_by_cycle'] = $coll->pluck('categoriaN2')->unique()->count();
-            $address['num_subcats_n3_by_cycle'] = $coll->pluck('categoriaN3')->unique()->count();
+                $codigosZona = $zones->pluck('codigoUbicacion')->toArray();
 
-            $codigosZona = $zones->pluck('codigoUbicacion')->toArray();
 
-            if ($auditoria_general === 1) {
-                $address['num_activos_audit'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
-                    ->where('punto_id', '=', $this->idUbicacionGeo)
-                    ->where('status', '=', 1)
-                    ->whereIn('audit_status', [1, 3])
-                    ->count();
+                if ($auditoria_general === 1) {
+                    $address['num_activos_audit'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
+                        ->where('punto_id', '=', $this->idUbicacionGeo)
+                        ->where('status', '=', 1)
+                        ->whereIn('audit_status', [1, 3])
+                        ->count();
 
-                $address['num_activos_audit_coincidentes'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
-                    ->where('punto_id', '=', $this->idUbicacionGeo)
-                    ->where('status', '=', 1)
-                    ->where('audit_status', '=', 1)
-                    ->count();
+                    $address['num_activos_audit_coincidentes'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
+                        ->where('punto_id', '=', $this->idUbicacionGeo)
+                        ->where('status', '=', 1)
+                        ->where('audit_status', '=', 1)
+                        ->count();
 
-                $address['num_activos_audit_sobrantes'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
-                    ->where('punto_id', '=', $this->idUbicacionGeo)
-                    ->where('status', '=', 1)
-                    ->where('audit_status', '=', 3)
-                    ->count();
+                    $address['num_activos_audit_sobrantes'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
+                        ->where('punto_id', '=', $this->idUbicacionGeo)
+                        ->where('status', '=', 1)
+                        ->where('audit_status', '=', 3)
+                        ->count();
+                } else {
+                    $address['num_activos_audit'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
+                        ->where('punto_id', '=', $this->idUbicacionGeo)
+                        ->whereIn('cod_zona', $codigosZona)
+                        ->whereIn('audit_status', [1, 3])
+                        ->count();
+
+                    $address['num_activos_audit_coincidentes'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
+                        ->where('punto_id', '=', $this->idUbicacionGeo)
+                        ->whereIn('cod_zona', $codigosZona)
+                        ->where('audit_status', '=', 1)
+                        ->count();
+
+                    $address['num_activos_audit_sobrantes'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
+                        ->where('punto_id', '=', $this->idUbicacionGeo)
+                        ->whereIn('cod_zona', $codigosZona)
+                        ->where('audit_status', '=', 3)
+                        ->count();
+                }
             } else {
-                $address['num_activos_audit'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
-                    ->where('punto_id', '=', $this->idUbicacionGeo)
-                    ->whereIn('cod_zona', $codigosZona)
-                    ->whereIn('audit_status', [1, 3])
+                $address['num_activos_cats_by_cycle'] = 0;
+                $address['num_activos_inv_cats_by_cycle'] = $this->activos_with_cats_inv_by_cycle($this->cycle_id, $this->idUbicacionGeo)->count();
+
+                /** Geo Adjust */
+                $address['num_activos_geo_adjust'] = $this->activos_with_cats_inv_by_cycle($this->cycle_id, $this->idUbicacionGeo)
+                    ->whereNotNull('adjusted_lat')
+                    ->whereNotNull('adjusted_lng')
                     ->count();
 
-                $address['num_activos_audit_coincidentes'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
-                    ->where('punto_id', '=', $this->idUbicacionGeo)
-                    ->whereIn('cod_zona', $codigosZona)
-                    ->where('audit_status', '=', 1)
-                    ->count();
+                $coll = $this->cats_by_cycle($this->cycle_id);
 
-                $address['num_activos_audit_sobrantes'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle_id)
-                    ->where('punto_id', '=', $this->idUbicacionGeo)
-                    ->whereIn('cod_zona', $codigosZona)
-                    ->where('audit_status', '=', 3)
-                    ->count();
+                $address['num_cats_by_cycle']       = $coll->pluck('categoriaN1')->unique()->count();
+                $address['num_subcats_n2_by_cycle'] = $coll->pluck('categoriaN2')->unique()->count();
+                $address['num_subcats_n3_by_cycle'] = $coll->pluck('categoriaN3')->unique()->count();
             }
+
+
+
+
+
+
+
+
 
             if (isset($this->requireActivos) && $this->requireActivos) {
                 $address['activos'] = CrudActivoLiteResource::collection($this->activos_with_cats_by_cycle($this->cycle_id)->get());

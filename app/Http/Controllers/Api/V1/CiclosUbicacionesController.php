@@ -419,6 +419,7 @@ class CiclosUbicacionesController extends Controller
             //$punto->zonas_cats = $zonas;
             $punto->requireZonas = 1;
             $punto->cycle_id = $ciclo;
+            $punto->idTipoCiclo = $cicloObj->idTipoCiclo;
             //Si el ciclo es auditoría y la auditoría es general, el atributo auditoria_general se pone a 1
             if ($cicloObj->idTipoCiclo == 2) {
 
