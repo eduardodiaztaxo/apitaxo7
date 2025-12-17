@@ -354,7 +354,7 @@ class CiclosUbicacionesController extends Controller
 
 
 
-        $puntoObj->requireActivos = 1;
+        $puntoObj->requireActivos = 0;
         $puntoObj->cycle_id = $cicloObj->idCiclo;
         $puntoObj->general = 1;
 
@@ -379,7 +379,7 @@ class CiclosUbicacionesController extends Controller
         }
 
         foreach ($puntos as $punto) {
-            $punto->requireActivos = 1;
+            $punto->requireActivos = 0;
             $punto->cycle_id = $cicloObj->idCiclo;
             $punto->general = 1;
         }
