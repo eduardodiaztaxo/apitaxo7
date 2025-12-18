@@ -96,11 +96,12 @@ class UbicacionGeograficaResource extends JsonResource
             'newApp'        => $this->newApp,
             'modo'          => $this->modo,
             'zonas_punto'   => $zonas_punto,
-            'num_activos'   => $this->activos()->get()->count(),
+            'num_activos'   => $this->activos()->count(),
             'num_activos_cats_by_cycle' => 0,
             'num_activos_inv_cats_by_cycle' => 0,
             'num_cats_by_cycle' => 0
         ];
+
 
         if ($this->general === 1) {
             $detalle = [
@@ -109,6 +110,7 @@ class UbicacionGeograficaResource extends JsonResource
 
             $address['detalle'] = $detalle['detalle'];
         }
+
 
         if (isset($this->cycle_id) && $this->cycle_id) {
 
@@ -166,6 +168,7 @@ class UbicacionGeograficaResource extends JsonResource
                         ->count();
                 }
             } else {
+
                 $address['num_activos_cats_by_cycle'] = 0;
                 $address['num_activos_inv_cats_by_cycle'] = $this->activos_with_cats_inv_by_cycle($this->cycle_id, $this->idUbicacionGeo)->count();
 
