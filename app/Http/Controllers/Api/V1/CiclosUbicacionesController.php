@@ -354,7 +354,7 @@ class CiclosUbicacionesController extends Controller
 
 
 
-        $puntoObj->requireActivos = 1;
+        $puntoObj->requireActivos = 0;
         $puntoObj->cycle_id = $cicloObj->idCiclo;
         $puntoObj->general = 1;
 
@@ -379,7 +379,7 @@ class CiclosUbicacionesController extends Controller
         }
 
         foreach ($puntos as $punto) {
-            $punto->requireActivos = 1;
+            $punto->requireActivos = 0;
             $punto->cycle_id = $cicloObj->idCiclo;
             $punto->general = 1;
         }
@@ -417,8 +417,9 @@ class CiclosUbicacionesController extends Controller
 
         foreach ($puntos as $punto) {
             //$punto->zonas_cats = $zonas;
-            $punto->requireZonas = 1;
+            $punto->requireZonas = 0;
             $punto->cycle_id = $ciclo;
+            $punto->idTipoCiclo = $cicloObj->idTipoCiclo;
             //Si el ciclo es auditoría y la auditoría es general, el atributo auditoria_general se pone a 1
             if ($cicloObj->idTipoCiclo == 2) {
 
