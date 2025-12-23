@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Inv_imagenes;
 use App\Services\Imagenes\PictureSafinService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -174,5 +175,168 @@ class ImageService
         }
 
         return $deleted;
+    }
+
+    /**
+     * Update names of image files when etiqueta field changes.
+     *
+     * @param  string  $etiqueta
+     * @param  string  $old_etiqueta
+     * @param  string  $proyecto_id
+     * @param  string  $customer_name
+     * @return void
+     */
+    public static function updateNameFilesWhenEtiquetaFieldChanges(string $etiqueta, string $old_etiqueta, string $proyecto_id, string $customer_name): void
+    {
+        //
+
+        Inv_imagenes::where('id_proyecto', $proyecto_id)
+            ->where('etiqueta', $old_etiqueta)
+            ->get()
+            ->each(function ($image) use ($etiqueta, $proyecto_id, $customer_name) {
+
+                $oldNameFile = $image->picture;
+
+                if (self::checkIfImageExistsInMainOrSecondDisk($customer_name, $oldNameFile) === false) {
+                    // if the old file does not exist, skip renaming
+                    return;
+                }
+
+                $extension = pathinfo($oldNameFile, PATHINFO_EXTENSION);
+
+                $newNameFile = PictureSafinService::nextNameImageFile($proyecto_id, $etiqueta, $extension);
+
+                // Rename the image in storage
+
+                $newUrl = ImageService::renameImageInMainOrSecondDisk($newNameFile, $oldNameFile, $customer_name);
+
+                if ($newUrl) {
+                    // Update database record
+                    $image->picture = $newNameFile;
+                    $image->url_imagen = $newUrl;
+                    $image->etiqueta = $etiqueta;
+                    $image->origen = 'SAFIN_APP_ETIQUETA_EDITADA';
+                    //$image->updated_at = now();
+                    $image->save();
+                }
+            });
+    }
+
+
+    /**
+     * Update names of image files when etiqueta field does not match with image name.
+     *
+     * @param  string  $proyecto_id
+     * @param  string  $customer_name
+     * @return void
+     */
+    public static function updateFileNamesWhenEtiquetaFieldNoMatchWithImageName(string $proyecto_id, string $customer_name): int
+    {
+        //
+
+        $quantity = 0;
+
+        $images = Inv_imagenes::where('id_proyecto', '=', $proyecto_id)
+            ->whereRaw("picture NOT LIKE CONCAT('%', etiqueta, '%')")
+            ->get();
+
+        foreach ($images as $image) {
+
+            $oldNameFile = $image->picture;
+
+            if (self::checkIfImageExistsInMainOrSecondDisk($customer_name, $oldNameFile) === false) {
+                // if the old file does not exist, skip renaming
+                continue;
+            }
+
+            $extension = pathinfo($oldNameFile, PATHINFO_EXTENSION);
+
+            $newNameFile = PictureSafinService::nextNameImageFile($proyecto_id, $image->etiqueta, $extension);
+
+            // Rename the image in storage
+
+            $newUrl = ImageService::renameImageInMainOrSecondDisk($newNameFile, $oldNameFile, $customer_name);
+
+            if ($newUrl) {
+                // Update database record
+                $image->picture = $newNameFile;
+                $image->url_imagen = $newUrl;
+                $image->origen = 'SAFIN_APP_ETIQUETA_EDITADA';
+                //$image->updated_at = now();
+                $image->save();
+
+                $quantity++;
+            }
+        }
+
+        return $quantity;
+    }
+
+
+    /**
+     * rename image in main disk or second disk if fails.
+     *
+     * @param  string  $new_namefile
+     * @param  string  $old_namefile 
+     * @param  string  $customer_name   the customer name to build the subdir
+     * @return string|null the URL of the saved image or null if both saves fail
+     */
+    public static function renameImageInMainOrSecondDisk(string $new_namefile, string $old_namefile, string $customer_name): string|null
+    {
+        $url = null;
+
+        try {
+
+            $old_path = PictureSafinService::getImgSubdir($customer_name) . '/' . $old_namefile;
+            $new_path = PictureSafinService::getImgSubdir($customer_name) . '/' . $new_namefile;
+
+            Storage::disk('win_images')->move($old_path, $new_path);
+
+            $url = Storage::disk('win_images')->url($new_path);
+        } catch (\Exception $e) {
+
+            try {
+
+                $old_path = PictureSafinService::getImgSubdir($customer_name) . '/' . $old_namefile;
+                $new_path = PictureSafinService::getImgSubdir($customer_name) . '/' . $new_namefile;
+
+                Storage::disk('taxoImages')->move($old_path, $new_path);
+
+                $url = Storage::disk('taxoImages')->url($new_path);
+            } catch (\Exception $e) {
+            }
+        }
+
+        return $url;
+    }
+
+    /**
+     * Check if image exists in main disk or second disk.
+     *
+     * @param  string  $customer_name   the customer name to build the subdir
+     * @param  string  $namefile
+     * @return bool true if exists, false otherwise
+     */
+    public static function checkIfImageExistsInMainOrSecondDisk(string $customer_name, string $namefile): bool
+    {
+        $exists = false;
+
+        try {
+
+            $path = PictureSafinService::getImgSubdir($customer_name) . '/' . $namefile;
+
+            $exists = Storage::disk('win_images')->exists($path);
+        } catch (\Exception $e) {
+
+            try {
+
+                $path = PictureSafinService::getImgSubdir($customer_name) . '/' . $namefile;
+
+                $exists = Storage::disk('taxoImages')->exists($path);
+            } catch (\Exception $e) {
+            }
+        }
+
+        return $exists;
     }
 }
