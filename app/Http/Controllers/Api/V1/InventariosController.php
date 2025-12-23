@@ -320,14 +320,13 @@ class InventariosController extends Controller
         Inventario::where('etiqueta', $etiquetaOriginal)->where('id_proyecto', $id_proyecto)->update($inv_arr);
 
         if ($etiquetaOriginal !== $etiquetaNueva) {
-            DB::table('inv_imagenes')
-                ->where('etiqueta', $etiquetaOriginal)
-                ->where('id_proyecto', $id_proyecto)
-                ->update([
-                    'etiqueta'   => $etiquetaNueva,
-                    'origen'     => 'SAFIN_APP_ETIQUETA_EDITADA',
-                    'updated_at' => now()
-                ]);
+            //renombrar imagenes
+            ImageService::updateNameFilesWhenEtiquetaFieldChanges(
+                $etiquetaNueva,
+                $etiquetaOriginal,
+                $id_proyecto,
+                $request->user()->nombre_cliente
+            );
         } else {
             DB::table('inv_imagenes')
                 ->where('etiqueta', $etiquetaOriginal)
@@ -341,75 +340,75 @@ class InventariosController extends Controller
         $inventarioActualizado = Inventario::where('etiqueta', $etiquetaNueva)->where('id_proyecto', $id_proyecto)->first();
 
 
-        if (intval($request->padre) === 1) {
-            $etiquetaPadre = $request->etiqueta;
-        } elseif (intval($request->padre) === 2) {
-            $etiquetaPadre = $request->etiqueta_padre;
-        }
+        // if (intval($request->padre) === 1) {
+        //     $etiquetaPadre = $request->etiqueta;
+        // } elseif (intval($request->padre) === 2) {
+        //     $etiquetaPadre = $request->etiqueta_padre;
+        // }
 
-        $estadoBien = $request->actualizarBien > 0 ? 3 : 0;
-        $usuario = Auth::user()->name;
+        // $estadoBien = $request->actualizarBien > 0 ? 3 : 0;
+        // $usuario = Auth::user()->name;
 
-        $inv_arr = [
-            'id_grupo'            => $request->id_grupo,
-            'id_familia'          => $request->id_familia,
-            'descripcion_bien'    => $request->descripcion_bien,
-            'id_marca'            => $request->id_marca,
-            'descripcion_marca'   => $request->descripcion_marca,
-            'modelo'              => $request->modelo,
-            'serie'               => $request->serie,
-            'idForma'             => intval($request->idForma ?? null),
-            'idMaterial'          => intval($request->idMaterial ?? null),
-            'latitud'             => $request->latitud ?? null,
-            'longitud'            => $request->longitud ?? null,
-            'precision_geo'       => $request->precision ?? null,
-            'calidad_geo'         => $request->calidad ?? null,
-            'capacidad'           => $request->capacidad,
-            'estado'              => intval($request->estado ?? null),
-            'color'               => intval($request->color ?? null),
-            'tipo_trabajo'        => intval($request->tipo_trabajo ?? null),
-            'carga_trabajo'       => intval($request->carga_trabajo ?? null),
-            'estado_operacional'  => intval($request->estado_operacional ?? null),
-            'estado_conservacion' => intval($request->estado_conservacion ?? null),
-            'condicion_ambiental' => intval($request->condicion_ambiental ?? null),
-            'cantidad_img'        => $request->cantidad_img,
-            'id_img'              => $idImg,
-            'etiqueta_padre'      => $etiquetaPadre ?? 'Sin Padre',
-            'update_inv'          => 0,
-            'eficiencia'          => $request->eficiencia ?? null,
-            'crud_activo_estado'  => $estadoBien,
-            'modo'                => 'ONLINE',
-            'modificado_el'       => date('Y-m-d H:i:s'),
-            'modificado_por'      => $usuario,
-            'etiqueta'            => $etiquetaNueva,
-        ];
+        // $inv_arr = [
+        //     'id_grupo'            => $request->id_grupo,
+        //     'id_familia'          => $request->id_familia,
+        //     'descripcion_bien'    => $request->descripcion_bien,
+        //     'id_marca'            => $request->id_marca,
+        //     'descripcion_marca'   => $request->descripcion_marca,
+        //     'modelo'              => $request->modelo,
+        //     'serie'               => $request->serie,
+        //     'idForma'             => intval($request->idForma ?? null),
+        //     'idMaterial'          => intval($request->idMaterial ?? null),
+        //     'latitud'             => $request->latitud ?? null,
+        //     'longitud'            => $request->longitud ?? null,
+        //     'precision_geo'       => $request->precision ?? null,
+        //     'calidad_geo'         => $request->calidad ?? null,
+        //     'capacidad'           => $request->capacidad,
+        //     'estado'              => intval($request->estado ?? null),
+        //     'color'               => intval($request->color ?? null),
+        //     'tipo_trabajo'        => intval($request->tipo_trabajo ?? null),
+        //     'carga_trabajo'       => intval($request->carga_trabajo ?? null),
+        //     'estado_operacional'  => intval($request->estado_operacional ?? null),
+        //     'estado_conservacion' => intval($request->estado_conservacion ?? null),
+        //     'condicion_ambiental' => intval($request->condicion_ambiental ?? null),
+        //     'cantidad_img'        => $request->cantidad_img,
+        //     'id_img'              => $idImg,
+        //     'etiqueta_padre'      => $etiquetaPadre ?? 'Sin Padre',
+        //     'update_inv'          => 0,
+        //     'eficiencia'          => $request->eficiencia ?? null,
+        //     'crud_activo_estado'  => $estadoBien,
+        //     'modo'                => 'ONLINE',
+        //     'modificado_el'       => date('Y-m-d H:i:s'),
+        //     'modificado_por'      => $usuario,
+        //     'etiqueta'            => $etiquetaNueva,
+        // ];
 
-        foreach (array_keys($request->all()) as $key) {
-            if (strpos((string)$key, 'texto_abierto_') === 0) {
-                $inv_arr[$key] = $request->input($key) ?? null;
-            }
-        }
+        // foreach (array_keys($request->all()) as $key) {
+        //     if (strpos((string)$key, 'texto_abierto_') === 0) {
+        //         $inv_arr[$key] = $request->input($key) ?? null;
+        //     }
+        // }
 
-        Inventario::where('etiqueta', $etiquetaOriginal)->update($inv_arr);
+        // Inventario::where('etiqueta', $etiquetaOriginal)->update($inv_arr);
 
-        if ($etiquetaOriginal !== $etiquetaNueva) {
-            DB::table('inv_imagenes')
-                ->where('etiqueta', $etiquetaOriginal)
-                ->update([
-                    'etiqueta'   => $etiquetaNueva,
-                    'origen'     => 'SAFIN_APP_ETIQUETA_EDITADA',
-                    'updated_at' => now()
-                ]);
-        } else {
-            DB::table('inv_imagenes')
-                ->where('etiqueta', $etiquetaOriginal)
-                ->update([
-                    'origen'     => 'SAFIN_APP_ACTUALIZADO',
-                    'updated_at' => now()
-                ]);
-        }
+        // if ($etiquetaOriginal !== $etiquetaNueva) {
+        //     DB::table('inv_imagenes')
+        //         ->where('etiqueta', $etiquetaOriginal)
+        //         ->update([
+        //             'etiqueta'   => $etiquetaNueva,
+        //             'origen'     => 'SAFIN_APP_ETIQUETA_EDITADA',
+        //             'updated_at' => now()
+        //         ]);
+        // } else {
+        //     DB::table('inv_imagenes')
+        //         ->where('etiqueta', $etiquetaOriginal)
+        //         ->update([
+        //             'origen'     => 'SAFIN_APP_ACTUALIZADO',
+        //             'updated_at' => now()
+        //         ]);
+        // }
 
-        $inventarioActualizado = Inventario::where('etiqueta', $etiquetaNueva)->first();
+        // $inventarioActualizado = Inventario::where('etiqueta', $etiquetaNueva)->first();
 
         if ($inventarioActualizado) {
             $inventarioActualizado->fillCodeAndIDSEmplazamientos();
