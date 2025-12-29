@@ -96,7 +96,7 @@ class UbicacionGeograficaResource extends JsonResource
             'newApp'        => $this->newApp,
             'modo'          => $this->modo,
             'zonas_punto'   => $zonas_punto,
-            'num_activos'   => $this->activos()->count(),
+            'num_activos'   => $this->activos_without_join()->count(),
             'num_activos_cats_by_cycle' => 0,
             'num_activos_inv_cats_by_cycle' => 0,
             'num_cats_by_cycle' => 0
@@ -178,11 +178,15 @@ class UbicacionGeograficaResource extends JsonResource
                     ->whereNotNull('adjusted_lng')
                     ->count();
 
-                $coll = $this->cats_by_cycle($this->cycle_id);
+                // $coll = $this->cats_by_cycle($this->cycle_id);
 
-                $address['num_cats_by_cycle']       = $coll->pluck('categoriaN1')->unique()->count();
-                $address['num_subcats_n2_by_cycle'] = $coll->pluck('categoriaN2')->unique()->count();
-                $address['num_subcats_n3_by_cycle'] = $coll->pluck('categoriaN3')->unique()->count();
+                // $address['num_cats_by_cycle']       = $coll->pluck('categoriaN1')->unique()->count();
+                // $address['num_subcats_n2_by_cycle'] = $coll->pluck('categoriaN2')->unique()->count();
+                // $address['num_subcats_n3_by_cycle'] = $coll->pluck('categoriaN3')->unique()->count();
+
+                $address['num_cats_by_cycle']       = 0;
+                $address['num_subcats_n2_by_cycle'] = 0;
+                $address['num_subcats_n3_by_cycle'] = 0;
             }
 
 

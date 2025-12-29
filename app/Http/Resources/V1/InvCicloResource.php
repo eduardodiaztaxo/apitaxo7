@@ -18,24 +18,41 @@ class InvCicloResource extends JsonResource
     public function toArray($request)
     {
         // Obtener la descripción del estado desde la tabla `estados`
+        // $estadoDescripcion = CiclosEstados::where('id_estado', $this->estadoCiclo)->value('descripcion');
+        // $numAudith = InvConteoRegistro::Where('ciclo_id', $this->idCiclo)->where('audit_status', 1)->where('status', 1)->count();
+        // $numAudithSobrante = InvConteoRegistro::Where('ciclo_id', $this->idCiclo)->where('audit_status', 3)->where('status', 1)->count();
+        // $numAudithFaltante = InvConteoRegistro::Where('ciclo_id', $this->idCiclo)->where('audit_status', 2)->where('status', 1)->count();
+        // $assetsCycle = $this->activos_with_cats()->count();
+        // $assetsCycleInv = $this->activos_with_cats_inv()->count();
+
+
         $estadoDescripcion = CiclosEstados::where('id_estado', $this->estadoCiclo)->value('descripcion');
         $numAudith = InvConteoRegistro::Where('ciclo_id', $this->idCiclo)->where('audit_status', 1)->where('status', 1)->count();
         $numAudithSobrante = InvConteoRegistro::Where('ciclo_id', $this->idCiclo)->where('audit_status', 3)->where('status', 1)->count();
         $numAudithFaltante = InvConteoRegistro::Where('ciclo_id', $this->idCiclo)->where('audit_status', 2)->where('status', 1)->count();
-        $assetsCycle = $this->activos_with_cats()->count(); 
-        $assetsCycleInv = $this->activos_with_cats_inv()->count();
- 
+        if ($this->idTipoCiclo == 2) {
+            $assetsCycle = $this->activos_with_cats()->count();
+            $assetsCycleInv = 0;
+        } else if ($this->idTipoCiclo == 1) {
+            $assetsCycle = 0;
+            $assetsCycleInv = $this->activos_with_cats_inv()->count();
+        } else {
+            $assetsCycle = 0;
+            $assetsCycleInv = 0;
+        }
+
+
         $user = Auth::user();
 
         $usuario = $user?->name;
         $puntos = $this->ciclo_puntos_users($usuario, $this->idCiclo)->count();
-      
+
 
         if ($puntos === 0) {
             $puntos = $this->puntos()->count();
         }
 
-       
+
         return [
             'idCiclo'           => $this->idCiclo,
             'id_proyecto'       => $this->id_proyecto,
@@ -52,6 +69,7 @@ class InvCicloResource extends JsonResource
             'audith_count'      => $numAudith,
             'audith_sobrante'   => $numAudithSobrante,
             'audith_faltante'   => $assetsCycle - $numAudith,
+            'toSql'         => $this->activos_with_cats()->toSql(),
             // 'audith_faltante'  => $numAudithFaltante,
             'offline_db'    => $this->dump()->where('status', 1)->count(),
             'offline_db_version' => $this->dump()->where('status', 1)->latest()->first()?->version ?? 'N/A',

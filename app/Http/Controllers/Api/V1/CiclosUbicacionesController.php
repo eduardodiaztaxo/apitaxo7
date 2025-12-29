@@ -406,10 +406,12 @@ class CiclosUbicacionesController extends Controller
         $user = Auth::user();
 
         $usuario = $user?->name;
-        $puntos = $cicloObj->ciclo_puntos_users($usuario, $ciclo)->get();
+        $puntos = $cicloObj->ciclo_puntos_users($usuario, $ciclo, $request->keyword, $request->from, $request->rows)->get();
+
+
 
         if ($puntos->isEmpty()) {
-            $puntos = $cicloObj->puntos()->get();
+            $puntos = $cicloObj->puntos($request->keyword, $request->from, $request->rows)->get();
         }
 
         //$zonas = $cicloObj->zonesWithCats()->pluck('zona')->toArray();
