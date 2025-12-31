@@ -781,7 +781,9 @@ class InventariosController extends Controller
 
         foreach ($request->file('imagenes') as $index => $file) {
 
-            $filename = $id_proyecto . '_' . $etiqueta . '_' . $index . '.jpg';
+            $ext = $file->getClientOriginalExtension();
+
+            $filename = $id_proyecto . '_' . $etiqueta . '_' . $index . '.' . $ext;
 
             $url = ImageService::saveImageInMainOrSecondDisk($file, $request->user()->nombre_cliente, $filename);
             $url_pict = dirname($url) . '/';

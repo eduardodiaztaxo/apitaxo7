@@ -25,6 +25,8 @@ class EmplazamientoNivel3Resource extends JsonResource
 
         $num_activos_inv = $this->inv_activos()->where('inv_inventario.id_ciclo', $this->cycle_id)->where('inv_inventario.id_proyecto', $id_proyecto)->count();
 
+        $ubicacionN2 = $this->emplazamientoN2()->first();
+
         $emplazamiento = [
             'ciclo' => $this->cycle_id,
             'id_proyecto' => $id_proyecto,
@@ -34,7 +36,7 @@ class EmplazamientoNivel3Resource extends JsonResource
             'nombre' => $this->descripcionUbicacion,
             'idAgenda' => $this->idAgenda,
             'idUbicacionN3' => $this->idUbicacionN3,
-            'idUbicacionN2' => $this->idUbicacionN3,
+            'idUbicacionN2' => $ubicacionN2 ? $ubicacionN2->idUbicacionN2 : null,
             'detalle' => 'Detalle Emplazamiento (N3)',
             'num_nivel' => 'N3',
             'next_level' => '',
@@ -51,7 +53,8 @@ class EmplazamientoNivel3Resource extends JsonResource
             'ciclo_auditoria' => 0,
             'num_categorias' => $this->activos()->select('categoriaN3')->groupBy('categoriaN3')->get()->count(),
             'id_ciclo' => $this->cycle_id,
-            'zone_address' => ZonaPuntoResource::make($this->zonaPunto()->first())
+            'zone_address' => ZonaPuntoResource::make($this->zonaPunto()->first()),
+
         ];
 
         if (isset($this->requirePunto) && $this->requirePunto) {

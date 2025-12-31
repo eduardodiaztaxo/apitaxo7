@@ -279,7 +279,11 @@ class CrudActivoController extends Controller
             $filename = $id_proyecto . '_' . $etiqueta;
             $origen = 'SAFIN_APP_IMAGEN_ACTUALIZADA';
             $file = $request->file('imagen');
-            $namefile = $filename . '.jpg';
+
+            $ext = $file->getClientOriginalExtension();
+            //$namefile = $filename . '.jpg';
+
+            $namefile = Inv_imagenes::nextNameImageFile($id_proyecto, $etiqueta, $ext);
 
 
             $url = ImageService::saveImageInMainOrSecondDisk($file, $request->user()->nombre_cliente, $namefile);
@@ -293,10 +297,10 @@ class CrudActivoController extends Controller
                     ->first();
 
                 if ($imagenExistente) {
-                    $imagenExistente->url_imagen = $url_pict . $filename . '.jpg';
+                    $imagenExistente->url_imagen = $url_pict . $namefile;
                     $imagenExistente->url_picture = $url_pict;
                     $imagenExistente->origen = $origen;
-                    $imagenExistente->picture = $filename . '.jpg';
+                    $imagenExistente->picture = $namefile;
                     $imagenExistente->updated_at = now();
                     $imagenExistente->id_proyecto = $id_proyecto;
                     $imagenExistente->save();
@@ -304,7 +308,7 @@ class CrudActivoController extends Controller
                     return response()->json([
                         'status' => 'OK',
                         'message' => 'Imagen existente actualizada',
-                        'url' => $url_pict . $filename . '.jpg'
+                        'url' => $url_pict . $namefile
                     ], 200);
                 }
             }
