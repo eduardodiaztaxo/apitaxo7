@@ -54,6 +54,7 @@ class EmplazamientoNivel3Resource extends JsonResource
             'num_categorias' => $this->activos()->select('categoriaN3')->groupBy('categoriaN3')->get()->count(),
             'id_ciclo' => $this->cycle_id,
             'zone_address' => ZonaPuntoResource::make($this->zonaPunto()->first()),
+            'sql' => $this->inv_activos()->where('inv_inventario.id_ciclo', $this->cycle_id)->where('inv_inventario.id_proyecto', $id_proyecto)->toSql()
 
         ];
 
