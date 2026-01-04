@@ -238,4 +238,45 @@ class ResponsibleController extends Controller
             200
         );
     }
+
+
+    /**
+     * Register Signature.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function registerSignature(Request $request, int $responsable_id)
+    {
+
+        $request->validate([
+
+
+            'signature' => [
+                'required',
+                'string',
+                'regex:/^data:image\/png;base64,/'
+            ],
+
+        ]);
+
+
+        $responsable = Responsable::find($responsable_id);
+
+        if (!$responsable) {
+            return response()->json([
+                'message' => 'Responsable not found'
+            ], 404);
+        }
+
+        $responsable->signature = $request->signature;
+
+
+        $responsable->save();
+
+        return response()->json(
+            $responsable,
+            200
+        );
+    }
 }

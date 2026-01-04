@@ -15,7 +15,8 @@ class Responsable extends Model
         'rut',
         'idUbicacionGeografica',
         'idRegion',
-        'idComuna'
+        'idComuna',
+        'signature'
     ];
 
     protected $primaryKey = 'idResponsable';
@@ -37,5 +38,4 @@ class Responsable extends Model
     {
         return $this->belongsTo(ResponsableCargo::class, 'cargo', 'id');
     }
-
 }

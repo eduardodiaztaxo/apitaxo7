@@ -716,7 +716,8 @@ class InventariosController extends Controller
                 COALESCE(MAX(CASE WHEN id_atributo = 26 THEN valor_minimo END), 0) AS lench_Min_eficiencia,
                 COALESCE(MAX(CASE WHEN id_atributo = 26 THEN valor_maximo END), 0) AS lench_Max_eficiencia,
                 /** edualejandro */
-                COALESCE(MAX(CASE WHEN id_atributo = 79 THEN id_validacion END), 0) AS conf_responsable
+                COALESCE(MAX(CASE WHEN id_atributo = 79 THEN id_validacion END), 0) AS conf_responsable,
+                COALESCE(MAX(CASE WHEN id_atributo = 79 THEN id_validacion END), 0) AS required_responsible_signature
 
 
             FROM inv_atributos 
