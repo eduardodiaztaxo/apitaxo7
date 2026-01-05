@@ -730,6 +730,8 @@ class InventariosController extends Controller
 
         $validacion[0]->custom_fields = $inputs_map;
 
+        $validacion[0]->required_responsible_signature = InvConfigService::isResponsibleSignatureRequired($cycleid, $id_proyecto) ? 1 : 0;
+
         return response()->json($validacion, 200);
     }
 
