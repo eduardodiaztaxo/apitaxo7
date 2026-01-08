@@ -73,6 +73,7 @@ class InvCicloResource extends JsonResource
             // 'audith_faltante'  => $numAudithFaltante,
             'offline_db'    => $this->dump()->where('status', 1)->count(),
             'offline_db_version' => $this->dump()->where('status', 1)->latest()->first()?->version ?? 'N/A',
+            'persistence_assets' => (int)$this->persistence_assets,
         ];
     }
 }
