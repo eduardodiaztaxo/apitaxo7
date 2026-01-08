@@ -217,7 +217,9 @@ class InventariosController extends Controller
             $keyString = (string) $key;
             // Aquí puedes usar $keyString como necesites
             if (strpos($keyString, 'texto_abierto_') === 0) {
-                $inventario->$keyString = $request->input($keyString) ?? null;
+                $value = $request->input($keyString);
+
+                $inventario->$keyString = $value && $value !== 'undefined' ? $value : null;
             }
         }
 
@@ -313,7 +315,8 @@ class InventariosController extends Controller
 
         foreach (array_keys($request->all()) as $key) {
             if (strpos((string)$key, 'texto_abierto_') === 0) {
-                $inv_arr[$key] = $request->input($key) ?? null;
+                $value = $request->input($key);
+                $inv_arr[$key] = $value && $value !== 'undefined' ? $value : null;
             }
         }
 
