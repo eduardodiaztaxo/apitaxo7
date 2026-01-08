@@ -203,6 +203,7 @@ class InventariosController extends Controller
         $inventario->codigoUbicacion_N2  = $codigoUbicacion_N2 ?? 0;
         $inventario->codigoUbicacion_N1  = $codigoUbicacion_N1 ?? 0;
         $inventario->idUbicacionN3       = $idUbicacionN3 ?? 0;
+        $inventario->codigoUbicacionN4   = 0;
         $inventario->responsable         = $responsable;
         $inventario->idResponsable       = $getIdResponsable;
         $inventario->codigoUbicacionN3   = $codigoUbicacionN3 ?? 0;
