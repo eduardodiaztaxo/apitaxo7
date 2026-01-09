@@ -124,7 +124,7 @@ class DatosActivosController extends Controller
 
     public function bienesGrupoFamilia($idCiclo)
     {
-      $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         $familias = DB::select("
         SELECT 
@@ -238,11 +238,13 @@ class DatosActivosController extends Controller
 
         $possible_name_words = keyword_search_terms_from_keyword($request->keyword);
 
+        $queryBuilderbienesGrupoFamilia = $objCycle->bienesGrupoFamiliaByCycle();
+
         if (
             !!keyword_is_searcheable($request->keyword)
         ) {
 
-            $bienesGrupoFamilia = $objCycle->bienesGrupoFamiliaByCycle()
+            $queryBuilderbienesGrupoFamilia = $queryBuilderbienesGrupoFamilia
                 ->where(function ($query) use ($complete_word) {
                     $query->where('descripcion', 'LIKE', "%$complete_word%");
                     $query->orWhere('descripcion_grupo', 'LIKE', "%$complete_word%");
@@ -251,33 +253,35 @@ class DatosActivosController extends Controller
 
             if (count($possible_name_words) > 1) {
 
-                $bienesGrupoFamilia = $bienesGrupoFamilia->orWhere(function ($query) use ($possible_name_words) {
+                $queryBuilderbienesGrupoFamilia = $queryBuilderbienesGrupoFamilia->orWhere(function ($query) use ($possible_name_words) {
                     foreach ($possible_name_words as $palabra) {
                         $query->where('descripcion', 'LIKE', "%$palabra%");
                     }
                 });
 
-                $bienesGrupoFamilia = $bienesGrupoFamilia->orWhere(function ($query) use ($possible_name_words) {
+                $queryBuilderbienesGrupoFamilia = $queryBuilderbienesGrupoFamilia->orWhere(function ($query) use ($possible_name_words) {
                     foreach ($possible_name_words as $palabra) {
                         $query->where('descripcion_grupo', 'LIKE', "%$palabra%");
                     }
                 });
 
-                $bienesGrupoFamilia = $bienesGrupoFamilia->orWhere(function ($query) use ($possible_name_words) {
+                $queryBuilderbienesGrupoFamilia = $queryBuilderbienesGrupoFamilia->orWhere(function ($query) use ($possible_name_words) {
                     foreach ($possible_name_words as $palabra) {
                         $query->where('descripcion_familia', 'LIKE', "%$palabra%");
                     }
                 });
             }
-
-
-            $bienesGrupoFamilia = $bienesGrupoFamilia->get();
-        } else {
-            $bienesGrupoFamilia = $objCycle->bienesGrupoFamiliaByCycle()->get();
         }
 
 
+        if ($request->from && $request->rows) {
+            $offset = $request->from - 1;
+            $limit = $request->rows;
+            $queryBuilderbienesGrupoFamilia->offset($offset)->limit($limit);
+        }
 
+
+        $bienesGrupoFamilia = $queryBuilderbienesGrupoFamilia->get();
 
         return response()->json($bienesGrupoFamilia, 200);
     }
@@ -406,7 +410,7 @@ class DatosActivosController extends Controller
 
     public function cargaTrabajo()
     {
-     $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         if (empty($id_proyecto)) {
             return response()->json([
@@ -423,7 +427,7 @@ class DatosActivosController extends Controller
 
     public function estadoConservacion()
     {
-     $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         if (empty($id_proyecto)) {
             return response()->json([
