@@ -20,7 +20,13 @@ class LoginController extends Controller
     {
         $this->validateLogin($request);
 
-        if (Auth::attempt($request->only('email', 'password'))) {
+        $credentials = [
+            'name' => $request->user,
+            'password' => $request->password,
+            'active' => 1
+        ];
+
+        if (Auth::attempt($credentials)) {
             $user = Auth::user();
             $role = $user->role;
 
@@ -102,7 +108,8 @@ class LoginController extends Controller
 
         $credentials = [
             'name' => $request->user,
-            'password' => $request->password
+            'password' => $request->password,
+            'active' => 1
         ];
 
         if (Auth::attempt($credentials)) {
@@ -276,7 +283,7 @@ class LoginController extends Controller
         $refreshTokenString = Str::random(64);
 
         $expiration = config('sanctum.refresh_expiration', null);
-       
+
         $expires_at = $expiration ? Carbon::now()->addMinutes($expiration) : null;
 
         $rt = RefreshToken::create([
