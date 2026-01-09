@@ -76,7 +76,16 @@ class UbicacionGeograficaResource extends JsonResource
         }
 
         $auditoria_general = isset($this->auditoria_general) ? $this->auditoria_general : 0;
-
+        //para uach
+        $count_bienes_idUbicacion = isset($this->cycle_id) && isset($this->idUbicacionGeo)
+            ? $this->activos_with_cats_inv_idUbicacion($this->cycle_id, $this->idUbicacionGeo)->count()
+            : 0;
+        // solo para uach
+        $count_bienes_niveles = $count_bienes_idUbicacion - $this->activos_with_cats_inv_by_cycle($this->cycle_id, $this->idUbicacionGeo)->count();
+        $count_bienes_niveles = abs(
+            $count_bienes_idUbicacion 
+            - $this->activos_with_cats_inv_by_cycle($this->cycle_id, $this->idUbicacionGeo)->count()
+        );
 
         $address = [
             'idUbicacionGeo' => $this->idUbicacionGeo,
@@ -99,6 +108,8 @@ class UbicacionGeograficaResource extends JsonResource
             'num_activos'   => $this->activos_without_join()->count(),
             'num_activos_cats_by_cycle' => 0,
             'num_activos_inv_cats_by_cycle' => 0,
+            'num_activos_with_cats_by_idUbicacion' => $count_bienes_idUbicacion ,
+            'num_activos_with_levels' => $count_bienes_niveles,
             'num_cats_by_cycle' => 0
         ];
 
@@ -216,4 +227,17 @@ class UbicacionGeograficaResource extends JsonResource
             ->where('inv_inventario.id_ciclo', '=', $cycle_id)
             ->where('idUbicacionGeo', $idUbicacionGeo);
     }
+
+    public function activos_with_cats_inv_idUbicacion($cycle_id, $idUbicacionGeo)
+    {
+        return Inventario::select('inv_inventario.*')
+            ->where('inv_inventario.id_ciclo', '=', $cycle_id)
+            ->where('inv_inventario.idUbicacionGeo', $idUbicacionGeo)
+            ->where('inv_inventario.codigoUbicacion_N1', 0)
+            ->where('inv_inventario.codigoUbicacion_N2', 0)
+            ->where('inv_inventario.codigoUbicacionN3', 0)
+            ->where('inv_inventario.codigoUbicacionN4', 0);
+    }
+
+    
 }
