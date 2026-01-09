@@ -59,7 +59,8 @@ class LoginController extends Controller
                         $formattedPermissions = [
                             'zona' => ['show' => 1, 'edit' => 1, 'create' => 1, 'delete' => 1],
                             'emplazamiento' => ['show' => 1, 'edit' => 1, 'create' => 1, 'delete' => 1],
-                            'bien' => ['show' => 1, 'edit' => 1, 'create' => 1, 'delete' => 1],
+                            'bienes_marcas' => ['show' => 1, 'edit' => 1, 'create' => 1, 'delete' => 1],
+                            'mover_bienes' => ['show' => 1, 'edit' => 1, 'create' => 1, 'delete' => 1],
                         ];
                         break;
                     } else {
@@ -143,7 +144,8 @@ class LoginController extends Controller
                         $formattedPermissions = [
                             'zona' => ['show' => 1, 'edit' => 1, 'create' => 1, 'delete' => 1],
                             'emplazamiento' => ['show' => 1, 'edit' => 1, 'create' => 1, 'delete' => 1],
-                            'bien' => ['show' => 1, 'edit' => 1, 'create' => 1, 'delete' => 1],
+                            'bienes_marcas' => ['show' => 1, 'edit' => 1, 'create' => 1, 'delete' => 1],
+                            'mover_bienes' => ['show' => 1, 'edit' => 1, 'create' => 1, 'delete' => 1],
                         ];
                         break;
                     } else {
