@@ -110,6 +110,7 @@ class Inventario extends Model
         'longitud',
         'adjusted_lat',
         'adjusted_lng',
+        'adjusted_at',
         'fix_quality',
         'satellites',
         'sd_lat',

@@ -486,6 +486,8 @@ class InventariosController extends Controller
         $invObj->adjusted_lat = $request->adjusted_lat;
         $invObj->adjusted_lng = $request->adjusted_lng;
 
+        $invObj->adjusted_at = date('Y-m-d H:i:s');
+
         $invObj->fix_quality = $request->fix_quality;
         $invObj->satellites = $request->satellites;
         $invObj->sd_lat = $request->sd_lat;
