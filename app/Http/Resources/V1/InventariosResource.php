@@ -100,8 +100,9 @@ class InventariosResource extends JsonResource
 
         $direccion = DB::table('ubicaciones_geograficas')
             ->where('idUbicacionGeo', $activo->idUbicacionGeo)
-            ->select('direccion', 'region', 'comuna')
+            ->select('direccion', 'region', 'comuna', 'codigoCliente')
             ->first();
+            
 
         if (!$direccion) {
             return [];
@@ -147,6 +148,7 @@ class InventariosResource extends JsonResource
             'accuracyStr'          => $activo->precision_geo,
             'calidadGeo'           => $activo->calidad_geo,
             'fotoUrl'              => $fotoUrl,
+            'codigoCliente'       => $direccion->codigoCliente,
             'imagenes'             => $imagenes ?? [],
 
             'emplazamiento' => [
