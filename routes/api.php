@@ -48,6 +48,10 @@ use App\Http\Controllers\Api\V2\EmplazamientoNivel3Controller;
 //     return $request->user();
 // });
 
+Route::get('pin-internet-status', function () {
+    return response()->json(['message' => 'Pin is working']);
+});
+
 Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(function () {
 
     Route::get('pin', [App\Http\Controllers\Api\LoginController::class, 'pin']);
