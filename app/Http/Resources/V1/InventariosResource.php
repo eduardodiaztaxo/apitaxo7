@@ -34,6 +34,7 @@ class InventariosResource extends JsonResource
                 'codigoUbicacion_N2',
                 'idUbicacionN3',
                 'codigoUbicacionN3',
+                'codigoUbicacionN4',
                 'update_inv',
                 'id_img',
                 'latitud',
@@ -62,47 +63,92 @@ class InventariosResource extends JsonResource
             ->where('idLista', $activo->estado)
             ->value('descripcion');
 
-        if (!empty($activo->idUbicacionN3) && $activo->idUbicacionN3 != 0) {
-            $subEmplazamiento = DB::table('ubicaciones_n3')
-                ->where('idUbicacionN3', $activo->idUbicacionN3)
-                ->where('idAgenda', $activo->idUbicacionGeo)
-                ->select('idUbicacionN3', 'descripcionUbicacion', 'codigoUbicacion')
-                ->first();
-        } else {
-            $subEmplazamiento = DB::table('ubicaciones_n2')
-                ->where('idUbicacionN2', $activo->idUbicacionN2)
-                ->where('idAgenda', $activo->idUbicacionGeo)
-                ->select('idUbicacionN2', 'descripcionUbicacion', 'codigoUbicacion')
-                ->first();
+        // Determinar el nivel de asignación del bien
+        $codigoN1 = !empty($activo->codigoUbicacion_N1) && $activo->codigoUbicacion_N1 != 0 && $activo->codigoUbicacion_N1 != '0' ? $activo->codigoUbicacion_N1 : null;
+        $codigoN2 = !empty($activo->codigoUbicacion_N2) && $activo->codigoUbicacion_N2 != 0 && $activo->codigoUbicacion_N2 != '0' ? $activo->codigoUbicacion_N2 : null;
+        $codigoN3 = !empty($activo->codigoUbicacionN3) && $activo->codigoUbicacionN3 != 0 && $activo->codigoUbicacionN3 != '0' ? $activo->codigoUbicacionN3 : null;
+        $codigoN4 = !empty($activo->codigoUbicacionN4) && $activo->codigoUbicacionN4 != 0 && $activo->codigoUbicacionN4 != '0' ? $activo->codigoUbicacionN4 : null;
+
+        // Determinar el nivel de asignación
+        $bien_asignado = 'Sin asignación';
+        if ($codigoN4) {
+            $bien_asignado = 'Asignado en Nivel 4';
+        } elseif ($codigoN3) {
+            $bien_asignado = 'Asignado en Nivel 3';
+        } elseif ($codigoN2) {
+            $bien_asignado = 'Asignado en Nivel 2';
+        } elseif ($codigoN1) {
+            $bien_asignado = 'Asignado en Nivel 1';
+        } elseif (!empty($activo->idUbicacionGeo)) {
+            $bien_asignado = 'Asignado solo en Dirección';
         }
 
-        $codigoUbicacionN1 = $activo->codigoUbicacion_N1
-            ?? $activo->codigoUbicacion_N2
-            ?? $activo->codigoUbicacionN3
-            ?? '';
+        // Verificar si hay emplazamiento asignado
+        // Si todos los campos de emplazamiento están en 0 o vacíos, no hay emplazamiento
+        $hasEmplazamiento = $codigoN1 || $codigoN2 || $codigoN3 || $codigoN4
+            || (!empty($activo->idUbicacionN2) && $activo->idUbicacionN2 != 0 && $activo->idUbicacionN2 != '0')
+            || (!empty($activo->idUbicacionN3) && $activo->idUbicacionN3 != 0 && $activo->idUbicacionN3 != '0');
 
-        $emplazamiento = DB::table('ubicaciones_n1')
-            ->where('codigoUbicacion', 'like', '%' . $codigoUbicacionN1 . '%')
-            ->where('idAgenda', $activo->idUbicacionGeo)
-            ->select('idUbicacionN1', 'descripcionUbicacion', 'codigoUbicacion')
-            ->first();
-
-        $idFinal = 0;
+        $subEmplazamiento = null;
+        $emplazamiento = null;
+        $idFinal = null;
         $codigoUbicacionFinal = '';
+        $nombreEmplazamiento = '';
+        $descripcionZoneAddress = '';
+        $codigoZoneAddress = '';
 
-        if ($subEmplazamiento) {
-            $idFinal = $subEmplazamiento->idUbicacionN2 ?? $subEmplazamiento->idUbicacionN3 ?? 0;
-            $codigoUbicacionFinal = $subEmplazamiento->codigoUbicacion ?? '';
-        } elseif ($emplazamiento) {
-            $idFinal = $emplazamiento->idUbicacionN1 ?? 0;
-            $codigoUbicacionFinal = $emplazamiento->codigoUbicacion ?? '';
+        if ($hasEmplazamiento) {
+            // Solo buscar emplazamientos si hay valores asignados
+            if (!empty($activo->idUbicacionN3) && $activo->idUbicacionN3 != 0 && $activo->idUbicacionN3 != '0') {
+                $subEmplazamiento = DB::table('ubicaciones_n3')
+                    ->where('idUbicacionN3', $activo->idUbicacionN3)
+                    ->where('idAgenda', $activo->idUbicacionGeo)
+                    ->select('idUbicacionN3', 'descripcionUbicacion', 'codigoUbicacion')
+                    ->first();
+            } elseif (!empty($activo->idUbicacionN2) && $activo->idUbicacionN2 != 0 && $activo->idUbicacionN2 != '0') {
+                $subEmplazamiento = DB::table('ubicaciones_n2')
+                    ->where('idUbicacionN2', $activo->idUbicacionN2)
+                    ->where('idAgenda', $activo->idUbicacionGeo)
+                    ->select('idUbicacionN2', 'descripcionUbicacion', 'codigoUbicacion')
+                    ->first();
+            }
+
+            $codigoUbicacionN1 = '';
+            if ($codigoN1) {
+                $codigoUbicacionN1 = $codigoN1;
+            } elseif ($codigoN2) {
+                $codigoUbicacionN1 = $codigoN2;
+            } elseif ($codigoN3) {
+                $codigoUbicacionN1 = $codigoN3;
+            }
+
+            if (!empty($codigoUbicacionN1)) {
+                $emplazamiento = DB::table('ubicaciones_n1')
+                    ->where('codigoUbicacion', 'like', '%' . $codigoUbicacionN1 . '%')
+                    ->where('idAgenda', $activo->idUbicacionGeo)
+                    ->select('idUbicacionN1', 'descripcionUbicacion', 'codigoUbicacion')
+                    ->first();
+            }
+
+            if ($subEmplazamiento) {
+                $idFinal = $subEmplazamiento->idUbicacionN2 ?? $subEmplazamiento->idUbicacionN3 ?? null;
+                $codigoUbicacionFinal = $subEmplazamiento->codigoUbicacion ?? '';
+                $descripcionZoneAddress = $subEmplazamiento->descripcionUbicacion ?? '';
+                $codigoZoneAddress = $subEmplazamiento->codigoUbicacion ?? '';
+                $nombreEmplazamiento = $subEmplazamiento->descripcionUbicacion ?? '';
+            } elseif ($emplazamiento) {
+                $idFinal = $emplazamiento->idUbicacionN1 ?? null;
+                $codigoUbicacionFinal = $emplazamiento->codigoUbicacion ?? '';
+                $nombreEmplazamiento = $emplazamiento->descripcionUbicacion ?? '';
+            }
         }
 
         $direccion = DB::table('ubicaciones_geograficas')
             ->where('idUbicacionGeo', $activo->idUbicacionGeo)
             ->select('direccion', 'region', 'comuna', 'codigoCliente')
             ->first();
-            
+
+
 
         if (!$direccion) {
             return [];
@@ -150,15 +196,16 @@ class InventariosResource extends JsonResource
             'fotoUrl'              => $fotoUrl,
             'codigoCliente'       => $direccion->codigoCliente,
             'imagenes'             => $imagenes ?? [],
+            'bien_asignado'        => $bien_asignado,
 
             'emplazamiento' => [
                 'id'              => $idFinal,
-                'nombre'          => $emplazamiento->descripcionUbicacion ?? '',
-                'codigoUbicacion' => $codigoUbicacionFinal,
-                'idAgenda'        => $activo->idUbicacionGeo,
+                'nombre'          => $hasEmplazamiento ? ($nombreEmplazamiento ?: '') : 'Sin emplazamiento asignado',
+                'codigoUbicacion' => $hasEmplazamiento ? $codigoUbicacionFinal : '',
+                'idAgenda'        => $hasEmplazamiento ? ($activo->idUbicacionGeo ?? null) : null,
                 'zone_address'    => [
-                    'descripcionUbicacion' => $subEmplazamiento->descripcionUbicacion ?? '',
-                    'codigoUbicacion'      => $subEmplazamiento->codigoUbicacion ?? '',
+                    'descripcionUbicacion' => $hasEmplazamiento ? $descripcionZoneAddress : '',
+                    'codigoUbicacion'      => $hasEmplazamiento ? $codigoZoneAddress : '',
                 ],
             ],
 
