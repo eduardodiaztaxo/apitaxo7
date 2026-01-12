@@ -161,16 +161,16 @@ class InventariosController extends Controller
 
 
 
-        $ultimo_id_inventario = DB::table('inv_inventario')
-            ->where('id_proyecto', $id_proyecto)
-            ->max('id_inventario');
+        // $ultimo_id_inventario = DB::table('inv_inventario')
+        //     ->where('id_proyecto', $id_proyecto)
+        //     ->max('id_inventario');
 
-        $nuevo_id_inventario = ($ultimo_id_inventario ?? 0) + 1;
+        //$nuevo_id_inventario = ($ultimo_id_inventario ?? 0) + 1;
 
         $usuario = Auth::user()->name;
 
         $inventario = new Inventario();
-        $inventario->id_inventario       = $nuevo_id_inventario;
+        //$inventario->id_inventario       = $nuevo_id_inventario;
         $inventario->id_proyecto         = $id_proyecto;
         $inventario->id_grupo            = $request->id_grupo;
         $inventario->id_familia          = $request->id_familia;
