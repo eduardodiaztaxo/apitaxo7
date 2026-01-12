@@ -79,7 +79,7 @@ class InventariosController extends Controller
         }
 
         if (!empty($request->etiqueta_padre)) {
-            $etiquetaPadreExiste = ActivoFinderService::findByEtiquetaAndCiclo($request->etiqueta_padre, $request->id_ciclo);
+            $etiquetaPadreExiste = ActivoFinderService::findByEtiquetaPadreAndCiclo($request->etiqueta_padre, $request->id_ciclo);
 
             if (!$etiquetaPadreExiste) {
                 return response('La etiqueta padre ' . $request->etiqueta_padre . ' no existe', 400);
@@ -203,6 +203,7 @@ class InventariosController extends Controller
         $inventario->codigoUbicacion_N2  = $codigoUbicacion_N2 ?? 0;
         $inventario->codigoUbicacion_N1  = $codigoUbicacion_N1 ?? 0;
         $inventario->idUbicacionN3       = $idUbicacionN3 ?? 0;
+        $inventario->codigoUbicacionN4   = 0;
         $inventario->responsable         = $responsable;
         $inventario->idResponsable       = $getIdResponsable;
         $inventario->codigoUbicacionN3   = $codigoUbicacionN3 ?? 0;
@@ -217,7 +218,9 @@ class InventariosController extends Controller
             $keyString = (string) $key;
             // Aquí puedes usar $keyString como necesites
             if (strpos($keyString, 'texto_abierto_') === 0) {
-                $inventario->$keyString = $request->input($keyString) ?? null;
+                $value = $request->input($keyString);
+
+                $inventario->$keyString = $value && $value !== 'undefined' ? $value : null;
             }
         }
 
@@ -279,24 +282,24 @@ class InventariosController extends Controller
             'id_grupo'            => $request->id_grupo,
             'id_familia'          => $request->id_familia,
             'descripcion_bien'    => $request->descripcion_bien,
-            'id_marca'            => $request->id_marca,
+            'id_marca'            => intval($request->id_marca ?? 0),
             'descripcion_marca'   => $request->descripcion_marca,
             'modelo'              => $request->modelo,
             'serie'               => $request->serie,
-            'idForma'             => intval($request->idForma ?? null),
-            'idMaterial'          => intval($request->idMaterial ?? null),
+            'idForma'             => intval($request->idForma ?? 0),
+            'idMaterial'          => intval($request->idMaterial ?? 0),
             'latitud'             => $request->latitud ?? null,
             'longitud'            => $request->longitud ?? null,
             'precision_geo'       => $request->precision ?? null,
             'calidad_geo'         => $request->calidad ?? null,
             'capacidad'           => $request->capacidad,
-            'estado'              => intval($request->estado ?? null),
-            'color'               => intval($request->color ?? null),
-            'tipo_trabajo'        => intval($request->tipo_trabajo ?? null),
-            'carga_trabajo'       => intval($request->carga_trabajo ?? null),
-            'estado_operacional'  => intval($request->estado_operacional ?? null),
-            'estado_conservacion' => intval($request->estado_conservacion ?? null),
-            'condicion_ambiental' => intval($request->condicion_ambiental ?? null),
+            'estado'              => intval($request->estado ?? 0),
+            'color'               => intval($request->color ?? 0),
+            'tipo_trabajo'        => intval($request->tipo_trabajo ?? 0),
+            'carga_trabajo'       => intval($request->carga_trabajo ?? 0),
+            'estado_operacional'  => intval($request->estado_operacional ?? 0),
+            'estado_conservacion' => intval($request->estado_conservacion ?? 0),
+            'condicion_ambiental' => intval($request->condicion_ambiental ?? 0),
             'cantidad_img'        => $request->cantidad_img,
             'id_img'              => $idImg,
             'etiqueta_padre'      => $etiquetaPadre ?? 'Sin Padre',
@@ -313,21 +316,21 @@ class InventariosController extends Controller
 
         foreach (array_keys($request->all()) as $key) {
             if (strpos((string)$key, 'texto_abierto_') === 0) {
-                $inv_arr[$key] = $request->input($key) ?? null;
+                $value = $request->input($key);
+                $inv_arr[$key] = $value && $value !== 'undefined' ? $value : null;
             }
         }
 
         Inventario::where('etiqueta', $etiquetaOriginal)->where('id_proyecto', $id_proyecto)->update($inv_arr);
 
         if ($etiquetaOriginal !== $etiquetaNueva) {
-            DB::table('inv_imagenes')
-                ->where('etiqueta', $etiquetaOriginal)
-                ->where('id_proyecto', $id_proyecto)
-                ->update([
-                    'etiqueta'   => $etiquetaNueva,
-                    'origen'     => 'SAFIN_APP_ETIQUETA_EDITADA',
-                    'updated_at' => now()
-                ]);
+            //renombrar imagenes
+            ImageService::updateNameFilesWhenEtiquetaFieldChanges(
+                $etiquetaNueva,
+                $etiquetaOriginal,
+                $id_proyecto,
+                $request->user()->nombre_cliente
+            );
         } else {
             DB::table('inv_imagenes')
                 ->where('etiqueta', $etiquetaOriginal)
@@ -341,75 +344,75 @@ class InventariosController extends Controller
         $inventarioActualizado = Inventario::where('etiqueta', $etiquetaNueva)->where('id_proyecto', $id_proyecto)->first();
 
 
-        if (intval($request->padre) === 1) {
-            $etiquetaPadre = $request->etiqueta;
-        } elseif (intval($request->padre) === 2) {
-            $etiquetaPadre = $request->etiqueta_padre;
-        }
+        // if (intval($request->padre) === 1) {
+        //     $etiquetaPadre = $request->etiqueta;
+        // } elseif (intval($request->padre) === 2) {
+        //     $etiquetaPadre = $request->etiqueta_padre;
+        // }
 
-        $estadoBien = $request->actualizarBien > 0 ? 3 : 0;
-        $usuario = Auth::user()->name;
+        // $estadoBien = $request->actualizarBien > 0 ? 3 : 0;
+        // $usuario = Auth::user()->name;
 
-        $inv_arr = [
-            'id_grupo'            => $request->id_grupo,
-            'id_familia'          => $request->id_familia,
-            'descripcion_bien'    => $request->descripcion_bien,
-            'id_marca'            => $request->id_marca,
-            'descripcion_marca'   => $request->descripcion_marca,
-            'modelo'              => $request->modelo,
-            'serie'               => $request->serie,
-            'idForma'             => intval($request->idForma ?? null),
-            'idMaterial'          => intval($request->idMaterial ?? null),
-            'latitud'             => $request->latitud ?? null,
-            'longitud'            => $request->longitud ?? null,
-            'precision_geo'       => $request->precision ?? null,
-            'calidad_geo'         => $request->calidad ?? null,
-            'capacidad'           => $request->capacidad,
-            'estado'              => intval($request->estado ?? null),
-            'color'               => intval($request->color ?? null),
-            'tipo_trabajo'        => intval($request->tipo_trabajo ?? null),
-            'carga_trabajo'       => intval($request->carga_trabajo ?? null),
-            'estado_operacional'  => intval($request->estado_operacional ?? null),
-            'estado_conservacion' => intval($request->estado_conservacion ?? null),
-            'condicion_ambiental' => intval($request->condicion_ambiental ?? null),
-            'cantidad_img'        => $request->cantidad_img,
-            'id_img'              => $idImg,
-            'etiqueta_padre'      => $etiquetaPadre ?? 'Sin Padre',
-            'update_inv'          => 0,
-            'eficiencia'          => $request->eficiencia ?? null,
-            'crud_activo_estado'  => $estadoBien,
-            'modo'                => 'ONLINE',
-            'modificado_el'       => date('Y-m-d H:i:s'),
-            'modificado_por'      => $usuario,
-            'etiqueta'            => $etiquetaNueva,
-        ];
+        // $inv_arr = [
+        //     'id_grupo'            => $request->id_grupo,
+        //     'id_familia'          => $request->id_familia,
+        //     'descripcion_bien'    => $request->descripcion_bien,
+        //     'id_marca'            => $request->id_marca,
+        //     'descripcion_marca'   => $request->descripcion_marca,
+        //     'modelo'              => $request->modelo,
+        //     'serie'               => $request->serie,
+        //     'idForma'             => intval($request->idForma ?? null),
+        //     'idMaterial'          => intval($request->idMaterial ?? null),
+        //     'latitud'             => $request->latitud ?? null,
+        //     'longitud'            => $request->longitud ?? null,
+        //     'precision_geo'       => $request->precision ?? null,
+        //     'calidad_geo'         => $request->calidad ?? null,
+        //     'capacidad'           => $request->capacidad,
+        //     'estado'              => intval($request->estado ?? null),
+        //     'color'               => intval($request->color ?? null),
+        //     'tipo_trabajo'        => intval($request->tipo_trabajo ?? null),
+        //     'carga_trabajo'       => intval($request->carga_trabajo ?? null),
+        //     'estado_operacional'  => intval($request->estado_operacional ?? null),
+        //     'estado_conservacion' => intval($request->estado_conservacion ?? null),
+        //     'condicion_ambiental' => intval($request->condicion_ambiental ?? null),
+        //     'cantidad_img'        => $request->cantidad_img,
+        //     'id_img'              => $idImg,
+        //     'etiqueta_padre'      => $etiquetaPadre ?? 'Sin Padre',
+        //     'update_inv'          => 0,
+        //     'eficiencia'          => $request->eficiencia ?? null,
+        //     'crud_activo_estado'  => $estadoBien,
+        //     'modo'                => 'ONLINE',
+        //     'modificado_el'       => date('Y-m-d H:i:s'),
+        //     'modificado_por'      => $usuario,
+        //     'etiqueta'            => $etiquetaNueva,
+        // ];
 
-        foreach (array_keys($request->all()) as $key) {
-            if (strpos((string)$key, 'texto_abierto_') === 0) {
-                $inv_arr[$key] = $request->input($key) ?? null;
-            }
-        }
+        // foreach (array_keys($request->all()) as $key) {
+        //     if (strpos((string)$key, 'texto_abierto_') === 0) {
+        //         $inv_arr[$key] = $request->input($key) ?? null;
+        //     }
+        // }
 
-        Inventario::where('etiqueta', $etiquetaOriginal)->update($inv_arr);
+        // Inventario::where('etiqueta', $etiquetaOriginal)->update($inv_arr);
 
-        if ($etiquetaOriginal !== $etiquetaNueva) {
-            DB::table('inv_imagenes')
-                ->where('etiqueta', $etiquetaOriginal)
-                ->update([
-                    'etiqueta'   => $etiquetaNueva,
-                    'origen'     => 'SAFIN_APP_ETIQUETA_EDITADA',
-                    'updated_at' => now()
-                ]);
-        } else {
-            DB::table('inv_imagenes')
-                ->where('etiqueta', $etiquetaOriginal)
-                ->update([
-                    'origen'     => 'SAFIN_APP_ACTUALIZADO',
-                    'updated_at' => now()
-                ]);
-        }
+        // if ($etiquetaOriginal !== $etiquetaNueva) {
+        //     DB::table('inv_imagenes')
+        //         ->where('etiqueta', $etiquetaOriginal)
+        //         ->update([
+        //             'etiqueta'   => $etiquetaNueva,
+        //             'origen'     => 'SAFIN_APP_ETIQUETA_EDITADA',
+        //             'updated_at' => now()
+        //         ]);
+        // } else {
+        //     DB::table('inv_imagenes')
+        //         ->where('etiqueta', $etiquetaOriginal)
+        //         ->update([
+        //             'origen'     => 'SAFIN_APP_ACTUALIZADO',
+        //             'updated_at' => now()
+        //         ]);
+        // }
 
-        $inventarioActualizado = Inventario::where('etiqueta', $etiquetaNueva)->first();
+        // $inventarioActualizado = Inventario::where('etiqueta', $etiquetaNueva)->first();
 
         if ($inventarioActualizado) {
             $inventarioActualizado->fillCodeAndIDSEmplazamientos();
@@ -421,7 +424,7 @@ class InventariosController extends Controller
         ], 200);
     }
 
-    public function updateAdjustCoordinatesInventory(Request $request, $etiqueta)
+    public function updateAdjustCoordinatesInventory(Request $request, $ciclo, $etiqueta)
     {
         $validator = Validator::make($request->all(), [
             'adjusted_lat' => 'required|numeric',
@@ -456,7 +459,7 @@ class InventariosController extends Controller
         ]);
     }
 
-    public function updateAdjustCoordinatesInventoryDebugData(Request $request, $etiqueta)
+    public function updateAdjustCoordinatesInventoryDebugData(Request $request, $ciclo, $etiqueta)
     {
         $validator = Validator::make($request->all(), [
             'adjusted_lat' => 'required|numeric',
@@ -482,6 +485,8 @@ class InventariosController extends Controller
 
         $invObj->adjusted_lat = $request->adjusted_lat;
         $invObj->adjusted_lng = $request->adjusted_lng;
+
+        $invObj->adjusted_at = date('Y-m-d H:i:s');
 
         $invObj->fix_quality = $request->fix_quality;
         $invObj->satellites = $request->satellites;
@@ -717,7 +722,8 @@ class InventariosController extends Controller
                 COALESCE(MAX(CASE WHEN id_atributo = 26 THEN valor_minimo END), 0) AS lench_Min_eficiencia,
                 COALESCE(MAX(CASE WHEN id_atributo = 26 THEN valor_maximo END), 0) AS lench_Max_eficiencia,
                 /** edualejandro */
-                COALESCE(MAX(CASE WHEN id_atributo = 79 THEN id_validacion END), 0) AS conf_responsable
+                COALESCE(MAX(CASE WHEN id_atributo = 79 THEN id_validacion END), 0) AS conf_responsable,
+                COALESCE(MAX(CASE WHEN id_atributo = 79 THEN id_validacion END), 0) AS required_responsible_signature
 
 
             FROM inv_atributos 
@@ -729,6 +735,8 @@ class InventariosController extends Controller
         $inputs_map = InvConfigService::getOpenedTextConfigInput((int)$id_grupo, (int)$id_proyecto);
 
         $validacion[0]->custom_fields = $inputs_map;
+
+        $validacion[0]->required_responsible_signature = InvConfigService::isResponsibleSignatureRequired($cycleid, $id_proyecto) ? 1 : 0;
 
         return response()->json($validacion, 200);
     }
@@ -757,7 +765,7 @@ class InventariosController extends Controller
         }
 
         if (!empty($request->etiqueta_padre)) {
-            $etiquetaPadreExiste = ActivoFinderService::findByEtiquetaAndCiclo($request->etiqueta_padre, $request->id_ciclo);
+            $etiquetaPadreExiste = ActivoFinderService::findByEtiquetaPadreAndCiclo($request->etiqueta_padre, $request->id_ciclo);
 
             if (!$etiquetaPadreExiste) {
                 return response()->json([
@@ -782,7 +790,9 @@ class InventariosController extends Controller
 
         foreach ($request->file('imagenes') as $index => $file) {
 
-            $filename = $id_proyecto . '_' . $etiqueta . '_' . $index . '.jpg';
+            $ext = $file->getClientOriginalExtension();
+
+            $filename = $id_proyecto . '_' . $etiqueta . '_' . $index . '.' . $ext;
 
             $url = ImageService::saveImageInMainOrSecondDisk($file, $request->user()->nombre_cliente, $filename);
             $url_pict = dirname($url) . '/';

@@ -98,6 +98,12 @@ class EmplazamientoN3 extends Model
         return $queryBuilder;
     }
 
+    public function emplazamientoN2()
+    {
+        return EmplazamientoN2::where('idAgenda', $this->idAgenda)
+            ->where('codigoUbicacion', substr($this->codigoUbicacion, 0, 4));
+    }
+
     public function zonaPunto()
     {
         return ZonaPunto::where('idAgenda', $this->idAgenda)

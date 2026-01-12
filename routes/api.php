@@ -158,6 +158,10 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('rango-permitido/{idAgenda}', [InventariosController::class, 'rangoPermitido']);
 
+    Route::put('inventario/{ciclo}/ajustar-coordenadas/etiqueta/{etiqueta}', [InventariosController::class, 'updateAdjustCoordinatesInventory']);
+
+    Route::put('inventario/{ciclo}/ajustar-coordenadas-debug-data/etiqueta/{etiqueta}', [InventariosController::class, 'updateAdjustCoordinatesInventoryDebugData']);
+
     Route::get('nombre-inputs', [InventariosController::class, 'nombreInputs']);
 
     Route::put('inventario/image/{etiqueta}', [InventariosController::class, 'ImageByEtiqueta']);
@@ -173,7 +177,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('marcas-disponibles/{etiqueta}/{ciclo}', [CrudActivoController::class, 'marcasDisponibles']);
 
     Route::get('ciclos', [CiclosController::class, 'index']);
-
+    Route::get('inventario/cycle/{cycle}/etiqueta/{etiqueta}', [InventariosController::class, 'showByEtiqueta']);
 
     Route::get('ciclos/{ciclo}', [CiclosController::class, 'show']);
 
@@ -351,6 +355,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2')->group(func
     Route::get('ciclos/{ciclo}/puntos/{punto}/group-families', [CiclosUbicacionesController::class, 'showGroupFamilies']);
 
     Route::get('ciclos/{ciclo}/group-families-OT', [CiclosUbicacionesController::class, 'showGroupFamiliesByCycle']);
+
+    Route::post('responsibles/{responsable_id}/register-signature', [ResponsibleController::class, 'registerSignature']);
 });
 
 Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {

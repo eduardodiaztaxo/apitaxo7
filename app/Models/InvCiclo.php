@@ -19,11 +19,11 @@ class InvCiclo extends Model
 
     protected $primaryKey = 'idCiclo';
 
-    public function puntos()
+    public function puntos($keyword = null, $from = null, $rows = null)
     {
         //return $this->hasMany(UbicacionGeografica::class, 'idPunto', 'idPunto');
 
-        return $this->hasManyThrough(
+        $query = $this->hasManyThrough(
             UbicacionGeografica::class,
             InvCicloPunto::class,
             'idCiclo',
@@ -31,9 +31,24 @@ class InvCiclo extends Model
             'idCiclo',
             'idPunto'
         );
+
+        if (!!keyword_is_searcheable($keyword)) {
+            $query->where(function ($subquery) use ($keyword) {
+                $subquery->where('ubicaciones_geograficas.direccion', 'LIKE', "%$keyword%")
+                    ->orWhere('ubicaciones_geograficas.descripcion', 'LIKE', "%$keyword%");
+            });
+        }
+
+        if ($from && $rows) {
+            $offset = $from - 1;
+            $limit = $rows;
+            $query->offset($offset)->limit($limit);
+        }
+
+        return $query;
     }
 
-    public function ciclo_puntos_users($usuario = null, $ciclo_id = null)
+    public function ciclo_puntos_users($usuario = null, $ciclo_id = null, $keyword = null, $from = null, $rows = null)
     {
         $query = $this->hasManyThrough(
             UbicacionGeografica::class,
@@ -52,6 +67,19 @@ class InvCiclo extends Model
 
         if ($ciclo_id) {
             $query->where('inv_usuarios_puntos.idCiclo', $ciclo_id);
+        }
+
+        if (!!keyword_is_searcheable($keyword)) {
+            $query->where(function ($subquery) use ($keyword) {
+                $subquery->where('ubicaciones_geograficas.direccion', 'LIKE', "%$keyword%")
+                    ->orWhere('ubicaciones_geograficas.descripcion', 'LIKE', "%$keyword%");
+            });
+        }
+
+        if ($from && $rows) {
+            $offset = $from - 1;
+            $limit = $rows;
+            $query->offset($offset)->limit($limit);
         }
 
         return $query;

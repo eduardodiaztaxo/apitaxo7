@@ -12,6 +12,7 @@ use App\Models\InvCiclo;
 use App\Models\InvCicloPunto;
 use App\Models\Inventario;
 use App\Models\UbicacionGeografica;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -55,88 +56,88 @@ class CiclosUbicacionesController extends Controller
             'comuna'            => 'exists:comunas,idComuna'
         ]);
         $codigoCliente = $this->generarCodigoCliente();
-  
-       $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
-    $ubicacion = DB::table('ubicaciones_geograficas')->insertGetId([
-        'idProyecto'    => $id_proyecto,
-        'codigoCliente' => $codigoCliente,
-        'descripcion'   => $request->descripcion,
-        'direccion'     => $request->direccion,
-        'region'        => $request->region,
-        'comuna'        => $request->comuna,
-        'newApp'        => 1,
-        'modo'          => 'ONLINE'
-    ]);
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
-    if (!$ubicacion) {
-        return response()->json([
-            'status'  => 'error',
-            'message' => 'No se pudo crear la ubicación',
-            'code'    => 422
-        ], 422);
-    }
-
-    $usuarios = DB::table('inv_ciclos_usuarios')
-        ->where('ciclo_id', $request->ciclo_auditoria)
-        ->where('id_proyecto', $id_proyecto)
-        ->pluck('usuario');
-
-    foreach ($usuarios as $usuario) {
-        DB::table('puntos_usuario')->insert([
-            'idUbicacionGeo'  => $ubicacion,
-            'login'           => $usuario,
-            'fechaAsignacion' => now(),
-            'estado'          => 1,
-            'totalBienes'     => 0,
-            'id_proyecto'     => $id_proyecto
+        $ubicacion = DB::table('ubicaciones_geograficas')->insertGetId([
+            'idProyecto'    => $id_proyecto,
+            'codigoCliente' => $codigoCliente,
+            'descripcion'   => $request->descripcion,
+            'direccion'     => $request->direccion,
+            'region'        => $request->region,
+            'comuna'        => $request->comuna,
+            'newApp'        => 1,
+            'modo'          => 'ONLINE'
         ]);
-    }
 
-    DB::table('inv_ciclos_puntos')->insert([
-        'idCiclo'           => $request->ciclo_auditoria,
-        'idPunto'           => $ubicacion,
-        'usuario'           => $request->user()->name,
-        'fechaCreacion'     => now()->format('Y-m-d'),
-        'id_estado'         => 1,
-        'auditoria_general' => 0,
-        'modo'              => 'ONLINE',
-    ]);
-
-    $ciclo = $request->ciclo_auditoria;
-    $cicloObj = InvCiclo::find($ciclo);
-    $puntos = $cicloObj->puntos()->get();
-
-    foreach ($puntos as $punto) {
-        $punto->requireZonas = 1;
-        $punto->cycle_id = $ciclo;
-
-        if ($cicloObj->idTipoCiclo == 2) {
-            $InvCicloPunto = InvCicloPunto::where('idCiclo', $ciclo)
-                ->where('idPunto', $punto->idUbicacionGeo)
-                ->first();
-
-            $punto->auditoria_general = $InvCicloPunto->auditoria_general ?? 0;
+        if (!$ubicacion) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'No se pudo crear la ubicación',
+                'code'    => 422
+            ], 422);
         }
-    }
 
-    return response()->json(UbicacionGeograficaResource::collection($puntos), 200);
-}
+        $usuarios = DB::table('inv_ciclos_usuarios')
+            ->where('ciclo_id', $request->ciclo_auditoria)
+            ->where('id_proyecto', $id_proyecto)
+            ->pluck('usuario');
+
+        foreach ($usuarios as $usuario) {
+            DB::table('puntos_usuario')->insert([
+                'idUbicacionGeo'  => $ubicacion,
+                'login'           => $usuario,
+                'fechaAsignacion' => now(),
+                'estado'          => 1,
+                'totalBienes'     => 0,
+                'id_proyecto'     => $id_proyecto
+            ]);
+        }
+
+        DB::table('inv_ciclos_puntos')->insert([
+            'idCiclo'           => $request->ciclo_auditoria,
+            'idPunto'           => $ubicacion,
+            'usuario'           => $request->user()->name,
+            'fechaCreacion'     => now()->format('Y-m-d'),
+            'id_estado'         => 1,
+            'auditoria_general' => 0,
+            'modo'              => 'ONLINE',
+        ]);
+
+        $ciclo = $request->ciclo_auditoria;
+        $cicloObj = InvCiclo::find($ciclo);
+        $puntos = $cicloObj->puntos()->get();
+
+        foreach ($puntos as $punto) {
+            $punto->requireZonas = 1;
+            $punto->cycle_id = $ciclo;
+
+            if ($cicloObj->idTipoCiclo == 2) {
+                $InvCicloPunto = InvCicloPunto::where('idCiclo', $ciclo)
+                    ->where('idPunto', $punto->idUbicacionGeo)
+                    ->first();
+
+                $punto->auditoria_general = $InvCicloPunto->auditoria_general ?? 0;
+            }
+        }
+
+        return response()->json(UbicacionGeograficaResource::collection($puntos), 200);
+    }
 
     public function generarCodigoCliente()
     {
-       
+
         $ultimoCodigo = DB::table('ubicaciones_geograficas')
-            ->whereRaw('codigoCliente REGEXP "^[0-9]+$"')  
+            ->whereRaw('codigoCliente REGEXP "^[0-9]+$"')
             ->orderByRaw('CAST(codigoCliente AS UNSIGNED) DESC')
             ->value('codigoCliente');
-        
+
         if ($ultimoCodigo) {
             $nuevoCodigo = intval($ultimoCodigo) + 1;
         } else {
             $nuevoCodigo = 1;
         }
-  
+
         return str_pad($nuevoCodigo, 4, '0', STR_PAD_LEFT);
     }
     /**
@@ -353,7 +354,7 @@ class CiclosUbicacionesController extends Controller
 
 
 
-        $puntoObj->requireActivos = 1;
+        $puntoObj->requireActivos = 0;
         $puntoObj->cycle_id = $cicloObj->idCiclo;
         $puntoObj->general = 1;
 
@@ -378,7 +379,7 @@ class CiclosUbicacionesController extends Controller
         }
 
         foreach ($puntos as $punto) {
-            $punto->requireActivos = 1;
+            $punto->requireActivos = 0;
             $punto->cycle_id = $cicloObj->idCiclo;
             $punto->general = 1;
         }
@@ -405,10 +406,12 @@ class CiclosUbicacionesController extends Controller
         $user = Auth::user();
 
         $usuario = $user?->name;
-        $puntos = $cicloObj->ciclo_puntos_users($usuario, $ciclo)->get();
+        $puntos = $cicloObj->ciclo_puntos_users($usuario, $ciclo, $request->keyword, $request->from, $request->rows)->get();
+
+
 
         if ($puntos->isEmpty()) {
-            $puntos = $cicloObj->puntos()->get();
+            $puntos = $cicloObj->puntos($request->keyword, $request->from, $request->rows)->get();
         }
 
         //$zonas = $cicloObj->zonesWithCats()->pluck('zona')->toArray();
@@ -416,8 +419,9 @@ class CiclosUbicacionesController extends Controller
 
         foreach ($puntos as $punto) {
             //$punto->zonas_cats = $zonas;
-            $punto->requireZonas = 1;
+            $punto->requireZonas = 0;
             $punto->cycle_id = $ciclo;
+            $punto->idTipoCiclo = $cicloObj->idTipoCiclo;
             //Si el ciclo es auditoría y la auditoría es general, el atributo auditoria_general se pone a 1
             if ($cicloObj->idTipoCiclo == 2) {
 

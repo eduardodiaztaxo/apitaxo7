@@ -72,6 +72,11 @@ class UbicacionGeografica extends Model
         return $this->hasMany(CrudActivo::class, 'ubicacionGeografica', 'idUbicacionGeo');
     }
 
+    public function activos_without_join()
+    {
+        return CrudActivo::where('ubicacionGeografica', '=', $this->idUbicacionGeo);
+    }
+
     public function activos_with_cats_by_cycle($cycle_id)
     {
 

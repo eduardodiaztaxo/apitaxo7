@@ -20,10 +20,11 @@ class EmplazamientoNivel1Resource extends JsonResource
      */
     public function toArray($request)
     {
-      $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         $num_activos_inv = $this->inv_activos()
             ->where('inv_inventario.id_proyecto', $id_proyecto)
+            ->where('inv_inventario.id_ciclo', $this->cycle_id)
             ->count();
 
         $num_activos_N1 = Inventario::where('codigoUbicacion_N1', $this->codigoUbicacion)

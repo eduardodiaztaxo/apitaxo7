@@ -32,7 +32,8 @@ class ResponsibleResource extends JsonResource
             'mail' => $this->mail,
             'idUbicacionGeografica' => (int)$this->idUbicacionGeografica,
             'name_rut' => $this->name . ' / ' . $this->rut,
-            'ubicacion' => $address
+            'ubicacion' => $address,
+            'signature' => $this->signature,
         ];
     }
 }

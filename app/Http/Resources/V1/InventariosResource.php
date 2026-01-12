@@ -14,7 +14,7 @@ class InventariosResource extends JsonResource
     {
         // Obtener el registro principal del inventario
         $activo = DB::table('inv_inventario')
-            ->where('etiqueta', $this->etiqueta)
+            ->where('id_inventario', $this->id_inventario)
             ->select(
                 'id_inventario',
                 'id_ciclo',
@@ -58,7 +58,7 @@ class InventariosResource extends JsonResource
         $descGrupo = DB::table('dp_grupos')
             ->where('id_grupo', $activo->id_grupo)
             ->value('descripcion_grupo');
-    
+
         $estadoBien = DB::table('ind_list_estado')
             ->where('idLista', $activo->estado)
             ->value('descripcion');

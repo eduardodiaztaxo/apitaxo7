@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\InvCiclo;
 use Illuminate\Support\Facades\DB;
 
 class InvConfigService
@@ -101,5 +102,17 @@ class InvConfigService
         }
 
         return $inputs_map;
+    }
+
+    public static function isResponsibleSignatureRequired(int $cycle_id, int $id_proyecto): bool
+    {
+        $cycle = InvCiclo::find($cycle_id);
+
+        if ($cycle && $cycle->firma_responsable && $cycle->id_proyecto == $id_proyecto) {
+            return true;
+        }
+
+
+        return false;
     }
 }

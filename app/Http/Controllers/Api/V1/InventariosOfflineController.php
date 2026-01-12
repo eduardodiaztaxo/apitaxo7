@@ -399,18 +399,23 @@ LEFT JOIN (
                         COALESCE(MAX(CASE WHEN id_atributo = 26 THEN valor_minimo END), 0) AS lench_Min_eficiencia,
                         COALESCE(MAX(CASE WHEN id_atributo = 26 THEN valor_maximo END), 0) AS lench_Max_eficiencia,
                         /** edualejandro */
-                        COALESCE(MAX(CASE WHEN id_atributo = 79 THEN id_validacion END), 0) AS conf_responsable                       
+                        COALESCE(MAX(CASE WHEN id_atributo = 79 THEN id_validacion END), 0) AS conf_responsable,
+                        COALESCE(MAX(CASE WHEN id_atributo = 79 THEN id_validacion END), 0) AS required_responsible_signature                       
                     FROM inv_atributos 
                     WHERE id_grupo = ?
                     AND id_proyecto = ?";
 
             $resultado = DB::select($sql, [$id_grupo, $id_grupo, $id_proyecto]);
 
+            //$resultado[0]->required_responsible_signature = InvConfigService::isResponsibleSignatureRequired($cycleid, $id_proyecto) ? 1 : 0;
+
+
             if (!empty($resultado)) {
 
                 $inputs_map = InvConfigService::getOpenedTextConfigInput((int)$id_grupo, (int)$id_proyecto);
 
                 $resultado[0]->custom_fields = json_encode($inputs_map);
+
 
                 $resultados[] = $resultado[0];
             }

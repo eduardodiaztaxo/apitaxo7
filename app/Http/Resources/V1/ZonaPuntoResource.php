@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Resources\V1;
+
 use App\Models\Inventario;
 use App\Models\CrudActivo;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -23,9 +24,9 @@ class ZonaPuntoResource extends JsonResource
             'idUbicacionN1' => $this->idUbicacionN1,
             'ciclo_auditoria' => (int)$this->ciclo_auditoria,
             'totalBienes' => $this->totalBienes,
-            'num_activos'   => $this->activos()->get()->count(),
+            'num_activos'   => $this->activos()->count(),
             'num_activos_cats_by_cycle' => 0,
-            'num_activos_inv' => $this->activos_inv_by_cycle($this->ciclo_auditoria, $this->idAgenda, $this->codigoUbicacion)->get()->count(),
+            'num_activos_inv' => $this->activos_inv_by_cycle($this->ciclo_auditoria, $this->idAgenda, $this->codigoUbicacion)->count(),
         ];
 
 
@@ -52,23 +53,21 @@ class ZonaPuntoResource extends JsonResource
     {
         $queryBuilder = Inventario::select('inv_inventario.*')
             ->where('inv_inventario.id_ciclo', '=', $cycle_id);
-    
+
         return $queryBuilder;
     }
-public function activos_inv_by_cycle($ciclo_auditoria, $idAgenda, $codigoUbicacion)
-{
-    $byN1 = Inventario::select('inv_inventario.*')
-        ->where('inv_inventario.id_ciclo', '=', $ciclo_auditoria)
-        ->where('idUbicacionGeo', '=', $idAgenda)
-        ->where('codigoUbicacion_n1', $codigoUbicacion);
+    public function activos_inv_by_cycle($ciclo_auditoria, $idAgenda, $codigoUbicacion)
+    {
+        $byN1 = Inventario::select('inv_inventario.*')
+            ->where('inv_inventario.id_ciclo', '=', $ciclo_auditoria)
+            ->where('idUbicacionGeo', '=', $idAgenda)
+            ->where('codigoUbicacion_n1', $codigoUbicacion);
 
-    $byN3 = Inventario::select('inv_inventario.*')
-        ->where('inv_inventario.id_ciclo', '=', $ciclo_auditoria)
-        ->where('idUbicacionGeo', '=', $idAgenda)
-        ->where('codigoUbicacionN3', 'LIKE', $codigoUbicacion . '%');
+        $byN3 = Inventario::select('inv_inventario.*')
+            ->where('inv_inventario.id_ciclo', '=', $ciclo_auditoria)
+            ->where('idUbicacionGeo', '=', $idAgenda)
+            ->where('codigoUbicacionN3', 'LIKE', $codigoUbicacion . '%');
 
-    return $byN1->union($byN3);
-}
-
-
+        return $byN1->union($byN3);
+    }
 }

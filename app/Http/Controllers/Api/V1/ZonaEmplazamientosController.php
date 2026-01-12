@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\EmplazamientoResource;
 use App\Http\Resources\V2\EmplazamientoNivel3Resource;
 use App\Http\Resources\V2\EmplazamientoNivel1Resource;
+use App\Http\Resources\V2\EmplazamientoNivel2LiteResource;
 use App\Http\Resources\V2\EmplazamientoNivel2Resource;
+use App\Http\Resources\V2\EmplazamientoNivel3LiteResource;
 use App\Services\ActivoFinderService;
 use App\Services\ProyectoUsuarioService;
 use App\Models\InvCiclo;
@@ -183,8 +185,8 @@ class ZonaEmplazamientosController extends Controller
             }
         }
 
-
-        return response()->json(EmplazamientoResource::collection($emplazamientos), 200);
+        return response()->json(EmplazamientoNivel2LiteResource::collection($emplazamientos), 200);
+        //return response()->json(EmplazamientoResource::collection($emplazamientos), 200);
     }
 
     public function selectEmplazamientosN3(Request $request, int $ciclo, int $agenda_id)
@@ -224,7 +226,8 @@ class ZonaEmplazamientosController extends Controller
 
 
 
-        return response()->json(EmplazamientoNivel3Resource::collection($emplazamientos), 200);
+        //return response()->json(EmplazamientoNivel3Resource::collection($emplazamientos), 200);
+        return response()->json(EmplazamientoNivel3LiteResource::collection($emplazamientos), 200);
     }
 
     public function CycleCatsNivel1(Request $request, int $ciclo, int $agenda_id)
