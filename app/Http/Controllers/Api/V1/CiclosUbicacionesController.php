@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\GroupFamilyPlaceResumenResource;
 use App\Http\Resources\V1\InventariosResource;
 use App\Http\Resources\V1\UbicacionGeograficaResource;
+use \App\Http\Resources\V2\UbicacionGeograficaLittleResource;
 use App\Services\ActivoFinderService;
 use App\Services\ProyectoUsuarioService;
 use App\Models\InvCiclo;
@@ -143,7 +144,7 @@ class CiclosUbicacionesController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param  int  $ciclo
      * @return \Illuminate\Http\Response
      */
     public function show(Request $request, int $ciclo)
@@ -164,6 +165,26 @@ class CiclosUbicacionesController extends Controller
 
 
         return response()->json(UbicacionGeograficaResource::collection($puntos), 200);
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function showLittle(Request $request, int $ciclo)
+    {
+        //
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json(['status' => 'NOK', 'code' => 404], 404);
+        }
+
+        $puntos = $cicloObj->puntos()->get();
+
+        return response()->json(UbicacionGeograficaLittleResource::collection($puntos), 200);
     }
 
 

@@ -48,7 +48,7 @@ use App\Http\Controllers\Api\V2\EmplazamientoNivel3Controller;
 //     return $request->user();
 // });
 
-Route::get('pin-internet-status', function () {
+Route::get('v1/pin-internet-status', function () {
     return response()->json(['message' => 'Pin is working']);
 });
 
@@ -190,6 +190,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('ciclos-by-user', [CiclosController::class, 'indexByUser']);
 
     Route::get('ciclos/{ciclo}/puntos', [CiclosUbicacionesController::class, 'show']);
+
+    Route::get('ciclos/{ciclo}/puntos-little', [CiclosUbicacionesController::class, 'showLittle']);
 
     Route::get('ciclos/{ciclo}/puntos-and-zones-with-cats', [CiclosUbicacionesController::class, 'showByCycleCats']);
 
