@@ -1,0 +1,2233 @@
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+DROP TABLE IF EXISTS `api_emplazamientos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `api_emplazamientos` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `api_failed_jobs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `api_failed_jobs` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `uuid` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `connection` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `queue` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `payload` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `exception` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `failed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `api_failed_jobs_uuid_unique` (`uuid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `api_indice_lista13s`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `api_indice_lista13s` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `api_inv_ciclo_puntos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `api_inv_ciclo_puntos` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `api_inv_ciclo_users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `api_inv_ciclo_users` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `api_inv_ciclos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `api_inv_ciclos` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `api_inv_conteo_registros`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `api_inv_conteo_registros` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `api_jobs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `api_jobs` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `queue` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `payload` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `attempts` tinyint unsigned NOT NULL,
+  `reserved_at` int unsigned DEFAULT NULL,
+  `available_at` int unsigned NOT NULL,
+  `created_at` int unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `api_jobs_queue_index` (`queue`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `api_migrations`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `api_migrations` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `migration` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `batch` int NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `api_password_resets`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `api_password_resets` (
+  `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `token` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  KEY `api_password_resets_email_index` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `api_personal_access_tokens`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `api_personal_access_tokens` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `tokenable_type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `tokenable_id` bigint unsigned NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `token` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `abilities` text COLLATE utf8mb4_unicode_ci,
+  `last_used_at` timestamp NULL DEFAULT NULL,
+  `expires_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `api_personal_access_tokens_token_unique` (`token`),
+  KEY `api_personal_access_tokens_tokenable_type_tokenable_id_index` (`tokenable_type`,`tokenable_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `api_posts`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `api_posts` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned NOT NULL,
+  `title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `slug` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `content` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `api_posts_slug_unique` (`slug`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `api_refresh_tokens`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `api_refresh_tokens` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned NOT NULL,
+  `token` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `expires_at` datetime NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `api_refresh_tokens_token_unique` (`token`),
+  KEY `api_refresh_tokens_user_id_foreign` (`user_id`),
+  CONSTRAINT `api_refresh_tokens_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `api_users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `api_users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `api_users` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email_verified_at` timestamp NULL DEFAULT NULL,
+  `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `conn_field` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `proyecto_id` int DEFAULT NULL,
+  `nombre_cliente` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `remember_token` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `api_users_name_unique` (`name`),
+  UNIQUE KEY `api_users_email_unique` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `api_zona_puntos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `api_zona_puntos` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!50003 DROP FUNCTION IF EXISTS `FN_CAL_DEPRE_v2` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb3 */ ;
+/*!50003 SET character_set_results = utf8mb3 */ ;
+/*!50003 SET collation_connection  = utf8mb3_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
+DELIMITER ;;
+CREATE DEFINER=`clientesCloud`@`10.3.%.%` FUNCTION `FN_CAL_DEPRE_v2`(`proceso` VARCHAR(20),varIN_valorCompra VARCHAR(20), varIN_vidaUtil VARCHAR(20), 
+varIN_fechaCompra date,varIN_fechaInforme date) RETURNS decimal(15,2)
+BEGIN
+
+
+	DECLARE mesesVanFecha numeric;
+	DECLARE resultado decimal;
+	DECLARE mesesVanFechaDecimal FLOAT;
+	DECLARE mesesVanFechaEntero NUMERIC;
+	declare mesesQuedanFecha numeric;
+
+
+SET mesesVanFechaDecimal = 
+(TIMESTAMPDIFF(MONTH, varIN_fechaCompra, DATE(varIN_fechaInforme)) +
+  DATEDIFF(
+    DATE(varIN_fechaInforme),
+    varIN_fechaCompra + INTERVAL
+      TIMESTAMPDIFF(MONTH, varIN_fechaCompra, DATE(varIN_fechaInforme))
+    MONTH
+  ) /
+  DATEDIFF(
+    varIN_fechaCompra + INTERVAL
+      TIMESTAMPDIFF(MONTH, varIN_fechaCompra, DATE(varIN_fechaInforme)) + 1
+    MONTH,
+    varIN_fechaCompra + INTERVAL
+      TIMESTAMPDIFF(MONTH, varIN_fechaCompra, DATE(varIN_fechaInforme))
+    MONTH
+  ));
+  
+if mesesVanFechaDecimal < 0.5 then
+	set mesesVanFechaEntero = 0;
+end if;
+
+IF mesesVanFechaDecimal >= 0.5 then
+	#SET mesesVanFechaEntero =  ROUND(mesesVanFechaDecimal);
+	SET mesesVanFechaEntero =  FLOOR(mesesVanFechaDecimal);
+	
+end if; 
+
+
+#
+# SABER SI SE COMPRO O ACTIVO EN LA PRIMERA O SEGUNDA QUINCENA
+#
+
+IF DAY(varIN_fechaCompra) > 15 THEN
+	#SE COMPRO LOS ULTIMOS 15 DIAS , DEPRECIA EL MES SIGUIENTE
+	SET mesesVanFecha = FLOOR(mesesVanFechaEntero);
+ELSE 
+	#SE COMPRO LOS PRIMERO 15 DIAS , DESPRECIA DESDE EL MES DE COMPRA
+	SET mesesVanFecha = FLOOR(mesesVanFechaEntero) + 1;
+END IF;
+
+
+
+
+SET mesesQuedanFecha = (varIN_vidaUtil - TIMESTAMPDIFF(MONTH,varIN_fechaCompra,DATE(varIN_fechaInforme)));
+
+	SET resultado = 0;
+	IF concat('',varIN_valorCompra * 1) <> varIN_valorCompra THEN	
+		SET varIN_valorCompra = 1;
+	END IF;
+	
+	IF varIN_valorCompra < 1 THEN	
+		RETURN 0;
+	END IF;
+	
+	
+	IF CONCAT('',varIN_vidaUtil * 1) <> varIN_vidaUtil THEN	
+		SET varIN_vidaUtil = 1;
+	END IF;
+	--
+	IF varIN_vidaUtil < 1 THEN
+		SET varIN_vidaUtil = 1;
+	END IF;
+	
+	IF mesesQuedanFecha <= 0 THEN
+		set mesesQuedanFecha = 0;
+		-- ES EL ULTIMO  MES DE VIDA UTIL
+		if varIN_vidaUtil = mesesVanFecha then
+			IF DAY(varIN_fechaCompra) > 15 THEN
+				-- DEPRECIA EL MES SIGUIENTE
+				SET mesesQuedanFecha = 1;
+			END IF; 
+		end if;
+	else
+		#EN CASO QUE EL MES DEL INFORME SEA FEBRERO
+		IF MONTH(varIN_fechaInforme) = 2 THEN
+			SET mesesQuedanFecha = mesesQuedanFecha - 1;
+		END IF;
+		
+	END IF;
+#
+#
+#
+
+	--
+	--  CALCULAR LA DEPRE ACUMULADA	
+	--
+	IF UPPER(proceso) = 'ACUMULADA' THEN
+			IF CONCAT(MONTH(varIN_fechaCompra),YEAR(varIN_fechaCompra)) = CONCAT(MONTH(varIN_fechaInforme),YEAR(varIN_fechaInforme)) THEN
+				IF DAY(varIN_fechaCompra) > 15	THEN
+					SET resultado  = 0;
+				ELSE
+					SET resultado = ROUND(ROUND(varIN_valorCompra / varIN_vidaUtil, 2) * 1 , 2);
+				END IF;
+				
+			ELSE
+				IF mesesVanFecha > 0 THEN
+					IF mesesVanFecha <= varIN_vidaUtil THEN
+						-- AUN TENGO VIDA UTIL
+						IF DAY(varIN_fechaCompra) > 15 THEN
+							-- SET resultado = ROUND(varIN_valorCompra - ROUND(ROUND(varIN_valorCompra / varIN_vidaUtil,2), 0),0);
+							SET resultado = ROUND(ROUND(varIN_valorCompra / varIN_vidaUtil, 2) * mesesVanFecha, 2);
+						else
+							SET resultado = ROUND(ROUND(varIN_valorCompra / varIN_vidaUtil, 2) * mesesVanFecha, 2);
+						end if;
+						
+					else
+						SET resultado = ROUND(varIN_valorCompra,2);			
+					end if;
+				ELSEif mesesVanFecha  = 0 then
+					SET resultado = 0;
+				else
+					set resultado = ROUND(varIN_valorCompra,0);
+				END IF;
+			END IF;
+	END IF;
+	--
+	-- CALCULAR VALOR ACTUAL
+	-- FALTA CALCULAR LAS COMPRAS DE LOS PRIMEROS 15 DIAS
+	--
+	IF UPPER(proceso) = 'VALORACTUAL' THEN
+		IF mesesQuedanFecha > 0 THEN
+			-- FECHA COMPRA MISMO MES DE INFORME 
+			if concat(month(varIN_fechaCompra),year(varIN_fechaCompra)) = CONCAT(MONTH(varIN_fechaInforme),YEAR(varIN_fechaInforme)) then
+				IF mesesVanFechaEntero > 0 THEN
+					SET resultado = ROUND(ROUND(varIN_valorCompra / varIN_vidaUtil,2) * (mesesQuedanFecha - 1), 0);
+				ELSE
+					SET resultado = varIN_valorCompra;
+				END IF;
+				
+			ELSE
+				SET resultado = ROUND(ROUND(varIN_valorCompra / varIN_vidaUtil,2) * mesesQuedanFecha, 0);
+			end if;
+	
+		ELSE
+			SET resultado = 1;
+		END IF;
+		--
+		-- PARCHE RAPIDO
+		--
+		IF varIN_valorCompra = 1 THEN
+			SET resultado = 1;
+		END IF;
+	END IF;
+
+	--  CALCULAR DEPRE MESUAL
+	IF UPPER(proceso) = 'VALORMESUAL' THEN
+		-- FECHA COMPRA MISMO MES DE INFORME 
+		IF CONCAT(MONTH(varIN_fechaCompra),YEAR(varIN_fechaCompra)) = CONCAT(MONTH(varIN_fechaInforme),YEAR(varIN_fechaInforme)) THEN
+			IF DAY(varIN_fechaCompra) > 15 THEN
+				SET resultado = 0;
+			else
+				SET resultado = ROUND(varIN_valorCompra / varIN_vidaUtil,0);
+			end if;
+		else
+			IF mesesQuedanFecha > 0 THEN
+				SET resultado = ROUND(varIN_valorCompra / varIN_vidaUtil,0);
+			ELSE
+				SET resultado = 0;
+			END IF;	
+		end if;	
+	END IF;
+
+	--  CALCULAR DEPRE PERIODO
+	IF UPPER(proceso) = 'VALORPERIODO' THEN
+		IF CONCAT(MONTH(varIN_fechaCompra),YEAR(varIN_fechaCompra)) = CONCAT(MONTH(varIN_fechaInforme),YEAR(varIN_fechaInforme)) THEN
+			IF mesesVanFechaEntero > 0 THEN
+				-- SI
+				SET resultado = ROUND(ROUND(varIN_valorCompra / varIN_vidaUtil,2)) * 1;
+			else
+				-- NO 
+				SET resultado = 0;
+			end if;
+		else
+			IF mesesQuedanFecha > 0 THEN
+				SET resultado = ROUND(ROUND(varIN_valorCompra / varIN_vidaUtil,2) * (SELECT MONTH(varIN_fechaInforme)),0);
+			ELSE
+				SET resultado = 0;
+			END IF;
+		end if;
+	END IF;
+	--
+	-- UTIL TRANSCURRIDA 
+	--
+	IF UPPER(proceso) = 'MESESVAN' THEN
+		IF CONCAT(MONTH(varIN_fechaCompra),YEAR(varIN_fechaCompra)) = CONCAT(MONTH(varIN_fechaInforme),YEAR(varIN_fechaInforme)) THEN
+			if DAY(varIN_fechaCompra) > 15	THEN
+				SET resultado  = 0;
+			else
+				SET resultado  = 1;
+			end if;
+		
+		
+		ELSE		
+			if mesesVanFecha > varIN_vidaUtil then
+				SET resultado = varIN_vidaUtil;
+			else
+				SET resultado = mesesVanFecha;
+			end if;
+		end if;
+	end if;
+	
+	RETURN resultado;
+    END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP FUNCTION IF EXISTS `FN_QUITAR_ACENTOS` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb3 */ ;
+/*!50003 SET character_set_results = utf8mb3 */ ;
+/*!50003 SET collation_connection  = utf8mb3_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
+DELIMITER ;;
+CREATE DEFINER=`pjara`@`10.3.%.%` FUNCTION `FN_QUITAR_ACENTOS`(
+    `cadena` VARCHAR(500)) RETURNS varchar(500) CHARSET utf8mb3 COLLATE utf8mb3_spanish_ci
+BEGIN
+    
+  
+	SET cadena=REPLACE(cadena,'á','a');
+	SET cadena=REPLACE(cadena,'é','e');
+	SET cadena=REPLACE(cadena,'í','i');
+	SET cadena=REPLACE(cadena,'ó','o');
+	SET cadena=REPLACE(cadena,'ú','u');		
+	SET cadena=REPLACE(cadena,'à','a');
+	SET cadena=REPLACE(cadena,'è','e');
+	SET cadena=REPLACE(cadena,'ì','i');
+	SET cadena=REPLACE(cadena,'ò','o');
+	SET cadena=REPLACE(cadena,'ù','u');
+	SET cadena=REPLACE(cadena,'â','a');
+	SET cadena=REPLACE(cadena,'ê','e');
+			SET cadena=REPLACE(cadena,'î','i');
+			SET cadena=REPLACE(cadena,'ô','o');
+			SET cadena=REPLACE(cadena,'û','u');
+			SET cadena=REPLACE(cadena,'ä','a');
+			SET cadena=REPLACE(cadena,'ë','e');
+			SET cadena=REPLACE(cadena,'ï','i');
+			SET cadena=REPLACE(cadena,'ö','o');
+			SET cadena=REPLACE(cadena,'ü','u');
+			SET cadena=REPLACE(cadena,'ñ','n');
+			SET cadena=REPLACE(cadena,'Ñ','N');
+			SET cadena=REPLACE(cadena,'ç','c');
+			SET cadena=REPLACE(cadena,'Ç','C');
+			SET cadena=REPLACE(cadena,'Á','A');
+			SET cadena=REPLACE(cadena,'É','E');
+			SET cadena=REPLACE(cadena,'Í','I');
+			SET cadena=REPLACE(cadena,'Ó','O');
+			SET cadena=REPLACE(cadena,'Ú','U');
+			SET cadena=REPLACE(cadena,'À','A');
+			SET cadena=REPLACE(cadena,'È','E');
+			SET cadena=REPLACE(cadena,'Ì','I');
+			SET cadena=REPLACE(cadena,'Ò','O');
+			SET cadena=REPLACE(cadena,'Ù','U');
+			SET cadena=REPLACE(cadena,'Â','A');
+			SET cadena=REPLACE(cadena,'Ê','E');
+			SET cadena=REPLACE(cadena,'Î','I');
+			SET cadena=REPLACE(cadena,'Ô','O');
+			SET cadena=REPLACE(cadena,'Û','U');
+			SET cadena=REPLACE(cadena,'Ä','A');
+			SET cadena=REPLACE(cadena,'Ë','E');
+			SET cadena=REPLACE(cadena,'Ï','I');
+			SET cadena=REPLACE(cadena,'Ö','O');
+			SET cadena=REPLACE(cadena,'Ü','U') ;
+			SET cadena=REPLACE(cadena,'Ã','A');
+			SET cadena=REPLACE(cadena,'Õ','O');  
+	RETURN cadena;
+    END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP FUNCTION IF EXISTS `SPLIT_STR` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb3 */ ;
+/*!50003 SET character_set_results = utf8mb3 */ ;
+/*!50003 SET collation_connection  = utf8mb3_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
+DELIMITER ;;
+CREATE DEFINER=`pjara`@`10.3.%.%` FUNCTION `SPLIT_STR`(
+    
+     X VARCHAR(500),
+  delim VARCHAR(12),
+  pos INT
+) RETURNS varchar(255) CHARSET utf8mb3
+RETURN REPLACE(SUBSTRING(SUBSTRING_INDEX(X, delim, pos),
+       LENGTH(SUBSTRING_INDEX(X, delim, pos -1)) + 1),
+       delim, '') ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP FUNCTION IF EXISTS `SPLIT_STR_NULL` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb3 */ ;
+/*!50003 SET character_set_results = utf8mb3 */ ;
+/*!50003 SET collation_connection  = utf8mb3_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
+DELIMITER ;;
+CREATE DEFINER=`pjara`@`10.3.%.%` FUNCTION `SPLIT_STR_NULL`(
+    X VARCHAR(500),
+    delim VARCHAR(12),
+    pos INT
+) RETURNS varchar(255) CHARSET utf8mb3
+    DETERMINISTIC
+BEGIN
+    DECLARE result VARCHAR(255);
+    
+
+
+    -- Si el dato ingresado es NULL, devolver NULL
+    IF X IS NULL OR delim IS NULL OR pos IS NULL THEN
+        RETURN NULL;
+    END IF;
+
+    SET result = SUBSTRING(
+                    SUBSTRING_INDEX(X, delim, pos),
+                    LENGTH(SUBSTRING_INDEX(X, delim, pos - 1)) + 1
+                 );
+
+SET result = REPLACE(trim(result),'>','');
+
+if length(trim(result))> 0 then
+	    RETURN result;
+else
+	    RETURN NULL;
+end if;
+
+
+
+
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `comparar_bases_full` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb3 */ ;
+/*!50003 SET character_set_results = utf8mb3 */ ;
+/*!50003 SET collation_connection  = utf8mb3_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
+DELIMITER ;;
+CREATE DEFINER=`pjara`@`10.3.%.%` PROCEDURE `comparar_bases_full`(
+    IN p_base1 VARCHAR(64),
+    IN p_base2 VARCHAR(64)
+)
+BEGIN
+
+    /**************************************************************
+     * 1) TABLAS FALTANTES
+     **************************************************************/
+    SELECT 
+        'TABLA_FALTANTE' AS tipo,
+        t1.TABLE_NAME,
+        CONCAT('CREATE TABLE ', t1.TABLE_NAME, ' (...);') AS sql_generado
+    FROM INFORMATION_SCHEMA.TABLES t1
+    LEFT JOIN INFORMATION_SCHEMA.TABLES t2
+        ON t1.TABLE_NAME = t2.TABLE_NAME
+       AND t2.TABLE_SCHEMA = p_base2
+    WHERE t1.TABLE_SCHEMA = p_base1
+      AND t2.TABLE_NAME IS NULL;
+
+
+    /**************************************************************
+     * 2) TABLAS SOBRANTES
+     **************************************************************/
+    SELECT 
+        'TABLA_SOBRANTE' AS tipo,
+        t2.TABLE_NAME,
+        CONCAT('DROP TABLE ', t2.TABLE_NAME, ';') AS sql_generado
+    FROM INFORMATION_SCHEMA.TABLES t2
+    LEFT JOIN INFORMATION_SCHEMA.TABLES t1
+        ON t1.TABLE_NAME = t2.TABLE_NAME
+       AND t1.TABLE_SCHEMA = p_base1
+    WHERE t2.TABLE_SCHEMA = p_base2
+      AND t1.TABLE_NAME IS NULL;
+
+
+    /**************************************************************
+     * 3) COLUMNAS FALTANTES
+     **************************************************************/
+    SELECT
+        'COLUMNA_FALTANTE' AS tipo,
+        c1.TABLE_NAME,
+        c1.COLUMN_NAME,
+        c1.COLUMN_TYPE,
+        CONCAT('ALTER TABLE ', c1.TABLE_NAME,
+               ' ADD COLUMN ', c1.COLUMN_NAME, ' ', c1.COLUMN_TYPE, ';') AS sql_generado
+    FROM INFORMATION_SCHEMA.COLUMNS c1
+    LEFT JOIN INFORMATION_SCHEMA.COLUMNS c2
+        ON c1.TABLE_NAME = c2.TABLE_NAME
+       AND c1.COLUMN_NAME = c2.COLUMN_NAME
+       AND c2.TABLE_SCHEMA = p_base2
+    WHERE c1.TABLE_SCHEMA = p_base1
+      AND c2.COLUMN_NAME IS NULL;
+
+
+    /**************************************************************
+     * 4) COLUMNAS SOBRANTES
+     **************************************************************/
+    SELECT
+        'COLUMNA_SOBRANTE' AS tipo,
+        c2.TABLE_NAME,
+        c2.COLUMN_NAME,
+        CONCAT('ALTER TABLE ', c2.TABLE_NAME,
+               ' DROP COLUMN ', c2.COLUMN_NAME, ';') AS sql_generado
+    FROM INFORMATION_SCHEMA.COLUMNS c2
+    LEFT JOIN INFORMATION_SCHEMA.COLUMNS c1
+        ON c1.TABLE_NAME = c2.TABLE_NAME
+       AND c1.COLUMN_NAME = c2.COLUMN_NAME
+       AND c1.TABLE_SCHEMA = p_base1
+    WHERE c2.TABLE_SCHEMA = p_base2
+      AND c1.COLUMN_NAME IS NULL;
+
+
+    /**************************************************************
+     * 5) COLUMNAS CON TIPO DIFERENTE
+     **************************************************************/
+    SELECT
+        'COLUMNA_TIPO_DIF' AS tipo,
+        c1.TABLE_NAME,
+        c1.COLUMN_NAME,
+        c1.COLUMN_TYPE AS tipo_base1,
+        c2.COLUMN_TYPE AS tipo_base2,
+        CONCAT('ALTER TABLE ', c1.TABLE_NAME,
+               ' MODIFY ', c1.COLUMN_NAME, ' ', c1.COLUMN_TYPE, ';') AS sql_generado
+    FROM INFORMATION_SCHEMA.COLUMNS c1
+    INNER JOIN INFORMATION_SCHEMA.COLUMNS c2
+        ON c1.TABLE_NAME = c2.TABLE_NAME
+       AND c1.COLUMN_NAME = c2.COLUMN_NAME
+    WHERE c1.TABLE_SCHEMA = p_base1
+      AND c2.TABLE_SCHEMA = p_base2
+      AND c1.COLUMN_TYPE <> c2.COLUMN_TYPE;
+
+
+    /**************************************************************
+     * 6) ÍNDICES DIFERENTES
+     **************************************************************/
+    SELECT
+        'INDICE_FALTANTE' AS tipo,
+        s1.TABLE_NAME,
+        s1.INDEX_NAME,
+        CONCAT('ALTER TABLE ', s1.TABLE_NAME,
+               ' ADD INDEX ', s1.INDEX_NAME, '(...);') AS sql_generado
+    FROM INFORMATION_SCHEMA.STATISTICS s1
+    LEFT JOIN INFORMATION_SCHEMA.STATISTICS s2
+        ON s1.TABLE_NAME = s2.TABLE_NAME
+       AND s1.INDEX_NAME = s2.INDEX_NAME
+       AND s2.TABLE_SCHEMA = p_base2
+    WHERE s1.TABLE_SCHEMA = p_base1
+      AND s2.INDEX_NAME IS NULL;
+
+
+    SELECT
+        'INDICE_SOBRANTE' AS tipo,
+        s2.TABLE_NAME,
+        s2.INDEX_NAME,
+        CONCAT('ALTER TABLE ', s2.TABLE_NAME,
+               ' DROP INDEX ', s2.INDEX_NAME, ';') AS sql_generado
+    FROM INFORMATION_SCHEMA.STATISTICS s2
+    LEFT JOIN INFORMATION_SCHEMA.STATISTICS s1
+        ON s1.TABLE_NAME = s2.TABLE_NAME
+       AND s1.INDEX_NAME = s2.INDEX_NAME
+       AND s1.TABLE_SCHEMA = p_base1
+    WHERE s2.TABLE_SCHEMA = p_base2
+      AND s1.INDEX_NAME IS NULL;
+
+
+    /**************************************************************
+     * 7) LLAVES FORÁNEAS DIFERENTES
+     **************************************************************/
+    SELECT
+        'FK_FALTANTE' AS tipo,
+        k1.TABLE_NAME,
+        k1.CONSTRAINT_NAME,
+        CONCAT('ALTER TABLE ', k1.TABLE_NAME,
+               ' ADD CONSTRAINT ', k1.CONSTRAINT_NAME,
+               ' FOREIGN KEY (...) REFERENCES ... ;') AS sql_generado
+    FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS k1
+    LEFT JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS k2
+        ON k1.CONSTRAINT_NAME = k2.CONSTRAINT_NAME
+       AND k2.CONSTRAINT_SCHEMA = p_base2
+    WHERE k1.CONSTRAINT_SCHEMA = p_base1
+      AND k2.CONSTRAINT_NAME IS NULL;
+
+
+    /**************************************************************
+     * 8) VISTAS FALTANTES
+     **************************************************************/
+    SELECT
+        'VISTA_FALTANTE' AS tipo,
+        v1.TABLE_NAME,
+        'USE SHOW CREATE VIEW FUERA DEL SP' AS aviso
+    FROM INFORMATION_SCHEMA.VIEWS v1
+    LEFT JOIN INFORMATION_SCHEMA.VIEWS v2
+        ON v1.TABLE_NAME = v2.TABLE_NAME
+       AND v2.TABLE_SCHEMA = p_base2
+    WHERE v1.TABLE_SCHEMA = p_base1
+      AND v2.TABLE_NAME IS NULL;
+
+
+    /**************************************************************
+     * 9) TRIGGERS FALTANTES
+     **************************************************************/
+    SELECT
+        'TRIGGER_FALTANTE' AS tipo,
+        t1.TRIGGER_NAME,
+        t1.EVENT_MANIPULATION,
+        'UTILICE SHOW CREATE TRIGGER FUERA DEL SP' AS aviso
+    FROM INFORMATION_SCHEMA.TRIGGERS t1
+    LEFT JOIN INFORMATION_SCHEMA.TRIGGERS t2
+        ON t1.TRIGGER_NAME = t2.TRIGGER_NAME
+       AND t2.TRIGGER_SCHEMA = p_base2
+    WHERE t1.TRIGGER_SCHEMA = p_base1
+      AND t2.TRIGGER_NAME IS NULL;
+
+
+    /**************************************************************
+     * 10) SP Y FUNCIONES FALTANTES
+     **************************************************************/
+    SELECT
+        'SP_FALTANTE' AS tipo,
+        r1.ROUTINE_NAME,
+        r1.ROUTINE_TYPE,
+        'UTILICE SHOW CREATE PROCEDURE/FUNCTION FUERA DEL SP' AS aviso
+    FROM INFORMATION_SCHEMA.ROUTINES r1
+    LEFT JOIN INFORMATION_SCHEMA.ROUTINES r2
+        ON r1.ROUTINE_NAME = r2.ROUTINE_NAME
+       AND r2.ROUTINE_SCHEMA = p_base2
+    WHERE r1.ROUTINE_SCHEMA = p_base1
+      AND r2.ROUTINE_NAME IS NULL;
+
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `comparar_bases_master` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb3 */ ;
+/*!50003 SET character_set_results = utf8mb3 */ ;
+/*!50003 SET collation_connection  = utf8mb3_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
+DELIMITER ;;
+CREATE DEFINER=`pjara`@`10.3.%.%` PROCEDURE `comparar_bases_master`(
+    IN p_base1 VARCHAR(64),
+    IN p_base2 VARCHAR(64)
+)
+BEGIN
+
+    -- limpiar logs
+    DELETE FROM control_cloud.compare_results;
+    DELETE FROM control_cloud.sync_sql;
+
+    /**************************************************************
+     *  TABLAS FALTANTES
+     **************************************************************/
+    INSERT INTO control_cloud.compare_results (tipo, objeto, detalle, sql_generado)
+    SELECT 
+        'TABLA_FALTANTE',
+        t1.TABLE_NAME,
+        'Tabla no existe en '  COLLATE utf8mb4_general_ci  || p_base2,
+        CONCAT('CREATE TABLE ', p_base2, '.', t1.TABLE_NAME, ' ( -- DEFINIR CAMPOS MANUALMENTE );')
+    FROM INFORMATION_SCHEMA.TABLES t1
+    LEFT JOIN INFORMATION_SCHEMA.TABLES t2
+        ON t1.TABLE_NAME = t2.TABLE_NAME
+       AND t2.TABLE_SCHEMA = p_base2
+    WHERE t1.TABLE_SCHEMA = p_base1
+      AND t2.TABLE_NAME IS NULL;
+
+
+    /**************************************************************
+     *  TABLAS SOBRANTES
+     **************************************************************/
+    INSERT INTO control_cloud.compare_results (tipo, objeto, detalle, sql_generado)
+    SELECT 
+        'TABLA_SOBRANTE',
+        t2.TABLE_NAME,
+        'Tabla no existe en '  COLLATE utf8mb4_general_ci || p_base1,
+        CONCAT('DROP TABLE ', p_base2, '.', t2.TABLE_NAME, ';')
+    FROM INFORMATION_SCHEMA.TABLES t2
+    LEFT JOIN INFORMATION_SCHEMA.TABLES t1
+        ON t1.TABLE_NAME = t2.TABLE_NAME
+       AND t1.TABLE_SCHEMA = p_base1
+    WHERE t2.TABLE_SCHEMA = p_base2
+      AND t1.TABLE_NAME IS NULL;
+
+
+    /**************************************************************
+     *  COLUMNAS FALTANTES
+     **************************************************************/
+    INSERT INTO control_cloud.compare_results (tipo, objeto, detalle, sql_generado)
+    SELECT
+        'COLUMNA_FALTANTE',
+        CONCAT(c1.TABLE_NAME, '.', c1.COLUMN_NAME),
+        'Columna falta en base destino',
+        CONCAT('ALTER TABLE ', p_base2, '.', c1.TABLE_NAME,
+               ' ADD COLUMN ', c1.COLUMN_NAME, ' ', c1.COLUMN_TYPE, ';')
+    FROM INFORMATION_SCHEMA.COLUMNS c1
+    LEFT JOIN INFORMATION_SCHEMA.COLUMNS c2
+        ON c1.TABLE_NAME = c2.TABLE_NAME
+       AND c1.COLUMN_NAME = c2.COLUMN_NAME
+       AND c2.TABLE_SCHEMA = p_base2
+    WHERE c1.TABLE_SCHEMA = p_base1
+      AND c2.COLUMN_NAME IS NULL;
+
+
+    /**************************************************************
+     *  COLUMNAS SOBRANTES
+     **************************************************************/
+    INSERT INTO control_cloud.compare_results (tipo, objeto, detalle, sql_generado)
+    SELECT
+        'COLUMNA_SOBRANTE',
+        CONCAT(c2.TABLE_NAME, '.', c2.COLUMN_NAME),
+        'Columna solo existe en la base cliente',
+        CONCAT('ALTER TABLE ', p_base2, '.', c2.TABLE_NAME,
+               ' DROP COLUMN ', c2.COLUMN_NAME, ';')
+    FROM INFORMATION_SCHEMA.COLUMNS c2
+    LEFT JOIN INFORMATION_SCHEMA.COLUMNS c1
+        ON c1.TABLE_NAME = c2.TABLE_NAME
+       AND c1.COLUMN_NAME = c2.COLUMN_NAME
+       AND c1.TABLE_SCHEMA = p_base1
+    WHERE c2.TABLE_SCHEMA = p_base2
+      AND c1.COLUMN_NAME IS NULL;
+
+
+    /**************************************************************
+     *  COLUMNAS CON TIPO DIFERENTE
+     **************************************************************/
+    INSERT INTO control_cloud.compare_results (tipo, objeto, detalle, sql_generado)
+    SELECT
+        'COLUMNA_TIPO_DIF',
+        CONCAT(c1.TABLE_NAME, '.', c1.COLUMN_NAME),
+        CONCAT('En original: ', c1.COLUMN_TYPE, ', en cliente: ', c2.COLUMN_TYPE),
+        CONCAT('ALTER TABLE ', p_base2, '.', c1.TABLE_NAME,
+               ' MODIFY ', c1.COLUMN_NAME, ' ', c1.COLUMN_TYPE, ';')
+    FROM INFORMATION_SCHEMA.COLUMNS c1
+    INNER JOIN INFORMATION_SCHEMA.COLUMNS c2
+        ON c1.TABLE_NAME = c2.TABLE_NAME
+       AND c1.COLUMN_NAME = c2.COLUMN_NAME
+    WHERE c1.TABLE_SCHEMA = p_base1
+      AND c2.TABLE_SCHEMA = p_base2
+      AND c1.COLUMN_TYPE <> c2.COLUMN_TYPE;
+
+
+    /**************************************************************
+     *  ÍNDICES FALTANTES
+     **************************************************************/
+    INSERT INTO control_cloud.compare_results (tipo, objeto, detalle, sql_generado)
+    SELECT
+        'INDICE_FALTANTE',
+        CONCAT(s1.TABLE_NAME, '.', s1.INDEX_NAME),
+        'Índice falta en base cliente',
+        CONCAT('ALTER TABLE ', p_base2, '.', s1.TABLE_NAME,
+               ' ADD INDEX ', s1.INDEX_NAME, '(...);')
+    FROM INFORMATION_SCHEMA.STATISTICS s1
+    LEFT JOIN INFORMATION_SCHEMA.STATISTICS s2
+        ON s1.TABLE_NAME = s2.TABLE_NAME
+       AND s1.INDEX_NAME = s2.INDEX_NAME
+       AND s2.TABLE_SCHEMA = p_base2
+    WHERE s1.TABLE_SCHEMA = p_base1
+      AND s2.INDEX_NAME IS NULL;
+
+
+    /**************************************************************
+     *  LLAVES FORÁNEAS FALTANTES
+     **************************************************************/
+    INSERT INTO control_cloud.compare_results (tipo, objeto, detalle, sql_generado)
+    SELECT
+        'FK_FALTANTE',
+        CONCAT(k1.TABLE_NAME, '.', k1.CONSTRAINT_NAME),
+        'FK falta en la base cliente',
+        CONCAT('ALTER TABLE ', p_base2, '.', k1.TABLE_NAME,
+               ' ADD CONSTRAINT ', k1.CONSTRAINT_NAME,
+               ' FOREIGN KEY (...) REFERENCES ... ;')
+    FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS k1
+    LEFT JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS k2
+        ON k1.CONSTRAINT_NAME = k2.CONSTRAINT_NAME
+       AND k2.CONSTRAINT_SCHEMA = p_base2
+    WHERE k1.CONSTRAINT_SCHEMA = p_base1
+      AND k2.CONSTRAINT_NAME IS NULL;
+
+
+    /**************************************************************
+     *  VISTAS / TRIGGERS / SP / FUNCIONES
+     *  Solo reporte (SHOW CREATE no permitido dentro de SP)
+     **************************************************************/
+    INSERT INTO control_cloud.compare_results (tipo, objeto, detalle, sql_generado)
+    SELECT
+        'VISTA_FALTANTE',
+        v1.TABLE_NAME,
+        'La vista no existe en la base cliente',
+        CONCAT('-- EJECUTAR: SHOW CREATE VIEW ', p_base1, '.', v1.TABLE_NAME)
+    FROM INFORMATION_SCHEMA.VIEWS v1
+    LEFT JOIN INFORMATION_SCHEMA.VIEWS v2
+        ON v1.TABLE_NAME = v2.TABLE_NAME
+       AND v2.TABLE_SCHEMA = p_base2
+    WHERE v1.TABLE_SCHEMA = p_base1
+      AND v2.TABLE_NAME IS NULL;
+
+
+    INSERT INTO control_cloud.compare_results (tipo, objeto, detalle, sql_generado)
+    SELECT
+        'TRIGGER_FALTANTE',
+        t1.TRIGGER_NAME,
+        'El trigger no existe en la base cliente',
+        CONCAT('-- EJECUTAR: SHOW CREATE TRIGGER ', p_base1, '.', t1.TRIGGER_NAME)
+    FROM INFORMATION_SCHEMA.TRIGGERS t1
+    LEFT JOIN INFORMATION_SCHEMA.TRIGGERS t2
+        ON t1.TRIGGER_NAME = t2.TRIGGER_NAME
+       AND t2.TRIGGER_SCHEMA = p_base2
+    WHERE t1.TRIGGER_SCHEMA = p_base1
+      AND t2.TRIGGER_NAME IS NULL;
+
+
+    INSERT INTO control_cloud.compare_results (tipo, objeto, detalle, sql_generado)
+    SELECT
+        'RUTINA_FALTANTE',
+        r1.ROUTINE_NAME,
+        r1.ROUTINE_TYPE,
+        CONCAT('-- EJECUTAR: SHOW CREATE ', r1.ROUTINE_TYPE, ' ', p_base1, '.', r1.ROUTINE_NAME)
+    FROM INFORMATION_SCHEMA.ROUTINES r1
+    LEFT JOIN INFORMATION_SCHEMA.ROUTINES r2
+        ON r1.ROUTINE_NAME = r2.ROUTINE_NAME
+       AND r2.ROUTINE_SCHEMA = p_base2
+    WHERE r1.ROUTINE_SCHEMA = p_base1
+      AND r2.ROUTINE_NAME IS NULL;
+
+
+    /**************************************************************
+     *  PASAR TODAS LAS INSTRUCCIONES A sync_sql
+     **************************************************************/
+    INSERT INTO control_cloud.sync_sql (sql_line)
+    SELECT sql_generado
+    FROM control_cloud.compare_results
+    WHERE sql_generado IS NOT NULL
+      AND sql_generado NOT LIKE '--%';
+
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `comparar_bases_populate` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb3 */ ;
+/*!50003 SET character_set_results = utf8mb3 */ ;
+/*!50003 SET collation_connection  = utf8mb3_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
+DELIMITER ;;
+CREATE DEFINER=`pjara`@`10.3.%.%` PROCEDURE `comparar_bases_populate`(
+    IN p_base1 VARCHAR(200),
+    IN p_base2 VARCHAR(200)
+)
+BEGIN
+    DECLARE v_now DATETIME;
+
+    SET v_now = NOW();
+
+    -- Limpia tablas destino
+    TRUNCATE control_cloud.diff_cols;
+    TRUNCATE control_cloud.diff_idx;
+    TRUNCATE control_cloud.diff_fk;
+    TRUNCATE control_cloud.diff_all;
+    TRUNCATE control_cloud.diff_sql;
+
+    /* =====================================================
+       ============== DIFERENCIAS DE COLUMNAS ===============
+       ===================================================== */
+
+    INSERT INTO control_cloud.diff_cols(tipo, tabla_nombre, columna, detalle, sql_sugerido, creado_en)
+    SELECT
+        'FALTANTE',
+        c1.TABLE_NAME,
+        c1.COLUMN_NAME,
+        CONCAT('Tipo: ', c1.COLUMN_TYPE),
+        CONCAT(
+            'ALTER TABLE `', p_base2, '`.`', c1.TABLE_NAME,
+            '` ADD COLUMN `', c1.COLUMN_NAME, '` ', c1.COLUMN_TYPE,
+            IF(c1.IS_NULLABLE='NO',' NOT NULL',''),
+            IF(c1.COLUMN_DEFAULT IS NOT NULL, CONCAT(' DEFAULT ''', c1.COLUMN_DEFAULT, ''''), ''),
+            ';'
+        ),
+        v_now
+    FROM INFORMATION_SCHEMA.COLUMNS c1
+    LEFT JOIN INFORMATION_SCHEMA.COLUMNS c2
+      ON c2.TABLE_SCHEMA = p_base2
+     AND c2.TABLE_NAME  = c1.TABLE_NAME
+     AND c2.COLUMN_NAME = c1.COLUMN_NAME
+    WHERE c1.TABLE_SCHEMA = p_base1
+      AND c2.COLUMN_NAME IS NULL;
+
+
+    /* =====================================================
+        ================= DIFERENCIAS ÍNDICES ===============
+       ===================================================== */
+
+    INSERT INTO control_cloud.diff_idx(tipo, tabla_nombre, idx_name, detalle, sql_sugerido, creado_en)
+    SELECT
+        'FALTANTE',
+        s1.TABLE_NAME,
+        s1.INDEX_NAME,
+        GROUP_CONCAT(s1.COLUMN_NAME ORDER BY s1.SEQ_IN_INDEX SEPARATOR ','),
+        CONCAT(
+            'ALTER TABLE `', p_base2, '`.`', s1.TABLE_NAME,
+            '` ADD INDEX `', s1.INDEX_NAME, '` (',
+            GROUP_CONCAT(CONCAT('`', s1.COLUMN_NAME, '`') ORDER BY s1.SEQ_IN_INDEX SEPARATOR ','),
+            ');'
+        ),
+        v_now
+    FROM INFORMATION_SCHEMA.STATISTICS s1
+    LEFT JOIN INFORMATION_SCHEMA.STATISTICS s2
+      ON s2.TABLE_SCHEMA = p_base2
+     AND s2.TABLE_NAME  = s1.TABLE_NAME
+     AND s2.INDEX_NAME = s1.INDEX_NAME
+    WHERE s1.TABLE_SCHEMA = p_base1
+      AND s1.INDEX_NAME <> 'PRIMARY'
+      AND s2.INDEX_NAME IS NULL
+    GROUP BY s1.TABLE_NAME, s1.INDEX_NAME;
+
+
+    /* =====================================================
+       ===================   FK FALTANTES   =================
+       ===================================================== */
+
+    INSERT INTO control_cloud.diff_fk(tipo, tabla_nombre, fk_name, detalle, sql_sugerido, creado_en)
+    SELECT
+        'FALTANTE',
+        k.TABLE_NAME,
+        k.CONSTRAINT_NAME,
+        CONCAT(
+            'REFERENCES ', 
+            k.REFERENCED_TABLE_NAME, 
+            '(', GROUP_CONCAT(k.COLUMN_NAME ORDER BY k.ORDINAL_POSITION SEPARATOR ','), ')'
+        ) AS detalle,
+        CONCAT(
+            'ALTER TABLE `', p_base2, '`.`', k.TABLE_NAME, '` ',
+            'ADD CONSTRAINT `', k.CONSTRAINT_NAME, '` FOREIGN KEY (',
+            (
+                SELECT GROUP_CONCAT(CONCAT('`', k2.COLUMN_NAME, '`') ORDER BY k2.ORDINAL_POSITION SEPARATOR ',')
+                FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE k2
+                WHERE k2.TABLE_SCHEMA = p_base1
+                  AND k2.TABLE_NAME  = k.TABLE_NAME
+                  AND k2.CONSTRAINT_NAME = k.CONSTRAINT_NAME
+            ),
+            ') REFERENCES `', k.REFERENCED_TABLE_SCHEMA, '`.`', k.REFERENCED_TABLE_NAME, '`(',
+            (
+                SELECT GROUP_CONCAT(CONCAT('`', k3.REFERENCED_COLUMN_NAME, '`') ORDER BY k3.ORDINAL_POSITION SEPARATOR ',')
+                FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE k3
+                WHERE k3.TABLE_SCHEMA = p_base1
+                  AND k3.TABLE_NAME  = k.TABLE_NAME
+                  AND k3.CONSTRAINT_NAME = k.CONSTRAINT_NAME
+            ),
+            ') ON DELETE ',
+            (SELECT rc.DELETE_RULE FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS rc
+                WHERE rc.CONSTRAINT_NAME = k.CONSTRAINT_NAME
+                  AND rc.CONSTRAINT_SCHEMA = p_base1
+                LIMIT 1
+            ),
+            ' ON UPDATE ',
+            (SELECT rc.UPDATE_RULE FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS rc
+                WHERE rc.CONSTRAINT_NAME = k.CONSTRAINT_NAME
+                  AND rc.CONSTRAINT_SCHEMA = p_base1
+                LIMIT 1
+            ),
+            ';'
+        ),
+        v_now
+    FROM (
+        SELECT 
+            kcu.CONSTRAINT_NAME,
+            kcu.TABLE_NAME,
+            kcu.COLUMN_NAME,
+            kcu.ORDINAL_POSITION,
+            kcu.REFERENCED_TABLE_NAME,
+            kcu.REFERENCED_TABLE_SCHEMA
+        FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
+        WHERE kcu.TABLE_SCHEMA = p_base1
+          AND kcu.REFERENCED_TABLE_NAME IS NOT NULL
+    ) k
+    LEFT JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kn
+        ON  kn.CONSTRAINT_NAME = k.CONSTRAINT_NAME
+        AND kn.TABLE_SCHEMA = p_base2
+    WHERE kn.CONSTRAINT_NAME IS NULL
+    GROUP BY 
+        k.CONSTRAINT_NAME,
+        k.TABLE_NAME,
+        k.REFERENCED_TABLE_SCHEMA,
+        k.REFERENCED_TABLE_NAME;
+
+
+    /* =====================================================
+        ========= Agregar en diff_all (para ordenar) =======
+       ===================================================== */
+
+    INSERT INTO control_cloud.diff_all
+        (categoria, objeto, detalle, sql_sugerido, creado_en)
+    SELECT 'COLUMNA', CONCAT(tabla_nombre,'.',columna), detalle, sql_sugerido, creado_en
+    FROM control_cloud.diff_cols;
+
+    INSERT INTO control_cloud.diff_all
+        (categoria, objeto, detalle, sql_sugerido, creado_en)
+    SELECT 'INDICE', CONCAT(tabla_nombre,'.',idx_name), detalle, sql_sugerido, creado_en
+    FROM control_cloud.diff_idx;
+
+    INSERT INTO control_cloud.diff_all
+        (categoria, objeto, detalle, sql_sugerido, creado_en)
+    SELECT 'FK', CONCAT(tabla_nombre,'.',fk_name), detalle, sql_sugerido, creado_en
+    FROM control_cloud.diff_fk;
+
+
+    /* =====================================================
+       =========== Orden final y limpieza de SQL =========== 
+       ===================================================== */
+
+   SET @rn := 0;
+
+INSERT INTO control_cloud.diff_sql(orden, sql_line)
+SELECT 
+    (@rn := @rn + 1) AS orden,
+    sql_sugerido
+FROM control_cloud.diff_all
+WHERE sql_sugerido IS NOT NULL
+  AND TRIM(sql_sugerido COLLATE utf8_general_ci) <> ''
+  AND LEFT(TRIM(sql_sugerido COLLATE utf8_general_ci), 2) <> '--'
+  
+ORDER BY id;
+
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `comparar_bases_populate_full` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb3 */ ;
+/*!50003 SET character_set_results = utf8mb3 */ ;
+/*!50003 SET collation_connection  = utf8mb3_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
+DELIMITER ;;
+CREATE DEFINER=`pjara`@`10.3.%.%` PROCEDURE `comparar_bases_populate_full`(
+  IN p_base1 VARCHAR(200),
+  IN p_base2 VARCHAR(200)
+)
+BEGIN
+  -- DECLARACIONES (siempre al inicio)
+  DECLARE v_now DATETIME;
+
+  SET v_now = NOW();
+
+  -- NOTA:
+  -- Para evitar mezclar collations forzamos COLLATE utf8_general_ci
+  -- en TODAS las comparaciones entre columnas/valores textuales.
+
+  -- Limpiar tablas de resultados (asegúrate que existen)
+  TRUNCATE TABLE control_cloud.diff_all;
+  TRUNCATE TABLE control_cloud.diff_tablas;
+  TRUNCATE TABLE control_cloud.diff_columnas;
+  TRUNCATE TABLE control_cloud.diff_indices;
+  TRUNCATE TABLE control_cloud.diff_fk;
+  TRUNCATE TABLE control_cloud.diff_views;
+  TRUNCATE TABLE control_cloud.diff_triggers;
+  TRUNCATE TABLE control_cloud.diff_routines;
+  TRUNCATE TABLE control_cloud.diff_events;
+  TRUNCATE TABLE control_cloud.diff_sql;
+
+  /****************************************************************
+   * 1) TABLAS - faltantes en destino y sobrantes en destino
+   *   (forzando collations en comparaciones)
+   ****************************************************************/
+  INSERT INTO control_cloud.diff_tablas(tipo, tabla_nombre, detalle, sql_sugerido, creado_en)
+  SELECT
+    'FALTANTE',
+    t1.TABLE_NAME,
+    CONCAT('ENGINE=', IFNULL(t1.ENGINE,'?'), ' COLLATION=', IFNULL(t1.TABLE_COLLATION,'?')),
+    CONCAT('-- Crear tabla (usar SHOW CREATE TABLE ', p_base1, '.', t1.TABLE_NAME, ')'),
+    v_now
+  FROM INFORMATION_SCHEMA.TABLES t1
+  LEFT JOIN INFORMATION_SCHEMA.TABLES t2
+    ON t1.TABLE_NAME COLLATE utf8_general_ci = t2.TABLE_NAME COLLATE utf8_general_ci
+   AND t2.TABLE_SCHEMA COLLATE utf8_general_ci = p_base2 COLLATE utf8_general_ci
+  WHERE t1.TABLE_SCHEMA COLLATE utf8_general_ci = p_base1 COLLATE utf8_general_ci
+    AND t2.TABLE_NAME IS NULL;
+
+  INSERT INTO control_cloud.diff_tablas(tipo, tabla_nombre, detalle, sql_sugerido, creado_en)
+  SELECT
+    'SOBRANTE',
+    t2.TABLE_NAME,
+    CONCAT('ENGINE=', IFNULL(t2.ENGINE,'?'), ' COLLATION=', IFNULL(t2.TABLE_COLLATION,'?')),
+    CONCAT('DROP TABLE IF EXISTS `', p_base2, '`.`', t2.TABLE_NAME, '`;'),
+    v_now
+  FROM INFORMATION_SCHEMA.TABLES t2
+  LEFT JOIN INFORMATION_SCHEMA.TABLES t1
+    ON t1.TABLE_NAME COLLATE utf8_general_ci = t2.TABLE_NAME COLLATE utf8_general_ci
+   AND t1.TABLE_SCHEMA COLLATE utf8_general_ci = p_base1 COLLATE utf8_general_ci
+  WHERE t2.TABLE_SCHEMA COLLATE utf8_general_ci = p_base2 COLLATE utf8_general_ci
+    AND t1.TABLE_NAME IS NULL;
+
+  INSERT INTO control_cloud.diff_all(categoria, objeto, detalle, sql_sugerido, creado_en)
+  SELECT 'TABLA', tabla_nombre, detalle, sql_sugerido, creado_en
+  FROM control_cloud.diff_tablas;
+
+  /****************************************************************
+   * 2) COLUMNAS - faltantes, sobrantes, tipo distinto
+   ****************************************************************/
+  -- columnas faltantes en destino
+  INSERT INTO control_cloud.diff_columnas(tipo, tabla_nombre, columna_nombre, detalle, sql_sugerido, creado_en)
+  SELECT
+    'FALTANTE',
+    c1.TABLE_NAME,
+    c1.COLUMN_NAME,
+    CONCAT('ORD=',c1.ORDINAL_POSITION,' NULL=',c1.IS_NULLABLE,' DEF=',IFNULL(c1.COLUMN_DEFAULT,'NULL'),' EXTRA=',IFNULL(c1.EXTRA,'')),
+    CONCAT('ALTER TABLE `', p_base2, '`.`', c1.TABLE_NAME, '` ADD COLUMN `', c1.COLUMN_NAME, '` ', c1.COLUMN_TYPE,
+           (CASE WHEN c1.IS_NULLABLE='NO' THEN ' NOT NULL' ELSE '' END),
+           (CASE WHEN c1.COLUMN_DEFAULT IS NOT NULL THEN CONCAT(' DEFAULT ', QUOTE(c1.COLUMN_DEFAULT)) ELSE '' END),
+           (CASE WHEN c1.EXTRA <> '' THEN CONCAT(' ', c1.EXTRA) ELSE '' END), ';'),
+    v_now
+  FROM INFORMATION_SCHEMA.COLUMNS c1
+  LEFT JOIN INFORMATION_SCHEMA.COLUMNS c2
+    ON c1.TABLE_NAME COLLATE utf8_general_ci = c2.TABLE_NAME COLLATE utf8_general_ci
+   AND c1.COLUMN_NAME COLLATE utf8_general_ci = c2.COLUMN_NAME COLLATE utf8_general_ci
+   AND c2.TABLE_SCHEMA COLLATE utf8_general_ci = p_base2 COLLATE utf8_general_ci
+  WHERE c1.TABLE_SCHEMA COLLATE utf8_general_ci = p_base1 COLLATE utf8_general_ci
+    AND c2.COLUMN_NAME IS NULL
+  ORDER BY c1.TABLE_NAME, c1.ORDINAL_POSITION;
+
+  -- columnas sobrantes en destino
+  INSERT INTO control_cloud.diff_columnas(tipo, tabla_nombre, columna_nombre, detalle, sql_sugerido, creado_en)
+  SELECT
+    'SOBRANTE',
+    c2.TABLE_NAME,
+    c2.COLUMN_NAME,
+    CONCAT('ORD=',c2.ORDINAL_POSITION,' NULL=',c2.IS_NULLABLE,' DEF=',IFNULL(c2.COLUMN_DEFAULT,'NULL'),' EXTRA=',IFNULL(c2.EXTRA,'')),
+    CONCAT('ALTER TABLE `', p_base2, '`.`', c2.TABLE_NAME, '` DROP COLUMN `', c2.COLUMN_NAME, '`;'),
+    v_now
+  FROM INFORMATION_SCHEMA.COLUMNS c2
+  LEFT JOIN INFORMATION_SCHEMA.COLUMNS c1
+    ON c1.TABLE_NAME COLLATE utf8_general_ci = c2.TABLE_NAME COLLATE utf8_general_ci
+   AND c1.COLUMN_NAME COLLATE utf8_general_ci = c2.COLUMN_NAME COLLATE utf8_general_ci
+   AND c1.TABLE_SCHEMA COLLATE utf8_general_ci = p_base1 COLLATE utf8_general_ci
+  WHERE c2.TABLE_SCHEMA COLLATE utf8_general_ci = p_base2 COLLATE utf8_general_ci
+    AND c1.COLUMN_NAME IS NULL
+  ORDER BY c2.TABLE_NAME, c2.ORDINAL_POSITION;
+
+  -- columnas con tipo o definición distinta
+  INSERT INTO control_cloud.diff_columnas(tipo, tabla_nombre, columna_nombre, detalle, sql_sugerido, creado_en)
+  SELECT
+    'TIPO_DIF',
+    c1.TABLE_NAME,
+    c1.COLUMN_NAME,
+    CONCAT('base1=', c1.COLUMN_TYPE, ' null1=',c1.IS_NULLABLE, ' def1=',IFNULL(c1.COLUMN_DEFAULT,'NULL'),
+           ' || base2=', c2.COLUMN_TYPE, ' null2=',c2.IS_NULLABLE, ' def2=',IFNULL(c2.COLUMN_DEFAULT,'NULL')),
+    CONCAT('ALTER TABLE `', p_base2, '`.`', c1.TABLE_NAME, '` MODIFY COLUMN `', c1.COLUMN_NAME, '` ', c1.COLUMN_TYPE,
+           (CASE WHEN c1.IS_NULLABLE='NO' THEN ' NOT NULL' ELSE '' END),
+           (CASE WHEN c1.COLUMN_DEFAULT IS NOT NULL THEN CONCAT(' DEFAULT ', QUOTE(c1.COLUMN_DEFAULT)) ELSE '' END),
+           (CASE WHEN c1.EXTRA <> '' THEN CONCAT(' ', c1.EXTRA) ELSE '' END), ';'),
+    v_now
+  FROM INFORMATION_SCHEMA.COLUMNS c1
+  JOIN INFORMATION_SCHEMA.COLUMNS c2
+    ON c1.TABLE_NAME COLLATE utf8_general_ci = c2.TABLE_NAME COLLATE utf8_general_ci
+   AND c1.COLUMN_NAME COLLATE utf8_general_ci = c2.COLUMN_NAME COLLATE utf8_general_ci
+  WHERE c1.TABLE_SCHEMA COLLATE utf8_general_ci = p_base1 COLLATE utf8_general_ci
+    AND c2.TABLE_SCHEMA COLLATE utf8_general_ci = p_base2 COLLATE utf8_general_ci
+    AND (
+      c1.COLUMN_TYPE <> c2.COLUMN_TYPE
+      OR c1.IS_NULLABLE <> c2.IS_NULLABLE
+      OR IFNULL(c1.COLUMN_DEFAULT,'') <> IFNULL(c2.COLUMN_DEFAULT,'')
+      OR IFNULL(c1.EXTRA,'') <> IFNULL(c2.EXTRA,'')
+    );
+
+  INSERT INTO control_cloud.diff_all(categoria, objeto, detalle, sql_sugerido, creado_en)
+  SELECT 'COLUMNA', CONCAT(tabla_nombre, '.', columna_nombre), detalle, sql_sugerido, creado_en
+  FROM control_cloud.diff_columnas;
+
+  /****************************************************************
+   * 3) INDICES - faltantes / sobrantes
+   ****************************************************************/
+  INSERT INTO control_cloud.diff_indices(tipo, tabla_nombre, indice_nombre, detalle, sql_sugerido, creado_en)
+  SELECT
+    'FALTANTE',
+    s1.TABLE_NAME,
+    s1.INDEX_NAME,
+    CONCAT('NON_UNIQUE=', MIN(s1.NON_UNIQUE), ' INDEX_TYPE=', MIN(s1.INDEX_TYPE)),
+    CONCAT(
+      (CASE WHEN MIN(s1.NON_UNIQUE)=0 THEN 'CREATE UNIQUE INDEX ' ELSE 'CREATE INDEX ' END),
+      '`', s1.INDEX_NAME, '` ON `', p_base2, '`.`', s1.TABLE_NAME, '` (',
+      GROUP_CONCAT(DISTINCT CONCAT('`', s1.COLUMN_NAME, '`') ORDER BY s1.SEQ_IN_INDEX SEPARATOR ', '),
+      ');'
+    ),
+    v_now
+  FROM INFORMATION_SCHEMA.STATISTICS s1
+  LEFT JOIN INFORMATION_SCHEMA.STATISTICS s2
+    ON s1.TABLE_NAME COLLATE utf8_general_ci = s2.TABLE_NAME COLLATE utf8_general_ci
+   AND s1.INDEX_NAME COLLATE utf8_general_ci = s2.INDEX_NAME COLLATE utf8_general_ci
+   AND s2.TABLE_SCHEMA COLLATE utf8_general_ci = p_base2 COLLATE utf8_general_ci
+  WHERE s1.TABLE_SCHEMA COLLATE utf8_general_ci = p_base1 COLLATE utf8_general_ci
+    AND s1.INDEX_NAME <> 'PRIMARY'
+    AND s2.INDEX_NAME IS NULL
+  GROUP BY s1.TABLE_NAME, s1.INDEX_NAME;
+
+  -- indices sobrantes
+  INSERT INTO control_cloud.diff_indices(tipo, tabla_nombre, indice_nombre, detalle, sql_sugerido, creado_en)
+  SELECT
+    'SOBRANTE',
+    s2.TABLE_NAME,
+    s2.INDEX_NAME,
+    CONCAT('NON_UNIQUE=', MIN(s2.NON_UNIQUE), ' INDEX_TYPE=', MIN(s2.INDEX_TYPE)),
+    CONCAT('ALTER TABLE `', p_base2, '`.`', s2.TABLE_NAME, '` DROP INDEX `', s2.INDEX_NAME, '`;'),
+    v_now
+  FROM INFORMATION_SCHEMA.STATISTICS s2
+  LEFT JOIN INFORMATION_SCHEMA.STATISTICS s1
+    ON s1.TABLE_NAME COLLATE utf8_general_ci = s2.TABLE_NAME COLLATE utf8_general_ci
+   AND s1.INDEX_NAME COLLATE utf8_general_ci = s2.INDEX_NAME COLLATE utf8_general_ci
+   AND s1.TABLE_SCHEMA COLLATE utf8_general_ci = p_base1 COLLATE utf8_general_ci
+  WHERE s2.TABLE_SCHEMA COLLATE utf8_general_ci = p_base2 COLLATE utf8_general_ci
+    AND s1.INDEX_NAME IS NULL
+  GROUP BY s2.TABLE_NAME, s2.INDEX_NAME;
+
+  INSERT INTO control_cloud.diff_all(categoria, objeto, detalle, sql_sugerido, creado_en)
+  SELECT 'INDICE', CONCAT(tabla_nombre, '.', indice_nombre), detalle, sql_sugerido, creado_en
+  FROM control_cloud.diff_indices;
+
+  /****************************************************************
+   * 4) FOREIGN KEYS - faltantes / sobrantes
+   ****************************************************************/
+  INSERT INTO control_cloud.diff_fk(tipo, tabla_nombre, fk_name, detalle, sql_sugerido, creado_en)
+  SELECT
+    'FALTANTE',
+    k.TABLE_NAME,
+    k.CONSTRAINT_NAME,
+    CONCAT(
+      'REFERENCES ',
+      k.REFERENCED_TABLE_NAME,
+      '(', GROUP_CONCAT(k.COLUMN_NAME ORDER BY k.ORDINAL_POSITION SEPARATOR ','), ')'
+    ) AS detalle,
+    CONCAT(
+      'ALTER TABLE `', p_base2, '`.`', k.TABLE_NAME, '` ADD CONSTRAINT `', k.CONSTRAINT_NAME, '` FOREIGN KEY (',
+      (SELECT GROUP_CONCAT(CONCAT('`', k2.COLUMN_NAME, '`') ORDER BY k2.ORDINAL_POSITION SEPARATOR ',')
+         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE k2
+         WHERE k2.TABLE_SCHEMA COLLATE utf8_general_ci = p_base1 COLLATE utf8_general_ci
+           AND k2.TABLE_NAME COLLATE utf8_general_ci = k.TABLE_NAME COLLATE utf8_general_ci
+           AND k2.CONSTRAINT_NAME COLLATE utf8_general_ci = k.CONSTRAINT_NAME COLLATE utf8_general_ci
+      ),
+      ') REFERENCES `', k.REFERENCED_TABLE_SCHEMA, '`.`', k.REFERENCED_TABLE_NAME, '`(',
+      (SELECT GROUP_CONCAT(CONCAT('`', k3.REFERENCED_COLUMN_NAME, '`') ORDER BY k3.ORDINAL_POSITION SEPARATOR ',')
+         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE k3
+         WHERE k3.TABLE_SCHEMA COLLATE utf8_general_ci = p_base1 COLLATE utf8_general_ci
+           AND k3.TABLE_NAME COLLATE utf8_general_ci = k.TABLE_NAME COLLATE utf8_general_ci
+           AND k3.CONSTRAINT_NAME COLLATE utf8_general_ci = k.CONSTRAINT_NAME COLLATE utf8_general_ci
+      ),
+      ') ON DELETE ',
+      IFNULL((SELECT rc.DELETE_RULE FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS rc
+               WHERE rc.CONSTRAINT_NAME COLLATE utf8_general_ci = k.CONSTRAINT_NAME COLLATE utf8_general_ci
+                 AND rc.CONSTRAINT_SCHEMA COLLATE utf8_general_ci = p_base1 COLLATE utf8_general_ci
+               LIMIT 1), 'RESTRICT'),
+      ' ON UPDATE ',
+      IFNULL((SELECT rc.UPDATE_RULE FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS rc
+               WHERE rc.CONSTRAINT_NAME COLLATE utf8_general_ci = k.CONSTRAINT_NAME COLLATE utf8_general_ci
+                 AND rc.CONSTRAINT_SCHEMA COLLATE utf8_general_ci = p_base1 COLLATE utf8_general_ci
+               LIMIT 1), 'RESTRICT'),
+      ';'
+    ),
+    v_now
+  FROM (
+    SELECT
+      kcu.CONSTRAINT_NAME,
+      kcu.TABLE_NAME,
+      kcu.COLUMN_NAME,
+      kcu.ORDINAL_POSITION,
+      kcu.REFERENCED_TABLE_NAME,
+      kcu.REFERENCED_TABLE_SCHEMA
+    FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
+    WHERE kcu.TABLE_SCHEMA COLLATE utf8_general_ci = p_base1 COLLATE utf8_general_ci
+      AND kcu.REFERENCED_TABLE_NAME IS NOT NULL
+  ) k
+  LEFT JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kn
+    ON kn.CONSTRAINT_NAME COLLATE utf8_general_ci = k.CONSTRAINT_NAME COLLATE utf8_general_ci
+   AND kn.TABLE_SCHEMA COLLATE utf8_general_ci = p_base2 COLLATE utf8_general_ci
+  WHERE kn.CONSTRAINT_NAME IS NULL
+  GROUP BY k.CONSTRAINT_NAME, k.TABLE_NAME, k.REFERENCED_TABLE_SCHEMA, k.REFERENCED_TABLE_NAME;
+
+  -- FK sobrantes en destino
+  INSERT INTO control_cloud.diff_fk(tipo, tabla_nombre, fk_name, detalle, sql_sugerido, creado_en)
+  SELECT
+    'SOBRANTE',
+    k2.TABLE_NAME,
+    k2.CONSTRAINT_NAME,
+    CONCAT('REFERENCES ', k2.REFERENCED_TABLE_NAME, '(', GROUP_CONCAT(k2.COLUMN_NAME ORDER BY k2.ORDINAL_POSITION SEPARATOR ','), ')'),
+    CONCAT('ALTER TABLE `', p_base2, '`.`', k2.TABLE_NAME, '` DROP FOREIGN KEY `', k2.CONSTRAINT_NAME, '`;'),
+    v_now
+  FROM (
+    SELECT kcu.CONSTRAINT_NAME, kcu.TABLE_NAME, kcu.COLUMN_NAME, kcu.ORDINAL_POSITION, kcu.REFERENCED_TABLE_NAME
+    FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
+    WHERE kcu.TABLE_SCHEMA COLLATE utf8_general_ci = p_base2 COLLATE utf8_general_ci
+      AND kcu.REFERENCED_TABLE_NAME IS NOT NULL
+  ) k2
+  LEFT JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE k1
+    ON k1.CONSTRAINT_NAME COLLATE utf8_general_ci = k2.CONSTRAINT_NAME COLLATE utf8_general_ci
+   AND k1.TABLE_SCHEMA COLLATE utf8_general_ci = p_base1 COLLATE utf8_general_ci
+  WHERE k1.CONSTRAINT_NAME IS NULL
+  GROUP BY k2.CONSTRAINT_NAME, k2.TABLE_NAME;
+
+  INSERT INTO control_cloud.diff_all(categoria, objeto, detalle, sql_sugerido, creado_en)
+  SELECT 'FK', CONCAT(tabla_nombre, '.', fk_name), detalle, sql_sugerido, creado_en
+  FROM control_cloud.diff_fk;
+
+  /****************************************************************
+   * 5) VIEWS - faltantes / sobrantes (modo A: placeholder)
+   ****************************************************************/
+  INSERT INTO control_cloud.diff_views(tipo, view_name, detalle, sql_sugerido, creado_en)
+  SELECT
+    'FALTANTE',
+    v1.TABLE_NAME,
+    'Existe en origen y no en destino',
+    CONCAT('-- Crear VIEW: ejecutar SHOW CREATE VIEW ', p_base1, '.', v1.TABLE_NAME, ' y pegar aquí'),
+    v_now
+  FROM INFORMATION_SCHEMA.VIEWS v1
+  LEFT JOIN INFORMATION_SCHEMA.VIEWS v2
+    ON v1.TABLE_NAME COLLATE utf8_general_ci = v2.TABLE_NAME COLLATE utf8_general_ci
+   AND v2.TABLE_SCHEMA COLLATE utf8_general_ci = p_base2 COLLATE utf8_general_ci
+  WHERE v1.TABLE_SCHEMA COLLATE utf8_general_ci = p_base1 COLLATE utf8_general_ci
+    AND v2.TABLE_NAME IS NULL;
+
+  INSERT INTO control_cloud.diff_views(tipo, view_name, detalle, sql_sugerido, creado_en)
+  SELECT
+    'SOBRANTE',
+    v2.TABLE_NAME,
+    'Existe en destino y no en origen',
+    CONCAT('DROP VIEW IF EXISTS `', p_base2, '`.`', v2.TABLE_NAME, '`;'),
+    v_now
+  FROM INFORMATION_SCHEMA.VIEWS v2
+  LEFT JOIN INFORMATION_SCHEMA.VIEWS v1
+    ON v1.TABLE_NAME COLLATE utf8_general_ci = v2.TABLE_NAME COLLATE utf8_general_ci
+   AND v1.TABLE_SCHEMA COLLATE utf8_general_ci = p_base1 COLLATE utf8_general_ci
+  WHERE v2.TABLE_SCHEMA COLLATE utf8_general_ci = p_base2 COLLATE utf8_general_ci
+    AND v1.TABLE_NAME IS NULL;
+
+  INSERT INTO control_cloud.diff_all(categoria, objeto, detalle, sql_sugerido, creado_en)
+  SELECT 'VISTA', view_name, detalle, sql_sugerido, creado_en FROM control_cloud.diff_views;
+
+  /****************************************************************
+   * 6) TRIGGERS - faltantes / sobrantes (modo A: placeholder)
+   ****************************************************************/
+  INSERT INTO control_cloud.diff_triggers(tipo, trigger_name, on_table, detalle, sql_sugerido, creado_en)
+  SELECT
+    'FALTANTE',
+    t1.TRIGGER_NAME,
+    t1.EVENT_OBJECT_TABLE,
+    CONCAT('EVENT=', t1.EVENT_MANIPULATION, ' TIME=', t1.ACTION_TIMING),
+    CONCAT('-- Crear TRIGGER: ejecutar SHOW CREATE TRIGGER ', p_base1, '.', t1.TRIGGER_NAME, ' y pegar aquí'),
+    v_now
+  FROM INFORMATION_SCHEMA.TRIGGERS t1
+  LEFT JOIN INFORMATION_SCHEMA.TRIGGERS t2
+    ON t1.TRIGGER_NAME COLLATE utf8_general_ci = t2.TRIGGER_NAME COLLATE utf8_general_ci
+   AND t2.TRIGGER_SCHEMA COLLATE utf8_general_ci = p_base2 COLLATE utf8_general_ci
+  WHERE t1.TRIGGER_SCHEMA COLLATE utf8_general_ci = p_base1 COLLATE utf8_general_ci
+    AND t2.TRIGGER_NAME IS NULL;
+
+  INSERT INTO control_cloud.diff_triggers(tipo, trigger_name, on_table, detalle, sql_sugerido, creado_en)
+  SELECT
+    'SOBRANTE',
+    t2.TRIGGER_NAME,
+    t2.EVENT_OBJECT_TABLE,
+    CONCAT('EVENT=', t2.EVENT_MANIPULATION, ' TIME=', t2.ACTION_TIMING),
+    CONCAT('DROP TRIGGER IF EXISTS `', p_base2, '`.`', t2.TRIGGER_NAME, '`;'),
+    v_now
+  FROM INFORMATION_SCHEMA.TRIGGERS t2
+  LEFT JOIN INFORMATION_SCHEMA.TRIGGERS t1
+    ON t1.TRIGGER_NAME COLLATE utf8_general_ci = t2.TRIGGER_NAME COLLATE utf8_general_ci
+   AND t1.TRIGGER_SCHEMA COLLATE utf8_general_ci = p_base1 COLLATE utf8_general_ci
+  WHERE t2.TRIGGER_SCHEMA COLLATE utf8_general_ci = p_base2 COLLATE utf8_general_ci
+    AND t1.TRIGGER_NAME IS NULL;
+
+  INSERT INTO control_cloud.diff_all(categoria, objeto, detalle, sql_sugerido, creado_en)
+  SELECT 'TRIGGER', trigger_name, detalle, sql_sugerido, creado_en FROM control_cloud.diff_triggers;
+
+  /****************************************************************
+   * 7) ROUTINES (PROCEDURES / FUNCTIONS) - faltantes / modificadas
+   ****************************************************************/
+
+
+INSERT INTO control_cloud.diff_routines(tipo, routine_name, routine_type, detalle, sql_sugerido, creado_en)
+SELECT
+    'FALTANTE',
+    p1.name AS routine_name,
+    UPPER(p1.type) AS routine_type,
+    CONCAT('EXISTS in ', p_base1, ' and not in ', p_base2),
+    CONCAT('-- Crear usando SHOW CREATE ', UPPER(p1.type), p_base1,'.', p1.name),
+    SYSDATE()
+FROM mysql.proc p1
+LEFT JOIN mysql.proc p2
+       ON p1.name = p2.name
+      AND p2.db = p_base2
+WHERE p1.db = p_base1
+  AND p2.name IS NULL;    
+    
+    
+    
+
+  -- routines potencialmente modificadas por LAST_ALTERED
+INSERT INTO control_cloud.diff_routines
+(
+    tipo,
+    routine_name,
+    routine_type,
+    detalle,
+    sql_sugerido,
+    creado_en
+)
+SELECT
+    'MODIFICADA_POTENCIAL',
+    p1.name AS routine_name,
+    UPPER(p1.type) AS routine_type,
+    CONCAT(
+        'MODIFIED1=', IFNULL(p1.modified,'NULL'),
+        ' | MODIFIED2=', IFNULL(p2.modified,'NULL')
+    ) AS detalle,
+    CONCAT(
+        '-- Revisar rutina: ejecutar SHOW CREATE ',
+        UPPER(p1.type), ' ',
+        p_base1, '.', p1.name
+    ) AS sql_sugerido,
+    v_now
+FROM mysql.proc p1
+JOIN mysql.proc p2
+      ON p1.name = p2.name
+     AND p2.db = p_base2
+WHERE p1.db = p_base1
+  AND IFNULL(p1.modified,'') <> IFNULL(p2.modified,'');
+
+    
+
+  INSERT INTO control_cloud.diff_all(categoria, objeto, detalle, sql_sugerido, creado_en)
+  SELECT 'ROUTINE', CONCAT(routine_name,' (',routine_type,')'), detalle, sql_sugerido, creado_en FROM control_cloud.diff_routines;
+
+
+  /****************************************************************
+   * 9) VOLCAR todo SQL válido en diff_sql (omitimos placeholders que son comentarios)
+   ****************************************************************/
+  SET @rn := 0;
+
+  INSERT INTO control_cloud.diff_sql(orden, sql_line)
+  SELECT
+    (@rn := @rn + 1) AS orden,
+    sql_sugerido
+  FROM control_cloud.diff_all
+  WHERE sql_sugerido IS NOT NULL
+    AND TRIM(sql_sugerido COLLATE utf8_general_ci) <> ''
+    AND LEFT(TRIM(sql_sugerido COLLATE utf8_general_ci),2) <> '--'
+  ORDER BY id;
+
+  -- FIN
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `copy_sp_to_all_dbs` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb3 */ ;
+/*!50003 SET character_set_results = utf8mb3 */ ;
+/*!50003 SET collation_connection  = utf8mb3_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
+DELIMITER ;;
+CREATE DEFINER=`pjara`@`10.3.%.%` PROCEDURE `copy_sp_to_all_dbs`()
+BEGIN
+    DECLARE done INT DEFAULT 0;
+    DECLARE dbName VARCHAR(200);
+    DECLARE createSp LONGTEXT;
+
+    -- Cursor con bases válidas
+    DECLARE cur CURSOR FOR
+        SELECT SCHEMA_NAME 
+        FROM INFORMATION_SCHEMA.SCHEMATA
+        WHERE SCHEMA_NAME LIKE 'taxochil_ac-%';
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    -- 1) Obtener el CREATE PROCEDURE original
+    SELECT ROUTINE_DEFINITION 
+    INTO createSp
+    FROM INFORMATION_SCHEMA.ROUTINES
+    WHERE ROUTINE_SCHEMA = 'taxochil_ac-junji-demo'
+      AND ROUTINE_NAME = 'PRC_VIEW_MAT_UPDATE_CRUD_ACTIVOS'
+      AND ROUTINE_TYPE = 'PROCEDURE';
+
+    IF createSp IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERROR: El procedimiento no existe en la base origen.';
+    END IF;
+
+    -- 2) Abrir cursor
+    OPEN cur;
+
+    read_loop: LOOP
+        FETCH cur INTO dbName;
+        IF done = 1 THEN
+            LEAVE read_loop;
+        END IF;
+
+        SET @sql = CONCAT(
+            'DROP PROCEDURE IF EXISTS `', dbName, '`.`PRC_VIEW_MAT_UPDATE_CRUD_ACTIVOS`'
+        );
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+
+        SET @sql = CONCAT(
+            'CREATE DEFINER=CURRENT_USER PROCEDURE `', dbName, '`.`PRC_VIEW_MAT_UPDATE_CRUD_ACTIVOS`() ',
+            createSp
+        );
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+
+    END LOOP;
+
+    CLOSE cur;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `PRC_CREAR_USUARIO` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb3 */ ;
+/*!50003 SET character_set_results = utf8mb3 */ ;
+/*!50003 SET collation_connection  = utf8mb3_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
+DELIMITER ;;
+CREATE DEFINER=`pjara`@`10.3.%.%` PROCEDURE `PRC_CREAR_USUARIO`(
+	IN in_idProyecto VARCHAR(5),
+	IN in_userLogin VARCHAR(50),
+	IN in_userPass VARCHAR(20),
+	IN in_userMail VARCHAR(50)
+	
+    )
+BEGIN
+
+declare varExiste INT DEFAULT 0; 
+
+select count(user_login)into varExiste 
+  from `users_cloud`
+ where user_login = in_userLogin;
+		
+if varExiste = 0 then
+	INSERT INTO `users_cloud`(`user_login`,`user_pw`,`clie_id_fk`,`user_estado`,`email`)
+	VALUES(in_userLogin,in_userPass,in_idProyecto,'1',in_userMail);
+else
+	update users_cloud 
+	   set user_pw = in_userPass,
+	       email = in_userMail
+	where user_login = in_userLogin;
+end if;
+		
+
+		
+	END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `SP_ACTUALIZA_VALORES_DEPRECIACION` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb3 */ ;
+/*!50003 SET character_set_results = utf8mb3 */ ;
+/*!50003 SET collation_connection  = utf8mb3_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
+DELIMITER ;;
+CREATE DEFINER=`pjara`@`10.3.%.%` PROCEDURE `SP_ACTUALIZA_VALORES_DEPRECIACION`(
+in_NombreTabla VARCHAR(255)
+)
+BEGIN
+	
+	
+	DECLARE in_NombreCampo VARCHAR(255);
+        DECLARE bd_name VARCHAR(255);
+        DECLARE str_sql_uno VARCHAR(5000);
+        DECLARE str_sql_dos VARCHAR(5000);
+        DECLARE str_sql_tres VARCHAR(5000);
+        DECLARE str_sql_cuatro VARCHAR(5000);
+        DECLARE end_of_tables INT DEFAULT 0;
+        DECLARE var_TablaExiste INT DEFAULT 0;
+        DECLARE var_campoExiste INT DEFAULT 0;
+        #DECLARE var_baseExiste INT DEFAULT 0;
+        
+        #
+        # CONTROL DE ERRORES
+        #
+        DECLARE CODE CHAR(5) DEFAULT '00000';
+	DECLARE msg TEXT;
+	DECLARE nrows INT;
+	DECLARE result TEXT;
+	#
+	#
+	#
+
+        DECLARE cur CURSOR FOR                                                                                                                                                  
+            SELECT DISTINCT TABLE_SCHEMA FROM information_schema.tables
+		      WHERE TABLE_NAME = in_NombreTabla COLLATE utf8_general_ci; 
+		                                                                                                         
+        DECLARE CONTINUE HANDLER FOR NOT FOUND SET end_of_tables = 1; 
+         
+	#CONTROL DE ERRORES	
+	
+        DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+	    BEGIN
+	      GET DIAGNOSTICS CONDITION 1
+		CODE = RETURNED_SQLSTATE, msg = MESSAGE_TEXT;
+	    END;                                                                                                         
+	
+        OPEN cur;                                                                                                                                                               
+
+        tables_loop: LOOP                                                                                                                                                       
+            FETCH cur INTO bd_name;                                                                                                                                          
+
+            IF end_of_tables = 1 THEN                                                                                                                                           
+                LEAVE tables_loop;                                                                                                                                              
+            END IF;
+         --                                                                                                                                                             
+	 -- REVISO SI LA TABLA EXITE
+	 --
+	 SET var_TablaExiste = 0;
+	 
+	 SELECT COUNT(*) INTO var_TablaExiste
+	   FROM information_schema.tables
+           WHERE table_schema = bd_name COLLATE utf8_general_ci
+            AND table_name = in_NombreTabla COLLATE utf8_general_ci
+          LIMIT 1; 	
+		IF var_TablaExiste > 0 THEN
+			#   
+			# SI EL CLIENTE ES JUNJI, SE ACTUALIZAN VALORES 
+			#   
+			SET str_sql_uno = '';	
+			SET str_sql_dos = '';	
+			SET str_sql_tres = '';	
+			SET str_sql_cuatro = '';
+			
+			SET str_sql_cuatro = CONCAT(" UPDATE "	,
+						    "`",bd_name,"`",".","`",in_NombreTabla,"`",
+						   " SET ","`",bd_name,"`",".","`","crud_activos.vidaUtil = 
+							CASE 	
+								WHEN usar = 1 THEN ","`",bd_name,"`",".","`","categoria_n3.vidaUtilSiiNormal
+								WHEN usar = 2 THEN ","`",bd_name,"`",".","`","categoria_n3.vidaUtilSiiAcelerada
+								WHEN usar = 3 THEN ","`",bd_name,"`",".","`","categoria_n3.vidaUtilCliente
+							ELSE
+								","`",bd_name,"`",".","`","categoria_n3.vidaUtilSiiNormal
+							END ");
+			
+			IF LENGTH(str_sql_cuatro) > 0 THEN
+				 	
+				    SET CODE = '00000';
+				    SET @s_completo = str_sql_cuatro;		
+					PREPARE stmt FROM @s_completo;                                                                                                                                               
+					EXECUTE stmt;   
+					DEALLOCATE PREPARE stmt; 
+					
+				     IF CODE = '00000' THEN
+					GET DIAGNOSTICS nrows = ROW_COUNT;
+					INSERT INTO log_evento_actualiza_valores(tipo,fecha,dato,codigo,mensaje) VALUES ('CORRECTO-CUATRO',SYSDATE(),@s_completo,'','');
+				      ELSE
+					# SE PRODUCE UN ERROR
+					INSERT INTO log_evento_actualiza_valores(tipo,fecha,dato,codigo,mensaje) VALUES ('ERROR-CUATRO',SYSDATE(),@s_completo,CODE,msg);
+				     END IF;
+				     
+			END IF;
+				
+				
+			
+			IF bd_name = 'taxochil_ac-junji-demo' OR bd_name = 'taxochil_ac-junji' THEN
+				SET str_sql_uno = CONCAT(" UPDATE ", 
+								 "`",bd_name,"`",".`crud_activos`
+								SET valorActual = `control_cloud`.`FN_CAL_DEPRE_v2`('VALORACTUAL',valorCompra,vidaUtil,fechaActivacion,DATE(SYSDATE())) 
+							      WHERE tipoAlta IN (SELECT idTipo 
+										      FROM ","`",bd_name,"`",".`tipo_altas` 
+										    WHERE depreciable = '1'); ");
+				SET str_sql_dos = CONCAT(" UPDATE ",
+								"`",bd_name,"`",".`crud_activos`
+								 SET valorActual = 0 
+								WHERE tipoAlta IN (SELECT idTipo 
+										     FROM ","`",bd_name,"`",".`tipo_altas` 
+										    WHERE depreciable = '0'); ");
+
+			END IF;	
+			--
+			-- TABLA EXISTE, REVISAR CAMPO A CREAR
+			-- MAS ADELANDE MODIFICAR
+			--
+			SET in_NombreCampo ='valorActual';
+			SET var_campoExiste  = 0;
+			SELECT COUNT(*) INTO var_campoExiste
+			  FROM information_schema.columns 
+			 WHERE TABLE_SCHEMA = bd_name COLLATE utf8_general_ci
+			   AND TABLE_NAME = in_NombreTabla COLLATE utf8_general_ci
+			   AND COLUMN_NAME  = in_NombreCampo COLLATE utf8_general_ci; 
+			   
+			   IF var_campoExiste > 0 THEN
+				-- EXISTE EL CAMPO
+				SET str_sql_tres = CONCAT(" UPDATE ",
+						    "`",bd_name,"`",".","`",in_NombreTabla,"`",
+						   " SET 
+					 valorActual  = `control_cloud`.`FN_CAL_DEPRE_v2`('VALORACTUAL',valorCompra,vidaUtil,DATE(fechaActivacion),DATE(SYSDATE())),
+					    mesesVan  = `control_cloud`.`FN_CAL_DEPRE_v2`('MESESVAN',valorCompra,vidaUtil,DATE(fechaActivacion),DATE(SYSDATE())),
+			            mesesQuedanFecha  = `control_cloud`.`FN_CAL_DEPRE_v2`('MESESQUEDAN',valorCompra,vidaUtil,DATE(fechaActivacion),DATE(SYSDATE())),
+			              depreAcumulada  = `control_cloud`.`FN_CAL_DEPRE_v2`('ACUMULADA',valorCompra,vidaUtil,fechaActivacion,DATE(SYSDATE())),
+					depreMensual  = `control_cloud`.`FN_CAL_DEPRE_v2`('VALORMESUAL',valorCompra,vidaUtil,fechaActivacion,DATE(SYSDATE())) ,
+					deprePeriodo  = `control_cloud`.`FN_CAL_DEPRE_v2`('VALORPERIODO',valorCompra,vidaUtil,fechaActivacion,DATE(SYSDATE())); 
+							");
+			
+			
+				IF LENGTH(str_sql_tres) > 0 THEN
+				
+				    SET @s_completo = str_sql_tres;
+				    PREPARE stmt FROM @s_completo;                                                                                                                                               
+				    EXECUTE stmt;   
+				    DEALLOCATE PREPARE stmt; 
+				  
+				   IF CODE = '00000' THEN
+				      GET DIAGNOSTICS nrows = ROW_COUNT;
+				      INSERT INTO log_evento_actualiza_valores(tipo,fecha,dato,codigo,mensaje) VALUES ('CORRECTO-NORMAL',SYSDATE(),@s_completo,'','');
+				    ELSE
+					# SE PRODUCE UN ERROR
+					INSERT INTO log_evento_actualiza_valores(tipo,fecha,dato,codigo,mensaje) VALUES ('ERROR-NORMAL',SYSDATE(),@s_completo,CODE,msg);
+				    END IF;
+				    
+				END IF;	
+			
+			
+				if LENGTH(str_sql_uno) > 0 then	
+				
+				    SET CODE = '00000';
+				    SET @s_completo = str_sql_uno;
+					PREPARE stmt FROM @s_completo;                                                                                                                                               
+					EXECUTE stmt;   
+					DEALLOCATE PREPARE stmt; 
+					
+				    IF CODE = '00000' THEN
+					GET DIAGNOSTICS nrows = ROW_COUNT;
+					INSERT INTO log_evento_actualiza_valores(tipo,fecha,dato,codigo,mensaje) VALUES ('CORRECTO-UNO',SYSDATE(),@s_completo,'','');
+				     ELSE
+					# SE PRODUCE UN ERROR
+					INSERT INTO log_evento_actualiza_valores(tipo,fecha,dato,codigo,mensaje) VALUES ('ERROR-UNO',SYSDATE(),@s_completo,CODE,msg);
+				    END IF;
+				    
+				 end if;
+				
+				 IF LENGTH(str_sql_dos) > 0 THEN
+				 	
+				    SET CODE = '00000';
+				    SET @s_completo = str_sql_dos;		
+					PREPARE stmt FROM @s_completo;                                                                                                                                               
+					EXECUTE stmt;   
+					DEALLOCATE PREPARE stmt; 
+					
+				     IF CODE = '00000' THEN
+					GET DIAGNOSTICS nrows = ROW_COUNT;
+					INSERT INTO log_evento_actualiza_valores(tipo,fecha,dato,codigo,mensaje) VALUES ('CORRECTO-DOS',SYSDATE(),@s_completo,'','');
+				      ELSE
+					# SE PRODUCE UN ERROR
+					INSERT INTO log_evento_actualiza_valores(tipo,fecha,dato,codigo,mensaje) VALUES ('ERROR-DOS',SYSDATE(),@s_completo,CODE,msg);
+				     END IF;
+				     
+				  end if;
+				  
+				 
+				  
+				  
+			   else
+				INSERT INTO log_evento_actualiza_valores(tipo,fecha,dato,codigo,mensaje) 
+				VALUES ('ERROR-NO-EXISTE',SYSDATE(),CONCAT(bd_name,'--',in_NombreTabla,'--',in_NombreCampo),'','NO EXISTE');
+			   end if;
+			
+		END IF;
+
+        END LOOP;                                                                                                                                                               
+
+    CLOSE cur; 
+
+	END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `SP_API_GET_BAJAS` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb3 */ ;
+/*!50003 SET character_set_results = utf8mb3 */ ;
+/*!50003 SET collation_connection  = utf8mb3_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
+DELIMITER ;;
+CREATE DEFINER=`pjara`@`10.3.%.%` PROCEDURE `SP_API_GET_BAJAS`(
+	in_usuario VARCHAR(120)    
+    )
+BEGIN
+
+
+
+SELECT etiqueta, idMotivo, usuario 
+FROM `taxochil_ac-junji-demo`.`bajas_documentos`
+WHERE DATE(fechaActualizacion) = DATE('2023-10-02');
+
+
+	END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `SP_CREAR_CAMPO_ALL_BASE_DATOS` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb3 */ ;
+/*!50003 SET character_set_results = utf8mb3 */ ;
+/*!50003 SET collation_connection  = utf8mb3_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
+DELIMITER ;;
+CREATE DEFINER=`pjara`@`10.3.%.%` PROCEDURE `SP_CREAR_CAMPO_ALL_BASE_DATOS`(
+IN in_NombreTabla VARCHAR(50),
+IN in_NombreCampo VARCHAR(50),
+in in_crearTabla varchar(1),
+in in_tipo_dato  varchar(10)
+)
+BEGIN                                                                                                                                                                           
+
+#
+# in_crearTabla = 0 NO CREAR TABLA
+#		  1 SI CREA TABLA
+# 				
+
+        DECLARE bd_name VARCHAR(255);                                                                                                                                        
+        DECLARE end_of_tables INT DEFAULT 0;                                                                                                                                    
+        DECLARE var_TablaExiste INT DEFAULT 0;                                                                                                                                    
+        DECLARE var_campoExiste INT DEFAULT 0;
+
+        DECLARE cur CURSOR FOR    
+		SELECT DISTINCT TABLE_SCHEMA 
+			 FROM information_schema.tables; 
+		/*                                                                                                                                              
+		IF in_crearTabla = '1' THEN
+			SELECT DISTINCT TABLE_SCHEMA 
+			 FROM information_schema.tables; 
+		ELSE
+			SELECT DISTINCT TABLE_SCHEMA 
+			 FROM information_schema.tables
+			WHERE TABLE_NAME = in_NombreTabla COLLATE utf8_general_ci; 
+		END IF;
+		*/
+		                                                                                                         
+        DECLARE CONTINUE HANDLER FOR NOT FOUND SET end_of_tables = 1;                                                                                                           
+
+        OPEN cur;                                                                                                                                                               
+
+        tables_loop: LOOP                                                                                                                                                       
+            FETCH cur INTO bd_name;                                                                                                                                          
+
+            IF end_of_tables = 1 THEN                                                                                                                                           
+                LEAVE tables_loop;                                                                                                                                              
+            END IF;                                                                                                                                                             
+	 -- REVISO SI LA TABLA EXITE
+	 set var_TablaExiste = 0;
+	 
+	 SELECT COUNT(*) INTO var_TablaExiste
+	   FROM information_schema.tables
+           WHERE table_schema = bd_name COLLATE utf8_general_ci
+            AND table_name = in_NombreTabla  COLLATE utf8_general_ci
+          LIMIT 1; 	
+		if var_TablaExiste > 0 then
+			IF SUBSTRING(bd_name,1,11) = 'taxochil_ac' THEN
+				-- TABLA EXISTE, REVISAR CAMPO A CREAR
+				-- MAS ADELANDE MODIFICAR
+				set var_campoExiste  = 0;
+				SELECT count(*) into var_campoExiste
+				  FROM information_schema.columns 
+				 WHERE TABLE_SCHEMA = bd_name COLLATE utf8_general_ci
+				   AND TABLE_NAME = in_NombreTabla COLLATE utf8_general_ci
+				   AND COLUMN_NAME  = in_NombreCampo COLLATE utf8_general_ci; 
+				   
+				  IF var_campoExiste = 0 THEN
+					-- CAMPO NO EXISTE, DEBO CREAR EL CAMPO EN LA TABLA Y BD
+					    SET @s = CONCAT('ALTER TABLE ',
+							    '`',bd_name,'`','.', in_NombreTabla,
+							   ' ADD COLUMN ',
+							    in_NombreCampo , ' varchar(20)');
+					   -- select @s; 			
+					    PREPARE stmt FROM @s;                                                                                                                                               
+					    EXECUTE stmt;      
+					
+				  end if;
+			END IF;
+		else
+			IF in_crearTabla = '1' THEN
+			  if substring(bd_name,1,11) = 'taxochil_ac' then
+				#NO EXISTE TABLA , RUTINA PARA CREAR TABLA
+				SET @s = CONCAT( 'CREATE TABLE '
+					'`',bd_name,'`','.', in_NombreTabla,
+						'( `idTipoDireccion` INT NOT NULL AUTO_INCREMENT,
+						 `descripcion` VARCHAR(255), PRIMARY KEY (`idTipoDireccion`))' ); 
+					#SELECT @s; 
+					    PREPARE stmt FROM @s;                                                                                                                                               
+					    EXECUTE stmt;
+			   end if;
+			 END IF;
+		end if;
+
+        END LOOP;                                                                                                                                                               
+
+        CLOSE cur;                                                                                                                                                              
+    END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `SP_CREAR_CAMPO_ALL_BASE_DATOS_V2` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb3 */ ;
+/*!50003 SET character_set_results = utf8mb3 */ ;
+/*!50003 SET collation_connection  = utf8mb3_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
+DELIMITER ;;
+CREATE DEFINER=`pjara`@`10.3.%.%` PROCEDURE `SP_CREAR_CAMPO_ALL_BASE_DATOS_V2`(
+	IN in_NombreTabla VARCHAR(50),
+	IN in_NombreCampo VARCHAR(50),
+	IN in_crearTabla VARCHAR(1),
+	IN in_tipo_dato  VARCHAR(10),
+	IN in_longitud VARCHAR(10),
+	IN in_default VARCHAR(50),
+	IN in_after VARCHAR(50)
+    )
+BEGIN
+		DECLARE bd_name VARCHAR(255);                                                                                                                                        
+		DECLARE end_of_tables INT DEFAULT 0;                                                                                                                                    
+		DECLARE var_TablaExiste INT DEFAULT 0;                                                                                                                                    
+		DECLARE var_campoExiste INT DEFAULT 0;
+		
+		DECLARE fix_default VARCHAR(50);
+		
+
+
+		DECLARE cur CURSOR FOR    
+			SELECT DISTINCT TABLE_SCHEMA 
+				 FROM information_schema.tables; 
+			/*                                                                                                                                              
+			IF in_crearTabla = '1' THEN
+				SELECT DISTINCT TABLE_SCHEMA 
+				 FROM information_schema.tables; 
+			ELSE
+				SELECT DISTINCT TABLE_SCHEMA 
+				 FROM information_schema.tables
+				WHERE TABLE_NAME = in_NombreTabla COLLATE utf8_general_ci; 
+			END IF;
+			*/
+																 
+		DECLARE CONTINUE HANDLER FOR NOT FOUND SET end_of_tables = 1;                                                                                                           
+
+		OPEN cur;                                                                                                                                                               
+
+		tables_loop: LOOP                                                                                                                                                       
+		    FETCH cur INTO bd_name;                                                                                                                                          
+
+		    IF end_of_tables = 1 THEN                                                                                                                                           
+			LEAVE tables_loop;                                                                                                                                              
+		    END IF;                                                                                                                                                             
+		 -- REVISO SI LA TABLA EXITE
+		 SET var_TablaExiste = 0;
+		 
+		 SELECT COUNT(*) INTO var_TablaExiste
+		   FROM information_schema.tables
+		   WHERE table_schema = bd_name COLLATE utf8_general_ci
+		    AND TABLE_NAME = in_NombreTabla  COLLATE utf8_general_ci
+		  LIMIT 1; 	
+			IF var_TablaExiste > 0 THEN
+				IF SUBSTRING(bd_name,1,11) = 'taxochil_ac' THEN
+					-- TABLA EXISTE, REVISAR CAMPO A CREAR
+					-- MAS ADELANDE MODIFICAR
+					SET var_campoExiste  = 0;
+					SELECT COUNT(*) INTO var_campoExiste
+					  FROM information_schema.columns 
+					 WHERE TABLE_SCHEMA = bd_name COLLATE utf8_general_ci
+					   AND TABLE_NAME = in_NombreTabla COLLATE utf8_general_ci
+					   AND COLUMN_NAME  = in_NombreCampo COLLATE utf8_general_ci; 
+					   
+					  IF var_campoExiste = 0 THEN
+						-- CAMPO NO EXISTE, DEBO CREAR EL CAMPO EN LA TABLA Y BD
+						
+						
+						IF in_default = 'NULL' THEN
+							SET fix_default = 'NULL';
+						ELSE
+							SET fix_default = CONCAT('\'',in_default,'\'');
+						END IF;						
+						
+						
+						
+						
+						IF in_tipo_dato = 'TEXT' THEN			
+						    
+						    SET @s = CONCAT('ALTER TABLE ',
+								    '`',bd_name,'`','.', in_NombreTabla,
+								   ' ADD COLUMN ',
+								    in_NombreCampo,' TEXT ',
+								    ' DEFAULT ',fix_default, ' AFTER ','`', in_after,'`');
+						   -- select @s; 			
+						    PREPARE stmt FROM @s;                                                                                                                                               
+						    EXECUTE stmt;
+						    
+						ELSE 
+						
+							SET @s = CONCAT('ALTER TABLE ',
+								    '`',bd_name,'`','.', in_NombreTabla,
+								   ' ADD COLUMN ',
+								    in_NombreCampo,' ',in_tipo_dato,'(',in_longitud,') ',
+								    ' DEFAULT ',fix_default, ' AFTER ','`', in_after,'`');
+						   -- select @s; 			
+						    PREPARE stmt FROM @s;                                                                                                                                               
+						    EXECUTE stmt;
+						
+						END IF;      
+						
+					  END IF;
+				END IF;
+			ELSE
+				IF in_crearTabla = '1' THEN
+				  IF SUBSTRING(bd_name,1,11) = 'taxochil_ac' THEN
+					#NO EXISTE TABLA , RUTINA PARA CREAR TABLA
+					SET @s = CONCAT( 'CREATE TABLE '
+						'`',bd_name,'`','.', in_NombreTabla,
+							'( `idTipoDireccion` INT NOT NULL AUTO_INCREMENT,
+							 `descripcion` VARCHAR(255), PRIMARY KEY (`idTipoDireccion`))' ); 
+						#SELECT @s; 
+						    PREPARE stmt FROM @s;                                                                                                                                               
+						    EXECUTE stmt;
+				   END IF;
+				 END IF;
+			END IF;
+
+		END LOOP;                                                                                                                                                               
+
+		CLOSE cur;          
+	END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+INSERT INTO `api_migrations` VALUES (1,'2014_10_12_000000_create_users_table',1);
+INSERT INTO `api_migrations` VALUES (2,'2014_10_12_100000_create_password_resets_table',1);
+INSERT INTO `api_migrations` VALUES (3,'2019_08_19_000000_create_failed_jobs_table',1);
+INSERT INTO `api_migrations` VALUES (4,'2019_12_14_000001_create_personal_access_tokens_table',1);
+INSERT INTO `api_migrations` VALUES (5,'2023_09_28_194905_create_posts_table',1);
+INSERT INTO `api_migrations` VALUES (6,'2024_09_20_144031_create_inv_ciclos_table',1);
+INSERT INTO `api_migrations` VALUES (7,'2024_09_20_222751_create_inv_ciclo_puntos_table',1);
+INSERT INTO `api_migrations` VALUES (8,'2024_10_30_115058_create_zona_puntos_table',1);
+INSERT INTO `api_migrations` VALUES (9,'2024_11_07_173158_create_emplazamientos_table',1);
+INSERT INTO `api_migrations` VALUES (10,'2024_11_12_120328_create_inv_ciclo_users_table',1);
+INSERT INTO `api_migrations` VALUES (11,'2024_11_14_154325_create_indice_lista13s_table',1);
+INSERT INTO `api_migrations` VALUES (12,'2025_01_03_105301_create_inv_conteo_registros_table',1);
+INSERT INTO `api_migrations` VALUES (13,'2025_07_23_145741_create_refresh_tokens_table',1);
+INSERT INTO `api_migrations` VALUES (14,'2025_08_27_181302_create_jobs_table',1);
