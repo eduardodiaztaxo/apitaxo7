@@ -453,6 +453,10 @@ class InventariosController extends Controller
 
         $invObj->adjusted_at = date('Y-m-d H:i:s');
 
+        $usuario = Auth::user()->name;
+
+        $invObj->modificado_por = $usuario;
+
         $invObj->save();
 
         return response()->json([
@@ -494,6 +498,10 @@ class InventariosController extends Controller
         $invObj->satellites = $request->satellites;
         $invObj->sd_lat = $request->sd_lat;
         $invObj->sd_lon = $request->sd_lon;
+
+        $usuario = Auth::user()->name;
+
+        $invObj->modificado_por = $usuario;
 
         $invObj->save();
 
