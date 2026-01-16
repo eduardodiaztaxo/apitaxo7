@@ -21,7 +21,7 @@ class LoginController extends Controller
         $this->validateLogin($request);
 
         $credentials = [
-            'name' => $request->user,
+            'email' => $request->email,
             'password' => $request->password,
             'active' => 1
         ];
