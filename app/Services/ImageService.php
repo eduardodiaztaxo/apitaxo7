@@ -310,6 +310,88 @@ class ImageService
         return $url;
     }
 
+
+    /**
+     * Move images from second disk to main disk when they have been saved in second disk.
+     *
+     * @param  string  $proyecto_id
+     * @param  string  $customer_name
+     * @param  int     $max_images
+     * @return array ['success' => int, 'failed' => int]
+     */
+    public static function moveToMainDiskWhenImagesHaveBeenSavedInSecondDisk(string $proyecto_id, string $customer_name, int $max_images = 0): array
+    {
+        
+        $urlSecondDisk = Storage::disk('taxoImages')->url('/');
+    
+        $imagesQuery = Inv_imagenes::where('id_proyecto', '=', $proyecto_id)
+            ->where('url_imagen', 'LIKE', ''.$urlSecondDisk.'%');
+
+        $imagesQuery = $max_images > 0 ? $imagesQuery->take($max_images) : $imagesQuery;
+
+        $images = $imagesQuery->get();
+
+        $result = ['success' => 0, 'failed' => 0];
+
+        foreach ($images as $image) {
+
+            $moved = self::moveImageFromSecondDiskToMainDisk($customer_name, $image->picture);
+
+            if ($moved){
+                $new_path = PictureSafinService::getImgSubdir($customer_name) . '/' . $image->picture;
+                $image->url_imagen = Storage::disk('win_images')->url($new_path);
+                $image->url_picture = Storage::disk('win_images')->url(PictureSafinService::getImgSubdir($customer_name) . '/');
+                $image->save();
+
+                $result['success'] += 1;
+            } else {
+                // log error or take appropriate action
+                $result['failed'] += 1;
+            }
+            
+        }
+
+        return $result;
+    }
+
+    
+    /**
+     * Move image from second disk to main disk.
+     * 
+     * @param  string  $customer_name   the customer name to build the subdir
+     * @param  string  $namefile
+     * @return bool true if moved, false otherwise
+     */
+    public static function moveImageFromSecondDiskToMainDisk(string $customer_name, string $namefile): bool
+    {
+        $moved = false;
+
+        $old_path = PictureSafinService::getImgSubdir($customer_name) . '/' . $namefile;
+        $new_path = PictureSafinService::getImgSubdir($customer_name) . '/' . $namefile;
+
+        try {
+
+            $content = Storage::disk('taxoImages')->get($old_path);
+
+            $moved = Storage::disk('win_images')->put($new_path, $content);
+              
+
+           
+            
+        } catch (\Exception $e) {
+            $moved = false;
+        }
+
+        try {
+            if ($moved) {
+                Storage::disk('taxoImages')->delete($old_path);
+            }
+        } catch (\Exception $e) {
+        }
+
+        return $moved;
+    }
+
     /**
      * Check if image exists in main disk or second disk.
      *
