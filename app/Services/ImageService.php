@@ -335,9 +335,17 @@ class ImageService
 
         foreach ($images as $image) {
 
-            $moved = self::moveImageFromSecondDiskToMainDisk($customer_name, $image->picture);
+            $exists = self::checkIfImageExistsInMainDisk($customer_name, $image->picture);
 
-            if ($moved){
+            $moved = false;
+
+            if(!$exists){
+                $moved = self::moveImageFromSecondDiskToMainDisk($customer_name, $image->picture);
+            }
+
+            
+
+            if ($moved || $exists) {
                 $new_path = PictureSafinService::getImgSubdir($customer_name) . '/' . $image->picture;
                 $image->url_imagen = Storage::disk('win_images')->url($new_path);
                 $image->url_picture = Storage::disk('win_images')->url(PictureSafinService::getImgSubdir($customer_name) . '/');
@@ -417,6 +425,32 @@ class ImageService
                 $exists = Storage::disk('taxoImages')->exists($path);
             } catch (\Exception $e) {
             }
+        }
+
+        return $exists;
+    }
+
+
+    /**
+     * Check if image exists in main disk.
+     *
+     * @param  string  $customer_name   the customer name to build the subdir
+     * @param  string  $namefile
+     * @return bool true if exists, false otherwise
+     */
+    public static function checkIfImageExistsInMainDisk(string $customer_name, string $namefile): bool
+    {
+        $exists = false;
+
+        try {
+
+            $path = PictureSafinService::getImgSubdir($customer_name) . '/' . $namefile;
+
+            $exists = Storage::disk('win_images')->exists($path);
+
+        } catch (\Exception $e) {
+
+            $exists = false;
         }
 
         return $exists;
