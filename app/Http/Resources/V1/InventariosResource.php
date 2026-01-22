@@ -130,12 +130,22 @@ class InventariosResource extends JsonResource
                     ->first();
             }
 
+            //Si existe n2 o n3
             if ($subEmplazamiento) {
                 $idFinal = $subEmplazamiento->idUbicacionN2 ?? $subEmplazamiento->idUbicacionN3 ?? null;
                 $codigoUbicacionFinal = $subEmplazamiento->codigoUbicacion ?? '';
-                $descripcionZoneAddress = $subEmplazamiento->descripcionUbicacion ?? '';
-                $codigoZoneAddress = $subEmplazamiento->codigoUbicacion ?? '';
+                
+                //Si es N1
+                if($emplazamiento){
+                    $descripcionZoneAddress = $emplazamiento->descripcionUbicacion ? $emplazamiento->descripcionUbicacion : '';
+                    $codigoZoneAddress = $emplazamiento->codigoUbicacion ?? '';
+                } else {
+                    $descripcionZoneAddress = $subEmplazamiento->descripcionUbicacion ?? '';
+                    $codigoZoneAddress = $subEmplazamiento->codigoUbicacion ?? '';
+                }
+
                 $nombreEmplazamiento = $subEmplazamiento->descripcionUbicacion ?? '';
+
             } elseif ($emplazamiento) {
                 $idFinal = $emplazamiento->idUbicacionN1 ?? null;
                 $codigoUbicacionFinal = $emplazamiento->codigoUbicacion ?? '';
@@ -197,6 +207,9 @@ class InventariosResource extends JsonResource
             'codigoCliente'       => $direccion->codigoCliente,
             'imagenes'             => $imagenes ?? [],
             'bien_asignado'        => $bien_asignado,
+            'codigoUbicacion_N1'   => $codigoN1,
+            'codigoUbicacion_N2'   => $codigoN2,
+            'codigoUbicacionN3'   => $codigoN3,
 
             'emplazamiento' => [
                 'id'              => $idFinal,
