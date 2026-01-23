@@ -293,9 +293,17 @@ class MapPolygonController extends Controller
             return response()->json(['error' => 'asset not found'], 404);
         }
 
-        $asset->latitud = $request->lat;
-        $asset->longitud = $request->lng;
+        $asset->adjusted_lat = $request->lat;
+        $asset->adjusted_lng = $request->lng;
 
+        $asset->adjusted_at = date('Y-m-d H:i:s');
+
+        $usuario = $request->user()->name;
+
+        $asset->adjusted_origin = 'map_tool';
+
+        $asset->adjusted_by = $usuario;
+        
         $asset->save();
 
         return response()->json($asset, 200);
