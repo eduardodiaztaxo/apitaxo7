@@ -296,6 +296,8 @@ class MapPolygonController extends Controller
         $asset->adjusted_lat = $request->lat;
         $asset->adjusted_lng = $request->lng;
 
+        $asset->adjusted_at = date('Y-m-d H:i:s');
+
         $usuario = $request->user()->name;
 
         $asset->adjusted_origin = 'map_tool';
