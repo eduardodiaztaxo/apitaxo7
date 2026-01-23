@@ -455,7 +455,9 @@ class InventariosController extends Controller
 
         $usuario = Auth::user()->name;
 
-        $invObj->modificado_por = $usuario;
+        $invObj->adjusted_origin = 'gnss_device';
+
+        $invObj->adjusted_by = $usuario;
 
         $invObj->save();
 
@@ -501,7 +503,9 @@ class InventariosController extends Controller
 
         $usuario = Auth::user()->name;
 
-        $invObj->modificado_por = $usuario;
+        $invObj->adjusted_origin = 'gnss_device';
+
+        $invObj->adjusted_by = $usuario;
 
         $invObj->save();
 
