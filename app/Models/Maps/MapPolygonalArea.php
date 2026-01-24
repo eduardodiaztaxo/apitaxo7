@@ -65,6 +65,23 @@ class MapPolygonalArea extends Model
     }
 
     /** 
+     * This function get no limit shared areas, what is a no limit shared area? 
+     * It is an area that belongs two or more parent areas and not check limits
+     * for example, polygon or area level 2 (shared area) can belong to multiple level 1 areas (neighborhoods)
+     * This relation is specificied in `map_nolimit_shared_areas` table
+     * where `area_id` is the id of the shared area (level 2) and `free_area_id` is the id of the parent area (level 1)
+     */
+    function nolimit_shared_areas()
+    {
+        return $this->belongsToMany(
+            MapPolygonalArea::class,
+            'map_nolimit_shared_areas',
+            'area_id',
+            'free_area_id'
+        );
+    }
+
+    /** 
      * Get the last photo of the markers in the area
      * 
      */

@@ -52,6 +52,13 @@ class MapPolygonController extends Controller
     public function getDescendants($parent_id)
     {
 
+        $parent_area = MapPolygonalArea::find($parent_id);
+
+        if (!$parent_area) {
+            return response()->json(['error' => 'Parent area not found'], 404);
+        }
+    
+    
         $childs_areas = MapPolygonalArea::where('parent_id', '=', $parent_id)->get();
 
         $descendants = $childs_areas;
@@ -75,6 +82,18 @@ class MapPolygonController extends Controller
             if ($childs->count() > 0)
                 $descendants = $descendants->merge($childs);
         }
+
+        //Special descendants for level 1 areas (free areas) to include also level 2 areas (shared areas)
+        if($parent_area->level === 1){
+            $shared_areas = $parent_area->nolimit_shared_areas()->get();
+            // $shared_areas = MapPolygonalArea::whereHas('nolimit_shared_areas', function ($query) use ($parent_id) {
+            //     $query->where('free_area_id', $parent_id);
+            // })->get();
+
+            if ($shared_areas->count() > 0)
+                $descendants = $descendants->merge($shared_areas);
+        }
+
 
         return response()->json(
             MapPolygonalAreaResource::collection($descendants),
@@ -112,8 +131,15 @@ class MapPolygonController extends Controller
             if (!$parent) {
                 return response()->json(['error' => 'Parent area not found'], 404);
             }
-            //EL nivel debe ser +1 superior
-            if ($parent->level !== $request->level - 1 && !($parent->level == 1 && $request->level == 10)) {
+
+            //In this case, level 2 (green areas) only can be under level 0 (city area)
+            if($request->level === 2){
+                if($parent->level!==0){
+                    return response()->json(['error' => 'Green Areas level 2 is under area city level 0'], 422);
+                }
+            } 
+            //El resto de niveles debe ser +1 superior
+            else if ($parent->level !== $request->level - 1 && !($parent->level == 1 && $request->level == 10)) {
                 return response()->json(['error' => 'Parent area level does not match '], 422);
             }
         } else {
