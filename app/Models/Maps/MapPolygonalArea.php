@@ -38,12 +38,111 @@ class MapPolygonalArea extends Model
         });
     }
 
+    /**
+     * Get inventory markers related to this area by coordinates
+     * This function get inventory markers related to this area by checking if the marker coordinates are inside the area polygon
+     * This method is less efficient than using relations, but can be used as a fallback
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function inventory_markers_by_coordinates()
+    {
+        
+        //unadjusted coordinates only
+        $markers = Inventario::where('latitud', '>=', $this->min_lat)
+            ->where('latitud', '<=', $this->max_lat)
+            ->where('longitud', '>=', $this->min_lng)
+            ->where('longitud', '<=', $this->max_lng)
+            ->where('latitud', '!=', 0)
+            ->where('longitud', '!=', 0)
+            ->whereNull('adjusted_lat') // Only unadjusted coordinates
+            ->get();
+
+        $filteredMarkers = $markers->filter(function ($marker) {
+            return $this->isPointInsidePolygon(
+                (float)$marker->latitud,
+                (float)$marker->longitud,
+                json_decode($this->area, true)
+            );
+        });
+
+        $filteredMarkers = $filteredMarkers->map(function ($inventario) {
+
+            return new MapMarkerAsset([
+                'inv_id' =>  $inventario->id_inventario,
+                'category_id' => $inventario->id_familia,
+                'name' => $inventario->descripcion_bien,
+                'fix_quality' => null,
+                'lat' => (float)$inventario->latitud,
+                'lng' => (float)$inventario->longitud,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+        });
+
+        //now adjusted coordinates
+        $markers_adjusted = Inventario::where('adjusted_lat', '>=', $this->min_lat)
+            ->where('adjusted_lat', '<=', $this->max_lat)
+            ->where('adjusted_lng', '>=', $this->min_lng)
+            ->where('adjusted_lng', '<=', $this->max_lng)
+            ->whereNotNull('adjusted_lat') // Only adjusted coordinates
+            ->get();
+
+        $filteredMarkersAdjusted = $markers_adjusted->filter(function ($marker) {
+            return $this->isPointInsidePolygon(
+                (float)$marker->adjusted_lat,
+                (float)$marker->adjusted_lng,
+                json_decode($this->area, true)
+            );
+        });
+
+        $filteredMarkersAdjusted = $filteredMarkersAdjusted->map(function ($inventario) {
+
+            return new MapMarkerAsset([
+                'inv_id' =>  $inventario->id_inventario,
+                'category_id' => $inventario->id_familia,
+                'name' => $inventario->descripcion_bien,
+                'fix_quality' => $inventario->fix_quality,
+                'lat' => (float)$inventario->adjusted_lat,
+                'lng' => (float)$inventario->adjusted_lng,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+        });
+
+        return $filteredMarkers->merge($filteredMarkersAdjusted);
+    }
+
+    /**
+     * Get inventory markers related to this area
+     * This function get inventory markers related to this area by relation model (by address or by shared area)
+     * Another way to get inventory markers is by checking if the marker coordinates are inside the area polygon
+     * This method is less efficient and not used here (see inventory_markers_by_coordinates method)
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
     public function inventory_markers()
     {
 
+        /** 
+         * If area is not an address and level is 2, then is a shared area
+         * You must find inventory markers in `map_inventory_levels_areas` table
+         * where `inventory_id` is `id_inventario` in the `Inventario::class` model and  
+         * `area_id` is the current area's id and `level` is the current area's level
+        **/
+        if(!$this->address_id && $this->level === 2){
+            
+            $preMarkers = $this->belongsToMany(
+                Inventario::class,
+                'map_inventory_levels_areas',
+                'area_id',
+                'inventory_id'
+            )->wherePivot('level', $this->level)->get();
 
-        $preMarkers = $this->hasMany(Inventario::class, 'idUbicacionGeo', 'address_id')->get();
-
+        } else if(!$this->address_id){
+            //If area is not an address and level is not 2, then return empty collection
+            return collect([]);
+        } else {
+            $preMarkers = $this->hasMany(Inventario::class, 'idUbicacionGeo', 'address_id')->get();
+        }
 
         $markers = $preMarkers->map(function ($inventario) {
 
