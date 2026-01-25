@@ -2,26 +2,26 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Maps\InventoryMarkerLevelArea;
 use App\Models\Maps\MapPolygonalArea;
-use App\Models\Maps\MarkerLevelArea;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
-class RelateMarkersToAreas extends Command
+class RelateInventoryMarkersToAreas extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'command:relate-markers-to-areas {--connection=} {--level=} {--areas_ids=}';
+    protected $signature = 'command:relate-inventory-markers-to-areas {--connection=} {--level=} {--areas_ids=}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Join markers to areas by levels';
+    protected $description = 'Join markers to areas by levels for inventory';
 
     protected $level = 0;
 
@@ -44,8 +44,8 @@ class RelateMarkersToAreas extends Command
      */
     public function handle()
     {
-
-        $this->info('Starting relate markers...');
+        
+        $this->info('Starting relate inventory markers...');
 
         $conn_field = $this->option('connection');
 
@@ -64,52 +64,41 @@ class RelateMarkersToAreas extends Command
 
         DB::setDefaultConnection($conn_field);
 
-        if ($this->level) {
+        //Level 2 green areas, no limits shared areas
+        if ($this->level==2) {
             $queryBuilder = MapPolygonalArea::where('level', '=', $this->level);
         } else {
-            $queryBuilder = MapPolygonalArea::whereIn('id', explode(',', $this->areas_ids));
+            $queryBuilder = MapPolygonalArea::whereIn('id', explode(',', $this->areas_ids))->where('level', '=', 2);
         }
 
 
         $areas = $queryBuilder->get();
 
         foreach ($areas as $area) {
+            
+            InventoryMarkerLevelArea::where('area_id', '=', $area->id)->where('level', '=', $area->level)->delete();
 
-            MarkerLevelArea::where('area_id', '=', $area->id)->where('level', '=', $area->level)->delete();
+            $markers = $area->inventory_markers_by_coordinates();
 
-            $markers = $area->markers();
+            
 
-            $this->info('Area ID: ' . $area->id . ' Name: ' . $area->name . ' - Markers found: ' . count($markers));
+            $this->info('Area ID: ' . $area->id . ' Name: ' . $area->name . ' - Inventory Markers found: ' . count($markers));
 
             foreach ($markers as $marker) {
 
-                MarkerLevelArea::updateOrCreate(
+                InventoryMarkerLevelArea::updateOrCreate(
                     [
-                        'marker_id' => $marker->id,
+                        'inventory_id' => $marker->inv_id,
                         'area_id' => $area->id,
                         'level' => $area->level
                     ],
                 );
             }
+        
         }
 
-        foreach ($areas as $area) {
-
-            $area->total_markers = $area->markersLastPhoto()->count();
-            $area->total_markers_at = now();
-            $area->save();
-
-            $punto = $area->punto;
-
-            if ($punto) {
-                $punto->q_poligono = $area->total_markers;
-                $punto->save();
-            }
-        }
-
-        $this->info('Join Markers to Polygons complete successfully.');
-
-
+        $this->info('Join Inventory Markers to Polygons complete successfully.');
+    
         return 0;
     }
 }
