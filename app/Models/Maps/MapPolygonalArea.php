@@ -6,6 +6,7 @@ use App\Models\Inventario;
 use App\Models\UbicacionGeografica;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class MapPolygonalArea extends Model
 {
@@ -166,5 +167,86 @@ class MapPolygonalArea extends Model
         ];
 
         $this->update($mapAreaArr);
+    }
+
+    public function make_as_nolimit_shared_area($level_parent)
+    {
+        //Only level 2 areas (shared areas) can be linked as nolimit shared areas
+        if($this->level !==2){
+            return;
+        }
+
+        //Link this area as nolimit shared area to all level 1 areas (free areas)
+        $parent_areas = MapPolygonalArea::where('level', $level_parent)->get();
+
+        //First, delete previous links if any
+        self::deleteNolimitSharedAreasByFreeAreaId($this->id);
+
+        foreach ($parent_areas as $parent_area) {
+            //Link only if this area is inside the parent area
+            if ($this->isAreaInsideOrIntersect($parent_area)) {
+                
+                //Link this area as nolimit shared area to the parent area
+
+                // $attach[] = [
+                //     'free_area_id' => $this->id,
+                //     'area_id' => $parent_area->id,
+                //     'level' => $parent_area->level,
+                //     'free_area_level' => $this->level,
+                //     'created_at' => now(),
+                // ];
+
+                
+
+                DB::table('map_nolimit_shared_areas')->insert([
+                    'free_area_id' => $this->id,
+                    'area_id' => $parent_area->id,
+                    'level' => $parent_area->level,
+                    'free_area_level' => $this->level,
+                    'created_at' => now(),
+                ]);
+                
+                // $this->nolimit_shared_areas()->attach($this->id, [
+                //     'area_id' => $parent_area->id,
+                //     'level' => $parent_area->level,
+                //     'free_area_level' => $this->level,
+                //     'created_at' => now(),
+                // ]);
+            }
+        }
+
+
+    }
+
+    public static function deleteNolimitSharedAreasByFreeAreaId($free_area_id)
+    {
+        DB::table('map_nolimit_shared_areas')->where('free_area_id', $free_area_id)->delete();
+    }
+
+    /**
+     * Check if area is inside another area or intersects with another area
+     */
+    public function isAreaInsideOrIntersect(MapPolygonalArea $otherArea)
+    {
+        $thisPolygon = json_decode($this->area, true);
+        $otherPolygon = json_decode($otherArea->area, true);
+
+        // Check if any point of this area is inside the other area
+        foreach ($thisPolygon as $point) {
+            if (self::isCoordinateInsideArea($point['lat'], $point['lng'], $otherPolygon)) {
+                return true;
+            }
+        }
+
+        // Check if any point of the other area is inside this area
+        foreach ($otherPolygon as $point) {
+            if (self::isCoordinateInsideArea($point['lat'], $point['lng'], $thisPolygon)) {
+                return true;
+            }
+        }
+
+        //Check for edge intersections (not implemented here for simplicity)
+
+        return false;
     }
 }
