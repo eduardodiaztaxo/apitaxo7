@@ -329,6 +329,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
 Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(function () {
     Route::post('commands/relate-markers-to-areas', [CommandController::class, 'runRelateMarkersToAreasCommand']);
+    Route::post('commands/relate-inventory-markers-to-areas', [CommandController::class, 'runRelateInventoryMarkersToAreasCommand']);
 });
 
 

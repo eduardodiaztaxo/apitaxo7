@@ -65,7 +65,7 @@ class MapPolygonalArea extends Model
             );
         });
 
-        $filteredMarkers = $filteredMarkers->map(function ($inventario) {
+        $filteredMarkersMap = $filteredMarkers->map(function ($inventario) {
 
             return new MapMarkerAsset([
                 'inv_id' =>  $inventario->id_inventario,
@@ -95,7 +95,7 @@ class MapPolygonalArea extends Model
             );
         });
 
-        $filteredMarkersAdjusted = $filteredMarkersAdjusted->map(function ($inventario) {
+        $filteredMarkersAdjustedMap = $filteredMarkersAdjusted->map(function ($inventario) {
 
             return new MapMarkerAsset([
                 'inv_id' =>  $inventario->id_inventario,
@@ -109,7 +109,11 @@ class MapPolygonalArea extends Model
             ]);
         });
 
-        return $filteredMarkers->merge($filteredMarkersAdjusted);
+        //return $filteredMarkersAdjustedMap;
+
+        $unify = $filteredMarkersMap->concat($filteredMarkersAdjustedMap);
+
+        return $unify;
     }
 
     /**
