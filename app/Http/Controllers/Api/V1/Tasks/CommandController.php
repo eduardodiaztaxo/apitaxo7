@@ -67,6 +67,6 @@ class CommandController extends Controller
 
         RunCommandJob::dispatch('command:relate-inventory-markers-to-areas', ['--connection' => $connection, '--level' => $level, '--areas_ids' => $areas_ids], $email)->delay(now()->addSeconds(30));
 
-        return response()->json(['status' => 'OK', 'message' => 'Se ha iniciado la ejecución de la tarea, esto demorará algunos minutos, dos emails serán enviados a '.$email.' cuando finalice su ejecución']);
+        return response()->json(['status' => 'OK', 'message' => 'Se ha iniciado la ejecución de la tarea (level '.$level.'), esto demorará algunos minutos, dos emails serán enviados a '.$email.' cuando finalice su ejecución']);
     }
 }
