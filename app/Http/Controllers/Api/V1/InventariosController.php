@@ -439,6 +439,28 @@ class InventariosController extends Controller
             ], 422);
         }
 
+
+        $existsCoincident = Inventario::whereRaw(
+            'ROUND(adjusted_lat, 7) = ROUND(?, 7)',
+            [$request->adjusted_lat]
+        )
+        ->whereRaw(
+            'ROUND(adjusted_lng, 7) = ROUND(?, 7)',
+            [$request->adjusted_lng]
+        )
+        ->where('etiqueta', '!=', $etiqueta)
+        ->exists();
+
+        if($existsCoincident){
+            return response()->json([
+                'status'  => 'error',
+                'type'  => 'duplicate',
+                'message' => 'Está ingresando una misma coordenada para un diferente bien',
+                
+            ], 422);
+        }
+        
+
         $invObj = Inventario::where('etiqueta', $etiqueta)->first();
 
         if (!$invObj) {
@@ -447,6 +469,9 @@ class InventariosController extends Controller
                 'message' => 'Not Found'
             ], 404);
         }
+
+
+
 
         $invObj->adjusted_lat = $request->adjusted_lat;
         $invObj->adjusted_lng = $request->adjusted_lng;
@@ -479,6 +504,26 @@ class InventariosController extends Controller
                 'status'  => 'error',
                 'message' => 'Invalid input',
                 'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        $existsCoincident = Inventario::whereRaw(
+            'ROUND(adjusted_lat, 7) = ROUND(?, 7)',
+            [$request->adjusted_lat]
+        )
+        ->whereRaw(
+            'ROUND(adjusted_lng, 7) = ROUND(?, 7)',
+            [$request->adjusted_lng]
+        )
+        ->where('etiqueta', '!=', $etiqueta)
+        ->exists();
+
+        if($existsCoincident){
+            return response()->json([
+                'status'  => 'error',
+                'type'  => 'duplicate',
+                'message' => 'Está ingresando una misma coordenada para un diferente bien',
+                
             ], 422);
         }
 
