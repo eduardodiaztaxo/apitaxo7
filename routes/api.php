@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\V1\Maps\MapCategoryController;
 use App\Http\Controllers\Api\V1\Maps\MapLandMarkerController;
 use App\Http\Controllers\Api\V1\Maps\MapMarkerController;
 use App\Http\Controllers\Api\V1\Maps\MapPolygonController;
+use App\Http\Controllers\Api\V1\Maps\MapReportMarkerController;
 use App\Http\Controllers\Api\V1\Responsible\AssignResponsibleController;
 use App\Http\Controllers\Api\V1\ResponsibleController;
 use App\Http\Controllers\Api\V1\Tasks\CommandController;
@@ -324,11 +325,14 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('maps/landmarkers-by-area/{area_id}', [MapLandMarkerController::class, 'indexByArea']);
 
+    Route::get('maps/overlapping-inventory-markers', [MapReportMarkerController::class, 'indexOverlappingInventoryMarkers']);
+
     Route::get('ciclos/{ciclo}/emplazamientos/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssetsN2']);
 });
 
 Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(function () {
     Route::post('commands/relate-markers-to-areas', [CommandController::class, 'runRelateMarkersToAreasCommand']);
+    Route::post('commands/relate-inventory-markers-to-areas', [CommandController::class, 'runRelateInventoryMarkersToAreasCommand']);
 });
 
 

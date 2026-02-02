@@ -52,6 +52,13 @@ class MapPolygonController extends Controller
     public function getDescendants($parent_id)
     {
 
+        $parent_area = MapPolygonalArea::find($parent_id);
+
+        if (!$parent_area) {
+            return response()->json(['error' => 'Parent area not found'], 404);
+        }
+    
+    
         $childs_areas = MapPolygonalArea::where('parent_id', '=', $parent_id)->get();
 
         $descendants = $childs_areas;
@@ -75,6 +82,18 @@ class MapPolygonController extends Controller
             if ($childs->count() > 0)
                 $descendants = $descendants->merge($childs);
         }
+
+        //Special descendants for level 1 areas (free areas) to include also level 2 areas (shared areas)
+        if($parent_area->level === 1){
+            $shared_areas = $parent_area->nolimit_shared_areas()->get();
+            // $shared_areas = MapPolygonalArea::whereHas('nolimit_shared_areas', function ($query) use ($parent_id) {
+            //     $query->where('free_area_id', $parent_id);
+            // })->get();
+
+            if ($shared_areas->count() > 0)
+                $descendants = $descendants->merge($shared_areas);
+        }
+
 
         return response()->json(
             MapPolygonalAreaResource::collection($descendants),
@@ -112,43 +131,37 @@ class MapPolygonController extends Controller
             if (!$parent) {
                 return response()->json(['error' => 'Parent area not found'], 404);
             }
-            //EL nivel debe ser +1 superior
-            if ($parent->level !== $request->level - 1 && !($parent->level == 1 && $request->level == 10)) {
+
+            //In this case, level 2 (green areas) only can be under level 0 (city area)
+            if($request->level === 2){
+                if($parent->level!==0){
+                    return response()->json(['error' => 'Green Areas level 2 is under area city level 0'], 422);
+                }
+            } 
+            //El resto de niveles debe ser +1 superior
+            else if ($parent->level !== $request->level - 1 && !($parent->level == 1 && $request->level == 10)) {
                 return response()->json(['error' => 'Parent area level does not match '], 422);
             }
         } else {
             $parent = null;
         }
 
-        $min_lat = 0;
-        $max_lat = 0;
-        $min_lng = 0;
-        $max_lng = 0;
-
-        $area = json_decode($request->area, true);
-        //ojo con los polígonos que pasan desde -180 hacia más a la izquierda
-        //y desde 180 hacia más a la derecha, ya que pueden tener coordenadas negativas
-        //y positivas, por lo que se debe calcular el mínimo y máximo de latitud y
-        //longitud de forma adecuada.
-        if (is_array($area) && count($area) > 0) {
-            $min_lat = min(array_column($area, 'lat'));
-            $max_lat = max(array_column($area, 'lat'));
-            $min_lng = min(array_column($area, 'lng'));
-            $max_lng = max(array_column($area, 'lng'));
-        }
 
         $mapAreaArr = [
             'name' => $request->name,
             'area' => $request->area,
             'parent_id' => $parent ? $parent->id : null,
-            'level' => $request->level,
-            'min_lat' => $min_lat,
-            'max_lat' => $max_lat,
-            'min_lng' => $min_lng,
-            'max_lng' => $max_lng,
+            'level' => $request->level
         ];
 
         $mapArea = MapPolygonalArea::create($mapAreaArr);
+
+        $mapArea->updateMinMaxLatLng();
+
+        if($mapArea->level === 2 && $parent){
+            //If level 2 area (green area) is created, link it to its parent level 1 area (subcity area)
+            $mapArea->make_as_nolimit_shared_area($parent->level+1);
+        }
 
         return response()->json(MapPolygonalAreaResource::make($mapArea), 200);
     }
@@ -235,6 +248,17 @@ class MapPolygonController extends Controller
 
         $mapArea->updateMinMaxLatLng();
 
+        //shared areas need to be re-linked to free areas
+        if($mapArea->level === 2){
+            $parent = MapPolygonalArea::find($mapArea->parent_id);
+
+            //cicy area is level 0
+            if($parent && $parent->level===0){
+                //If level 2 area (green area) is updated, re-link it to its parent level 1 area (subcity area)
+                $mapArea->make_as_nolimit_shared_area($parent->level+1);
+            }
+        }
+
         return response()->json(MapPolygonalAreaResource::make($mapArea), 200);
     }
 
@@ -246,10 +270,14 @@ class MapPolygonController extends Controller
      */
     public function destroy($id)
     {
-        //
-        return MapPolygonalArea::find($id)->delete() ?
-            response()->json(['message' => 'Map area deleted successfully'], 200) :
-            response()->json(['error' => 'Map area not found'], 404);
+
+        if(MapPolygonalArea::find($id)->delete()){
+            MapPolygonalArea::deleteNolimitSharedAreasByFreeAreaId($id);
+            return response()->json(['message' => 'Map area deleted successfully'], 200);
+        } else {
+            return response()->json(['error' => 'Map area not found'], 404);
+        }
+        
     }
 
     public function showMarkers($id)
