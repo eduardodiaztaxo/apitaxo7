@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Maps;
 
+use App\Models\Inventario;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class MapMarkerAssetResource extends JsonResource
@@ -15,6 +16,8 @@ class MapMarkerAssetResource extends JsonResource
     public function toArray($request)
     {
         $marker = parent::toArray($request);
+
+        
 
         $category = $this->getCategory;
 

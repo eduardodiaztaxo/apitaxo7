@@ -148,15 +148,31 @@ class MapPolygonalArea extends Model
             $preMarkers = $this->hasMany(Inventario::class, 'idUbicacionGeo', 'address_id')->get();
         }
 
-        $markers = $preMarkers->map(function ($inventario) {
+        $positionCounts = $preMarkers
+            ->groupBy(function ($item) {
+                return ($item->adjusted_lat ?? $item->latitud) . ',' .
+                    ($item->adjusted_lng ?? $item->longitud);
+            })
+            ->map->count();
 
+        $markers = $preMarkers->map(function ($inventario) use ($positionCounts) {
+
+            $lat = $inventario->adjusted_lat ?? $inventario->latitud;
+            $lng = $inventario->adjusted_lng ?? $inventario->longitud;
+
+            $key = $lat . ',' . $lng;
+            
             return new MapMarkerAsset([
                 'inv_id' =>  $inventario->id_inventario,
                 'category_id' => $inventario->id_familia,
                 'name' => $inventario->descripcion_bien,
                 'fix_quality' => $inventario->fix_quality,
-                'lat' => $inventario->adjusted_lat ? (float)$inventario->adjusted_lat : (float)$inventario->latitud,
-                'lng' => $inventario->adjusted_lng ? (float)$inventario->adjusted_lng : (float)$inventario->longitud,
+                'lat' => (float) $lat,
+                'lng' => (float) $lng,
+                'adjusted_at' => $inventario->adjusted_at,
+                'adjusted_by' => $inventario->adjusted_by,
+                'etiqueta' => $inventario->etiqueta,
+                'repeated' => $positionCounts[$key] ?? 1,
                 'created_at' => now(),
                 'updated_at' => now()
             ]);

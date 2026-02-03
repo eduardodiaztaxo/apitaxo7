@@ -16,6 +16,10 @@ class MapMarkerAsset extends Model
         'category_id',
         'lat',
         'lng',
+        'repeated',
+        'adjusted_at',
+        'adjusted_by',
+        'etiqueta'
     ];
 
     public function getCategory()
