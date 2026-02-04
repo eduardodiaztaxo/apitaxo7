@@ -327,6 +327,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('maps/overlapping-inventory-markers', [MapReportMarkerController::class, 'indexOverlappingInventoryMarkers']);
 
+    Route::get('maps/users-inventory-markers', [MapReportMarkerController::class, 'indexUsersInventoryMarkers']);
+
     Route::get('ciclos/{ciclo}/emplazamientos/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssetsN2']);
 });
 

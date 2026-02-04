@@ -34,4 +34,22 @@ class MapReportMarkerController extends Controller
         );
 
     }
+
+    public function indexUsersInventoryMarkers(){
+
+        $usersMarkers = DB::table('inv_inventario')
+        ->select(
+            'adjusted_by',
+            DB::raw('COUNT(*) as total_markers')
+        )
+        ->whereNotNull('adjusted_by')
+        ->groupBy('adjusted_by')
+        ->get();
+
+        return response()->json(
+            $usersMarkers,
+            200
+        );
+
+    }
 }
