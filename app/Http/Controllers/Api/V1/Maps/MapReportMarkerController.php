@@ -35,6 +35,11 @@ class MapReportMarkerController extends Controller
 
     }
 
+    /**
+     * Get Users With Inventory Markers Adjusted
+     * 
+     * @return \Illuminate\Http\Response 
+     */
     public function indexUsersInventoryMarkers(){
 
         $usersMarkers = DB::table('inv_inventario')
