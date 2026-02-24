@@ -320,10 +320,10 @@ class CrudActivoController extends Controller
             $nuevaImagen->etiqueta = $etiqueta;
             $nuevaImagen->id_img = $invObj->id_img;
             $nuevaImagen->id_proyecto = $id_proyecto;
-            $nuevaImagen->url_imagen = $url_pict . $filename . '.jpg';
+            $nuevaImagen->url_imagen = $url_pict . $namefile;
             $nuevaImagen->url_picture = $url_pict;
             $nuevaImagen->origen = $origen;
-            $nuevaImagen->picture = $filename . '.jpg';
+            $nuevaImagen->picture = $namefile;
             $nuevaImagen->created_at = now();
             $nuevaImagen->updated_at = now();
             $nuevaImagen->save();
@@ -331,7 +331,7 @@ class CrudActivoController extends Controller
             return response()->json([
                 'status' => 'OK',
                 'message' => 'Nueva imagen creada',
-                'url' => $url_pict . $filename . '.jpg'
+                'url' => $url_pict . $namefile
             ], 201);
         }
 
