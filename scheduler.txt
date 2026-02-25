@@ -1,0 +1,13 @@
+# 2. Verificar que existe
+cd C:\laragon\www\apitaxo7
+dir setup-scheduler.ps1
+
+# 3. Ejecutar como Administrador
+# (Abrir PowerShell como Admin primero)
+cd C:\laragon\www\apitaxo7
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\setup-scheduler.ps1
+
+# 4. Verificar que funcionó
+Get-ScheduledTask -TaskName "Laravel Scheduler - TaxoChile API"
+php artisan schedule:list

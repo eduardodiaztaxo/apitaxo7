@@ -311,57 +311,133 @@ class ImageService
     }
 
 
+    
     /**
      * Move images from second disk to main disk when they have been saved in second disk.
      *
      * @param  string  $proyecto_id
      * @param  string  $customer_name
      * @param  int     $max_images
-     * @return array ['success' => int, 'failed' => int]
+     * @return array ['success' => int, 'failed' => int, 'skipped' => int, 'missing_files' => array]
      */
     public static function moveToMainDiskWhenImagesHaveBeenSavedInSecondDisk(string $proyecto_id, string $customer_name, int $max_images = 0): array
     {
-        
         $urlSecondDisk = Storage::disk('taxoImages')->url('/');
-    
+
         $imagesQuery = Inv_imagenes::where('id_proyecto', '=', $proyecto_id)
             ->where('url_imagen', 'LIKE', ''.$urlSecondDisk.'%');
 
-        $imagesQuery = $max_images > 0 ? $imagesQuery->take($max_images) : $imagesQuery;
+        if ($max_images > 0) {
+            $imagesQuery = $imagesQuery->limit($max_images);
+        }
 
         $images = $imagesQuery->get();
 
-        $result = ['success' => 0, 'failed' => 0];
+        $result = ['success' => 0, 'failed' => 0, 'skipped' => 0, 'missing_files' => []]; 
+
+        // Validar carpeta de DESTINO existe
+        $destinationPath = PictureSafinService::getImgSubdir($customer_name);
+        $mainDiskPath = Storage::disk('win_images')->path($destinationPath);
+
+        if (!file_exists($mainDiskPath)) {
+            \Log::warning("moveToMainDisk: Carpeta de DESTINO no existe", [
+                'customer' => $customer_name,
+                'path' => $mainDiskPath,
+                'project_id' => $proyecto_id,
+                'images_count' => $images->count()
+            ]);
+            
+            $result['skipped'] = $images->count();
+            return $result;
+        }
 
         foreach ($images as $image) {
 
-            $exists = self::checkIfImageExistsInMainDisk($customer_name, $image->picture);
-
-            $moved = false;
-
-            if(!$exists){
-                $moved = self::moveImageFromSecondDiskToMainDisk($customer_name, $image->picture);
+            // Validar que picture no esté vacío
+            if (empty($image->picture)) {
+                \Log::warning("moveToMainDisk: Imagen sin nombre", [
+                    'image_id' => $image->id,
+                    'customer' => $customer_name
+                ]);
+                $result['skipped'] += 1;
+                continue;
             }
 
-            
+            // Verificar si ya existe en destino
+            $exists = self::checkIfImageExistsInMainDisk($customer_name, $image->picture);
 
-            if ($moved || $exists) {
+            if ($exists) {
+                // Ya existe en destino, actualizar BD pero NO contar como success
                 $new_path = PictureSafinService::getImgSubdir($customer_name) . '/' . $image->picture;
                 $image->url_imagen = Storage::disk('win_images')->url($new_path);
                 $image->url_picture = Storage::disk('win_images')->url(PictureSafinService::getImgSubdir($customer_name) . '/');
-                $image->save();
+                
+                try {
+                    $image->save();
+                    
+                    \Log::info("moveToMainDisk: Imagen ya existía, BD sincronizada", [
+                        'image' => $image->picture,
+                        'customer' => $customer_name
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::error('moveToMainDisk: Error actualizando BD', [
+                        'image_id' => $image->id,
+                        'picture' => $image->picture,
+                        'error' => $e->getMessage()
+                    ]);
+                    $result['failed'] += 1;
+                }
+                
+                continue;  // No cuenta en success, salta al siguiente
+            }
 
-                $result['success'] += 1;
+            // No existe en destino, validar que existe en ORIGEN
+            $imagePath = PictureSafinService::getImgSubdir($customer_name) . '/' . $image->picture;
+            
+            if (!Storage::disk('taxoImages')->exists($imagePath)) {
+                \Log::warning("moveToMainDisk: Imagen NO existe en disco ORIGEN", [
+                    'image' => $image->picture,
+                    'customer' => $customer_name,
+                    'path' => $imagePath
+                ]);
+                $result['skipped'] += 1;
+                $result['missing_files'][] = $image->picture;
+                continue;  // No actualiza BD
+            }
+
+            // El archivo SÍ existe en origen, proceder a mover
+            $moved = self::moveImageFromSecondDiskToMainDisk($customer_name, $image->picture);
+
+            if ($moved) {
+                // Se movió físicamente, actualizar BD
+                $new_path = PictureSafinService::getImgSubdir($customer_name) . '/' . $image->picture;
+                $image->url_imagen = Storage::disk('win_images')->url($new_path);
+                $image->url_picture = Storage::disk('win_images')->url(PictureSafinService::getImgSubdir($customer_name) . '/');
+                
+                try {
+                    $image->save();
+                    $result['success'] += 1;  // ← SOLO cuenta si SE MOVIÓ físicamente
+                    
+                    \Log::info("moveToMainDisk: Imagen movida exitosamente", [
+                        'image' => $image->picture,
+                        'customer' => $customer_name
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::error('moveToMainDisk: Error actualizando BD después de mover', [
+                        'image_id' => $image->id,
+                        'picture' => $image->picture,
+                        'error' => $e->getMessage()
+                    ]);
+                    $result['failed'] += 1;
+                }
             } else {
-                // log error or take appropriate action
+                // Error al mover
                 $result['failed'] += 1;
             }
-            
         }
 
         return $result;
     }
-
     
     /**
      * Move image from second disk to main disk.

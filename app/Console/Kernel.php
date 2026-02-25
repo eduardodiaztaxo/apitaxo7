@@ -24,9 +24,14 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        $schedule->command('command:move-to-main-disk --limit=1000')
+        ->dailyAt('17:24')  // 5:24 PM
+        ->timezone('America/Santiago')
+        ->name('move-images-command')
+        ->withoutOverlapping(21600)  // 6 horas timeout
+        ->runInBackground()
+        ->appendOutputTo(storage_path('logs/scheduler/move-images.log'));
     }
-
     /**
      * Register the commands for the application.
      *
