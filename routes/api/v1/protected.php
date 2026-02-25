@@ -19,6 +19,7 @@ require __DIR__ . '/auditorias.php';
 require __DIR__ . '/maps.php';
 
 Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(function () {
+    require __DIR__ . '/logger.php';
 
     Route::get('pin', [App\Http\Controllers\Api\LoginController::class, 'pin']);
 
