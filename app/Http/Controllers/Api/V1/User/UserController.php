@@ -48,7 +48,6 @@ class UserController extends Controller
      */
     public function show(Request $request)
     {
-        //
         return response()->json(
             UserResource::make($request->user()),
             200
