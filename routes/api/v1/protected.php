@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\PostController as PostV1;
 use App\Http\Controllers\Api\V1\BajaDocumentoController as BajaV1;
 use App\Http\Controllers\Api\V1\Comunes\DatosActivosController;
 use App\Http\Controllers\Api\V1\RespLocalizacionController as RespLocV1;
+use App\Http\Controllers\Api\V1\User\UserController;
 
 // Importar rutas por entidad
 require __DIR__ . '/activos.php';
@@ -77,5 +78,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::post('create-bienes', [DatosActivosController::class, 'createBienes']);
 
     Route::post('create-marcas', [DatosActivosController::class, 'createMarcas']);
+
+    Route::get('get-user', [UserController::class, 'show']);
 
 });
