@@ -39,16 +39,26 @@ class MoveToMainDiskJob implements ShouldQueue
      */
     public function handle()
     {
-        //
-        $code = Artisan::call('command:move-to-main-disk', [
-            '--connection' => $this->connectionName,
-            '--project_id' => $this->projectId,
-            '--limit' => $this->limit,
-        ]);
+        try {
+            $code = Artisan::call('command:move-to-main-disk', [
+                '--connection' => $this->connectionName,
+                '--project_id' => $this->projectId,
+                '--limit' => $this->limit,
+            ]);
 
-        $output = Artisan::output();
+            $output = Artisan::output();
 
-        Log::info('Resultado del comando:', ['code' => $code, 'msg' => $output]);
-
+            if ($code !== 0) {
+                Log::error('Error en el comando:', ['code' => $code, 'msg' => $output]);
+            } else {
+                Log::info('Resultado del comando:', ['code' => $code, 'msg' => $output]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Excepción al ejecutar el comando:', [
+                'error' => $e->getMessage(),
+                'code' => $e->getCode(),
+            ]);
+            throw $e;
+        }
     }
 }
