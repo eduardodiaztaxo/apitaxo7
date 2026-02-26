@@ -9,6 +9,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 
 class MoveToMainDiskJob implements ShouldQueue
 {
@@ -39,10 +40,15 @@ class MoveToMainDiskJob implements ShouldQueue
     public function handle()
     {
         //
-        Artisan::call('command:move-to-main-disk', [
+        $code = Artisan::call('command:move-to-main-disk', [
             '--connection' => $this->connectionName,
             '--project_id' => $this->projectId,
             '--limit' => $this->limit,
         ]);
+
+        $output = Artisan::output();
+
+        Log::info('Resultado del comando:', ['code' => $code, 'msg' => $output]);
+
     }
 }

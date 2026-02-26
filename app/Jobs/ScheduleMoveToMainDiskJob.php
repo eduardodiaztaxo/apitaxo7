@@ -34,7 +34,7 @@ class ScheduleMoveToMainDiskJob implements ShouldQueue
         $limit = 5000; // límite por ejecución
         
 
-        $projects = DB::table('api_project_conn')
+        $projects = DB::table('project_conn')
             ->select('project_id', 'conn_field')
             ->where('status_project', 1)
             ->get();
@@ -50,7 +50,7 @@ class ScheduleMoveToMainDiskJob implements ShouldQueue
                 $project->project_id,
                 $limit
             )->delay(
-                now()->addMinutes($i * 10)
+                now()->addMinutes($i * 15)
             );
             
         }

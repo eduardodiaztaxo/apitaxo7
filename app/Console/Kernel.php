@@ -27,7 +27,7 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
             $schedule->job(new ScheduleMoveToMainDiskJob)
-             ->dailyAt('03:00')
+             ->dailyAt('09:31')
              ->withoutOverlapping()
              ->onOneServer();
     }
