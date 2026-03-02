@@ -196,17 +196,32 @@ class EmplazamientoController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function existsEmplazamiento(int $punto, int $emplazamiento_code, Request $request)
+    public function existsEmplazamiento(int $punto, string $emplazamiento_code, Request $request)
     {
 
-        $query = Emplazamiento::where('idAgenda', $punto)->where('codigoUbicacion', $emplazamiento_code);
+        $length_code = strlen((string) $emplazamiento_code);
 
+        $RESOURCE = null;
+    
+        if($length_code === 2) {
+            $query = EmplazamientoN1::where('idAgenda', $punto)->where('codigoUbicacion', $emplazamiento_code);
+            $RESOURCE = EmplazamientoNivel1Resource::class;
+        } else if ($length_code === 4) {
+            $query = EmplazamientoN2::where('idAgenda', $punto)->where('codigoUbicacion', $emplazamiento_code);
+            $RESOURCE = EmplazamientoNivel2Resource::class;
+        } else if ($length_code === 6) {
+            $query = EmplazamientoN3::where('idAgenda', $punto)->where('codigoUbicacion', $emplazamiento_code);
+            $RESOURCE = EmplazamientoNivel3Resource::class;
+        } else {
+            return response()->json(['status' => 'error', 'message' => 'Código de emplazamiento no válido'], 404);
+        }
+    
         $q = $query->get()->count();
 
         //
         return response()->json(['status' => 'OK', 'data' => [
             'exists' => $q > 0,
-            'emplazamiento' => EmplazamientoResource::make($query->first())
+            'emplazamiento' => $RESOURCE::make($query->first())
         ]]);
     }
 
