@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\JoinClause;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class CrudActivo extends Model
@@ -193,5 +194,53 @@ class CrudActivo extends Model
     public function depreciableRelation()
     {
         return $this->belongsTo(ActivoDepreciableStatus::class, 'depreciable');
+    }
+
+    /**
+     * Build a query to find activos in crud_activos by group and family with pagination and keyword search.
+     * 
+     * @param  \Illuminate\Database\Eloquent\Model  $model
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public static function queryBuilderCrudActivo_FindInGroupFamily_Pagination($model, Request $request)
+    {
+        $queryBuilder = $model->activos();
+
+        if (!!keyword_is_searcheable($request->keyword)) {
+            $complete_word = trim($request->keyword);
+            $possible_name_words = keyword_search_terms_from_keyword($request->keyword);
+
+            $queryBuilder = $queryBuilder->join('dp_familias', 'crud_activos.id_familia', 'dp_familias.id_familia');
+
+            $queryBuilder = $queryBuilder
+                ->where(function ($query) use ($complete_word) {
+                    $query->where('crud_activos.descripcionTipo', 'LIKE', "%$complete_word%");
+                    $query->orWhere('crud_activos.etiqueta', 'LIKE', "%$complete_word%");
+                    $query->orWhere('dp_familias.descripcion_familia', 'LIKE', "%$complete_word%");
+                });
+
+            if (count($possible_name_words) > 1) {
+                $queryBuilder = $queryBuilder->orWhere(function ($query) use ($possible_name_words) {
+                    foreach ($possible_name_words as $palabra) {
+                        $query->where('crud_activos.descripcionTipo', 'LIKE', "%$palabra%");
+                    }
+                });
+
+                $queryBuilder = $queryBuilder->orWhere(function ($query) use ($possible_name_words) {
+                    foreach ($possible_name_words as $palabra) {
+                        $query->where('dp_familias.descripcion_familia', 'LIKE', "%$palabra%");
+                    }
+                });
+            }
+        }
+
+        if ($request->from && $request->rows) {
+            $offset = $request->from - 1;
+            $limit = $request->rows;
+            $queryBuilder->offset($offset)->limit($limit);
+        }
+
+        return $queryBuilder;
     }
 }

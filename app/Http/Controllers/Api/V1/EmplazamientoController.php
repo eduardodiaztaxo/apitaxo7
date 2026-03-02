@@ -8,6 +8,7 @@ use App\Http\Resources\V2\EmplazamientoNivel2Resource;
 use App\Http\Resources\V2\EmplazamientoNivel3Resource;
 use App\Http\Resources\V1\EmplazamientoNivel1Resource;
 use App\Http\Resources\V1\EmplazamientoAllResource;
+use App\Http\Resources\V2\CrudActivoResource;
 use App\Services\ActivoFinderService;
 use App\Services\ProyectoUsuarioService;
 use App\Models\CrudActivo;
@@ -223,6 +224,36 @@ class EmplazamientoController extends Controller
             'exists' => $q > 0,
             'emplazamiento' => $RESOURCE::make($query->first())
         ]]);
+    }
+
+
+    /**
+     * Display assets of the specified resource.
+     *
+     *  
+     * @param   int $emplazamiento
+     * @param   \Illuminate\Http\Request
+     * @return  \Illuminate\Http\Response
+     */
+    public function showAssetsN1(int $emplazamiento, Request $request)
+    {
+
+        $emplaN1Obj = EmplazamientoN1::find($emplazamiento);
+
+        if (!$emplaN1Obj) {
+            return response()->json(['status' => 'error', 'code' => 404], 404);
+        }
+
+
+        $queryBuilder = $queryBuilder = CrudActivo::queryBuilderCrudActivo_FindInGroupFamily_Pagination($emplaN1Obj, $request);
+
+        $assets = $queryBuilder->get();
+
+        //
+        return response()->json([
+            'status' => 'OK',
+            'data' => CrudActivoResource::collection($assets)
+        ]);
     }
 
 

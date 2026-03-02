@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V2\EmplazamientoNivel2Controller;
 use App\Http\Controllers\Api\V2\EmplazamientoNivel3Controller;
 use App\Http\Controllers\Api\V1\CiclosEmplazamientosController;
 use App\Http\Controllers\Api\V1\CiclosUbicacionesController;
+use App\Http\Controllers\Api\V1\EmplazamientoController;
 use App\Http\Controllers\Api\V1\ResponsibleController;
 
 Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2')->group(function () {
@@ -17,6 +18,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2')->group(func
     Route::get('ciclos/{ciclo}/emplazamientos-n3/{emplazamiento}', [EmplazamientoNivel3Controller::class, 'show']);
 
     Route::get('ciclos/{ciclo}/emplazamientos-n1/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssetsN1']);
+
+    Route::get('crud-activos/emplazamientos-n1/{emplazamiento}/assets', [EmplazamientoController::class, 'showAssetsN1']);
 
     Route::get('ciclos/{ciclo}/emplazamientos-n2/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssetsN2']);
 
