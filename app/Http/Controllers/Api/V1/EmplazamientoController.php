@@ -10,6 +10,7 @@ use App\Http\Resources\V2\EmplazamientoGenericoResource;
 use App\Http\Resources\V1\EmplazamientoNivel1Resource;
 use App\Http\Resources\V1\EmplazamientoAllResource;
 use App\Http\Resources\V2\CrudActivoResource;
+use App\Http\Resources\V2\InventariosResource;
 use App\Services\ActivoFinderService;
 use App\Services\ProyectoUsuarioService;
 use App\Models\CrudActivo;
@@ -379,6 +380,67 @@ class EmplazamientoController extends Controller
         return response()->json(EmplazamientoGenericoResource::makeWithNivel($emplaObj, $nivelString));
     }
 
+    /**
+     * Display assets of a emplazamiento by dynamic level.
+     *
+     * @param int $idAgenda
+     * @param int $ciclo
+     * @param int $nivel
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+   public function showTodosAssets(int $idAgenda, int $ciclo, int $nivel, string $codigoUbicacion, Request $request)
+{
+    // 1. Nombre de la columna dinámica según el nivel
+    $columnaFiltroNivel = "ubicacionOrganicaN{$nivel}_codigo";
+
+    // 2. Construcción de la consulta directa a la vista
+    $queryBuilder = DB::table('crud_activos_view')
+        ->select('*') // Trae todo lo que la vista ofrezca sin procesar
+        ->where('direccion_id', $idAgenda)
+        ->where('tipoCambio', '!=', 91)
+        ->where($columnaFiltroNivel, $codigoUbicacion);
+
+    // 3. Filtro de Ciclo
+    if ($ciclo != 0) {
+        $queryBuilder->where('id_ciclo', $ciclo);
+    }
+
+    // 4. Filtro de Búsqueda
+    if (!!keyword_is_searcheable($request->keyword)) {
+        $word = trim($request->keyword);
+        $queryBuilder->where(function ($query) use ($word) {
+            $query->where('nombreActivo', 'LIKE', "%$word%")
+                  ->orWhere('etiqueta', 'LIKE', "%$word%");
+        });
+    }
+
+    // 5. Paginación
+    if ($request->from && $request->rows) {
+        $queryBuilder->offset((int)$request->from - 1)->limit((int)$request->rows);
+    }
+
+    // 7. Obtener resultados como array de objetos planos
+    $assets = $queryBuilder->get();
+
+    return response()->json([
+        'status' => 'OK',
+        'data' => $assets // Devolución directa sin pasar por el Resource
+    ]);
+}
+
+public function getAssetPictures(string $etiqueta)
+{
+    $pictures = DB::table('crud_activos_pictures')
+        ->where('etiqueta', $etiqueta)
+        ->get();
+
+    return response()->json([
+        'status' => 'OK',
+        'etiqueta' => $etiqueta,
+        'data' => $pictures
+    ]);
+}
 
     public function groupEmplazamientos(int $idAgenda, int $ciclo)
     {

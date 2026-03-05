@@ -13,6 +13,7 @@ use App\Models\EmplazamientoN3;
 use App\Models\InvCiclo;
 use App\Models\Inventario;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CiclosEmplazamientosController extends Controller
 {
@@ -365,17 +366,18 @@ class CiclosEmplazamientosController extends Controller
      */
     public function showAssetsByLevel(int $ciclo, int $nivel, int $emplazamiento, Request $request)
     {
-        $modelName = "App\Models\EmplazamientoN{$nivel}";
+        $tableName = 'ubicaciones_n' . $nivel;
+        $idFieldName = 'idUbicacionN' . $nivel;
 
-        if (!class_exists($modelName)) {
-            return response()->json(['status' => 'error', 'code' => 400, 'message' => 'Invalid level'], 400);
-        }
-
-        $emplaObj = $modelName::find($emplazamiento);
+        $emplaObj = DB::table($tableName)
+            ->where($idFieldName, $emplazamiento)
+            ->first();
 
         if (!$emplaObj) {
             return response()->json(['status' => 'error', 'code' => 404], 404);
         }
+
+        $emplaObj = (object) $emplaObj;
 
         $cicloObj = null;
         if ($ciclo != 0) {
@@ -411,17 +413,18 @@ class CiclosEmplazamientosController extends Controller
      */
     public function showGroupFamiliesByLevel(int $ciclo, int $nivel, int $emplazamiento, Request $request)
     {
-        $modelName = "App\Models\EmplazamientoN{$nivel}";
+        $tableName = 'ubicaciones_n' . $nivel;
+        $idFieldName = 'idUbicacionN' . $nivel;
 
-        if (!class_exists($modelName)) {
-            return response()->json(['status' => 'error', 'code' => 400, 'message' => 'Invalid level'], 400);
-        }
-
-        $emplaObj = $modelName::find($emplazamiento);
+        $emplaObj = DB::table($tableName)
+            ->where($idFieldName, $emplazamiento)
+            ->first();
 
         if (!$emplaObj) {
             return response()->json(['status' => 'error', 'code' => 404], 404);
         }
+
+        $emplaObj = (object) $emplaObj;
 
         $cicloObj = null;
         if ($ciclo != 0) {

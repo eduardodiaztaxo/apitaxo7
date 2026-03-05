@@ -11,9 +11,9 @@ use App\Http\Controllers\Api\V1\ResponsibleController;
 
 Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2')->group(function () {
 
-    Route::get('ciclos/{ciclo}/emplazamientos/{nivel}/{emplazamiento}', [EmplazamientoController::class, 'show'])->where('nivel', '[1-3]');
-    Route::get('ciclos/{ciclo}/emplazamientos/{nivel}/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssetsByLevel'])->where('nivel', '[1-3]');
-    Route::get('ciclos/{ciclo}/emplazamientos/{nivel}/{emplazamiento}/group-families', [CiclosEmplazamientosController::class, 'showGroupFamiliesByLevel'])->where('nivel', '[1-3]');
+    Route::get('ciclos/{ciclo}/emplazamientos/{nivel}/{emplazamiento}', [EmplazamientoController::class, 'show'])->where('nivel', '\d+');
+    Route::get('ciclos/{ciclo}/emplazamientos/{nivel}/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssetsByLevel'])->where('nivel', '\d+');
+    Route::get('ciclos/{ciclo}/emplazamientos/{nivel}/{emplazamiento}/group-families', [CiclosEmplazamientosController::class, 'showGroupFamiliesByLevel'])->where('nivel', '\d+');
     
     Route::get('crud-activos/emplazamientos/{nivel}/{emplazamiento}/assets', [EmplazamientoController::class, 'showAssets']);
 
