@@ -230,6 +230,8 @@ class EmplazamientoController extends Controller
 
         $emplazamientoObj = (object) $emplazamientoObj;
 
+        $emplazamientoObj->requirePunto = 1;
+
         return response()->json(['status' => 'OK', 'data' => [
             'exists' => true,
             'emplazamiento' => EmplazamientoGenericoResource::makeWithNivel($emplazamientoObj, $nivelString)

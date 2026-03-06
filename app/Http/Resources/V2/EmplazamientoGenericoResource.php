@@ -2,6 +2,8 @@
 
 namespace App\Http\Resources\V2;
 
+use App\Http\Resources\V1\UbicacionGeograficaResource;
+use App\Models\UbicacionGeografica;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class EmplazamientoGenericoResource extends JsonResource
@@ -62,6 +64,10 @@ class EmplazamientoGenericoResource extends JsonResource
             $emplazamiento['ciclo_auditoria'] = $this->getPropertyValue('ciclo_auditoria');
         }
 
+        if (isset($this->requirePunto) && $this->requirePunto) {
+            $emplazamiento['ubicacionPunto'] = UbicacionGeograficaResource::make(UbicacionGeografica::find($this->getPropertyValue('idAgenda')));
+        }
+
         return $emplazamiento;
     }
 
@@ -116,7 +122,9 @@ class EmplazamientoGenericoResource extends JsonResource
         return match ($this->nivel) {
             'N1' => 'N2',
             'N2' => 'N3',
-            'N3' => '',
+            'N3' => 'N4',
+            'N4' => 'N5',
+            'N5' => 'N6',
             default => 'N3',
         };
     }
