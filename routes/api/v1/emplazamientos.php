@@ -34,7 +34,13 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('emplazamientos/{emplazamiento}/{ciclo}/{codigoUbicacion}', [EmplazamientoController::class, 'show']);
 
-    Route::get('todos-emplazamientos/{idAgenda}/{ciclo}', [EmplazamientoController::class, 'showTodos']);
+    // Specific routes first to avoid being caught by generic ones
+    Route::get('todos-emplazamientos/pictures/{etiqueta}', [EmplazamientoController::class, 'getAssetPictures']);
+
+    // allow optional level segment to support generic resource responses
+    Route::get('todos-emplazamientos/{idAgenda}/{ciclo}/{nivel?}', [EmplazamientoController::class, 'showTodos']);
+
+    Route::get('todos-emplazamientos/{idAgenda}/{ciclo}/{nivel}/{codigoUbicacion}/assets', [EmplazamientoController::class, 'showTodosAssets']);
 
     Route::get('group-emplazamientos/{idAgenda}/{ciclo}', [EmplazamientoController::class, 'groupEmplazamientos']);
 

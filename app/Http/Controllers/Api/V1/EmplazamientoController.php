@@ -6,8 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\EmplazamientoResource;
 use App\Http\Resources\V2\EmplazamientoNivel2Resource;
 use App\Http\Resources\V2\EmplazamientoNivel3Resource;
+use App\Http\Resources\V2\EmplazamientoGenericoResource;
 use App\Http\Resources\V1\EmplazamientoNivel1Resource;
 use App\Http\Resources\V1\EmplazamientoAllResource;
+use App\Http\Resources\V2\CrudActivoResource;
+use App\Http\Resources\V2\InventariosResource;
 use App\Services\ActivoFinderService;
 use App\Services\ProyectoUsuarioService;
 use App\Models\CrudActivo;
@@ -196,18 +199,73 @@ class EmplazamientoController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function existsEmplazamiento(int $punto, int $emplazamiento_code, Request $request)
+    public function existsEmplazamiento(int $punto, string $emplazamiento_code, Request $request)
+    {
+        $length_code = strlen((string) $emplazamiento_code);
+
+        // Validar que la longitud sea par (2, 4, 6, 8, 10, etc.)
+        if ($length_code % 2 !== 0) {
+            return response()->json(['status' => 'error', 'message' => 'Código de emplazamiento no válido'], 404);
+        }
+
+        // Calcular el nivel dinámicamente (2 dígitos = N1, 4 = N2, 6 = N3, 8 = N4, 10 = N5, etc.)
+        $nivel = $length_code / 2;
+        $nivelString = 'N' . $nivel;
+
+        // Determinar el nombre de la tabla dinámicamente
+        $tableName = 'ubicaciones_n' . $nivel;
+
+        // Buscar en la tabla correspondiente
+        $emplazamientoObj = DB::table($tableName)
+            ->where('idAgenda', $punto)
+            ->where('codigoUbicacion', $emplazamiento_code)
+            ->first();
+
+        if (!$emplazamientoObj) {
+            return response()->json(['status' => 'OK', 'data' => [
+                'exists' => false,
+                'emplazamiento' => null
+            ]]);
+        }
+
+        $emplazamientoObj = (object) $emplazamientoObj;
+
+        $emplazamientoObj->requirePunto = 1;
+
+        return response()->json(['status' => 'OK', 'data' => [
+            'exists' => true,
+            'emplazamiento' => EmplazamientoGenericoResource::makeWithNivel($emplazamientoObj, $nivelString)
+        ]]);
+    }
+
+
+    /**
+     * Display assets of the specified resource.
+     *
+     *  
+     * @param   int $emplazamiento
+     * @param   \Illuminate\Http\Request
+     * @return  \Illuminate\Http\Response
+     */
+    public function showAssets(int $emplazamiento, Request $request)
     {
 
-        $query = Emplazamiento::where('idAgenda', $punto)->where('codigoUbicacion', $emplazamiento_code);
+        $emplaN1Obj = EmplazamientoN1::find($emplazamiento);
 
-        $q = $query->get()->count();
+        if (!$emplaN1Obj) {
+            return response()->json(['status' => 'error', 'code' => 404], 404);
+        }
+
+
+        $queryBuilder = $queryBuilder = CrudActivo::queryBuilderCrudActivo_FindInGroupFamily_Pagination($emplaN1Obj, $request);
+
+        $assets = $queryBuilder->get();
 
         //
-        return response()->json(['status' => 'OK', 'data' => [
-            'exists' => $q > 0,
-            'emplazamiento' => EmplazamientoResource::make($query->first())
-        ]]);
+        return response()->json([
+            'status' => 'OK',
+            'data' => CrudActivoResource::collection($assets)
+        ]);
     }
 
 
@@ -219,55 +277,98 @@ class EmplazamientoController extends Controller
      */
 
 
-    public function show(int $emplazamiento, int $ciclo, string $codigoUbicacion)
+    public function show(int $ciclo, $param2, $param3 = null)
     {
-        // Nivel 1
-        if (strlen($codigoUbicacion) === 2) {
-            $emplaObj = EmplazamientoN1::where('idUbicacionN1', $emplazamiento)
-                ->where('codigoUbicacion', $codigoUbicacion)
-                ->first();
-
-            if (!$emplaObj) {
-                return response()->json(['status' => 'NOK', 'code' => 404], 404);
-            }
-
-            $resource = EmplazamientoNivel1Resource::make($emplaObj);
-        }
-        // Nivel 2
-        else if (strlen($codigoUbicacion) === 4) {
-            $emplaObj = Emplazamiento::where('idUbicacionN2', $emplazamiento)
-                ->where('codigoUbicacion', $codigoUbicacion)
-                ->first();
-
-            if (!$emplaObj) {
-                return response()->json(['status' => 'NOK', 'code' => 404], 404);
-            }
-
-            $resource = EmplazamientoResource::make($emplaObj);
-        }
-        // Nivel 3
-        else {
-            $emplaObj = EmplazamientoN3::where('idUbicacionN3', $emplazamiento)
-                ->where('codigoUbicacion', $codigoUbicacion)
-                ->first();
-
-            if (!$emplaObj) {
-                return response()->json(['status' => 'NOK', 'code' => 404], 404);
-            }
-
-            $resource = EmplazamientoNivel3Resource::make($emplaObj);
+        // --- 1. DETECCIÓN DE PARÁMETROS ---
+        if ($param3 !== null) {
+            // FLUJO NUEVO: ciclos/{ciclo}/emplazamientos/{nivel}/{emplazamiento}
+            $nivel = (int) $param2;
+            $emplazamientoId = $param3;
+        } else {
+            // FLUJO ANTIGUO: ciclos/{ciclo}/emplazamientos-n[1,2,3]/{emplazamiento}
+            $emplazamientoId = $param2;
+            
+            $uri = request()->route()->uri();
+            if (str_contains($uri, 'emplazamientos-n1')) $nivel = 1;
+            elseif (str_contains($uri, 'emplazamientos-n2')) $nivel = 2;
+            else $nivel = 3;
         }
 
+
+        [$emplaObj, $resourceClass] = match ($nivel) {
+            1 => [
+                EmplazamientoN1::where('idUbicacionN1', $emplazamientoId)->first(), 
+                EmplazamientoNivel1Resource::class
+            ],
+            2 => [
+                Emplazamiento::where('idUbicacionN2', $emplazamientoId)->first(), 
+                EmplazamientoResource::class
+            ],
+            3 => [
+                EmplazamientoN3::where('idUbicacionN3', $emplazamientoId)->first(), 
+                EmplazamientoNivel3Resource::class
+            ],
+            default => [null, null],
+        };
+
+        if (!$emplaObj) {
+            return response()->json(['status' => 'NOK', 'code' => 404], 404);
+        }
+
+        // --- 3. ASIGNACIÓN DE DATOS EXTRA ---
         $emplaObj->requirePunto = 1;
         $emplaObj->requireActivos = 1;
         $emplaObj->cycle_id = $ciclo;
 
-        return response()->json($resource);
+        return response()->json($resourceClass::make($emplaObj));
     }
 
-    public function showTodos(int $idAgenda, int $ciclo)
+    /**
+     * Devuelve los emplazamientos de un punto para un ciclo.
+     *
+     * La ruta original suministraba sólo {idAgenda}/{ciclo} y siempre
+     * retornaba un N1 con todos los hijos (EmplazamientoAllResource).
+     *
+     * A partir de ahora aceptamos un tercer segmento opcional `nivel`.
+     * Si se proporciona se generará un recurso genérico para el nivel
+     * indicado ("N2", "N3", etc). Cuando no hay nivel se mantiene el
+     * comportamiento antiguo.
+     *
+     * Ejemplos de URL válidas:
+     *   /api/v1/todos-emplazamientos/631/0          -> nivel N1 (antiguo)
+     *   /api/v1/todos-emplazamientos/631/0/2        -> también N1 (idéntico)
+     *   /api/v1/todos-emplazamientos/631/0/3        -> primer N2 del punto
+     *   /api/v1/todos-emplazamientos/631/0/5        -> primer N4 si existe
+     *
+     * @param int $idAgenda
+     * @param int $ciclo
+     * @param int|null $nivel
+     * @return \Illuminate\Http\Response
+     */
+    public function showTodos(int $idAgenda, int $ciclo, int $nivel = null)
     {
-        $emplaObj = EmplazamientoN1::with(['emplazamientosN2', 'emplazamientosN3'])
+        // si no se especifica nivel, tomamos N1 y usamos el flujo antiguo
+        if ($nivel === null || $nivel === 1) {
+            $emplaObj = EmplazamientoN1::with(['emplazamientosN2', 'emplazamientosN3'])
+                ->where('idAgenda', $idAgenda)
+                ->first();
+
+            if (!$emplaObj) {
+                return response()->json(['status' => 'NOK', 'code' => 404], 404);
+            }
+
+            $emplaObj->requirePunto = 1;
+            $emplaObj->requireActivos = 1;
+            $emplaObj->cycle_id = $ciclo;
+
+            return response()->json(EmplazamientoAllResource::make($emplaObj));
+        }
+
+        // recurso genérico para cualquier otro nivel
+        $nivelString = 'N' . $nivel;
+        $tableName = 'ubicaciones_n' . $nivel;
+
+        $emplaObj = DB::table($tableName)
             ->where('idAgenda', $idAgenda)
             ->first();
 
@@ -275,13 +376,73 @@ class EmplazamientoController extends Controller
             return response()->json(['status' => 'NOK', 'code' => 404], 404);
         }
 
-        $emplaObj->requirePunto = 1;
-        $emplaObj->requireActivos = 1;
+        $emplaObj = (object) $emplaObj;
         $emplaObj->cycle_id = $ciclo;
 
-        return response()->json(EmplazamientoAllResource::make($emplaObj));
+        return response()->json(EmplazamientoGenericoResource::makeWithNivel($emplaObj, $nivelString));
     }
 
+    /**
+     * Display assets of a emplazamiento by dynamic level.
+     *
+     * @param int $idAgenda
+     * @param int $ciclo
+     * @param int $nivel
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+   public function showTodosAssets(int $idAgenda, int $ciclo, int $nivel, string $codigoUbicacion, Request $request)
+{
+    // 1. Nombre de la columna dinámica según el nivel
+    $columnaFiltroNivel = "ubicacionOrganicaN{$nivel}_codigo";
+
+    // 2. Construcción de la consulta directa a la vista
+    $queryBuilder = DB::table('crud_activos_view')
+        ->select('*') // Trae todo lo que la vista ofrezca sin procesar
+        ->where('direccion_id', $idAgenda)
+        ->where('tipoCambio', '!=', 91)
+        ->where($columnaFiltroNivel, $codigoUbicacion);
+
+    // 3. Filtro de Ciclo
+    if ($ciclo != 0) {
+        $queryBuilder->where('id_ciclo', $ciclo);
+    }
+
+    // 4. Filtro de Búsqueda
+    if (!!keyword_is_searcheable($request->keyword)) {
+        $word = trim($request->keyword);
+        $queryBuilder->where(function ($query) use ($word) {
+            $query->where('nombreActivo', 'LIKE', "%$word%")
+                  ->orWhere('etiqueta', 'LIKE', "%$word%");
+        });
+    }
+
+    // 5. Paginación
+    if ($request->from && $request->rows) {
+        $queryBuilder->offset((int)$request->from - 1)->limit((int)$request->rows);
+    }
+
+    // 7. Obtener resultados como array de objetos planos
+    $assets = $queryBuilder->get();
+
+    return response()->json([
+        'status' => 'OK',
+        'data' => $assets // Devolución directa sin pasar por el Resource
+    ]);
+}
+
+public function getAssetPictures(string $etiqueta)
+{
+    $pictures = DB::table('crud_activos_pictures')
+        ->where('etiqueta', $etiqueta)
+        ->get();
+
+    return response()->json([
+        'status' => 'OK',
+        'etiqueta' => $etiqueta,
+        'data' => $pictures
+    ]);
+}
 
     public function groupEmplazamientos(int $idAgenda, int $ciclo)
     {
