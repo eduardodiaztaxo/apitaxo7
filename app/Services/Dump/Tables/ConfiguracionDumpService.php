@@ -187,7 +187,7 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            INSERT INTO configuracion (
+            INSERT OR REPLACE INTO configuracion (
                 id_grupo,
                 conf_marca,
                 conf_modelo,
@@ -391,105 +391,118 @@ class ConfiguracionDumpService implements DumpSQLiteInterface
 
         foreach ($config as $conf) {
 
-            $stmt->execute([
-                ':id_grupo' => $conf->id_grupo,
-                ':conf_marca' => $conf->conf_marca,
-                ':conf_modelo' => $conf->conf_modelo,
-                ':tipo_dato_mod' => $conf->tipo_dato_mod,
-                ':lench_Min_mod' => $conf->lench_Min_mod,
-                ':lench_Max_mod' => $conf->lench_Max_mod,
-                ':conf_capacidad' => $conf->conf_capacidad,
-                ':tipo_dato_cap' => $conf->tipo_dato_cap,
-                ':lench_Min_cap' => $conf->lench_Min_cap,
-                ':lench_Max_cap' => $conf->lench_Max_cap,
-                ':conf_material' => $conf->conf_material,
-                ':conf_forma' => $conf->conf_forma,
-                ':conf_estado' => $conf->conf_estado,
-                ':conf_estado_operacional' => $conf->conf_estado_operacional,
-                ':conf_serie' => $conf->conf_serie,
-                ':tipo_dato_serie' => $conf->tipo_dato_serie,
-                ':lench_Min_serie' => $conf->lench_Min_serie,
-                ':lench_Max_serie' => $conf->lench_Max_serie,
-                ':conf_color' => $conf->conf_color,
-                ':conf_estado_conservacion' => $conf->conf_estado_conservacion,
-                ':conf_tipo_trabajo' => $conf->conf_tipo_trabajo,
-                ':conf_carga_trabajo' => $conf->conf_carga_trabajo,
-                ':conf_condicion_ambiental' => $conf->conf_condicion_ambiental,
-                ':lench_Min_etiqueta' => $conf->lench_Min_etiqueta,
-                ':lench_Max_etiqueta' => $conf->lench_Max_etiqueta,
-                ':tipo_etiqueta' => $conf->tipo_etiqueta,
-                ':conf_latitud' => $conf->conf_latitud,
-                ':conf_longitud' => $conf->conf_longitud,
-                ':conf_padre' => $conf->conf_padre,
+$stmt->execute([
+                ':id_grupo' => $conf->id_grupo ?? 0,
+                ':conf_marca' => $conf->conf_marca ?? 0,
+                ':conf_modelo' => $conf->conf_modelo ?? 0,
+                ':tipo_dato_mod' => $conf->tipo_dato_mod ?? 0,
+                ':lench_Min_mod' => $conf->lench_Min_mod ?? 0,
+                ':lench_Max_mod' => $conf->lench_Max_mod ?? 0,
+                ':conf_capacidad' => $conf->conf_capacidad ?? 0,
+                ':tipo_dato_cap' => $conf->tipo_dato_cap ?? 0,
+                ':lench_Min_cap' => $conf->lench_Min_cap ?? 0,
+                ':lench_Max_cap' => $conf->lench_Max_cap ?? 0,
+                ':conf_material' => $conf->conf_material ?? 0,
+                ':conf_forma' => $conf->conf_forma ?? 0,
+                ':conf_estado' => $conf->conf_estado ?? 0,
+                ':conf_estado_operacional' => $conf->conf_estado_operacional ?? 0,
+                ':conf_serie' => $conf->conf_serie ?? 0,
+                ':tipo_dato_serie' => $conf->tipo_dato_serie ?? 0,
+                ':lench_Min_serie' => $conf->lench_Min_serie ?? 0,
+                ':lench_Max_serie' => $conf->lench_Max_serie ?? 0,
+                ':conf_color' => $conf->conf_color ?? 0,
+                ':conf_estado_conservacion' => $conf->conf_estado_conservacion ?? 0,
+                ':conf_tipo_trabajo' => $conf->conf_tipo_trabajo ?? 0,
+                ':conf_carga_trabajo' => $conf->conf_carga_trabajo ?? 0,
+                ':conf_condicion_ambiental' => $conf->conf_condicion_ambiental ?? 0,
+                ':lench_Min_etiqueta' => $conf->lench_Min_etiqueta ?? 0,
+                ':lench_Max_etiqueta' => $conf->lench_Max_etiqueta ?? 0,
+                ':tipo_etiqueta' => $conf->tipo_etiqueta ?? null,
+                ':conf_latitud' => $conf->conf_latitud ?? 0,
+                ':conf_longitud' => $conf->conf_longitud ?? 0,
+                ':conf_padre' => $conf->conf_padre ?? 0,
+                
+                // edualejandro - Eficiencia
+                ':conf_eficiencia' => $conf->conf_eficiencia ?? 0,
+                ':tipo_dato_eficiencia' => $conf->tipo_dato_eficiencia ?? 0,
+                ':lench_Min_eficiencia' => $conf->lench_Min_eficiencia ?? 0,
+                ':lench_Max_eficiencia' => $conf->lench_Max_eficiencia ?? 0,
+                
+                // edualejandro - Texto Abierto 1
+                ':conf_texto_abierto_1' => $conf->conf_texto_abierto_1 ?? 0,
+                ':tipo_dato_texto_abierto_1' => $conf->tipo_dato_texto_abierto_1 ?? 0,
+                ':lench_Min_texto_abierto_1' => $conf->lench_Min_texto_abierto_1 ?? 0,
+                ':lench_Max_texto_abierto_1' => $conf->lench_Max_texto_abierto_1 ?? 0,
+                ':label_texto_abierto_1' => $conf->label_texto_abierto_1 ?? null,
+                
+                // edualejandro - Texto Abierto 2
+                ':conf_texto_abierto_2' => $conf->conf_texto_abierto_2 ?? 0,
+                ':tipo_dato_texto_abierto_2' => $conf->tipo_dato_texto_abierto_2 ?? 0,
+                ':lench_Min_texto_abierto_2' => $conf->lench_Min_texto_abierto_2 ?? 0,
+                ':lench_Max_texto_abierto_2' => $conf->lench_Max_texto_abierto_2 ?? 0,
+                ':label_texto_abierto_2' => $conf->label_texto_abierto_2 ?? null,
+                
+                // edualejandro - Texto Abierto 3
+                ':conf_texto_abierto_3' => $conf->conf_texto_abierto_3 ?? 0,
+                ':tipo_dato_texto_abierto_3' => $conf->tipo_dato_texto_abierto_3 ?? 0,
+                ':lench_Min_texto_abierto_3' => $conf->lench_Min_texto_abierto_3 ?? 0,
+                ':lench_Max_texto_abierto_3' => $conf->lench_Max_texto_abierto_3 ?? 0,
+                ':label_texto_abierto_3' => $conf->label_texto_abierto_3 ?? null,
+                
+                // edualejandro - Texto Abierto 4
+                ':conf_texto_abierto_4' => $conf->conf_texto_abierto_4 ?? 0,
+                ':tipo_dato_texto_abierto_4' => $conf->tipo_dato_texto_abierto_4 ?? 0,
+                ':lench_Min_texto_abierto_4' => $conf->lench_Min_texto_abierto_4 ?? 0,
+                ':lench_Max_texto_abierto_4' => $conf->lench_Max_texto_abierto_4 ?? 0,
+                ':label_texto_abierto_4' => $conf->label_texto_abierto_4 ?? null,
+                
+                // edualejandro - Texto Abierto 5
+                ':conf_texto_abierto_5' => $conf->conf_texto_abierto_5 ?? 0,
+                ':tipo_dato_texto_abierto_5' => $conf->tipo_dato_texto_abierto_5 ?? 0,
+                ':lench_Min_texto_abierto_5' => $conf->lench_Min_texto_abierto_5 ?? 0,
+                ':lench_Max_texto_abierto_5' => $conf->lench_Max_texto_abierto_5 ?? 0,
+                ':label_texto_abierto_5' => $conf->label_texto_abierto_5 ?? null,
+                
+                ':conf_fotos' => $conf->conf_fotos ?? 0,
+                ':conf_range_polygonal' => $conf->conf_range_polygonal ?? 0,
+                
+                // edualejandro - Texto Abierto 6
+                ':conf_texto_abierto_6' => $conf->conf_texto_abierto_6 ?? 0,
+                ':tipo_dato_texto_abierto_6' => $conf->tipo_dato_texto_abierto_6 ?? 0,
+                ':lench_Min_texto_abierto_6' => $conf->lench_Min_texto_abierto_6 ?? 0,
+                ':lench_Max_texto_abierto_6' => $conf->lench_Max_texto_abierto_6 ?? 0,
+                ':label_texto_abierto_6' => $conf->label_texto_abierto_6 ?? null,
+                
+                // edualejandro - Texto Abierto 7
+                ':conf_texto_abierto_7' => $conf->conf_texto_abierto_7 ?? 0,
+                ':tipo_dato_texto_abierto_7' => $conf->tipo_dato_texto_abierto_7 ?? 0,
+                ':lench_Min_texto_abierto_7' => $conf->lench_Min_texto_abierto_7 ?? 0,
+                ':lench_Max_texto_abierto_7' => $conf->lench_Max_texto_abierto_7 ?? 0,
+                ':label_texto_abierto_7' => $conf->label_texto_abierto_7 ?? null,
+                
+                // edualejandro - Texto Abierto 8
+                ':conf_texto_abierto_8' => $conf->conf_texto_abierto_8 ?? 0,
+                ':tipo_dato_texto_abierto_8' => $conf->tipo_dato_texto_abierto_8 ?? 0,
+                ':lench_Min_texto_abierto_8' => $conf->lench_Min_texto_abierto_8 ?? 0,
+                ':lench_Max_texto_abierto_8' => $conf->lench_Max_texto_abierto_8 ?? 0,
+                ':label_texto_abierto_8' => $conf->label_texto_abierto_8 ?? null,
+                
+                // edualejandro - Texto Abierto 9
+                ':conf_texto_abierto_9' => $conf->conf_texto_abierto_9 ?? 0,
+                ':tipo_dato_texto_abierto_9' => $conf->tipo_dato_texto_abierto_9 ?? 0,
+                ':lench_Min_texto_abierto_9' => $conf->lench_Min_texto_abierto_9 ?? 0,
+                ':lench_Max_texto_abierto_9' => $conf->lench_Max_texto_abierto_9 ?? 0,
+                ':label_texto_abierto_9' => $conf->label_texto_abierto_9 ?? null,
+                
+                // edualejandro - Texto Abierto 10
+                ':conf_texto_abierto_10' => $conf->conf_texto_abierto_10 ?? 0,
+                ':tipo_dato_texto_abierto_10' => $conf->tipo_dato_texto_abierto_10 ?? 0,
+                ':lench_Min_texto_abierto_10' => $conf->lench_Min_texto_abierto_10 ?? 0,
+                ':lench_Max_texto_abierto_10' => $conf->lench_Max_texto_abierto_10 ?? 0,
+                ':label_texto_abierto_10' => $conf->label_texto_abierto_10 ?? null,
+                
                 // edualejandro
-                ':conf_eficiencia' => $conf->conf_eficiencia,
-                ':tipo_dato_eficiencia' => $conf->tipo_dato_eficiencia,
-                ':lench_Min_eficiencia' => $conf->lench_Min_eficiencia,
-                ':lench_Max_eficiencia' => $conf->lench_Max_eficiencia,
-                // edualejandro
-                ':conf_texto_abierto_1' => $conf->conf_texto_abierto_1,
-                ':tipo_dato_texto_abierto_1' => $conf->tipo_dato_texto_abierto_1,
-                ':lench_Min_texto_abierto_1' => $conf->lench_Min_texto_abierto_1,
-                ':lench_Max_texto_abierto_1' => $conf->lench_Max_texto_abierto_1,
-                ':label_texto_abierto_1' => $conf->label_texto_abierto_1,
-                // edualejandro
-                ':conf_texto_abierto_2' => $conf->conf_texto_abierto_2,
-                ':tipo_dato_texto_abierto_2' => $conf->tipo_dato_texto_abierto_2,
-                ':lench_Min_texto_abierto_2' => $conf->lench_Min_texto_abierto_2,
-                ':lench_Max_texto_abierto_2' => $conf->lench_Max_texto_abierto_2,
-                ':label_texto_abierto_2' => $conf->label_texto_abierto_2,
-                // edualejandro
-                ':conf_texto_abierto_3' => $conf->conf_texto_abierto_3,
-                ':tipo_dato_texto_abierto_3' => $conf->tipo_dato_texto_abierto_3,
-                ':lench_Min_texto_abierto_3' => $conf->lench_Min_texto_abierto_3,
-                ':lench_Max_texto_abierto_3' => $conf->lench_Max_texto_abierto_3,
-                ':label_texto_abierto_3' => $conf->label_texto_abierto_3,
-                // edualejandro
-                ':conf_texto_abierto_4' => $conf->conf_texto_abierto_4,
-                ':tipo_dato_texto_abierto_4' => $conf->tipo_dato_texto_abierto_4,
-                ':lench_Min_texto_abierto_4' => $conf->lench_Min_texto_abierto_4,
-                ':lench_Max_texto_abierto_4' => $conf->lench_Max_texto_abierto_4,
-                ':label_texto_abierto_4' => $conf->label_texto_abierto_4,
-                // edualejandro
-                ':conf_texto_abierto_5' => $conf->conf_texto_abierto_5,
-                ':tipo_dato_texto_abierto_5' => $conf->tipo_dato_texto_abierto_5,
-                ':lench_Min_texto_abierto_5' => $conf->lench_Min_texto_abierto_5,
-                ':lench_Max_texto_abierto_5' => $conf->lench_Max_texto_abierto_5,
-                ':label_texto_abierto_5' => $conf->label_texto_abierto_5,
-                ':conf_fotos' => $conf->conf_fotos,
-                ':conf_range_polygonal' => $conf->conf_range_polygonal,
-                // edualejandro
-                ':conf_texto_abierto_6' => $conf->conf_texto_abierto_6,
-                ':tipo_dato_texto_abierto_6' => $conf->tipo_dato_texto_abierto_6,
-                ':lench_Min_texto_abierto_6' => $conf->lench_Min_texto_abierto_6,
-                ':lench_Max_texto_abierto_6' => $conf->lench_Max_texto_abierto_6,
-                ':label_texto_abierto_6' => $conf->label_texto_abierto_6,
-                // edualejandro
-                ':conf_texto_abierto_7' => $conf->conf_texto_abierto_7,
-                ':tipo_dato_texto_abierto_7' => $conf->tipo_dato_texto_abierto_7,
-                ':lench_Min_texto_abierto_7' => $conf->lench_Min_texto_abierto_7,
-                ':lench_Max_texto_abierto_7' => $conf->lench_Max_texto_abierto_7,
-                ':label_texto_abierto_7' => $conf->label_texto_abierto_7,
-                // edualejandro
-                ':conf_texto_abierto_8' => $conf->conf_texto_abierto_8,
-                ':tipo_dato_texto_abierto_8' => $conf->tipo_dato_texto_abierto_8,
-                ':lench_Min_texto_abierto_8' => $conf->lench_Min_texto_abierto_8,
-                ':lench_Max_texto_abierto_8' => $conf->lench_Max_texto_abierto_8,
-                ':label_texto_abierto_8' => $conf->label_texto_abierto_8,
-                // edualejandro
-                ':conf_texto_abierto_9' => $conf->conf_texto_abierto_9,
-                ':tipo_dato_texto_abierto_9' => $conf->tipo_dato_texto_abierto_9,
-                ':lench_Min_texto_abierto_9' => $conf->lench_Min_texto_abierto_9,
-                ':lench_Max_texto_abierto_9' => $conf->lench_Max_texto_abierto_9,
-                ':label_texto_abierto_9' => $conf->label_texto_abierto_9,
-                // edualejandro
-                ':conf_texto_abierto_10' => $conf->conf_texto_abierto_10,
-                ':tipo_dato_texto_abierto_10' => $conf->tipo_dato_texto_abierto_10,
-                ':lench_Min_texto_abierto_10' => $conf->lench_Min_texto_abierto_10,
-                ':lench_Max_texto_abierto_10' => $conf->lench_Max_texto_abierto_10,
-                ':label_texto_abierto_10' => $conf->label_texto_abierto_10,
-                //edualejandro
-                ':custom_fields' => $conf->custom_fields
+                ':custom_fields' => $conf->custom_fields ?? null
             ]);
         }
     }

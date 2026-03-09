@@ -31,11 +31,8 @@ class InventariosOfflineController extends Controller
 
     public function inventarioPorCicloOfflineInventario($ciclo)
     {
-        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
-
         $collection = DB::table('inv_inventario')
             ->where('id_ciclo', $ciclo)
-            ->where('id_proyecto', $id_proyecto)
             ->get();
 
         return response()->json($collection, 200);

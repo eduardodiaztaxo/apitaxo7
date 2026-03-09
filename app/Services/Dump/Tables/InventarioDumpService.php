@@ -117,7 +117,7 @@ class InventarioDumpService
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            INSERT INTO inventario (
+            INSERT OR IGNORE INTO inventario (
                 id,
                 id_inventario,
                 id_grupo,

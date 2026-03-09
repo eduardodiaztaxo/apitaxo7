@@ -38,9 +38,7 @@ class CyclesCategoriasDumpService implements DumpSQLiteInterface
     {
         $this->createTable();
 
-        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
-
-        $categorias = \App\Models\Inv_ciclos_categorias::where('idCiclo', $this->cycle)->where('id_proyecto', $id_proyecto)->get();
+        $categorias = \App\Models\Inv_ciclos_categorias::where('idCiclo', $this->cycle)->get();
 
         $this->insert($categorias->toArray());
     }
