@@ -118,7 +118,6 @@ class InventarioDumpService
         // Insertar datos
         $stmt = $this->pdo->prepare("
             INSERT OR IGNORE INTO inventario (
-                id,
                 id_inventario,
                 id_grupo,
                 id_familia,
@@ -171,7 +170,6 @@ class InventarioDumpService
                 texto_abierto_10
             )
             VALUES (
-                :id,
                 :id_inventario,
                 :id_grupo,
                 :id_familia,
@@ -228,7 +226,6 @@ class InventarioDumpService
         foreach ($invt as $i) {
 
             $stmt->execute([
-                ':id' => $i->id ?? 0,
                 ':id_inventario' => $i->id_inventario ?? 0,
                 ':id_grupo' => $i->id_grupo ?? 0,
                 ':id_familia' => $i->id_familia ?? 0,
@@ -254,18 +251,18 @@ class InventarioDumpService
                 ':id_img' => $i->id_img ?? '',
                 ':id_ciclo' => $i->id_ciclo ?? 0,
                 ':idUbicacionGeo' => $i->idUbicacionGeo ?? 0,
-                ':codigoUbicacion_N1' => $i->codigoUbicacion_N1 ?? 0,
-                ':idUbicacionN2' => $i->idUbicacionN2 ?? 0,
-                ':codigoUbicacion_N2' => $i->codigoUbicacion_N2 ?? 0,
-                ':codigoUbicacionN3' => $i->codigoUbicacionN3 ?? 0,
-                ':idUbicacionN3' => $i->idUbicacionN3 ?? 0,
+                ':codigoUbicacion_N1' => $i->codigoUbicacion_N1 ?? '',
+                ':idUbicacionN2' => $i->idUbicacionN2 ?? '',
+                ':codigoUbicacion_N2' => $i->codigoUbicacion_N2 ?? '',
+                ':codigoUbicacionN3' => $i->codigoUbicacionN3 ?? '',
+                ':idUbicacionN3' => $i->idUbicacionN3 ?? '',
                 ':descripcionTipo' => $i->descripcionTipo ?? '',
                 ':observacion' => $i->observacion ?? '',
                 ':latitud' => $i->latitud ?? '',
                 ':longitud' => $i->longitud ?? '',
                 ':offline' => $i->offline ?? 0,
                 ':update_inv' => $i->update_inv ?? 0,
-                ':creado_por' => $i->creado_por ?? 0,
+                ':creado_por' => $i->creado_por ?? '',
                 ':crud_activo_estado' => $i->crud_activo_estado ?? 0,
                 // edualejandro
                 ':eficiencia' => $i->eficiencia ?? null,

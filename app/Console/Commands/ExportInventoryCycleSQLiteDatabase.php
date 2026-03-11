@@ -51,7 +51,7 @@ class ExportInventoryCycleSQLiteDatabase extends Command
     protected $description = 'Export data for offline inventory (Type 1)';
 
     protected $pdo = null;
-    protected $cycle = 0;
+    protected $cycle = null;
     protected $codigo_grupo = '';
 
     /**
@@ -98,7 +98,7 @@ class ExportInventoryCycleSQLiteDatabase extends Command
         $this->codigo_grupo = $grupos->implode(',');
         $this->info('Used group code(s): ' . $this->codigo_grupo);
 
-        $timestamp = date('dmY'); // 10032025
+        $timestamp = date('dmY');
 
         $dbFileName =  $conn_field . '_output_inventory_cycle_' . $this->cycle . '_database.db';
         $zipFileName =  $conn_field . '_output_inventory_cycle_' . $this->cycle . '_' . $timestamp . '.zip';
