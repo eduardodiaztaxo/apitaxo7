@@ -142,4 +142,9 @@ class UbicacionGeografica extends Model
 
         return $area ? true : false;
     }
+
+    public function ciclos_puntos()
+    {
+        return $this->hasMany(CiclosPunto::class, 'idPunto', 'idUbicacionGeo');
+    }
 }
