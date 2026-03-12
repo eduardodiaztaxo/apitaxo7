@@ -47,6 +47,7 @@ class SQLiteConnService
 
 
         $this->pdo = new \PDO('sqlite:' . $this->sqlitePath);
+        $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
     }
 
 

@@ -67,6 +67,10 @@ class DatosActivosController extends Controller
     {
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
+        if (!$id_proyecto) {
+            $id_proyecto = DB::table('inv_ciclos')->where('idCiclo', $ciclo)->value('id_proyecto');
+        }
+
         $idsGrupos = DB::select("
                 SELECT 
                     dp_grupos.descripcion_grupo,

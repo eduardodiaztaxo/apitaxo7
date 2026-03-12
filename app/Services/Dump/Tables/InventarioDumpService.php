@@ -38,14 +38,17 @@ class InventarioDumpService
 
         $jsonContent = $response->getContent();
 
+        // Decodificar el JSON
         $data = json_decode($jsonContent);
 
         if (isset($data->status) && $data->status !== 'OK') {
             return;
         }
 
+        // Si los datos están envueltos en "data", extraerlos
+        $inventario = isset($data->data) ? $data->data : $data;
 
-        $this->insert($data);
+        $this->insert($inventario);
     }
 
     public function createTable(): void

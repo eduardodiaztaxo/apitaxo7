@@ -178,10 +178,33 @@ class ExportInventoryCycleSQLiteDatabase extends Command
     private function setDiferencias() { (new DifferencesAddressesDumpService($this->pdo, $this->cycle))->runFromController(); }
     private function setZonesByCycle() { (new ZonesDumpService($this->pdo, $this->cycle))->runFromController(); }
     private function setEmplazamientosByCycle() { (new EmplazamientosN2DumpService($this->pdo, $this->cycle))->runFromController(); }
-    private function setAssetsByCycle() { (new CrudAssetsDumpService($this->pdo, $this->cycle))->runFromController(); }
+
+    private function setAssetsByCycle() 
+    { 
+        $this->info('Exporting Master Assets (crud_activos)...');
+        (new CrudAssetsDumpService($this->pdo, $this->cycle))->runFromController(); 
+        $count = $this->pdo->query("SELECT COUNT(*) FROM assets")->fetchColumn();
+        $this->info("Exported $count records to 'assets' table (Note: This is often 0 for Inventory Cycles).");
+    }
+
+    private function setInventario() 
+    { 
+        $this->info('Exporting Inventory Records (inv_inventario)...');
+        (new InventarioDumpService($this->pdo, $this->cycle))->runFromController(); 
+        $count = $this->pdo->query("SELECT COUNT(*) FROM inventario")->fetchColumn();
+        $this->info("Exported $count records to 'inventario' table.");
+    }
+
+    private function setBienesInventario() 
+    { 
+        $this->info('Exporting Catalog Items (bienesInventario)...');
+        (new BienesInventarioDumpService($this->pdo, $this->cycle))->runFromController(); 
+        $count = $this->pdo->query("SELECT COUNT(*) FROM bienesInventario")->fetchColumn();
+        $this->info("Exported $count records to 'bienesInventario' table.");
+    }
+
     private function setCyclesCategoriasByCycle() { (new CyclesCategoriasDumpService($this->pdo, $this->cycle))->runFromController(); }
     private function setConteoRegistroByCycle() { (new ConteoRegistroDumpService($this->pdo, $this->cycle))->runFromController(); }
-    private function setBienesInventario() { (new BienesInventarioDumpService($this->pdo, $this->cycle))->runFromController(); }
     private function setBieneGrupoFamilia() { (new BienGrupoFamiliaDumpService($this->pdo, $this->cycle))->runFromController(); }
     private function setCargaTrabajo() { (new CargaTrabajoDumpService($this->pdo, $this->cycle))->runFromController(); }
     private function setColores() { (new ColoresDumpService($this->pdo, $this->cycle))->runFromController(); }
@@ -191,7 +214,6 @@ class ExportInventoryCycleSQLiteDatabase extends Command
     private function setFamilia() { (new FamiliaDumpService($this->pdo, $this->cycle, $this->codigo_grupo))->runFromController(); }
     private function setForma() { (new FormasDumpService($this->pdo, $this->cycle))->runFromController(); }
     private function setGrupo() { (new GruposDumpService($this->pdo, $this->cycle))->runFromController(); }
-    private function setInventario() { (new InventarioDumpService($this->pdo, $this->cycle))->runFromController(); }
     private function setMarca() { (new MarcasDumpService($this->pdo, $this->cycle))->runFromController(); }
     private function setMarcaInv() { (new MarcasInventarioDumpService($this->pdo, $this->cycle))->runFromController(); }
     private function setMaterial() { (new MaterialDumpService($this->pdo, $this->cycle))->runFromController(); }
