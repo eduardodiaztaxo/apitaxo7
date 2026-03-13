@@ -1046,19 +1046,20 @@ class InventariosController extends Controller
             return $this->jsonError('No existe ciclo', 404);
         }
 
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto() ?: $cycleObj->id_proyecto;
         $usuario = Auth::user()->name;
 
         // Procesar direcciones
-        $idMapaGeo = $this->procesarDirecciones($request->direcciones, $ciclo, $usuario);
+        $idMapaGeo = $this->procesarDirecciones($request->direcciones, $ciclo, $usuario, $id_proyecto);
 
         // Procesar emplazamientos N1/N2/N3
-        $idMapaN1_Codigo = $this->procesarUbicacionesN1($request->emplazamientoN1, $ciclo, $usuario, $idMapaGeo);
-        [$mapaIdN2, $mapaCodN2] = $this->procesarUbicacionesN2($request->emplazamientoN2, $ciclo, $usuario, $idMapaGeo);
-        [$mapaIdN3, $mapaCodN3] = $this->procesarUbicacionesN3($request->emplazamientoN3, $ciclo, $usuario, $idMapaGeo);
+        $idMapaN1_Codigo = $this->procesarUbicacionesN1($request->emplazamientoN1, $ciclo, $usuario, $idMapaGeo, $id_proyecto);
+        [$mapaIdN2, $mapaCodN2] = $this->procesarUbicacionesN2($request->emplazamientoN2, $ciclo, $usuario, $idMapaGeo, $id_proyecto);
+        [$mapaIdN3, $mapaCodN3] = $this->procesarUbicacionesN3($request->emplazamientoN3, $ciclo, $usuario, $idMapaGeo, $id_proyecto);
 
         //Procesar bienes y marcas
-        $mapaIdListaBienes = $this->procesarBienes($request->bienes, $ciclo);
-        $mapaIdListaMarcas = $this->procesarMarcas($request->marcas, $ciclo);
+        $mapaIdListaBienes = $this->procesarBienes($request->bienes, $ciclo, $id_proyecto);
+        $mapaIdListaMarcas = $this->procesarMarcas($request->marcas, $ciclo, $id_proyecto);
 
         // Procesar items
         [$assets, $errors, $images] = $this->procesarItems(
@@ -1072,7 +1073,8 @@ class InventariosController extends Controller
             $mapaIdN3,
             $mapaCodN3,
             $mapaIdListaBienes,
-            $mapaIdListaMarcas
+            $mapaIdListaMarcas,
+            $id_proyecto
         );
 
         if (!empty($errors)) {
@@ -1083,7 +1085,7 @@ class InventariosController extends Controller
         $files = $this->procesarZipImagenes($request, $images);
 
         //Guardar activos e imágenes
-        [$saved, $failed, $paths] = $this->guardarActivosConImagenes($assets, $files, $request->user()->nombre_cliente, $ciclo);
+        [$saved, $failed, $paths] = $this->guardarActivosConImagenes($assets, $files, $request->user()->nombre_cliente, $ciclo, $id_proyecto);
 
         return response()->json([
             'status' => 'OK',
@@ -1132,14 +1134,12 @@ class InventariosController extends Controller
         return $mapa[$codigoOffline] ?? $codigoOffline;
     }
 
-    private function procesarItems($itemsJson, int $ciclo, string $usuario, $idMapaGeo, $idMapaN1_Codigo, $mapaIdN2, $mapaCodN2, $mapaIdN3, $mapaCodN3, $mapaIdListaBienes, $mapaIdListaMarcas)
+    private function procesarItems($itemsJson, int $ciclo, string $usuario, $idMapaGeo, $idMapaN1_Codigo, $mapaIdN2, $mapaCodN2, $mapaIdN3, $mapaCodN3, $mapaIdListaBienes, $mapaIdListaMarcas, $id_proyecto)
     {
         $items = $itemsJson ? json_decode($itemsJson) : [];
         $assets = [];
         $errors = [];
         $images = [];
-
-        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         $ultimo_id_inventario = DB::table('inv_inventario')
             ->where('id_proyecto', $id_proyecto)
@@ -1154,7 +1154,7 @@ class InventariosController extends Controller
                 continue;
             }
 
-            $activo = $this->mapActivo($item, $ciclo, $usuario, $idMapaGeo, $idMapaN1_Codigo, $mapaIdN2, $mapaCodN2, $mapaIdN3, $mapaCodN3, $mapaIdListaBienes, $mapaIdListaMarcas, $siguiente_id_inventario);
+            $activo = $this->mapActivo($item, $ciclo, $usuario, $idMapaGeo, $idMapaN1_Codigo, $mapaIdN2, $mapaCodN2, $mapaIdN3, $mapaCodN3, $mapaIdListaBienes, $mapaIdListaMarcas, $siguiente_id_inventario, $id_proyecto);
             $assets[] = $activo;
             $images[] = ['etiqueta' => $item->etiqueta, 'images' => $item->images];
 
@@ -1168,7 +1168,7 @@ class InventariosController extends Controller
     /**
      * Mapear un item
      */
-    private function mapActivo($item, $ciclo, $usuario, $idMapaGeo, $idMapaN1_Codigo, $mapaIdN2, $mapaCodN2, $mapaIdN3, $mapaCodN3, $mapaIdListaBienes, $mapaIdListaMarcas, $id_inventario)
+    private function mapActivo($item, $ciclo, $usuario, $idMapaGeo, $idMapaN1_Codigo, $mapaIdN2, $mapaCodN2, $mapaIdN3, $mapaCodN3, $mapaIdListaBienes, $mapaIdListaMarcas, $id_inventario, $id_proyecto)
     {
         // Determinar si se usa
         $usarMapas = isset($idMapaGeo[$item->idUbicacionGeo]);
@@ -1176,8 +1176,6 @@ class InventariosController extends Controller
         $id_marca_final = $mapaIdListaMarcas[$item->id_marca] ?? $item->id_marca;
         $getIdResponsable = $this->getIdResponsable();
         $responsable = $this->getNombre();
-
-        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         return [
             'id_inventario'      => $id_inventario,
@@ -1240,12 +1238,10 @@ class InventariosController extends Controller
     /**
      * Procesar direcciones 
      */
-    private function procesarDirecciones($direccionesJson, int $ciclo, string $usuario): array
+    private function procesarDirecciones($direccionesJson, int $ciclo, string $usuario, $id_proyecto): array
     {
         $direcciones = $direccionesJson ? json_decode($direccionesJson) : [];
         $idMapaGeo = [];
-
-        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         foreach ($direcciones as $d) {
             $idRegion = DB::table('regiones')->where('descripcion', $d->region)->value('idRegion');
@@ -1289,12 +1285,10 @@ class InventariosController extends Controller
     /**
      * Procesar Ubicaciones N1
      */
-    private function procesarUbicacionesN1($json, int $ciclo, string $usuario, array $idMapaGeo): array
+    private function procesarUbicacionesN1($json, int $ciclo, string $usuario, array $idMapaGeo, $id_proyecto): array
     {
         $data = $json ? json_decode($json) : [];
         $mapaCodigo = [];
-
-        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         foreach ($data as $n1) {
             $idAgendaReal = $this->obtenerIdAgendaActualizado($n1->idAgenda, $idMapaGeo);
@@ -1337,13 +1331,11 @@ class InventariosController extends Controller
     /**
      * Procesar Ubicaciones N2
      */
-    private function procesarUbicacionesN2($json, int $ciclo, string $usuario, array $idMapaGeo): array
+    private function procesarUbicacionesN2($json, int $ciclo, string $usuario, array $idMapaGeo, $id_proyecto): array
     {
         $data = $json ? json_decode($json) : [];
         $mapaId = [];
         $mapaCodigo = [];
-
-        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         foreach ($data as $n2) {
             $idAgendaReal = $this->obtenerIdAgendaActualizado($n2->idAgenda, $idMapaGeo);
@@ -1402,12 +1394,11 @@ class InventariosController extends Controller
     /**
      * Procesar Ubicaciones N3
      */
-    private function procesarUbicacionesN3($json, int $ciclo, string $usuario, array $idMapaGeo): array
+    private function procesarUbicacionesN3($json, int $ciclo, string $usuario, array $idMapaGeo, $id_proyecto): array
     {
         $data = $json ? json_decode($json) : [];
         $mapaId = [];
         $mapaCodigo = [];
-        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         foreach ($data as $n3) {
             $idAgendaReal = $this->obtenerIdAgendaActualizado($n3->idAgenda, $idMapaGeo);
@@ -1467,12 +1458,10 @@ class InventariosController extends Controller
      * Procesar bienes Nuevos
      */
 
-    private function procesarBienes($json, int $ciclo): array
+    private function procesarBienes($json, int $ciclo, $id_proyecto): array
     {
         $bienes = $json ? json_decode($json) : [];
         $mapaIdListaBienes = [];
-
-        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         foreach ($bienes as $bien) {
             $existeBien = DB::table('inv_bienes_nuevos')
@@ -1525,11 +1514,10 @@ class InventariosController extends Controller
     /**
      * Procesar marcas Nuevas
      */
-    private function procesarMarcas($json, int $ciclo): array
+    private function procesarMarcas($json, int $ciclo, $id_proyecto): array
     {
         $marcas = $json ? json_decode($json) : [];
         $mapaIdListaMarcas = [];
-        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         foreach ($marcas as $marca) {
             $existeMarca = DB::table('inv_marcas_nuevos')
@@ -1633,13 +1621,11 @@ class InventariosController extends Controller
     /**
      * Guardar Img
      */
-    private function guardarActivosConImagenes(array $assets, array $files, string $cliente, int $ciclo)
+    private function guardarActivosConImagenes(array $assets, array $files, string $cliente, int $ciclo, $id_proyecto)
     {
         $saved = [];
         $failed = [];
         $paths = [];
-
-        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
         $id_img = DB::table('inv_imagenes')->where('id_proyecto', $id_proyecto)->max('id_img') + 1;
         $idsi = [];

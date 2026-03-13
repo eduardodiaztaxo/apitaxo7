@@ -54,14 +54,17 @@ class AddressesDumpService implements DumpSQLiteInterface
 
         $jsonContent = $response->getContent();
 
-        // Decodificar el JSON a un arreglo asociativo
+        // Decodificar el JSON
         $data = json_decode($jsonContent);
 
         if (isset($data->status) && $data->status !== 'OK') {
             return;
         }
 
-        $this->insert($data);
+        // Si los datos están envueltos en "data", extraerlos
+        $addresses = isset($data->data) ? $data->data : $data;
+
+        $this->insert($addresses);
     }
 
 
@@ -115,7 +118,7 @@ class AddressesDumpService implements DumpSQLiteInterface
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            INSERT INTO ubicaciones (
+            INSERT OR IGNORE INTO ubicaciones (
                 idUbicacionGeo,
                 codigoCliente,
                 descripcion,
@@ -174,28 +177,28 @@ class AddressesDumpService implements DumpSQLiteInterface
             $zonas = array_merge($address->zonas_punto, $zonas);
 
             $stmt->execute([
-                ':idUbicacionGeo' => $address->idUbicacionGeo,
-                ':codigoCliente' => $address->codigoCliente,
-                ':descripcion' => $address->descripcion,
-                ':zona' => $address->zona,
-                ':region' => $address->region,
-                ':ciudad' => $address->ciudad,
-                ':comuna' => $address->comuna,
-                ':direccion' => $address->direccion,
-                ':idPunto' => $address->idPunto,
-                ':estadoGeo' => $address->estadoGeo,
-                ':id_estado' => $address->id_estado,
-                ':estado_punto' => $address->estado_punto,
-                ':auditoria_general' => $address->auditoria_general,
-                ':num_activos' => $address->num_activos,
-                ':num_activos_cats_by_cycle' => $address->num_activos_cats_by_cycle,
-                ':num_cats_by_cycle' => $address->num_cats_by_cycle,
-                ':num_subcats_n2_by_cycle' => $address->num_subcats_n2_by_cycle,
-                ':num_subcats_n3_by_cycle' => $address->num_subcats_n3_by_cycle,
-                ':num_activos_audit' => $address->num_activos_audit, 
-                ':newApp' => $address->newApp, 
-                ':modo' => $address->modo,
-                ':offline' => 0,
+                ':idUbicacionGeo'            => $address->idUbicacionGeo,
+                ':codigoCliente'             => $address->codigoCliente,
+                ':descripcion'               => $address->descripcion,
+                ':zona'                      => $address->zona,
+                ':region'                    => $address->region,
+                ':ciudad'                    => $address->ciudad,
+                ':comuna'                    => $address->comuna,
+                ':direccion'                 => $address->direccion,
+                ':idPunto'                   => $address->idPunto,
+                ':estadoGeo'                 => $address->estadoGeo,
+                ':id_estado'                 => $address->id_estado,
+                ':estado_punto'              => $address->estado_punto,
+                ':auditoria_general'         => $address->auditoria_general ?? 0, // Added safety
+                ':num_activos'               => $address->num_activos ?? 0,       // Added safety
+                ':num_activos_cats_by_cycle' => $address->num_activos_cats_by_cycle ?? 0,
+                ':num_cats_by_cycle'         => $address->num_cats_by_cycle ?? 0,
+                ':num_subcats_n2_by_cycle'   => $address->num_subcats_n2_by_cycle ?? 0,
+                ':num_subcats_n3_by_cycle'   => $address->num_subcats_n3_by_cycle ?? 0,
+                ':num_activos_audit'         => $address->num_activos_audit ?? 0, // This was the culprit
+                ':newApp'                    => $address->newApp ?? 0,
+                ':modo'                      => $address->modo ?? null,
+                ':offline'                   => 0,
             ]);
         }
 

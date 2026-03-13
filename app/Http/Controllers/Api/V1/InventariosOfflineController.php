@@ -31,11 +31,8 @@ class InventariosOfflineController extends Controller
 
     public function inventarioPorCicloOfflineInventario($ciclo)
     {
-        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
-
         $collection = DB::table('inv_inventario')
             ->where('id_ciclo', $ciclo)
-            ->where('id_proyecto', $id_proyecto)
             ->get();
 
         return response()->json($collection, 200);
@@ -51,6 +48,10 @@ class InventariosOfflineController extends Controller
     public function familia(int $ciclo, array $codigo_grupos)
     {
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+
+        if (!$id_proyecto) {
+            $id_proyecto = DB::table('inv_ciclos')->where('idCiclo', $ciclo)->value('id_proyecto') ?? 0;
+        }
 
         if (count($codigo_grupos) === 1 && is_string($codigo_grupos[0])) {
             $codigo_grupos = explode(',', $codigo_grupos[0]);
@@ -117,6 +118,10 @@ class InventariosOfflineController extends Controller
 
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
+        if (!$id_proyecto) {
+            $id_proyecto = DB::table('inv_ciclos')->where('idCiclo', $ciclo)->value('id_proyecto') ?? 0;
+        }
+
         $atributosObj = collect(DB::select("
      SELECT 
             t.descripcion,
@@ -139,6 +144,10 @@ class InventariosOfflineController extends Controller
     public function CycleCatsNivel3($ciclo)
     {
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+
+        if (!$id_proyecto) {
+            $id_proyecto = DB::table('inv_ciclos')->where('idCiclo', $ciclo)->value('id_proyecto') ?? 0;
+        }
 
         $zonaObjs = EmplazamientoN3::where('idProyecto', $id_proyecto)->get();
 
@@ -187,6 +196,10 @@ class InventariosOfflineController extends Controller
     {
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
+        if (!$id_proyecto) {
+            $id_proyecto = DB::table('inv_ciclos')->where('idCiclo', $ciclo)->value('id_proyecto') ?? 0;
+        }
+
         $zonaObjs = EmplazamientoN1::where('idProyecto', $id_proyecto)->get();
 
         if ($zonaObjs->isEmpty()) {
@@ -233,6 +246,10 @@ class InventariosOfflineController extends Controller
     {
         try {
             $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+            if (!$id_proyecto) {
+                $id_proyecto = DB::table('inv_ciclos')->where('idCiclo', $ciclo)->value('id_proyecto') ?? 0;
+            }
+
             $tableExists = DB::select("SHOW TABLES LIKE 'inv_marcas_nuevos'");
 
             $marcas = collect();
@@ -253,6 +270,9 @@ class InventariosOfflineController extends Controller
         } catch (\Exception $e) {
 
             $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+            if (!$id_proyecto) {
+                $id_proyecto = DB::table('inv_ciclos')->where('idCiclo', $ciclo)->value('id_proyecto') ?? 0;
+            }
 
             $indices = DB::table('indices_listas')
                 ->where('idProyecto', $id_proyecto)
@@ -267,6 +287,9 @@ class InventariosOfflineController extends Controller
     {
         try {
             $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+            if (!$id_proyecto) {
+                $id_proyecto = DB::table('inv_ciclos')->where('idCiclo', $ciclo)->value('id_proyecto') ?? 0;
+            }
 
             // Check if table exists first
             $tableExists = DB::select("SHOW TABLES LIKE 'inv_marcas_nuevos'");
@@ -291,6 +314,9 @@ class InventariosOfflineController extends Controller
     {
 
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+        if (!$id_proyecto) {
+            $id_proyecto = DB::table('inv_ciclos')->where('idCiclo', $ciclo)->value('id_proyecto') ?? 0;
+        }
 
         $bienes = DB::table('inv_bienes_nuevos')
             ->where('idProyecto', $id_proyecto)
@@ -307,6 +333,10 @@ class InventariosOfflineController extends Controller
     WHERE idCiclo = $ciclo
     "));
 
+
+        if ($direcciones->isEmpty()) {
+            return response()->json([], 200);
+        }
 
         $map = collect(DB::select("
      SELECT
@@ -352,6 +382,9 @@ LEFT JOIN (
     public function configuracionOffline(array $codigo_grupos, $cycleid)
     {
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+        if (!$id_proyecto) {
+            $id_proyecto = DB::table('inv_ciclos')->where('idCiclo', $cycleid)->value('id_proyecto') ?? 0;
+        }
 
         if (count($codigo_grupos) === 1 && is_string($codigo_grupos[0])) {
             $codigo_grupos = explode(',', $codigo_grupos[0]);

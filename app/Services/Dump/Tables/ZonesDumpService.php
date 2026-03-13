@@ -51,16 +51,19 @@ class ZonesDumpService implements DumpSQLiteInterface
 
         $jsonContent = $response->getContent();
 
-        // Decodificar el JSON a un arreglo asociativo
+        // Decodificar el JSON
         $data = json_decode($jsonContent);
 
         if (isset($data->status) && $data->status !== 'OK') {
             return;
         }
 
+        // Si los datos están envueltos en "data", extraerlos
+        $addresses = isset($data->data) ? $data->data : $data;
+
         $zonas = [];
 
-        foreach ($data as $address) {
+        foreach ($addresses as $address) {
 
             $zonas = array_merge($address->zonas_punto, $zonas);
         }

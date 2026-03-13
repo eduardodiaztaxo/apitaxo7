@@ -212,6 +212,7 @@ class ActivoFinderService
         if ($ciclo->idTipoCiclo == self::TIPO_INVENTARIO) {
             $existsInv = Inventario::where('etiqueta', $etiqueta)
                 ->where('id_proyecto', $id_proyecto)
+                ->where('id_ciclo', $cicloId)
                 ->first();
             return [$existsInv, null];
         }

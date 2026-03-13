@@ -30,6 +30,10 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2')->group(func
 
     Route::get('ciclos/{ciclo}/emplazamientos-n3/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssetsN3']);
 
+    Route::get('ciclos/{ciclo}/emplazamientos/{nivel}/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssetsByLevel']);
+
+    Route::get('ciclos/{ciclo}/emplazamientos/{nivel}/{emplazamiento}/group-families', [CiclosEmplazamientosController::class, 'showGroupFamiliesByLevel']);
+
     Route::get('ciclos/{ciclo}/emplazamientos-n1/{emplazamiento}/group-families', [CiclosEmplazamientosController::class, 'showGroupFamiliesN1']);
 
     Route::get('ciclos/{ciclo}/emplazamientos-n2/{emplazamiento}/group-families', [CiclosEmplazamientosController::class, 'showGroupFamiliesN2']);

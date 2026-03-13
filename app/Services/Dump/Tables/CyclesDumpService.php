@@ -48,9 +48,12 @@ class CyclesDumpService implements DumpSQLiteInterface
         // Get the JSON content and decode it
         $jsonContent = $response->getContent();
         $data = json_decode($jsonContent);
+
+        // Si los datos están envueltos en "data", extraerlos
+        $cycle = isset($data->data) ? $data->data : $data;
         
         // Convert the single cycle to array format for insert method
-        $cycles = [$data];
+        $cycles = [$cycle];
 
         $this->insert($cycles);
     }

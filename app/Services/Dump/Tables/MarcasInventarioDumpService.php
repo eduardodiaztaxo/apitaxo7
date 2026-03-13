@@ -121,14 +121,14 @@ class MarcasInventarioDumpService
             $stmt->execute([
                 'idLista' => $m->idLista,
                 'idIndice' => $m->idIndice,
-                'descripcion' => $m->descripcion,
-                'observacion' => $m->observacion,
+                'descripcion' => $m->descripcion ?? '',
+                'observacion' => $m->observacion ?? '',
                 'idAtributo' => $m->idAtributo,
                 'id_familia' => $m->id_familia,
-                'ciclo_inventario' => $m->ciclo_inventario,
-                'creadoPor' => $m->creadoPor,
-                'fechaCreacion' => $m->fechaCreacion,
-                'modo' => $m->modo,
+                'ciclo_inventario' => $m->ciclo_inventario ?? 0,
+                'creadoPor' => $m->creadoPor ?? '',
+                'fechaCreacion' => $m->fechaCreacion ?? '',
+                'modo' => $m->modo ?? 'ONLINE',
                 'offline' => 0
             ]);
         }

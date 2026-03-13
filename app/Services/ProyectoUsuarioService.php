@@ -20,7 +20,13 @@ class ProyectoUsuarioService
      */
     public static function getIdProyecto()
     {
-        $usuario = Auth::user()->name;
+        $user = Auth::user();
+        
+        if (!$user) {
+            return null;
+        }
+
+        $usuario = $user->name;
         
         return DB::table('sec_user_proyectos')
                  ->where('login', $usuario)

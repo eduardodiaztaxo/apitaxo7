@@ -10,15 +10,19 @@ use App\Services\Dump\Tables\CyclesCategoriasDumpService;
 use App\Services\Dump\Tables\ConteoRegistroDumpService;
 use App\Services\Dump\Tables\EmplazamientosN2DumpService;
 use App\Services\Dump\Tables\ZonesDumpService;
+use App\Services\Dump\Tables\BienesInventarioDumpService;
+use App\Services\Dump\Tables\BienGrupoFamiliaDumpService;
 use App\Services\Dump\Tables\CargaTrabajoDumpService;
 use App\Services\Dump\Tables\ColoresDumpService;
 use App\Services\Dump\Tables\CondicionAmbientalDumpService;
+use App\Services\Dump\Tables\ConfiguracionDumpService;
 use App\Services\Dump\Tables\EstadoConservacionDumpService;
 use App\Services\Dump\Tables\FamiliaDumpService;
 use App\Services\Dump\Tables\FormasDumpService;
 use App\Services\Dump\Tables\GruposDumpService;
 use App\Services\Dump\Tables\InventarioDumpService;
 use App\Services\Dump\Tables\MarcasDumpService;
+use App\Services\Dump\Tables\MarcasInventarioDumpService;
 use App\Services\Dump\Tables\MaterialDumpService;
 use App\Services\Dump\Tables\OperacionalDumpService;
 use App\Services\Dump\Tables\TipoTrabajoDumpService;
@@ -34,27 +38,28 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 
-class ExportAuditCycleSQLiteDatabase extends Command
+class ExportInventoryCycleSQLiteDatabase extends Command
 {
     /**
      * @var string
      */
-    protected $signature = 'command:export-for-offline-auditing-sqlite {--connection=} {--cycle=}';
+    protected $signature = 'command:export-for-offline-inventory-sqlite {--connection=} {--cycle=}';
 
     /**
      * @var string
      */
-    protected $description = 'Export data for offline auditing (Type 2)';
+    protected $description = 'Export data for offline inventory (Type 1)';
 
     protected $pdo = null;
-    protected $cycle = 0;
+    protected $cycle = null;
+    protected $codigo_grupo = '';
 
     /**
      * @return int
      */
     public function handle()
     {
-        $this->info('Starting audit data export (ID 2)...');
+        $this->info('Starting inventory data export (ID 1)...');
 
         $conn_field = $this->option('connection');
         if (!$conn_field) {
@@ -70,24 +75,39 @@ class ExportAuditCycleSQLiteDatabase extends Command
 
         DB::setDefaultConnection($conn_field);
 
-        $tipoCiclo = DB::table('inv_ciclos')
+        $ciclo = DB::table('inv_ciclos')
             ->where('idCiclo', $this->cycle)
-            ->value('idTipoCiclo');
+            ->first();
 
-        if (!$tipoCiclo || $tipoCiclo != 2) {
-            $this->error('The cycle does not exist or is not an Audit cycle (ID 2).');
+        if (!$ciclo || $ciclo->idTipoCiclo != 1) {
+            $this->error('The cycle does not exist or is not an Inventory cycle (ID 1).');
             return 1;
         }
 
-        $fecha = date('dmY');
-        $dbFileName = 'audit_cycle_' . $conn_field . '_' . $this->cycle . '_database.db';
-        $zipFileName = 'audit_cycle_' . $conn_field . '_' . $this->cycle . '_' . $fecha . '.zip';
+        $grupos = DB::table('inv_ciclos_categorias')
+            ->where('idCiclo', $this->cycle)
+            ->select('id_grupo')
+            ->distinct()
+            ->pluck('id_grupo');
+
+        if ($grupos->isEmpty()) {
+            $this->error('No groups found associated with the cycle.');
+            return 1;
+        }
+
+        $this->codigo_grupo = $grupos->implode(',');
+        $this->info('Used group code(s): ' . $this->codigo_grupo);
+
+        $timestamp = date('dmY');
+
+        $dbFileName =  $conn_field . '_output_inventory_cycle_' . $this->cycle . '_database.db';
+        $zipFileName =  $conn_field . '_output_inventory_cycle_' . $this->cycle . '_' . $timestamp . '.zip';
 
         $relativeDbPath = 'app/db-dumps/' . $dbFileName;
         $relativeZipPath = 'app/db-dumps/' . $zipFileName;
 
         $sqlitePath = storage_path($relativeDbPath);
-        
+
         $pdoServ = new SQLiteConnService($sqlitePath);
         if ($pdoServ->deleteDB()) {
             $this->warn('Old database file deleted.');
@@ -97,7 +117,7 @@ class ExportAuditCycleSQLiteDatabase extends Command
         $this->pdo = $pdoServ->getCurrentConn();
         $this->info('SQLite DB created successfully.');
 
-        // Common tables for Audit
+        // Common tables
         $this->setCyclesSQLite();
         $this->setAddressByCycle();
         $this->setZonesByCycle();
@@ -124,6 +144,12 @@ class ExportAuditCycleSQLiteDatabase extends Command
         $this->setEmplazamientoN1();
         $this->setAtributos();
         $this->setDiferencias();
+
+        // Specific to Inventory (ID 1)
+        $this->setBienesInventario();
+        $this->setBieneGrupoFamilia();
+        $this->setConfiguracion();
+        $this->setMarcaInv();
 
         $style = new OutputFormatterStyle('white', 'green', array('bold', 'blink'));
         $this->output->getFormatter()->setStyle('success', $style);
@@ -152,18 +178,44 @@ class ExportAuditCycleSQLiteDatabase extends Command
     private function setDiferencias() { (new DifferencesAddressesDumpService($this->pdo, $this->cycle))->runFromController(); }
     private function setZonesByCycle() { (new ZonesDumpService($this->pdo, $this->cycle))->runFromController(); }
     private function setEmplazamientosByCycle() { (new EmplazamientosN2DumpService($this->pdo, $this->cycle))->runFromController(); }
-    private function setAssetsByCycle() { (new CrudAssetsDumpService($this->pdo, $this->cycle))->runFromController(); }
+
+    private function setAssetsByCycle() 
+    { 
+        $this->info('Exporting Master Assets (crud_activos)...');
+        (new CrudAssetsDumpService($this->pdo, $this->cycle))->runFromController(); 
+        $count = $this->pdo->query("SELECT COUNT(*) FROM assets")->fetchColumn();
+        $this->info("Exported $count records to 'assets' table (Note: This is often 0 for Inventory Cycles).");
+    }
+
+    private function setInventario() 
+    { 
+        $this->info('Exporting Inventory Records (inv_inventario)...');
+        (new InventarioDumpService($this->pdo, $this->cycle))->runFromController(); 
+        $count = $this->pdo->query("SELECT COUNT(*) FROM inventario")->fetchColumn();
+        $this->info("Exported $count records to 'inventario' table.");
+    }
+
+    private function setBienesInventario() 
+    { 
+        $this->info('Exporting Catalog Items (bienesInventario)...');
+        (new BienesInventarioDumpService($this->pdo, $this->cycle))->runFromController(); 
+        $count = $this->pdo->query("SELECT COUNT(*) FROM bienesInventario")->fetchColumn();
+        $this->info("Exported $count records to 'bienesInventario' table.");
+    }
+
     private function setCyclesCategoriasByCycle() { (new CyclesCategoriasDumpService($this->pdo, $this->cycle))->runFromController(); }
     private function setConteoRegistroByCycle() { (new ConteoRegistroDumpService($this->pdo, $this->cycle))->runFromController(); }
+    private function setBieneGrupoFamilia() { (new BienGrupoFamiliaDumpService($this->pdo, $this->cycle))->runFromController(); }
     private function setCargaTrabajo() { (new CargaTrabajoDumpService($this->pdo, $this->cycle))->runFromController(); }
     private function setColores() { (new ColoresDumpService($this->pdo, $this->cycle))->runFromController(); }
     private function setCondicionAmbiental() { (new CondicionAmbientalDumpService($this->pdo, $this->cycle))->runFromController(); }
+    private function setConfiguracion() { (new ConfiguracionDumpService($this->pdo, $this->codigo_grupo, $this->cycle))->runFromController(); }
     private function setEstadoConservacion() { (new EstadoConservacionDumpService($this->pdo, $this->cycle))->runFromController(); }
-    private function setFamilia() { (new FamiliaDumpService($this->pdo, $this->cycle))->runFromController(); }
+    private function setFamilia() { (new FamiliaDumpService($this->pdo, $this->cycle, $this->codigo_grupo))->runFromController(); }
     private function setForma() { (new FormasDumpService($this->pdo, $this->cycle))->runFromController(); }
     private function setGrupo() { (new GruposDumpService($this->pdo, $this->cycle))->runFromController(); }
-    private function setInventario() { (new InventarioDumpService($this->pdo, $this->cycle))->runFromController(); }
     private function setMarca() { (new MarcasDumpService($this->pdo, $this->cycle))->runFromController(); }
+    private function setMarcaInv() { (new MarcasInventarioDumpService($this->pdo, $this->cycle))->runFromController(); }
     private function setMaterial() { (new MaterialDumpService($this->pdo, $this->cycle))->runFromController(); }
     private function setOperacional() { (new OperacionalDumpService($this->pdo, $this->cycle))->runFromController(); }
     private function setTipoTrabajo() { (new TipoTrabajoDumpService($this->pdo, $this->cycle))->runFromController(); }

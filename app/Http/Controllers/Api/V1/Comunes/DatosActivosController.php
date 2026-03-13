@@ -45,9 +45,13 @@ class DatosActivosController extends Controller
 
 
 
-    public function estados()
+    public function estados($idCiclo = null)
     {
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+
+        if (!$id_proyecto && $idCiclo) {
+            $id_proyecto = DB::table('inv_ciclos')->where('idCiclo', $idCiclo)->value('id_proyecto');
+        }
 
         if (!$id_proyecto) {
             return response()->json([
@@ -66,6 +70,10 @@ class DatosActivosController extends Controller
     public function grupo($ciclo)
     {
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+
+        if (!$id_proyecto) {
+            $id_proyecto = DB::table('inv_ciclos')->where('idCiclo', $ciclo)->value('id_proyecto');
+        }
 
         $idsGrupos = DB::select("
                 SELECT 
@@ -126,6 +134,10 @@ class DatosActivosController extends Controller
     {
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
+        if (!$id_proyecto) {
+            $id_proyecto = DB::table('inv_ciclos')->where('idCiclo', $idCiclo)->value('id_proyecto') ?? 0;
+        }
+
         $familias = DB::select("
         SELECT 
             dp_grupos.descripcion_grupo,
@@ -173,7 +185,8 @@ class DatosActivosController extends Controller
         estado,
         foto,
         id_familia,
-        ciclo_inventario
+        ciclo_inventario,
+        modo
     FROM inv_bienes_nuevos
     WHERE idAtributo = 1 AND id_familia IN ($in) AND idProyecto = ?
 
@@ -194,7 +207,8 @@ class DatosActivosController extends Controller
         estado,
         foto,
         id_familia,
-        ciclo_inventario
+        ciclo_inventario,
+        'ONLINE' as modo
     FROM indices_listas
     WHERE idAtributo = 1 AND id_familia IN ($in) AND idProyecto = ?
 ) AS resultado;
@@ -328,9 +342,13 @@ class DatosActivosController extends Controller
             'grupo' => $grupo[0]
         ], 200);
     }
-    public function bienes_Marcas($id_familia)
+    public function bienes_Marcas($id_familia, $idCiclo = null)
     {
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+
+        if (!$id_proyecto && $idCiclo) {
+            $id_proyecto = DB::table('inv_ciclos')->where('idCiclo', $idCiclo)->value('id_proyecto');
+        }
 
         if (empty($id_proyecto)) {
             return response()->json([
@@ -357,9 +375,13 @@ class DatosActivosController extends Controller
         return response()->json($resultado, 200);
     }
 
-    public function indiceColores()
+    public function indiceColores($idCiclo = null)
     {
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+
+        if (!$id_proyecto && $idCiclo) {
+            $id_proyecto = DB::table('inv_ciclos')->where('idCiclo', $idCiclo)->value('id_proyecto');
+        }
 
         if (empty($id_proyecto)) {
             return response()->json([
@@ -374,9 +396,13 @@ class DatosActivosController extends Controller
         return response()->json($collection, 200);
     }
 
-    public function estadosOperacional()
+    public function estadosOperacional($idCiclo = null)
     {
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+
+        if (!$id_proyecto && $idCiclo) {
+            $id_proyecto = DB::table('inv_ciclos')->where('idCiclo', $idCiclo)->value('id_proyecto');
+        }
 
         if (empty($id_proyecto)) {
             return response()->json([
@@ -391,9 +417,13 @@ class DatosActivosController extends Controller
         return response()->json($collection, 200);
     }
 
-    public function tipoTrabajo()
+    public function tipoTrabajo($idCiclo = null)
     {
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+
+        if (!$id_proyecto && $idCiclo) {
+            $id_proyecto = DB::table('inv_ciclos')->where('idCiclo', $idCiclo)->value('id_proyecto');
+        }
 
         if (empty($id_proyecto)) {
             return response()->json([
@@ -408,9 +438,13 @@ class DatosActivosController extends Controller
         return response()->json($collection, 200);
     }
 
-    public function cargaTrabajo()
+    public function cargaTrabajo($idCiclo = null)
     {
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+
+        if (!$id_proyecto && $idCiclo) {
+            $id_proyecto = DB::table('inv_ciclos')->where('idCiclo', $idCiclo)->value('id_proyecto');
+        }
 
         if (empty($id_proyecto)) {
             return response()->json([
@@ -425,9 +459,13 @@ class DatosActivosController extends Controller
         return response()->json($collection, 200);
     }
 
-    public function estadoConservacion()
+    public function estadoConservacion($idCiclo = null)
     {
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+
+        if (!$id_proyecto && $idCiclo) {
+            $id_proyecto = DB::table('inv_ciclos')->where('idCiclo', $idCiclo)->value('id_proyecto');
+        }
 
         if (empty($id_proyecto)) {
             return response()->json([
@@ -442,9 +480,13 @@ class DatosActivosController extends Controller
         return response()->json($collection, 200);
     }
 
-    public function condicionAmbiental()
+    public function condicionAmbiental($idCiclo = null)
     {
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+
+        if (!$id_proyecto && $idCiclo) {
+            $id_proyecto = DB::table('inv_ciclos')->where('idCiclo', $idCiclo)->value('id_proyecto');
+        }
 
         if (empty($id_proyecto)) {
             return response()->json([
@@ -459,9 +501,13 @@ class DatosActivosController extends Controller
         return response()->json($collection, 200);
     }
 
-    public function material()
+    public function material($idCiclo = null)
     {
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+
+        if (!$id_proyecto && $idCiclo) {
+            $id_proyecto = DB::table('inv_ciclos')->where('idCiclo', $idCiclo)->value('id_proyecto');
+        }
 
         if (empty($id_proyecto)) {
             return response()->json([
@@ -483,9 +529,13 @@ class DatosActivosController extends Controller
      * @param  \App\Models\IndiceListaForma  
      * @return \Illuminate\Http\Response
      */
-    public function forma()
+    public function forma($idCiclo = null)
     {
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+
+        if (!$id_proyecto && $idCiclo) {
+            $id_proyecto = DB::table('inv_ciclos')->where('idCiclo', $idCiclo)->value('id_proyecto');
+        }
 
         if (empty($id_proyecto)) {
             return response()->json([

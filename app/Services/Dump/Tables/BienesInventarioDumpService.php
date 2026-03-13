@@ -2,9 +2,9 @@
 
 namespace App\Services\Dump\Tables;
 
+use App\Http\Controllers\Api\V1\Comunes\DatosActivosController;
 use App\Services\Dump\Tables\DumpSQLiteInterface;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use App\Http\Controllers\Api\V1\InventariosOfflineController;
 use PDO;
 
 
@@ -42,21 +42,23 @@ class BienesInventarioDumpService
         $request = new \Illuminate\Http\Request();
         $request->setMethod('GET');
 
-        $datsdActivosCtrl = new InventariosOfflineController();
+        $datsdActivosCtrl = new DatosActivosController();
 
-        $response = $datsdActivosCtrl->BienesNuevosOfflineInventario($this->cycle);
+        $response = $datsdActivosCtrl->bienesGrupoFamilia($this->cycle);
 
         $jsonContent = $response->getContent();
 
-        // Decodificar el JSON a un arreglo asociativo
+        // Decodificar el JSON
         $data = json_decode($jsonContent);
 
         if (isset($data->status) && $data->status !== 'OK') {
             return;
         }
 
+        // Si los datos están envueltos en "data", extraerlos
+        $bienes = isset($data->data) ? $data->data : $data;
 
-        $this->insert($data);
+        $this->insert($bienes);
     }
 
     public function createTable(): void
@@ -121,15 +123,15 @@ class BienesInventarioDumpService
             $stmt->execute([
                 'idLista' => $b->idLista,
                 'idIndice' => $b->idIndice,
-                'descripcion' => $b->descripcion,
-                'observacion' => $b->observacion,
+                'descripcion' => $b->descripcion ?? '',
+                'observacion' => $b->observacion ?? '',
                 'idAtributo' => $b->idAtributo,
                 'id_familia' => $b->id_familia,
-                'id_grupo' => $b->id_grupo,
-                'ciclo_inventario' => $b->ciclo_inventario,
-                'creadoPor' => $b->creadoPor,
-                'fechaCreacion' => $b->fechaCreacion,
-                'modo' => $b->modo,
+                'id_grupo' => $b->id_grupo ?? 0,
+                'ciclo_inventario' => $b->ciclo_inventario ?? 0,
+                'creadoPor' => $b->creadoPor ?? '',
+                'fechaCreacion' => $b->fechaCreacion ?? '',
+                'modo' => $b->modo ?? 'ONLINE',
                 'offline' => 0,
             ]);
         }

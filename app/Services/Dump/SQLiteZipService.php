@@ -27,12 +27,13 @@ class SQLiteZipService
     /**
      * Create a zip archive of the SQLite database.
      *
+     * @param string|null $customZipPath Optional custom path for the zip archive
      * @return void
      */
-    public function createZipArchive(): void
+    public function createZipArchive(string $customZipPath = null): void
     {
         $zip = new \ZipArchive();
-        $this->zipFileName = str_replace('.db', '.zip', $this->sqlitePath);
+        $this->zipFileName = $customZipPath ?: str_replace('.db', '.zip', $this->sqlitePath);
 
         if ($zip->open($this->zipFileName, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
             $zip->addFile($this->sqlitePath, basename($this->sqlitePath));
