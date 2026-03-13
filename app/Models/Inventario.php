@@ -198,9 +198,12 @@ class Inventario extends Model
         return $this->belongsTo(EmplazamientoN3::class, 'idUbicacionN3', 'idUbicacionN3');
     }
 
-    public static function queryBuilderInventory_FindInGroupFamily_Pagination($model, InvCiclo $cicloObj, Request $request)
+    public static function queryBuilderInventory_FindInGroupFamily_Pagination($model, ?InvCiclo $cicloObj, Request $request)
     {
-        $queryBuilder = $model->inv_activos()->where('inv_inventario.id_ciclo', $cicloObj->idCiclo);
+        $queryBuilder = $model->inv_activos();
+        if ($cicloObj) {
+            $queryBuilder->where('inv_inventario.id_ciclo', $cicloObj->idCiclo);
+        }
 
         if (!!keyword_is_searcheable($request->keyword)) {
             $complete_word = trim($request->keyword);
