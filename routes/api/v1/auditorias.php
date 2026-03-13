@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\Auditoria\InventarioConteoController;
 
+use App\Http\Controllers\Api\V2\Auditoria\CiclosAuditoriaUbicacionesController;
+
 Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(function () {
 
     Route::post('auditorias/procesar-conteo', [InventarioConteoController::class, 'processConteo']);
@@ -30,5 +32,15 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::post('auditorias/reset-conteo-zona', [InventarioConteoController::class, 'resetConteoByZona']);
 
     Route::post('auditorias/reset-conteo-punto', [InventarioConteoController::class, 'resetConteoByAddress']);
+});
 
+Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2/auditoria')->group(function () {
+
+    Route::get('ciclos/{ciclo}/puntos-with-assets-contain-group-family', [CiclosAuditoriaUbicacionesController::class, 'showByCycleAndGrupFamily']);
+
+    Route::get('ciclos/{ciclo}/detalle-punto/{punto}', [CiclosAuditoriaUbicacionesController::class, 'showOne']);
+
+    Route::get('ciclos/{ciclo}/puntos/{punto}/assets-contain-group-family', [CiclosAuditoriaUbicacionesController::class, 'showAssetsByUbicacion']);
+
+    Route::get('ciclos/{ciclo}/puntos/{punto}/group-families', [CiclosAuditoriaUbicacionesController::class, 'showGroupFamilies']);
 });

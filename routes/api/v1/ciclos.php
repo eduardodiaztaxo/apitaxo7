@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\CiclosController;
 use App\Http\Controllers\Api\V1\CiclosUbicacionesController;
 use App\Http\Controllers\Api\V1\CiclosEmplazamientosController;
-use App\Http\Controllers\Api\V2\Auditoria\CiclosAuditoriaUbicacionesController;
+
 
 Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(function () {
 
@@ -35,12 +35,4 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('ciclos/{ciclo}/emplazamientos/{emplazamiento}/group-families', [CiclosEmplazamientosController::class, 'showGroupFamilies']);
 
     Route::get('ciclos/{ciclo}/emplazamientos/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssetsN2']);
-});
-
-
-Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2/auditoria')->group(function () {
-
-    Route::get('ciclos/{ciclo}/puntos-with-assets-contain-group-family', [CiclosAuditoriaUbicacionesController::class, 'showByCycleAndGrupFamily']);
-
-    Route::get('ciclos/{ciclo}/detalle-punto/{punto}', [CiclosAuditoriaUbicacionesController::class, 'showOne']);
 });

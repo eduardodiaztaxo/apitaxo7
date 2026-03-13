@@ -67,6 +67,36 @@ class UbicacionGeografica extends Model
             ->groupBy('codigoUbicacion', 'inv_inventario.id_ciclo', 'inv_inventario.id_grupo', 'inv_inventario.id_familia', 'dp_grupos.descripcion_grupo', 'dp_familias.descripcion_familia');
     }
 
+    public function crud_audit_group_families($cycle_id)
+    {
+        return $this->crud_audit_group_families_with_child_levels($cycle_id);
+    }
+
+    public function crud_audit_group_families_with_child_levels($cycle_id)
+    {
+        $idUbicacionGeo = $this->idUbicacionGeo;
+
+        $queryBuilder = CrudActivo::select(
+            DB::raw("'00' AS codigoUbicacion"),
+            DB::raw("'n0' AS place_level"),
+            DB::raw("'0' AS isSub"),
+            'crud_activos.id_grupo',
+            'crud_activos.id_familia',
+            'dp_grupos.descripcion_grupo',
+            'dp_familias.descripcion_familia',
+            DB::raw('COUNT(*) as total')
+        );
+
+        $queryBuilder =  $this->queryBuilderJoinAuditAddressesGroupFamily($queryBuilder, $cycle_id);
+        $queryBuilder = $queryBuilder->leftJoin('ubicaciones_geograficas', 'crud_activos.ubicacionGeografica', 'ubicaciones_geograficas.idUbicacionGeo')
+            ->leftJoin('dp_familias', 'crud_activos.id_familia', 'dp_familias.id_familia')
+            ->leftJoin('dp_grupos', 'crud_activos.id_grupo', 'dp_grupos.id_grupo')
+            ->where('crud_activos.ubicacionGeografica', '=', $idUbicacionGeo)
+            ->groupBy('codigoUbicacion', 'crud_activos.id_grupo', 'crud_activos.id_familia', 'dp_grupos.descripcion_grupo', 'dp_familias.descripcion_familia');
+
+        return $queryBuilder;
+    }
+
     public function activos()
     {
         return $this->hasMany(CrudActivo::class, 'ubicacionGeografica', 'idUbicacionGeo');
@@ -81,7 +111,23 @@ class UbicacionGeografica extends Model
     {
 
 
-        $queryBuilder = CrudActivo::select('crud_activos.*')->join('inv_ciclos_puntos', 'crud_activos.ubicacionGeografica', 'inv_ciclos_puntos.idPunto')
+        $queryBuilder = CrudActivo::select('crud_activos.*');
+
+        $queryBuilder =  $this->queryBuilderJoinAuditAddressesGroupFamily($queryBuilder, $cycle_id);
+
+        return $queryBuilder;
+    }
+
+    /**
+     * Query Builder Auditing for this address.
+     *
+     * @param   \Illuminate\Database\Eloquent\Builder $queryBuilder 
+     * @param   int $cycle_id
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function queryBuilderJoinAuditAddressesGroupFamily($queryBuilder, int $cycle_id)
+    {
+        return $queryBuilder->join('inv_ciclos_puntos', 'crud_activos.ubicacionGeografica', 'inv_ciclos_puntos.idPunto')
             ->join('inv_ciclos', 'inv_ciclos.idCiclo', '=', 'inv_ciclos_puntos.idCiclo')
             ->join('inv_ciclos_categorias', function (JoinClause $join) {
                 $join->on('inv_ciclos.idCiclo', '=', 'inv_ciclos_categorias.idCiclo')
@@ -89,8 +135,6 @@ class UbicacionGeografica extends Model
             })
             ->where('inv_ciclos.idCiclo', '=', $cycle_id)
             ->where('inv_ciclos_puntos.idPunto', '=', $this->idUbicacionGeo);
-
-        return $queryBuilder;
     }
 
     public function cats_by_cycle($cycle_id)

@@ -13,20 +13,20 @@ class CrudActivo extends Model
 {
     use HasFactory;
 
- protected $fillable = [
-    'foto4',
-    'marca',
-    'modelo',
-    'serie',
-    'nombreActivo',
-    'responsableN1',
-    'apoyaBrazosRuedas',
-    'descripcionTipo',
-    'observacion',
-    'latitud',
-    'longitud',
-    'creado_por',
-];
+    protected $fillable = [
+        'foto4',
+        'marca',
+        'modelo',
+        'serie',
+        'nombreActivo',
+        'responsableN1',
+        'apoyaBrazosRuedas',
+        'descripcionTipo',
+        'observacion',
+        'latitud',
+        'longitud',
+        'creado_por',
+    ];
 
 
     protected $primaryKey = 'idActivo';
@@ -49,21 +49,21 @@ class CrudActivo extends Model
 
 
     public function getNombreActivoOrigenAttribute()
-{
-    // Validar que las propiedades no estén vacías
-    if (empty($this->nombreActivo) || empty($this->idIndice)) {
-        return null; // Retorna null si los valores necesarios están vacíos
+    {
+        // Validar que las propiedades no estén vacías
+        if (empty($this->nombreActivo) || empty($this->idIndice)) {
+            return null; // Retorna null si los valores necesarios están vacíos
+        }
+
+        // Construir la consulta solo si los valores son válidos
+        $indice = DB::table('indices_listas')
+            ->where('idLista', '=', $this->nombreActivo)
+            ->where('idAtributo', '=', 1)
+            ->where('idIndice', '=', $this->idIndice)
+            ->first();
+
+        return $indice ? $indice->descripcion : null;
     }
-
-    // Construir la consulta solo si los valores son válidos
-    $indice = DB::table('indices_listas')
-        ->where('idLista', '=', $this->nombreActivo)
-        ->where('idAtributo', '=', 1)
-        ->where('idIndice', '=', $this->idIndice)
-        ->first();
-
-    return $indice ? $indice->descripcion : null;
-}
 
     public function getZonaAttribute()
     {
@@ -114,19 +114,18 @@ class CrudActivo extends Model
 
 
 
-        public function marcaRelation()
-        {
-            return $this->belongsTo(IndiceLista::class, 'marca', 'idLista')
-                ->where('idAtributo', 2)
-                ->where('id_familia', $this->id_familia);
-        }
+    public function marcaRelation()
+    {
+        return $this->belongsTo(IndiceLista::class, 'marca', 'idLista')
+            ->where('idAtributo', 2)
+            ->where('id_familia', $this->id_familia);
+    }
 
     public function modeloRelation()
     {
         return $this->belongsTo(IndiceLista::class, 'nombreActivo', 'idLista')
-                   ->where('idAtributo', '=', 1)
-                    ->where('id_familia', '=', $this->id_familia);
-    
+            ->where('idAtributo', '=', 1)
+            ->where('id_familia', '=', $this->id_familia);
     }
 
 
@@ -173,7 +172,7 @@ class CrudActivo extends Model
     public function estadoBienRelation()
     {
         return $this->belongsTo(IndiceLista13::class, 'apoyaBrazosRuedas', 'idLista')
-            ->limit(1);  
+            ->limit(1);
     }
 
     public function categoria()
@@ -208,6 +207,53 @@ class CrudActivo extends Model
         $queryBuilder = $model->activos();
 
         if (!!keyword_is_searcheable($request->keyword)) {
+            $complete_word = trim($request->keyword);
+            $possible_name_words = keyword_search_terms_from_keyword($request->keyword);
+
+            $queryBuilder = $queryBuilder->join('dp_familias', 'crud_activos.id_familia', 'dp_familias.id_familia');
+
+            $queryBuilder = $queryBuilder
+                ->where(function ($query) use ($complete_word) {
+                    $query->where('crud_activos.descripcionTipo', 'LIKE', "%$complete_word%");
+                    $query->orWhere('crud_activos.etiqueta', 'LIKE', "%$complete_word%");
+                    $query->orWhere('dp_familias.descripcion_familia', 'LIKE', "%$complete_word%");
+                });
+
+            if (count($possible_name_words) > 1) {
+                $queryBuilder = $queryBuilder->orWhere(function ($query) use ($possible_name_words) {
+                    foreach ($possible_name_words as $palabra) {
+                        $query->where('crud_activos.descripcionTipo', 'LIKE', "%$palabra%");
+                    }
+                });
+
+                $queryBuilder = $queryBuilder->orWhere(function ($query) use ($possible_name_words) {
+                    foreach ($possible_name_words as $palabra) {
+                        $query->where('dp_familias.descripcion_familia', 'LIKE', "%$palabra%");
+                    }
+                });
+            }
+        }
+
+        if ($request->from && $request->rows) {
+            $offset = $request->from - 1;
+            $limit = $request->rows;
+            $queryBuilder->offset($offset)->limit($limit);
+        }
+
+        return $queryBuilder;
+    }
+
+
+
+    public static function queryBuilderAudit_FindInGroupFamily_Pagination($model, ?InvCiclo $cicloObj, Request $request)
+    {
+
+        $queryBuilder = $model->activos_with_cats_by_cycle($cicloObj->idCiclo);
+
+
+
+        if (!!keyword_is_searcheable($request->keyword)) {
+
             $complete_word = trim($request->keyword);
             $possible_name_words = keyword_search_terms_from_keyword($request->keyword);
 

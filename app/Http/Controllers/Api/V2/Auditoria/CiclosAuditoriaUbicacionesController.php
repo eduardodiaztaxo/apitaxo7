@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Api\V2\Auditoria;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\V1\CrudActivoLiteResource;
+use App\Http\Resources\V1\GroupFamilyPlaceResumenResource;
 use App\Http\Resources\V2\Auditoria\UbicacionGeograficaAuditoriaResource;
+use App\Models\CrudActivo;
 use App\Models\InvCiclo;
 use App\Models\UbicacionGeografica;
 use Illuminate\Http\Request;
@@ -86,5 +89,92 @@ class CiclosAuditoriaUbicacionesController extends Controller
         });
 
         return response()->json(['status' => 'OK', 'data' => $resources], 200);
+    }
+
+
+
+    /**
+     * Display assets of the specified resource.
+     *
+     * @param   int $ciclo 
+     * @param   int $punto
+     * @param   \Illuminate\Http\Request
+     * @return  \Illuminate\Http\Response
+     */
+    public function showAssetsByUbicacion(int $ciclo, int $punto, Request $request)
+    {
+
+        $addressObj = UbicacionGeografica::find($punto);
+
+        if (!$addressObj) {
+            return response()->json(['status' => 'error', 'code' => 404], 404);
+        }
+
+
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json(['status' => 'error', 'code' => 404], 404);
+        }
+
+        if ($cicloObj->puntos()->where('idUbicacionGeo', $punto)->count() === 0) {
+            return response()->json(['status' => 'error', 'code' => 404, 'message' => 'La direccion no se corresponde con el ciclo'], 404);
+        }
+
+
+        $queryBuilder = CrudActivo::queryBuilderAudit_FindInGroupFamily_Pagination($addressObj, $cicloObj, $request);
+
+
+
+        $assets = $queryBuilder->get();
+
+        //
+        return response()->json([
+            'status' => 'OK',
+            'data' => CrudActivoLiteResource::collection($assets)
+        ]);
+    }
+
+
+    /**
+     * Display families of the specified resource.
+     *
+     * @param   int $ciclo 
+     * @param   int $punto
+     * @param   \Illuminate\Http\Request
+     * @return  \Illuminate\Http\Response
+     */
+    public function showGroupFamilies(int $ciclo, int $punto, Request $request)
+    {
+
+        $addressObj = UbicacionGeografica::find($punto);
+
+        if (!$addressObj) {
+            return response()->json(['status' => 'error', 'code' => 404], 404);
+        }
+
+
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json(['status' => 'error', 'code' => 404], 404);
+        }
+
+        if ($cicloObj->puntos()->where('idUbicacionGeo', $punto)->count() === 0) {
+            return response()->json(['status' => 'error', 'code' => 404, 'message' => 'El punto no se corresponde con el ciclo'], 404);
+        }
+
+
+        $queryBuilder = $addressObj->crud_audit_group_families($cicloObj->idCiclo);
+
+        $family_place_resumen = $queryBuilder->get();
+
+
+
+        //
+        return response()->json([
+            'status' => 'OK',
+            'data' => GroupFamilyPlaceResumenResource::make($family_place_resumen)
+        ]);
     }
 }
