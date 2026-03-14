@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\CrudActivo;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Collection as Collection;
 use Illuminate\Support\Facades\DB;
 
 class AuditLabelsService
@@ -14,6 +14,12 @@ class AuditLabelsService
     private array $initialLabels;
     private Collection $processedLabels;
 
+    /**
+     * 
+     * @param array $foundLabels Tags found recently  (encontrados)
+     * @param array $initialLabels Tags that need to be audited and that would be found on site (teóricamente)
+     * @param Collection $processedLabels Tags of a previous partial or incomplete work (ya auditados parcialmente)
+     */
     public function __construct(array $foundLabels, array $initialLabels, $processedLabels = new Collection([]))
     {
 

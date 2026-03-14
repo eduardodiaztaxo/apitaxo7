@@ -245,25 +245,52 @@ class CrudActivo extends Model
 
 
 
-    public static function queryBuilderAudit_FindInGroupFamily_Pagination($model, ?InvCiclo $cicloObj, Request $request)
-    {
+    public static function queryBuilderAsset_Audit_ConfigCycle_FindInAddressGroupFamily_Pagination(
+        InvCiclo $cicloObj,
+        int $punto,
+        string $codigo,
+        int $sublevel,
+        string $keyword = '',
+        int $from = 0,
+        int $rows = 0
+    ) {
 
-        $queryBuilder = $model->activos_with_cats_by_cycle($cicloObj->idCiclo);
+
+
+        $queryBuilder = $cicloObj->activos_with_cats()->where('ubicacionGeografica', '=', $punto);
+
+        if ($sublevel > 0 && strlen($codigo) > 1) {
+            $placeField = 'ubicacionOrganicaN' . $sublevel;
+            $nexPlaceField = 'ubicacionOrganicaN' . ($sublevel + 1);
+            $queryBuilder = $queryBuilder->where($placeField, '=', $codigo);
+
+            //Si el siguiente campo de ubicación es cero, vacío o nulo,
+            //se entiende que el activo está en ese nivel, no en un de menor jerarquía.
+
+            //la tabla no tiene más de 6 campos que representan niveles de ubicación orgánica, 
+            //por lo que si el subnivel es mayor a 6, NO se aplica filtro o condición de que el siguiente campo de 
+            //ubicación orgánica esté vacío o nulo o sea '0' 
+            if ($sublevel < 6) {
+                $queryBuilder = $queryBuilder->where(function ($query) use ($nexPlaceField) {
+                    $query->whereNull($nexPlaceField)->orWhere($nexPlaceField, '=', '')->orWhere($nexPlaceField, '=', '0');
+                });
+            }
+        }
+
+        if (!!keyword_is_searcheable($keyword)) {
 
 
 
-        if (!!keyword_is_searcheable($request->keyword)) {
+            $complete_word = trim($keyword);
+            $possible_name_words = keyword_search_terms_from_keyword($keyword);
 
-            $complete_word = trim($request->keyword);
-            $possible_name_words = keyword_search_terms_from_keyword($request->keyword);
-
-            $queryBuilder = $queryBuilder->join('dp_familias', 'crud_activos.id_familia', 'dp_familias.id_familia');
+            $idsFamilias = Familia::query()->where('descripcion_familia', 'LIKE', "%$complete_word%")->get()->pluck('id_familia')->toArray();
 
             $queryBuilder = $queryBuilder
-                ->where(function ($query) use ($complete_word) {
+                ->where(function ($query) use ($complete_word, $idsFamilias) {
                     $query->where('crud_activos.descripcionTipo', 'LIKE', "%$complete_word%");
                     $query->orWhere('crud_activos.etiqueta', 'LIKE', "%$complete_word%");
-                    $query->orWhere('dp_familias.descripcion_familia', 'LIKE', "%$complete_word%");
+                    $query->orWhereIn('crud_activos.id_familia', $idsFamilias);
                 });
 
             if (count($possible_name_words) > 1) {
@@ -275,15 +302,16 @@ class CrudActivo extends Model
 
                 $queryBuilder = $queryBuilder->orWhere(function ($query) use ($possible_name_words) {
                     foreach ($possible_name_words as $palabra) {
-                        $query->where('dp_familias.descripcion_familia', 'LIKE', "%$palabra%");
+                        $idsFamilias = Familia::query()->where('descripcion_familia', 'LIKE', "%$palabra%")->get()->pluck('id_familia')->toArray();
+                        $query->whereIn('crud_activos.id_familia', $idsFamilias);
                     }
                 });
             }
         }
 
-        if ($request->from && $request->rows) {
-            $offset = $request->from - 1;
-            $limit = $request->rows;
+        if ($from && $rows) {
+            $offset = $from - 1;
+            $limit = $rows;
             $queryBuilder->offset($offset)->limit($limit);
         }
 

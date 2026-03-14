@@ -18,7 +18,7 @@ class CrudActivoLiteResource extends JsonResource
      * @param  mixed  $resource
      * @return void
      */
-  public function __construct($resource, $cycle_id = null, $idAgenda = null)
+    public function __construct($resource, $cycle_id = null, $idAgenda = null)
     {
         $this->activoService = new ActivoService();
         $this->cycle_id = $cycle_id;
@@ -34,7 +34,7 @@ class CrudActivoLiteResource extends JsonResource
      */
     public function toArray($request)
     {
-        
+
         $marcaResult = [];
         if (!empty($this->marca) && !empty($this->id_familia)) {
             $marcaResult = DB::select("SELECT descripcion 
@@ -42,14 +42,14 @@ class CrudActivoLiteResource extends JsonResource
                 WHERE idLista = :idLista
                 AND id_familia = :idFamilia
                 AND idAtributo = :idAtributo", [
-                    'idLista' => $this->marca,
-                    'idFamilia' => $this->id_familia,
-                    'idAtributo' => 2,
-                ]);
+                'idLista' => $this->marca,
+                'idFamilia' => $this->id_familia,
+                'idAtributo' => 2,
+            ]);
         }
         $grupoDescripcion = DB::table('dp_grupos')
-        ->where('id_grupo', $this->id_grupo)
-        ->value('descripcion_grupo');
+            ->where('id_grupo', $this->id_grupo)
+            ->value('descripcion_grupo');
 
         $activo['marca'] = !empty($marcaResult) ? $marcaResult[0]->descripcion : 'Sin marca';
 
@@ -61,50 +61,58 @@ class CrudActivoLiteResource extends JsonResource
         $activo['nombreActivo'] = $this->nombre_activo_origen;
         $activo['modelo'] = $this->modelo;
         $activo['serie'] = $this->serie;
-        $activo['marca'] = !empty($marcaResult) ? $marcaResult[0]->descripcion : ''; 
-       
+        $activo['marca'] = !empty($marcaResult) ? $marcaResult[0]->descripcion : '';
+
         $activo['ubicacionOrganicaN2'] = $this->ubicacionOrganicaN2;
-        
-        $auditStatus = DB::table('inv_conteo_registro')
-        ->where('etiqueta', $this->etiqueta)
-        ->where('cod_emplazamiento', $this->ubicacionOrganicaN2)
-        ->where('ciclo_id', $this->cycle_id)
-        ->where('punto_id', $this->idAgenda)
-        ->value('audit_status');
 
-        $activo['id_ciclo'] = $this->cycle_id;
-        $activo['id_agenda'] = $this->idAgenda;
-        
-
-    if (is_null($auditStatus)) {
         $auditStatus = DB::table('inv_conteo_registro')
             ->where('etiqueta', $this->etiqueta)
             ->where('cod_emplazamiento', $this->ubicacionOrganicaN2)
             ->where('ciclo_id', $this->cycle_id)
             ->where('punto_id', $this->idAgenda)
             ->value('audit_status');
-    }
-    
 
-    $activo['audit_status'] = $auditStatus ?? 2;
+        $activo['id_ciclo'] = $this->cycle_id;
+        $activo['id_agenda'] = $this->idAgenda;
+
+
+        if (is_null($auditStatus)) {
+            $auditStatus = DB::table('inv_conteo_registro')
+                ->where('etiqueta', $this->etiqueta)
+                ->where('cod_emplazamiento', $this->ubicacionOrganicaN2)
+                ->where('ciclo_id', $this->cycle_id)
+                ->where('punto_id', $this->idAgenda)
+                ->value('audit_status');
+        }
+
+
+        $imagenes = DB::table('crud_activos_pictures')
+            ->where('etiqueta', $this->etiqueta)
+            ->pluck('url_imagen')
+            ->toArray();
+
+        $fotoUrl = $imagenes[0] ?? asset('img/notavailable.jpg');
+
+
+        $activo['audit_status'] = $auditStatus ?? 2;
 
         $statusDescriptions = [
-        1 => 'coincidente',
-        2 => 'faltante',
-        3 => 'sobrante',
+            1 => 'coincidente',
+            2 => 'faltante',
+            3 => 'sobrante',
         ];
 
         $activo['audit_status_name'] = $auditStatus && isset($statusDescriptions[$auditStatus])
-        ? $statusDescriptions[$auditStatus]
-        : 'faltante';
+            ? $statusDescriptions[$auditStatus]
+            : 'faltante';
 
 
         $activo['descripcionCategoria'] = $this->categoria ? $this->categoria->descripcionCategoria : '';
 
         $activo['descripcionFamilia'] = $this->familia ? $this->familia->descripcion_familia : '';
-        $activo['descripcion_grupo'] = $grupoDescripcion ?? ''; 
-        $activo['fotoUrl'] = $this->activoService->getUrlAsset($this->resource, $request->user());
-
+        $activo['descripcion_grupo'] = $grupoDescripcion ?? '';
+        //$activo['fotoUrl'] = $this->activoService->getUrlAsset($this->resource, $request->user());
+        $activo['fotoUrl'] = $fotoUrl;
 
         return $activo;
     }

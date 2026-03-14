@@ -122,16 +122,24 @@ class CiclosAuditoriaUbicacionesController extends Controller
         }
 
 
-        $queryBuilder = CrudActivo::queryBuilderAudit_FindInGroupFamily_Pagination($addressObj, $cicloObj, $request);
-
-
+        $queryBuilder = CrudActivo::queryBuilderAsset_Audit_ConfigCycle_FindInAddressGroupFamily_Pagination(
+            $cicloObj,
+            $punto,
+            '',
+            0,
+            $request->keyword ?? '',
+            $request->from ?? 0,
+            $request->rows ?? 0
+        );
 
         $assets = $queryBuilder->get();
 
         //
         return response()->json([
             'status' => 'OK',
-            'data' => CrudActivoLiteResource::collection($assets)
+            'data' => CrudActivoLiteResource::collection($assets),
+            // 'sql' => $queryBuilder->toSql(),
+            // 'bindings' => $queryBuilder->getBindings()
         ]);
     }
 
