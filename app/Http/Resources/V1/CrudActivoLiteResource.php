@@ -65,25 +65,13 @@ class CrudActivoLiteResource extends JsonResource
 
         $activo['ubicacionOrganicaN2'] = $this->ubicacionOrganicaN2;
 
-        $auditStatus = DB::table('inv_conteo_registro')
-            ->where('etiqueta', $this->etiqueta)
-            ->where('cod_emplazamiento', $this->ubicacionOrganicaN2)
-            ->where('ciclo_id', $this->cycle_id)
-            ->where('punto_id', $this->idAgenda)
-            ->value('audit_status');
+        $auditStatus = $this->audit_status;
 
         $activo['id_ciclo'] = $this->cycle_id;
         $activo['id_agenda'] = $this->idAgenda;
 
 
-        if (is_null($auditStatus)) {
-            $auditStatus = DB::table('inv_conteo_registro')
-                ->where('etiqueta', $this->etiqueta)
-                ->where('cod_emplazamiento', $this->ubicacionOrganicaN2)
-                ->where('ciclo_id', $this->cycle_id)
-                ->where('punto_id', $this->idAgenda)
-                ->value('audit_status');
-        }
+
 
 
         $imagenes = DB::table('crud_activos_pictures')

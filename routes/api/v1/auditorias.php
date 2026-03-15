@@ -45,4 +45,6 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2/auditoria')->
     Route::get('ciclos/{ciclo}/puntos/{punto}/group-families', [CiclosAuditoriaUbicacionesController::class, 'showGroupFamilies']);
 
     Route::post('conteo/ciclo/{ciclo}/punto/{punto}/codigo/{codigo}/subnivel/{subnivel}/resumen', [AuditoriaConteoController::class, 'showResumen']);
+
+    Route::post('conteo/ciclo/{ciclo}/punto/{punto}/codigo/{codigo}/subnivel/{subnivel}/resultados', [AuditoriaConteoController::class, 'showAssetsResults']);
 });
