@@ -36,8 +36,8 @@ class AuditAssetResultResource extends JsonResource
                 'audit_status' => $this->audit_status,
                 'audit_status_name' => $this->audit_status === CrudActivo::AUDIT_STATUS_SOBRANTE ? 'Sobrante' : ($this->audit_status === CrudActivo::AUDIT_STATUS_FALTANTE ? 'Faltante' : 'Sin auditar'),
                 'descripcionCategoria' => '',
-                'descripcionFamilia' => '',
-                'descripcion_grupo' => '',
+                'descripcionFamilia' => 'Indeterminado',
+                'descripcion_grupo' => 'Indeterminado',
                 'fotoUrl' => '',
             ];
         }
