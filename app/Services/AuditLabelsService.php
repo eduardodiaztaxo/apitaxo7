@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\CrudActivo;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Collection as Collection;
 use Illuminate\Support\Facades\DB;
 
 class AuditLabelsService
@@ -14,6 +14,12 @@ class AuditLabelsService
     private array $initialLabels;
     private Collection $processedLabels;
 
+    /**
+     * 
+     * @param array $foundLabels Tags found recently  (encontrados)
+     * @param array $initialLabels Tags that need to be audited and that would be found on site (teóricamente)
+     * @param Collection $processedLabels Tags of a previous partial or incomplete work (ya auditados parcialmente)
+     */
     public function __construct(array $foundLabels, array $initialLabels, $processedLabels = new Collection([]))
     {
 
@@ -79,6 +85,28 @@ class AuditLabelsService
         }
 
         return $labels;
+    }
+
+
+    public function getAuditListDetail_Filter_Pagination($tagsFilter = [], $from = 0, $rows = 0): Collection
+    {
+
+
+        if (count($tagsFilter) > 0) {
+            $tags = collect($this->getAuditListDetail())->whereIn('etiqueta', $tagsFilter);
+        } else {
+            $tags = collect($this->getAuditListDetail());
+        }
+
+
+
+        if ($from && $rows) {
+            $offset = $from - 1;
+            $limit = $rows;
+            $tags = $tags->slice($offset, $limit);
+        }
+
+        return $tags;
     }
 
 
@@ -301,5 +329,38 @@ class AuditLabelsService
 
             'etiqueta'      => 'required|string',
         ];
+    }
+
+    /**
+     * Obtiene los datos de las etiquetas procesadas desde la base de datos.
+     * @param int $ciclo El ID del ciclo de auditoría.
+     * @param int $punto El ID del punto de auditoría.
+     * @param string $codigo El código de ubicación (opcional).
+     * @param int $subnivel El subnivel de la ubicación (opcional).
+     * @return \Illuminate\Support\Collection Una colección de etiquetas procesadas con su información detallada.
+     */
+    public static function getProcessedTagsData_FromDB(
+        int $ciclo,
+        int $punto,
+        string $codigo,
+        int $subnivel
+    ): Collection {
+
+        $queryBuilder = DB::table("inv_conteo_registro")
+            ->where('status', '=', 1)
+            ->where('ciclo_id', '=', $ciclo)
+            ->where('punto_id', '=', $punto);
+
+
+        if (!in_array($codigo, ['0', '']) && strlen($codigo) > 1 && $subnivel > 0) {
+            $queryBuilder = $queryBuilder->where('codigo_ubicacion', '=', $codigo)
+                ->where('sublevel', '=', $subnivel)
+                ->get();
+        }
+
+        //registros parciales del conteo, mismo u otro usuario, que se corresponden con el ciclo, punto y ubicación (si se especifica código de ubicación)
+        $processedTags = $queryBuilder->get();
+
+        return $processedTags;
     }
 }

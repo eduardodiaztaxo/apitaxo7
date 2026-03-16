@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V1\CiclosController;
 use App\Http\Controllers\Api\V1\CiclosUbicacionesController;
 use App\Http\Controllers\Api\V1\CiclosEmplazamientosController;
 
+
 Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(function () {
 
     Route::get('ciclos', [CiclosController::class, 'index']);
@@ -34,5 +35,4 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('ciclos/{ciclo}/emplazamientos/{emplazamiento}/group-families', [CiclosEmplazamientosController::class, 'showGroupFamilies']);
 
     Route::get('ciclos/{ciclo}/emplazamientos/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssetsN2']);
-
 });
