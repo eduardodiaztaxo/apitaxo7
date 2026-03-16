@@ -605,16 +605,29 @@ LEFT JOIN (
     public function activos_with_cats()
     {
 
+        $idpuntos = InvCicloPunto::where('idCiclo', $this->idCiclo)->pluck('idPunto')->toArray();
+
+        $idFamilias = $this->getCatsIDs()->pluck('id_familia')->toArray();
+
+
         $queryBuilder = CrudActivo::select('crud_activos.*')
-            ->distinct()
-            ->join('inv_ciclos_puntos', 'crud_activos.ubicacionGeografica', 'inv_ciclos_puntos.idPunto')
-            ->join('inv_ciclos', 'inv_ciclos.idCiclo', '=', 'inv_ciclos_puntos.idCiclo')
-            ->join('inv_ciclos_categorias', function (JoinClause $join) {
-                $join->on('inv_ciclos.idCiclo', '=', 'inv_ciclos_categorias.idCiclo')
-                    ->on('crud_activos.id_familia', '=', 'inv_ciclos_categorias.id_familia');
-            })
-            ->where('inv_ciclos.idCiclo', '=', $this->idCiclo)
+            ->whereIn('crud_activos.ubicacionGeografica', $idpuntos)
+            ->whereIn('crud_activos.id_familia', $idFamilias)
             ->where('crud_activos.tipoCambio', '!=', 200); //Inventario
+
+
+
+
+        // $queryBuilder = CrudActivo::select('crud_activos.*')
+        //     ->distinct()
+        //     ->join('inv_ciclos_puntos', 'crud_activos.ubicacionGeografica', 'inv_ciclos_puntos.idPunto')
+        //     ->join('inv_ciclos', 'inv_ciclos.idCiclo', '=', 'inv_ciclos_puntos.idCiclo')
+        //     ->join('inv_ciclos_categorias', function (JoinClause $join) {
+        //         $join->on('inv_ciclos.idCiclo', '=', 'inv_ciclos_categorias.idCiclo')
+        //             ->on('crud_activos.id_familia', '=', 'inv_ciclos_categorias.id_familia');
+        //     })
+        //     ->where('inv_ciclos.idCiclo', '=', $this->idCiclo)
+        //     ->where('crud_activos.tipoCambio', '!=', 200); //Inventario
 
 
 

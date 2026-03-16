@@ -23,79 +23,106 @@ class ActivoService
      */
     public function getUrlAsset(CrudActivo $activo, User $user): string
     {
-       
-            $foto = DB::table('crud_activos_pictures')
-                ->where('id_activo', $activo->idActivo)
-                ->orderByDesc('id_foto')
-                ->first(['url_picture', 'picture']);
 
-            if ($foto && $foto->url_picture && $foto->picture) {
-                return rtrim($foto->url_picture, '/') . '/' . ltrim($foto->picture, '/');
-            }
-         
-            if ($activo->foto4) {
-                if (is_string_url($activo->foto4)) {
-                    return $activo->foto4;
-                } else if ($activo->foto4 === 'img/notavailable.jpg') {
-                    return asset('img/notavailable.jpg');
-                } else {
-                    return asset('storage/' . $activo->foto4);
-                }
-            }
-        
-            $url = asset('img/notavailable.jpg');
-        
-            $proyecto_id = $user->proyecto_id;
-            $nombre_foto = $activo->foto1;
-            $nombre_cliente = $user->nombre_cliente;
-            $numero_etiqueta = $activo->etiqueta;
-        
-            #CLIENTE
-            $url_cliente = 'https://cloud.taxochile.cl/sys/preproduccion/_lib/file/img/' . $nombre_cliente . '/activo/' . $nombre_foto;
-            #LEVANTAMIENTO
-            $url_levanta_1 = 'https://files.taxochile.cl/PROCESADAS/' . $proyecto_id . '/' . $proyecto_id . '_' . $numero_etiqueta . '.PNG';
-            $url_levanta_2 = 'https://files.taxochile.cl/PROCESADAS/' . $proyecto_id . '/' . $proyecto_id . '_' . $numero_etiqueta . '.png';
-        
-            $url1 = $this->urlCheck($url_cliente);         # Subida por el cliente
-            $url2 = $this->urlCheck($url_levanta_1);      # Foto del Levantamiento
-            $url2a = $this->urlCheck($url_levanta_2);     # Foto del Levantamiento
-        
-            if ($url1 == true && $nombre_foto != '') {
-                $url = 'https://cloud.taxochile.cl/sys/preproduccion/_lib/file/img/' . $nombre_cliente . '/activo/' . $nombre_foto;
-            } elseif ($url2 == true || $url2a == true) {
-                $url = 'https://files.taxochile.cl/PROCESADAS/' . $proyecto_id . '/' . $proyecto_id . '_' . $numero_etiqueta . '.PNG';
-            }
-        
-            return $url;
+        $foto = DB::table('crud_activos_pictures')
+            ->where('id_activo', $activo->idActivo)
+            ->orderByDesc('id_foto')
+            ->first(['url_picture', 'picture']);
+
+        if ($foto && $foto->url_picture && $foto->picture) {
+            return rtrim($foto->url_picture, '/') . '/' . ltrim($foto->picture, '/');
         }
-    
-   public function getUrlAssetInventario($activo, User $user): string
-{
-    $foto = DB::table('inv_imagenes')
-        ->where('etiqueta', $activo->etiqueta)
-        ->orderByDesc('id_img') 
-        ->first(['url_imagen']);
 
-    if ($foto == null) {
-        return asset('img/notavailable.jpg');
+        if ($activo->foto4) {
+            if (is_string_url($activo->foto4)) {
+                return $activo->foto4;
+            } else if ($activo->foto4 === 'img/notavailable.jpg') {
+                return asset('img/notavailable.jpg');
+            } else {
+                return asset('storage/' . $activo->foto4);
+            }
+        }
+
+        $url = asset('img/notavailable.jpg');
+
+        $proyecto_id = $user->proyecto_id;
+        $nombre_foto = $activo->foto1;
+        $nombre_cliente = $user->nombre_cliente;
+        $numero_etiqueta = $activo->etiqueta;
+
+        #CLIENTE
+        $url_cliente = 'https://cloud.taxochile.cl/sys/preproduccion/_lib/file/img/' . $nombre_cliente . '/activo/' . $nombre_foto;
+        #LEVANTAMIENTO
+        $url_levanta_1 = 'https://files.taxochile.cl/PROCESADAS/' . $proyecto_id . '/' . $proyecto_id . '_' . $numero_etiqueta . '.PNG';
+        $url_levanta_2 = 'https://files.taxochile.cl/PROCESADAS/' . $proyecto_id . '/' . $proyecto_id . '_' . $numero_etiqueta . '.png';
+
+        $url1 = $this->urlCheck($url_cliente);         # Subida por el cliente
+        $url2 = $this->urlCheck($url_levanta_1);      # Foto del Levantamiento
+        $url2a = $this->urlCheck($url_levanta_2);     # Foto del Levantamiento
+
+        if ($url1 == true && $nombre_foto != '') {
+            $url = 'https://cloud.taxochile.cl/sys/preproduccion/_lib/file/img/' . $nombre_cliente . '/activo/' . $nombre_foto;
+        } elseif ($url2 == true || $url2a == true) {
+            $url = 'https://files.taxochile.cl/PROCESADAS/' . $proyecto_id . '/' . $proyecto_id . '_' . $numero_etiqueta . '.PNG';
+        }
+
+        return $url;
     }
 
-    return $foto->url_imagen;
-}
+    public function getUrlAssetInventario($activo, User $user): string
+    {
+        $foto = DB::table('inv_imagenes')
+            ->where('etiqueta', $activo->etiqueta)
+            ->orderByDesc('id_img')
+            ->first(['url_imagen']);
 
-
-protected function urlCheck($url)
-{
-    @$headers = get_headers($url);
-    
-    if ($headers && is_array($headers) && isset($headers[0])) {
-        if (preg_match('/^HTTP\/\d\.\d\s+(200|301|302)/', $headers[0])) {
-            return true;
+        if ($foto == null) {
+            return asset('img/notavailable.jpg');
         }
+
+        return $foto->url_imagen;
     }
-    
-    return false;
-}
+
+
+    protected function urlCheck($url)
+    {
+        @$headers = get_headers($url);
+
+        if ($headers && is_array($headers) && isset($headers[0])) {
+            if (preg_match('/^HTTP\/\d\.\d\s+(200|301|302)/', $headers[0])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Gets tag by cycle and any place (adress or sublevel)
+     * 
+     * @param \App\Models\InvCiclo $cicloObj
+     * @param int $punto
+     * @param string $codigo
+     * @param int $sublevel
+     * @return \Illuminate\Support\Collection
+     */
+    public static function getTagsByCycleAndAnyPlace(InvCiclo $cicloObj, int $punto, string $codigo, int $sublevel)
+    {
+
+        $queryBuilder = CrudActivo::queryBuilderAsset_Audit_ConfigCycle_FindInAddressGroupFamily_Pagination(
+            $cicloObj,
+            $punto,
+            $codigo,
+            $sublevel
+        );
+
+
+
+        $tags = $queryBuilder->get()->pluck('etiqueta');
+
+        return $tags;
+    }
 
     /**
      * Gets labels by place and cycle cats
