@@ -47,4 +47,6 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2/auditoria')->
     Route::post('conteo/ciclo/{ciclo}/punto/{punto}/codigo/{codigo}/subnivel/{subnivel}/resumen', [AuditoriaConteoController::class, 'showResumen']);
 
     Route::post('conteo/ciclo/{ciclo}/punto/{punto}/codigo/{codigo}/subnivel/{subnivel}/resultados', [AuditoriaConteoController::class, 'showAssetsResults']);
+
+    Route::get('conteo/ciclo/{ciclo}/punto/{punto}/codigo/{codigo}/subnivel/{subnivel}/solo-etiquetas-a-auditar', [AuditoriaConteoController::class, 'showOnlyTagsToAuditByPlace']);
 });

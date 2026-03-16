@@ -58,7 +58,7 @@ class CrudActivoLiteResource extends JsonResource
         $activo['categoriaN3'] = $this->categoriaN3;
         $activo['id_familia'] = $this->id_familia;
         $activo['id_grupo'] = $this->id_grupo;
-        $activo['nombreActivo'] = $this->nombre_activo_origen;
+        $activo['nombreActivo'] = $this->nombre_activo_origen ?? $this->nombreActivo;
         $activo['modelo'] = $this->modelo;
         $activo['serie'] = $this->serie;
         $activo['marca'] = !empty($marcaResult) ? $marcaResult[0]->descripcion : '';
@@ -82,18 +82,14 @@ class CrudActivoLiteResource extends JsonResource
         $fotoUrl = $imagenes[0] ?? asset('img/notavailable.jpg');
 
 
-        $activo['audit_status'] = $auditStatus ?? 2;
 
-        $statusDescriptions = [
-            1 => 'coincidente',
-            2 => 'faltante',
-            3 => 'sobrante',
-        ];
 
-        $activo['audit_status_name'] = $auditStatus && isset($statusDescriptions[$auditStatus])
-            ? $statusDescriptions[$auditStatus]
-            : 'faltante';
 
+
+
+        $activo['status_scan_id'] = $auditStatus ?? 2;
+        $activo['status_scan_name'] = $this->status_scan_name ?? 'Sin auditar';
+        $activo['status_scan_extra_class'] = $this->status_scan_extra_class ?? 'status-scan-default';
 
         $activo['descripcionCategoria'] = $this->categoria ? $this->categoria->descripcionCategoria : '';
 

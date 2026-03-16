@@ -173,4 +173,60 @@ class AuditoriaConteoController extends Controller
             'data' => AuditAssetResultResource::collection($audit_assets_result_pagination),
         ]);
     }
+
+
+    /** 
+     * Display tags to audit by place (address or sub level).
+     *
+     * @param   int $ciclo 
+     * @param   int $punto
+     * @param   string $codigo
+     * @param   int $subnivel
+     * @param   \Illuminate\Http\Request
+     * @return  \Illuminate\Http\Response
+     */
+    public function showOnlyTagsToAuditByPlace(
+        int $ciclo,
+        int $punto,
+        string $codigo,
+        int $subnivel
+    ) {
+
+        if (strlen($codigo) > 1 && $subnivel > 0) {
+            if (strlen($codigo) / 2 !== $subnivel) {
+                response()->json([
+                    'status' => 'error',
+                    'code'   => 422,
+                    'message' => "Si el código tiene una longitud de " . strlen($codigo) . ", su longitud debe ser " . (strlen($codigo) / 2) . " "
+                ]);
+            }
+        }
+
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json(['status' => 'error', 'code' => 404], 404);
+        }
+
+
+
+        //Se consulta todo pero sin paginar
+        $queryBuilder = CrudActivo::queryBuilderAsset_Audit_ConfigCycle_FindInAddressGroupFamily_Pagination(
+            $cicloObj,
+            $punto,
+            $codigo,
+            $subnivel,
+            '',
+            0,
+            0
+        );
+
+
+
+
+        return response()->json([
+            'status' => 'OK',
+            'data' => $queryBuilder->get()->pluck('etiqueta')->toArray(),
+        ]);
+    }
 }
