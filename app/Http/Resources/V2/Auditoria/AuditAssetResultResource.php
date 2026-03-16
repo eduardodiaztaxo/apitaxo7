@@ -24,7 +24,7 @@ class AuditAssetResultResource extends JsonResource
     public function toArray($request)
     {
 
-        $asset = CrudActivo::where('etiqueta', $this['etiqueta'])->firstOrFail();
+        $asset = CrudActivo::where('etiqueta', $this['etiqueta'])->first();
 
 
 
