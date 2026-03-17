@@ -429,43 +429,43 @@ class CiclosEmplazamientosController extends Controller
      * @param   \Illuminate\Http\Request
      * @return  \Illuminate\Http\Response
      */
-    public function showAssetsByLevel(int $ciclo, int $nivel, int $emplazamiento, Request $request)
-    {
-        $tableName = 'ubicaciones_n' . $nivel;
-        $idFieldName = 'idUbicacionN' . $nivel;
+    // public function showAssetsByLevel(int $ciclo, int $nivel, int $emplazamiento, Request $request)
+    // {
+    //     $tableName = 'ubicaciones_n' . $nivel;
+    //     $idFieldName = 'idUbicacionN' . $nivel;
 
-        $emplaObj = DB::table($tableName)
-            ->where($idFieldName, $emplazamiento)
-            ->first();
+    //     $emplaObj = DB::table($tableName)
+    //         ->where($idFieldName, $emplazamiento)
+    //         ->first();
 
-        if (!$emplaObj) {
-            return response()->json(['status' => 'error', 'code' => 404], 404);
-        }
+    //     if (!$emplaObj) {
+    //         return response()->json(['status' => 'error', 'code' => 404], 404);
+    //     }
 
-        $emplaObj = (object) $emplaObj;
+    //     $emplaObj = (object) $emplaObj;
 
-        $cicloObj = null;
-        if ($ciclo != 0) {
-            $cicloObj = InvCiclo::find($ciclo);
+    //     $cicloObj = null;
+    //     if ($ciclo != 0) {
+    //         $cicloObj = InvCiclo::find($ciclo);
 
-            if (!$cicloObj) {
-                return response()->json(['status' => 'error', 'code' => 404], 404);
-            }
+    //         if (!$cicloObj) {
+    //             return response()->json(['status' => 'error', 'code' => 404], 404);
+    //         }
 
-            if ($cicloObj->puntos()->where('idUbicacionGeo', $emplaObj->idAgenda)->count() === 0) {
-                return response()->json(['status' => 'NOK', 'code' => 404, 'message' => 'El emplazamiento no se corresponde con el ciclo'], 404);
-            }
-        }
+    //         if ($cicloObj->puntos()->where('idUbicacionGeo', $emplaObj->idAgenda)->count() === 0) {
+    //             return response()->json(['status' => 'NOK', 'code' => 404, 'message' => 'El emplazamiento no se corresponde con el ciclo'], 404);
+    //         }
+    //     }
 
-        $queryBuilder = Inventario::queryBuilderInventory_FindInGroupFamily_Pagination($emplaObj, $cicloObj, $request);
+    //     $queryBuilder = Inventario::queryBuilderInventory_FindInGroupFamily_Pagination($emplaObj, $cicloObj, $request);
 
-        $assets = $queryBuilder->get();
+    //     $assets = $queryBuilder->get();
 
-        return response()->json([
-            'status' => 'OK',
-            'data' => InventariosResource::collection($assets)
-        ]);
-    }
+    //     return response()->json([
+    //         'status' => 'OK',
+    //         'data' => InventariosResource::collection($assets)
+    //     ]);
+    // }
 
     /**
      * Display families of the specified resource by level.
@@ -476,46 +476,46 @@ class CiclosEmplazamientosController extends Controller
      * @param   \Illuminate\Http\Request
      * @return  \Illuminate\Http\Response
      */
-    public function showGroupFamiliesByLevel(int $ciclo, int $nivel, int $emplazamiento, Request $request)
-    {
-        $tableName = 'ubicaciones_n' . $nivel;
-        $idFieldName = 'idUbicacionN' . $nivel;
+    // public function showGroupFamiliesByLevel(int $ciclo, int $nivel, int $emplazamiento, Request $request)
+    // {
+    //     $tableName = 'ubicaciones_n' . $nivel;
+    //     $idFieldName = 'idUbicacionN' . $nivel;
 
-        $emplaObj = DB::table($tableName)
-            ->where($idFieldName, $emplazamiento)
-            ->first();
+    //     $emplaObj = DB::table($tableName)
+    //         ->where($idFieldName, $emplazamiento)
+    //         ->first();
 
-        if (!$emplaObj) {
-            return response()->json(['status' => 'error', 'code' => 404], 404);
-        }
+    //     if (!$emplaObj) {
+    //         return response()->json(['status' => 'error', 'code' => 404], 404);
+    //     }
 
-        $emplaObj = (object) $emplaObj;
+    //     $emplaObj = (object) $emplaObj;
 
-        $cicloObj = null;
-        if ($ciclo != 0) {
-            $cicloObj = InvCiclo::find($ciclo);
+    //     $cicloObj = null;
+    //     if ($ciclo != 0) {
+    //         $cicloObj = InvCiclo::find($ciclo);
 
-            if (!$cicloObj) {
-                return response()->json(['status' => 'error', 'code' => 404], 404);
-            }
+    //         if (!$cicloObj) {
+    //             return response()->json(['status' => 'error', 'code' => 404], 404);
+    //         }
 
-            if ($cicloObj->puntos()->where('idUbicacionGeo', $emplaObj->idAgenda)->count() === 0) {
-                return response()->json(['status' => 'error', 'code' => 404, 'message' => 'El emplazamiento no se corresponde con el ciclo'], 404);
-            }
-        }
+    //         if ($cicloObj->puntos()->where('idUbicacionGeo', $emplaObj->idAgenda)->count() === 0) {
+    //             return response()->json(['status' => 'error', 'code' => 404, 'message' => 'El emplazamiento no se corresponde con el ciclo'], 404);
+    //         }
+    //     }
 
-        $queryBuilder = $emplaObj->inv_group_families();
-        if ($cicloObj) {
-            $queryBuilder->where('inv_inventario.id_ciclo', $cicloObj->idCiclo);
-        }
+    //     $queryBuilder = $emplaObj->inv_group_families();
+    //     if ($cicloObj) {
+    //         $queryBuilder->where('inv_inventario.id_ciclo', $cicloObj->idCiclo);
+    //     }
 
-        $family_place_resumen = $queryBuilder->get();
+    //     $family_place_resumen = $queryBuilder->get();
 
-        return response()->json([
-            'status' => 'OK',
-            'data' => GroupFamilyPlaceResumenResource::make($family_place_resumen)
-        ]);
-    }
+    //     return response()->json([
+    //         'status' => 'OK',
+    //         'data' => GroupFamilyPlaceResumenResource::make($family_place_resumen)
+    //     ]);
+    // }
 
     /**
      * Display group families of the specified resource by level.
