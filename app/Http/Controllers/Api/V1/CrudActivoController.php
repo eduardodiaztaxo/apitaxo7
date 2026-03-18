@@ -339,7 +339,7 @@ class CrudActivoController extends Controller
         $filename = $id_proyecto . '_' . $etiqueta;
         $origen = 'SAFIN_APP_IMAGEN_ACTUALIZADA';
         $file = $request->file('imagen');
-        $namefile = $filename . '.jpg';
+        $namefile = $filename . '.webp';
 
 
 
@@ -357,7 +357,7 @@ class CrudActivoController extends Controller
                 ->where('id_foto', $ultimo->id_foto)
                 ->update([
                     'url_picture' => $url_pict,
-                    'picture' => $filename . '.jpg',
+                    'picture' => $filename . '.webp',
                     'origen' => $origen,
                     'fecha_update' => now(),
                     'idProyecto'   => $id_proyecto,
@@ -366,7 +366,7 @@ class CrudActivoController extends Controller
             DB::table('crud_activos_pictures')->insert([
                 'id_activo' => $idActivo,
                 'url_picture' => $url_pict,
-                'picture' => $filename . '.jpg',
+                'picture' => $filename . '.webp',
                 'origen' => $origen,
                 'fecha_update' => now(),
                 'idProyecto'   => $id_proyecto,

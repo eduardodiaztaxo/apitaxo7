@@ -128,7 +128,7 @@ class InventariosController extends Controller
                     'id_img'     => $url_img,
                     'etiqueta'   => $request->etiqueta,
                     'origen'     => $origen,
-                    'picture'    => $filename . '.jpg',
+                    'picture'    => $filename . '.webp',
                     'url_imagen' => $img->url_imagen,
                     'url_picture' => $img->url_picture,
                     'id_proyecto' => $id_proyecto,
@@ -968,7 +968,7 @@ class InventariosController extends Controller
                 $maxNumero = DB::table('inv_imagenes')
                     ->where('etiqueta', $etiqueta)
                     ->where('id_proyecto', $idProyecto)
-                    ->selectRaw("MAX(CAST(REPLACE(SUBSTRING_INDEX(picture, '_', -1), '.jpg', '') AS UNSIGNED)) as max_num")
+                    ->selectRaw("MAX(CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(picture, '.', 1), '_', -1) AS UNSIGNED)) as max_num")
                     ->value('max_num');
 
                 $contador = $maxNumero ?? 0;
@@ -977,7 +977,7 @@ class InventariosController extends Controller
             foreach ($request->file('imagenes') as $file) {
                 $contador++;
 
-                $filename = $idProyecto . '_' . $etiqueta . '_' . $contador . '.jpg';
+                $filename = $idProyecto . '_' . $etiqueta . '_' . $contador . '.webp';
 
                 $url = ImageService::saveImageInMainOrSecondDisk($file, $request->user()->nombre_cliente, $filename);
 
@@ -1671,7 +1671,7 @@ class InventariosController extends Controller
                 $activo = collect($assets)->firstWhere('etiqueta', $etiqueta);
                 if ($activo && $activo['crud_activo_estado'] == 3) continue;
 
-                $filename = $id_proyecto . '_' . $etiqueta . '_' . $filekey . '.jpg';
+                $filename = $id_proyecto . '_' . $etiqueta . '_' . $filekey . '.webp';
 
                 $url = ImageService::saveImageInMainOrSecondDisk($file['file'], $cliente, $filename);
                 $url_pict = dirname($url) . '/';

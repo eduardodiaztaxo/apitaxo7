@@ -14,132 +14,90 @@ class ImageService
 
 
     /**
-     * Resize, optimize and save images.
+     * Internal method to process and encode image.
      *
-     * @param  \Illuminate\Http\UploadedFile $uploadedImage 
-     * @param  string  $subdir
-     * @param  string  $imageName
-     * @return string
+     * @param  \Illuminate\Http\UploadedFile $uploadedImage
+     * @param  string $format 'webp' or 'jpg'
+     * @param  int $quality
+     * @return array ['content' => encoded_string, 'extension' => string]
+     */
+    private static function processImage(UploadedFile $uploadedImage, string $format = 'webp', int $quality = 65): array
+    {
+        $img = Image::read($uploadedImage->getRealPath());
+
+        // Redimensionar si el ancho supera los 1024px
+        if ($img->width() > 1024) {
+            $img->scale(width: 1024);
+        }
+
+        // Seleccionar encoder según formato
+        $encoder = ($format === 'webp')
+            ? new \Intervention\Image\Encoders\WebpEncoder(quality: $quality)
+            : new \Intervention\Image\Encoders\JpegEncoder(quality: $quality);
+
+        return [
+            'content' => $img->encode($encoder),
+            'extension' => $format
+        ];
+    }
+
+    /**
+     * Resize, optimize and save images in public disk.
      */
     public function optimizeImageAndSave(UploadedFile $uploadedImage, string $subdir, string $imageName): string
     {
+        $processed = self::processImage($uploadedImage, 'webp', 65);
+        $path = $subdir . "/" . $imageName . "." . $processed['extension'];
 
-        $path = $uploadedImage->getRealPath();
-
-        $img = Image::read($path);
-
-        $ext = 'jpg';
-
-        if ($img->width() > 1024) {
-
-            $height = round($img->height() * 1024 / $img->width());
-
-            $img->resize(1024, $height, function ($constraint) {
-                $constraint->aspectRatio();
-            });
-        }
-
-
-        $encode = $img->encode(new JpegEncoder(quality: 10));
-
-        //sobre escribir sobre la imagen subida
-        //$img->save($uploadedImage->getRealPath());
-
-        $path = $subdir . "/" . $imageName . "." . $ext;
-
-        Storage::disk('public')->put( //dico esta especificado en filesystem en public 
-            $path,
-            $encode
-        );
-        // guardar imagen
-        // $path = Storage::putFileAs(
-        //     $subdir,
-        //     $uploadedImage->getRealPath(),
-        //     $imageName . "." . $ext
-        // );
+        Storage::disk('public')->put($path, $processed['content']);
 
         return $path;
     }
+
     /**
-     * delete image.
-     *
-     * @param  string  $path
-     * @return bool
+     * Alias of optimizeImageAndSave for backward compatibility.
      */
-    public function deleteImage(string $path)
-    {
-
-        return Storage::disk('public')->delete($path);
-    }
-
-
     public function optimizeImageinv(UploadedFile $uploadedImage, string $subdir, string $imageName): string
     {
-
-        $path = $uploadedImage->getRealPath();
-
-        $img = Image::read($path);
-
-        $ext = 'jpg';
-
-        if ($img->width() > 1024) {
-
-            $height = round($img->height() * 1024 / $img->width());
-
-            $img->resize(1024, $height, function ($constraint) {
-                $constraint->aspectRatio();
-            });
-        }
-
-
-        $encode = $img->encode(new JpegEncoder(quality: 10));
-
-        $path = $subdir . "/" . $imageName . "." . $ext;
-
-        Storage::disk('public')->put( //dico esta especificado en filesystem en public 
-            $path,
-            $encode
-        );
-
-        return $path;
+        return $this->optimizeImageAndSave($uploadedImage, $subdir, $imageName);
     }
 
     /**
-     * Save image in main disk or second disk if fails.
-     *
-     * @param  \Illuminate\Http\UploadedFile $file 
-     * @param  string  $customer_name   the customer name to build the subdir
-     * @param  string  $namefile
-     * @return string|null the URL of the saved image or null if both saves fail
+     * Save optimized image in main disk or second disk if fails.
      */
     public static function saveImageInMainOrSecondDisk(UploadedFile $file, string $customer_name, string $namefile): string|null
     {
         $url = null;
 
         try {
+            // OPTIMIZACIÓN ANTES DE GUARDAR (Soluciona el problema de >1MB)
+            $processed = self::processImage($file, 'webp', 65);
+            $content = $processed['content'];
 
-            $path = $file->storeAs(
-                PictureSafinService::getImgSubdir($customer_name),
-                $namefile,
-                'win_images'
-            );
+            // Asegurarnos de que el nombre del archivo refleje la extensión real
+            $extension = pathinfo($namefile, PATHINFO_EXTENSION);
+            if ($extension !== $processed['extension']) {
+                $namefile = pathinfo($namefile, PATHINFO_FILENAME) . '.' . $processed['extension'];
+            }
 
+            $subdir = PictureSafinService::getImgSubdir($customer_name);
+            $path = $subdir . '/' . $namefile;
+
+            // Intentar en disco principal
+            Storage::disk('win_images')->put($path, $content);
             $url = Storage::disk('win_images')->url($path);
+
         } catch (\Exception $e) {
 
             try {
-
-                $path = $file->storeAs(
-                    PictureSafinService::getImgSubdir($customer_name),
-                    $namefile,
-                    'taxoImages'
-                );
-
+                // Fallback al disco secundario
+                Storage::disk('taxoImages')->put($path, $content);
                 $url = Storage::disk('taxoImages')->url($path);
             } catch (\Exception $e) {
+                // Loguear error si ambos fallan
+                \Illuminate\Support\Facades\Log::error("Error guardando imagen: " . $e->getMessage());
             }
         }
-
 
         return $url;
     }
