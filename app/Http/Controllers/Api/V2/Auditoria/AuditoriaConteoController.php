@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\V2\Auditoria\AuditAssetResultResource;
 use App\Models\CrudActivo;
 use App\Models\InvCiclo;
+use App\Rules\SubLevelPlaceRule;
 use App\Services\ActivoService;
 use App\Services\AuditLabelsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class AuditoriaConteoController extends Controller
 {
@@ -38,15 +40,7 @@ class AuditoriaConteoController extends Controller
         Request $request
     ) {
 
-        if (strlen($codigo) > 1 && $subnivel > 0) {
-            if (strlen($codigo) / 2 !== $subnivel) {
-                response()->json([
-                    'status' => 'error',
-                    'code'   => 422,
-                    'message' => "Si el código tiene una longitud de " . strlen($codigo) . ", su longitud debe ser " . (strlen($codigo) / 2) . " "
-                ]);
-            }
-        }
+        $this->validateCodigoSubnivel($request, $codigo, $subnivel);
 
         $cicloObj = InvCiclo::find($ciclo);
 
@@ -80,6 +74,21 @@ class AuditoriaConteoController extends Controller
         ]);
     }
 
+    /**
+     * Display the specified resource.
+     * 
+     * Show assets results of the audit, including found, missing and sobrante assets with their details. this take into account partial data
+     * @param \Illuminate\Http\Request $request
+     * @param  int  $ciclo
+     * @param  int  $punto
+     * @return \Illuminate\Http\Response
+     * @param string $codigo
+     * @param int $subnivel
+     * 
+     * @return \Illuminate\Http\Response
+     * 
+     * Ejemplo de código de ubicación: "010203" con subnivel 3, o "0102" con subnivel 2, o "01" con subnivel 1. Si el código es "0" o vacío, se omite este filtro y se consideran todas las ubicaciones.
+     */
     public function showAssetsResults(
         int $ciclo,
         int $punto,
@@ -90,15 +99,7 @@ class AuditoriaConteoController extends Controller
         // Similar a showResumen, pero en lugar de devolver solo el resumen, devuelve los activos encontrados, faltantes y sobrantes con su información detallada.
         // Se puede reutilizar la lógica de showResumen para obtener las etiquetas coincidentes, faltantes y sobrantes, y luego hacer consultas adicionales para obtener la información de cada activo.
 
-        if (strlen($codigo) > 1 && $subnivel > 0) {
-            if (strlen($codigo) / 2 !== $subnivel) {
-                response()->json([
-                    'status' => 'error',
-                    'code'   => 422,
-                    'message' => "Si el código tiene una longitud de " . strlen($codigo) . ", su longitud debe ser " . (strlen($codigo) / 2) . " "
-                ]);
-            }
-        }
+        $this->validateCodigoSubnivel($request, $codigo, $subnivel);
 
         $cicloObj = InvCiclo::find($ciclo);
 
@@ -147,15 +148,20 @@ class AuditoriaConteoController extends Controller
             );
 
             //Está en el lugar o está como sobrante pero en otro lugar
-            $etiquetas_aceptadas = $queryBuilder->orWhere('etiqueta', $sobrantes->pluck('etiqueta')->toArray())->get()->pluck('etiqueta')->toArray();
+            $etiquetas_aceptadas = $queryBuilder->orWhere(function ($query) use ($sobrantes) {
+                $query->whereIn('crud_activos.etiqueta', $sobrantes->pluck('etiqueta')->toArray());
+            })->get()->pluck('etiqueta')->toArray();
 
-            //Si la busqueda es una etiqueta sobrante que no se encuentra en el lugar, también la aceptamos para mostrar su resultado aunque no se encuentre en el lugar
+            //Si la busqueda es una etiqueta sobrante que no se encuentra en el lugar,
+            //Ni en ningún otro lugar 
+            //también la aceptamos para mostrar su resultado aunque no se encuentre en ningún lugar
             $sobrante_etiquetas = $sobrantes->where('etiqueta', $request->keyword)->pluck('etiqueta')->toArray();
 
             $etiquetas_aceptadas = array_unique(array_merge($etiquetas_aceptadas, $sobrante_etiquetas));
 
             $audit_assets_result_pagination = $auditLabelServ->getAuditListDetail_Filter_Pagination($etiquetas_aceptadas, $request->from ?? 0, $request->rows ?? 0);
         } else {
+
             $audit_assets_result_pagination = $auditLabelServ->getAuditListDetail_Filter_Pagination([], $request->from ?? 0, $request->rows ?? 0);
         }
         /**
@@ -168,9 +174,13 @@ class AuditoriaConteoController extends Controller
          */
 
 
+
+
         return response()->json([
             'status' => 'OK',
             'data' => AuditAssetResultResource::collection($audit_assets_result_pagination),
+            //'sql' => $queryBuilder->toSql(),
+            //'bindings' => $queryBuilder->getBindings(),
         ]);
     }
 
@@ -189,18 +199,11 @@ class AuditoriaConteoController extends Controller
         int $ciclo,
         int $punto,
         string $codigo,
-        int $subnivel
+        int $subnivel,
+        Request $request
     ) {
 
-        if (strlen($codigo) > 1 && $subnivel > 0) {
-            if (strlen($codigo) / 2 !== $subnivel) {
-                response()->json([
-                    'status' => 'error',
-                    'code'   => 422,
-                    'message' => "Si el código tiene una longitud de " . strlen($codigo) . ", su longitud debe ser " . (strlen($codigo) / 2) . " "
-                ]);
-            }
-        }
+        $this->validateCodigoSubnivel($request, $codigo, $subnivel);
 
         $cicloObj = InvCiclo::find($ciclo);
 
@@ -228,5 +231,212 @@ class AuditoriaConteoController extends Controller
             'status' => 'OK',
             'data' => $queryBuilder->get()->pluck('etiqueta')->toArray(),
         ]);
+    }
+
+    /**
+     * Process the counted tags for a specific cycle, point, and location (if location code is specified). 
+     * This will update the audit records in the database based on the provided found tags and the expected tags for that location.
+     * it take account partial data, so if there are already records for that cycle, point and location, it will update them instead of creating new ones, and if there are new tags it will create new records.
+     * @param int $ciclo
+     * @param int $punto
+     * @param string $codigo
+     * @param int $subnivel
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function processTags(
+        int $ciclo,
+        int $punto,
+        string $codigo,
+        int $subnivel,
+        Request $request
+    ) {
+
+
+
+
+        // Similar a showResumen, pero en lugar de devolver solo el resumen, devuelve los activos encontrados, faltantes y sobrantes con su información detallada.
+        // Se puede reutilizar la lógica de showResumen para obtener las etiquetas coincidentes, faltantes y sobrantes, y luego hacer consultas adicionales para obtener la información de cada activo.
+
+        $this->validateCodigoSubnivel($request, $codigo, $subnivel);
+
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json(['status' => 'error', 'code' => 404], 404);
+        }
+
+
+        //registros parciales del conteo, mismo u otro usuario, que se corresponden con el ciclo, punto y ubicación (si se especifica código de ubicación)
+        $processedTags = AuditLabelsService::getProcessedTagsData_FromDB(
+            $ciclo,
+            $punto,
+            $codigo,
+            $subnivel
+        );
+
+        //Etiquetas que debieran estar
+        $tags = ActivoService::getTagsByCycleAndAnyPlace($cicloObj, $punto, $codigo, $subnivel);
+
+        //etiquetas encontradas en el conteo, que se corresponden con las que debían estar
+        $foundTags = $request->foundTags ?? [];
+
+        $auditLabelServ = new AuditLabelsService($foundTags, $tags->toArray(), $processedTags);
+
+        $audit_assets_result = collect($auditLabelServ->getAuditListDetail());
+
+
+
+        foreach ($audit_assets_result as $key => $item) {
+
+
+
+            $validator = Validator::make((array)$item, $this->rules());
+
+            if ($validator->fails()) {
+
+                $errors[] = ['index' => $key, 'errors' => $validator->errors()->get("*")];
+            } else if (empty($errors)) {
+
+                $activo = [
+                    'ciclo_id'          => $cicloObj->idCiclo,
+                    'punto_id'          => $punto,
+                    'etiqueta'          => $item['etiqueta'],
+                    'audit_status'      => $item['audit_status'],
+                    'codigo_ubicacion'  => $codigo,
+                    'sublevel'          => $subnivel,
+                    'user_id'           => $request->user()->id,
+                    'created_at'        => date('Y-m-d H:i:s'),
+                    'updated_at'        => date('Y-m-d H:i:s'),
+                ];
+
+                $assets[] = $activo;
+            }
+        }
+
+        //quedan los anteriores obsoletos
+        DB::update(
+            'UPDATE inv_conteo_registro 
+                    SET status = 2, updated_at = NOW() 
+                    WHERE ciclo_id = ? AND punto_id = ? AND codigo_ubicacion = ? AND sublevel = ?',
+            [$cicloObj->idCiclo, $punto, $codigo, $subnivel]
+        );
+
+        //se insertan los nuevos registros
+        DB::table('inv_conteo_registro')->insert($assets);
+
+
+        return response()->json([
+            'status' => 'OK',
+            'code'   => 200,
+            'message' => 'successfully processed'
+        ]);
+    }
+
+    /**
+     * This method deletes all audit records that not match for the specified cycle, point, and location (if location code is specified), 
+     * Elimina sobrantes.
+     *
+     * @param int $ciclo
+     * @param int $punto
+     * @param string $codigo
+     * @param int $subnivel
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function deleteSobrantes(
+        int $ciclo,
+        int $punto,
+        string $codigo,
+        int $subnivel,
+        Request $request
+    ) {
+        // Elimina los registros de conteo que están marcados como sobrantes para el ciclo, punto y ubicación especificados.
+
+        $this->validateCodigoSubnivel($request, $codigo, $subnivel);
+
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json(['status' => 'error', 'code' => 404], 404);
+        }
+
+        DB::delete(
+            'DELETE FROM inv_conteo_registro 
+                    WHERE ciclo_id = ? AND punto_id = ? AND codigo_ubicacion = ? AND sublevel = ? AND audit_status = ?',
+            [$ciclo, $punto, $codigo, $subnivel, CrudActivo::AUDIT_STATUS_SOBRANTE]
+        );
+
+        return response()->json([
+            'status' => 'OK',
+            'code'   => 200,
+            'message' => 'Sobrantes eliminados correctamente',
+            'data' => ActivoService::getTagsByCycleAndAnyPlace($cicloObj, $punto, $codigo, $subnivel),
+        ]);
+    }
+
+    /**
+     * This method deletes all audit records for the specified cycle, point, and location (if location code is specified), regardless of their status. This can be used to reset the audit for that location.
+     * 
+     * @param int $ciclo
+     * @param int $punto
+     * @param string $codigo
+     * @param int $subnivel
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function resetDeleteAuditoria(
+        int $ciclo,
+        int $punto,
+        string $codigo,
+        int $subnivel,
+        Request $request
+    ) {
+        // Elimina todos los registros de conteo para el ciclo, punto y ubicación especificados, independientemente de su estado.
+
+        $this->validateCodigoSubnivel($request, $codigo, $subnivel);
+
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json(['status' => 'error', 'code' => 404], 404);
+        }
+
+        DB::update(
+            'UPDATE inv_conteo_registro 
+                    SET status = 2, updated_at = NOW() , user_id = ?
+                    WHERE ciclo_id = ? AND punto_id = ? AND codigo_ubicacion = ? AND sublevel = ?',
+            [$request->user()->id, $ciclo, $punto, $codigo, $subnivel]
+        );
+
+        return response()->json([
+            'status' => 'OK',
+            'code'   => 200,
+            'message' => 'Registros de auditoría eliminados correctamente'
+        ]);
+    }
+
+    protected function validateCodigoSubnivel(Request $request,  string $codigo, int $subnivel)
+    {
+        $request->merge([
+            'codigo' => $codigo,
+            'subnivel' => $subnivel,
+        ]);
+
+
+
+        $request->validate([
+            'codigo' => ['required', 'string', new SubLevelPlaceRule($request->subnivel)],
+            'subnivel' => ['required', 'integer'],
+        ]);
+    }
+
+    protected function rules()
+    {
+
+        return [
+
+            'etiqueta'      => 'required|string',
+        ];
     }
 }
