@@ -148,15 +148,20 @@ class AuditoriaConteoController extends Controller
             );
 
             //Está en el lugar o está como sobrante pero en otro lugar
-            $etiquetas_aceptadas = $queryBuilder->orWhere('etiqueta', $sobrantes->pluck('etiqueta')->toArray())->get()->pluck('etiqueta')->toArray();
+            $etiquetas_aceptadas = $queryBuilder->orWhere(function ($query) use ($sobrantes) {
+                $query->whereIn('crud_activos.etiqueta', $sobrantes->pluck('etiqueta')->toArray());
+            })->get()->pluck('etiqueta')->toArray();
 
-            //Si la busqueda es una etiqueta sobrante que no se encuentra en el lugar, también la aceptamos para mostrar su resultado aunque no se encuentre en el lugar
+            //Si la busqueda es una etiqueta sobrante que no se encuentra en el lugar,
+            //Ni en ningún otro lugar 
+            //también la aceptamos para mostrar su resultado aunque no se encuentre en ningún lugar
             $sobrante_etiquetas = $sobrantes->where('etiqueta', $request->keyword)->pluck('etiqueta')->toArray();
 
             $etiquetas_aceptadas = array_unique(array_merge($etiquetas_aceptadas, $sobrante_etiquetas));
 
             $audit_assets_result_pagination = $auditLabelServ->getAuditListDetail_Filter_Pagination($etiquetas_aceptadas, $request->from ?? 0, $request->rows ?? 0);
         } else {
+
             $audit_assets_result_pagination = $auditLabelServ->getAuditListDetail_Filter_Pagination([], $request->from ?? 0, $request->rows ?? 0);
         }
         /**
@@ -169,9 +174,13 @@ class AuditoriaConteoController extends Controller
          */
 
 
+
+
         return response()->json([
             'status' => 'OK',
             'data' => AuditAssetResultResource::collection($audit_assets_result_pagination),
+            //'sql' => $queryBuilder->toSql(),
+            //'bindings' => $queryBuilder->getBindings(),
         ]);
     }
 
