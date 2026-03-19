@@ -16,6 +16,7 @@ use App\Models\UbicacionGeografica;
 use Illuminate\Support\Facades\DB;
 use Intervention\Image\Facades\Image;
 use App\Services\ImageService;
+use Illuminate\Support\Facades\Response;
 use App\Services\Imagenes\PictureSafinService;
 use App\Services\InvConfigService;
 use App\Services\ActivoFinderService;
@@ -808,24 +809,24 @@ class InventariosController extends Controller
             'imagenes.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240'
         ]);
 
-        if ($request->conf_fotos != 0 && strtolower($request->tipo) == 'true') {
-            $origen = 'SAFIN_CLONE';
-        } else {
-            $origen = 'SAFIN_APP';
-        }
+        // Determinar origen
+        $origen = ($request->conf_fotos != 0 && strtolower($request->tipo) == 'true') 
+            ? 'SAFIN_CLONE' 
+            : 'SAFIN_APP';
 
         $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
-        $existeEtiqueta = false;
+        // Validaciones de etiquetas
         $activoExiste = ActivoFinderService::findByEtiquetaAndCiclo($request->etiqueta, $request->id_ciclo);
-
-        if ($activoExiste) {
-            $existeEtiqueta = true;
+        if ($activoExiste && $request->update_inv == 'false') {
+            return response()->json([
+                'status' => 'ERROR',
+                'message' => 'La etiqueta ' . $etiqueta . ' ingresada ya existe.',
+            ], 400);
         }
 
         if (!empty($request->etiqueta_padre)) {
             $etiquetaPadreExiste = ActivoFinderService::findByEtiquetaPadreAndCiclo($request->etiqueta_padre, $request->id_ciclo);
-
             if (!$etiquetaPadreExiste) {
                 return response()->json([
                     'status' => 'ERROR',
@@ -834,53 +835,106 @@ class InventariosController extends Controller
             }
         }
 
-        if ($existeEtiqueta && $request->update_inv == 'false') {
+        // Iniciar transacción para asegurar consistencia entre ambas tablas
+        return DB::transaction(function () use ($request, $id_proyecto, $etiqueta, $origen) {
+            
+            $maxId = DB::table('inv_imagenes')->where('id_proyecto', $id_proyecto)->max('id_img');
+            $id_img = $maxId !== null ? $maxId + 1 : 1;
+
+            $paths = [];
+            $url_pict = null;
+
+            foreach ($request->file('imagenes') as $index => $file) {
+                $ext = $file->getClientOriginalExtension();
+                // Nombre base sugerido (el servicio lo validará/cambiará a webp)
+                $suggestedName = $id_proyecto . '_' . $etiqueta . '_' . $index . '.' . $ext;
+
+                // Llamada al servicio actualizado que devuelve el array ['url', 'thumb_url', 'namefile']
+                $imageData = ImageService::saveImageInMainOrSecondDisk(
+                    $file, 
+                    $request->user()->nombre_cliente, 
+                    $suggestedName
+                );
+
+                if ($imageData) {
+                    $url_pict = dirname($imageData['url']) . '/';
+
+                    // 1. Guardar en tabla original
+                    $img = new Inv_imagenes();
+                    $img->id_proyecto = $id_proyecto;
+                    $img->etiqueta    = $etiqueta;
+                    $img->id_img      = $id_img;
+                    $img->origen      = $origen;
+                    $img->picture     = $imageData['namefile'];
+                    $img->url_imagen  = $imageData['url'];
+                    $img->url_picture = $url_pict;
+                    $img->created_at  = now();
+                    $img->save();
+
+                    if ($imageData['thumb_url']) {
+                        DB::table('inv_imagenes_thumbnails')->insert([
+                            'id_proyecto' => $id_proyecto,
+                            'id_img'      => $id_img,
+                            'origen'      => $origen,
+                            'etiqueta'    => $etiqueta,
+                            'picture'     => 'thumb_' . $imageData['namefile'],
+                            'url_imagen'  => $imageData['thumb_url'],
+                            'url_picture' => dirname($imageData['thumb_url']) . '/',
+                            'created_at'  => now()
+                        ]);
+                    }
+
+                    $paths[] = [
+                        'url'      => $url_pict,
+                        'filename' => $imageData['namefile'],
+                        'thumb'    => $imageData['thumb_url']
+                    ];
+                }
+            }
+
             return response()->json([
-                'status' => 'ERROR',
-                'message' => 'La etiqueta ' . $etiqueta . ' ingresada ya existe.',
-            ], 400);
-        }
-
-
-        $maxId = DB::table('inv_imagenes')->where('id_proyecto', $id_proyecto)->max('id_img');
-        $id_img = $maxId !== null ? $maxId + 1 : 1;
-
-        $paths = [];
-
-        foreach ($request->file('imagenes') as $index => $file) {
-
-            $ext = $file->getClientOriginalExtension();
-
-            $filename = $id_proyecto . '_' . $etiqueta . '_' . $index . '.' . $ext;
-
-            $url = ImageService::saveImageInMainOrSecondDisk($file, $request->user()->nombre_cliente, $filename);
-            $url_pict = dirname($url) . '/';
-
-            $img = new Inv_imagenes();
-            $img->id_proyecto = $id_proyecto;
-            $img->etiqueta = $etiqueta;
-            $img->id_img = $id_img;
-            $img->origen = $origen;
-            $img->picture = $filename;
-            $img->created_at = now();
-            $img->url_imagen = $url;
-            $img->url_picture = $url_pict;
-            $img->save();
-
-            $paths[] = [
-                'url' => $url_pict,
-                'filename' => $filename
-            ];
-        }
-
-        return response()->json([
-            'status'    => 'OK',
-            'paths'     => $paths,
-            'folderUrl' => $url_pict,
-            'id_img'    => $id_img,
-            'name'      => $origen
-        ], 201);
+                'status'    => 'OK',
+                'paths'     => $paths,
+                'folderUrl' => $url_pict,
+                'id_img'    => $id_img,
+                'name'      => $origen
+            ], 201);
+        });
     }
+
+    /**
+ * Muestra la miniatura de una imagen específica de forma segura.
+ */
+    /**
+ * Devuelve directamente el archivo de la primera miniatura encontrada para una etiqueta.
+ */
+    public function showThumbnailByEtiqueta($etiqueta)
+    {
+        // 1. Buscar el primer registro que coincida con la etiqueta
+        $thumbnail = DB::table('inv_imagenes_thumbnails')
+            ->where('etiqueta', $etiqueta)
+            ->first();
+
+        if (!$thumbnail) {
+            return response()->json(['message' => 'No existen miniaturas para esta etiqueta'], 404);
+        }
+
+        // 2. Construir la ruta (Igual que en los pasos anteriores)
+        $customer_name = auth()->user()->nombre_cliente;
+        $subdir = PictureSafinService::getImgSubdir($customer_name);
+        $path = $subdir . '/' . $thumbnail->picture;
+
+        // 3. Verificar si el archivo existe físicamente en el disco secundario
+        if (!Storage::disk('taxoImages')->exists($path)) {
+            return response()->json(['message' => 'Archivo físico no encontrado'], 404);
+        }
+
+        // 4. Obtener la ruta absoluta y devolver el archivo
+        $absolutePath = Storage::disk('taxoImages')->path($path);
+
+        return response()->file($absolutePath);
+    }
+
 
     public function showData($id_inventario, $id_ciclo)
     {

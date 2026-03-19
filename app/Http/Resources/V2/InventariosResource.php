@@ -55,7 +55,7 @@ class InventariosResource extends JsonResource
 
         $foto = $fotos->first();
 
-        $fotoUrl = $foto->url_imagen ?? asset('img/notavailable.jpg');
+        $fotoUrl = $this->thumbnail_url ?? $foto->url_imagen ?? asset('img/notavailable.jpg');
 
         $imagenes = $fotos
             ->sortByDesc('id_img')
@@ -78,6 +78,7 @@ class InventariosResource extends JsonResource
             'responsable'          => $this->responsable ?? 'Sin Registros',
             'imagenes'             => $imagenes ?? [],
             'fotoUrl'              => $fotoUrl,
+            'thumbnail_url'        => $fotoUrl,
             'update_inv'           => $this->update_inv,
             'foto4'                => $fotoUrl,
             'emplazamiento'        => [

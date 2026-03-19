@@ -201,6 +201,16 @@ class Inventario extends Model
     public static function queryBuilderInventory_FindInGroupFamily_Pagination($model, ?InvCiclo $cicloObj, Request $request)
     {
         $queryBuilder = $model->inv_activos();
+        
+        $queryBuilder->addSelect([
+            'thumbnail_url' => DB::table('inv_imagenes_thumbnails')
+                ->select('url_imagen')
+                ->whereColumn('etiqueta', 'inv_inventario.etiqueta')
+                ->whereColumn('id_proyecto', 'inv_inventario.id_proyecto')
+                ->orderBy('id_img', 'desc')
+                ->limit(1)
+        ]);
+
         if ($cicloObj) {
             $queryBuilder->where('inv_inventario.id_ciclo', $cicloObj->idCiclo);
         }

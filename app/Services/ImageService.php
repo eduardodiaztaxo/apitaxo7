@@ -65,42 +65,63 @@ class ImageService
     /**
      * Save optimized image in main disk or second disk if fails.
      */
-    public static function saveImageInMainOrSecondDisk(UploadedFile $file, string $customer_name, string $namefile): string|null
+    public static function saveImageInMainOrSecondDisk(UploadedFile $file, string $customer_name, string $namefile): array|null
     {
-        $url = null;
+    $response = [
+        'url' => null,
+        'thumb_url' => null,
+        'namefile' => $namefile
+    ];
 
-        try {
-            // OPTIMIZACIÓN ANTES DE GUARDAR (Soluciona el problema de >1MB)
-            $processed = self::processImage($file, 'webp', 65);
-            $content = $processed['content'];
+    try {
+        // 1. PROCESAR IMAGEN ORIGINAL (Webp 65% calidad)
+        $processed = self::processImage($file, 'webp', 65);
+        $content = $processed['content'];
 
-            // Asegurarnos de que el nombre del archivo refleje la extensión real
-            $extension = pathinfo($namefile, PATHINFO_EXTENSION);
-            if ($extension !== $processed['extension']) {
-                $namefile = pathinfo($namefile, PATHINFO_FILENAME) . '.' . $processed['extension'];
-            }
-
-            $subdir = PictureSafinService::getImgSubdir($customer_name);
-            $path = $subdir . '/' . $namefile;
-
-            // Intentar en disco principal
-            Storage::disk('win_images')->put($path, $content);
-            $url = Storage::disk('win_images')->url($path);
-
-        } catch (\Exception $e) {
-
-            try {
-                // Fallback al disco secundario
-                Storage::disk('taxoImages')->put($path, $content);
-                $url = Storage::disk('taxoImages')->url($path);
-            } catch (\Exception $e) {
-                // Loguear error si ambos fallan
-                \Illuminate\Support\Facades\Log::error("Error guardando imagen: " . $e->getMessage());
-            }
+        // Ajustar extensión del nombre si es necesario
+        $extension = pathinfo($namefile, PATHINFO_EXTENSION);
+        if ($extension !== $processed['extension']) {
+            $namefile = pathinfo($namefile, PATHINFO_FILENAME) . '.' . $processed['extension'];
+            $response['namefile'] = $namefile;
         }
 
-        return $url;
+        $subdir = PictureSafinService::getImgSubdir($customer_name);
+        $path = $subdir . '/' . $namefile;
+
+        // 2. INTENTAR GUARDAR ORIGINAL EN DISCO PRINCIPAL
+        try {
+            Storage::disk('win_images')->put($path, $content);
+            $response['url'] = Storage::disk('win_images')->url($path);
+        } catch (\Exception $e) {
+            // Fallback al secundario si falla el principal
+            Storage::disk('taxoImages')->put($path, $content);
+            $response['url'] = Storage::disk('taxoImages')->url($path);
+        }
+
+        // 3. CREAR Y GUARDAR MINIATURA (Solo en Disco Secundario)
+        try {
+            $thumbName = 'thumb_' . $namefile;
+            $thumbPath = $subdir . '/' . $thumbName;
+
+            $imgThumb = Image::read($file->getRealPath());
+            $imgThumb->scale(width: 96); // Mantiene aspect ratio automáticamente
+
+            $encodedThumb = $imgThumb->encode(new \Intervention\Image\Encoders\WebpEncoder(quality: 60));
+            
+            Storage::disk('taxoImages')->put($thumbPath, $encodedThumb);
+            $response['thumb_url'] = Storage::disk('taxoImages')->url($thumbPath);
+            
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Error creando miniatura: " . $e->getMessage());
+        }
+
+    } catch (\Exception $e) {
+        \Illuminate\Support\Facades\Log::error("Error general en ImageService: " . $e->getMessage());
+        return null;
     }
+
+    return $response;
+}
 
     /**
      * Delete image in main disk or second disk if exists.
@@ -112,9 +133,6 @@ class ImageService
     public static function deleteImageInMainOrSecondDisk(string $customer_name, string $namefile): bool
     {
         $deleted = false;
-
-
-
 
         try {
 
