@@ -276,19 +276,21 @@ class CrudActivoController extends Controller
                 ->where('id_inventario', '=', $idActivo)
                 ->update(['crud_activo_estado' => 3]);
 
-            $filename = $id_proyecto . '_' . $etiqueta;
             $origen = 'SAFIN_APP_IMAGEN_ACTUALIZADA';
             $file = $request->file('imagen');
 
             $ext = $file->getClientOriginalExtension();
-            //$namefile = $filename . '.jpg';
+            $namefileSuggested = Inv_imagenes::nextNameImageFile($id_proyecto, $etiqueta, $ext);
 
-            $namefile = Inv_imagenes::nextNameImageFile($id_proyecto, $etiqueta, $ext);
+            $imageData = ImageService::saveImageInMainOrSecondDisk($file, $request->user()->nombre_cliente, $namefileSuggested);
 
+            if (!$imageData) {
+                return response()->json(['status' => 'error', 'message' => 'Error saving image'], 500);
+            }
 
-            $url = ImageService::saveImageInMainOrSecondDisk($file, $request->user()->nombre_cliente, $namefile);
-
+            $url = $imageData['url'];
             $url_pict = dirname($url) . '/';
+            $namefile = $imageData['namefile'];
 
             if ($request->oldImageUrl) {
                 $imagenExistente = Inv_imagenes::where('etiqueta', $etiqueta)
@@ -297,7 +299,7 @@ class CrudActivoController extends Controller
                     ->first();
 
                 if ($imagenExistente) {
-                    $imagenExistente->url_imagen = $url_pict . $namefile;
+                    $imagenExistente->url_imagen = $url;
                     $imagenExistente->url_picture = $url_pict;
                     $imagenExistente->origen = $origen;
                     $imagenExistente->picture = $namefile;
@@ -305,10 +307,30 @@ class CrudActivoController extends Controller
                     $imagenExistente->id_proyecto = $id_proyecto;
                     $imagenExistente->save();
 
+                    // Actualizar miniatura si existe
+                    if ($imageData['thumb_url']) {
+                        DB::table('inv_imagenes_thumbnails')
+                            ->updateOrInsert(
+                                [
+                                    'id_proyecto' => $id_proyecto,
+                                    'id_img'      => $imagenExistente->id_img,
+                                    'etiqueta'    => $etiqueta,
+                                ],
+                                [
+                                    'origen'      => $origen,
+                                    'picture'     => 'thumb_' . $namefile,
+                                    'url_imagen'  => $imageData['thumb_url'],
+                                    'url_picture' => dirname($imageData['thumb_url']) . '/',
+                                    'created_at'  => now(),
+                                    'updated_at'  => now()
+                                ]
+                            );
+                    }
+
                     return response()->json([
                         'status' => 'OK',
                         'message' => 'Imagen existente actualizada',
-                        'url' => $url_pict . $namefile
+                        'url' => $url
                     ], 200);
                 }
             }
@@ -320,7 +342,7 @@ class CrudActivoController extends Controller
             $nuevaImagen->etiqueta = $etiqueta;
             $nuevaImagen->id_img = $invObj->id_img;
             $nuevaImagen->id_proyecto = $id_proyecto;
-            $nuevaImagen->url_imagen = $url_pict . $namefile;
+            $nuevaImagen->url_imagen = $url;
             $nuevaImagen->url_picture = $url_pict;
             $nuevaImagen->origen = $origen;
             $nuevaImagen->picture = $namefile;
@@ -328,10 +350,25 @@ class CrudActivoController extends Controller
             $nuevaImagen->updated_at = now();
             $nuevaImagen->save();
 
+            // Guardar miniatura si existe
+            if ($imageData['thumb_url']) {
+                DB::table('inv_imagenes_thumbnails')->insert([
+                    'id_proyecto' => $id_proyecto,
+                    'id_img'      => $invObj->id_img,
+                    'origen'      => $origen,
+                    'etiqueta'    => $etiqueta,
+                    'picture'     => 'thumb_' . $namefile,
+                    'url_imagen'  => $imageData['thumb_url'],
+                    'url_picture' => dirname($imageData['thumb_url']) . '/',
+                    'created_at'  => now(),
+                    'updated_at'  => now()
+                ]);
+            }
+
             return response()->json([
                 'status' => 'OK',
                 'message' => 'Nueva imagen creada',
-                'url' => $url_pict . $namefile
+                'url' => $url
             ], 201);
         }
 
@@ -339,13 +376,17 @@ class CrudActivoController extends Controller
         $filename = $id_proyecto . '_' . $etiqueta;
         $origen = 'SAFIN_APP_IMAGEN_ACTUALIZADA';
         $file = $request->file('imagen');
-        $namefile = $filename . '.webp';
+        $namefileSuggested = $filename . '.webp';
 
+        $imageData = ImageService::saveImageInMainOrSecondDisk($file, $request->user()->nombre_cliente, $namefileSuggested);
 
+        if (!$imageData) {
+            return response()->json(['status' => 'error', 'message' => 'Error saving image'], 500);
+        }
 
-        $url = ImageService::saveImageInMainOrSecondDisk($file, $request->user()->nombre_cliente, $namefile);
-
+        $url = $imageData['url'];
         $url_pict = dirname($url) . '/';
+        $namefile = $imageData['namefile'];
 
         $ultimo = DB::table('crud_activos_pictures')
             ->where('id_activo', $idActivo)
@@ -357,7 +398,8 @@ class CrudActivoController extends Controller
                 ->where('id_foto', $ultimo->id_foto)
                 ->update([
                     'url_picture' => $url_pict,
-                    'picture' => $filename . '.webp',
+                    'url_imagen' => $url,
+                    'picture' => $namefile,
                     'origen' => $origen,
                     'fecha_update' => now(),
                     'idProyecto'   => $id_proyecto,
@@ -366,7 +408,8 @@ class CrudActivoController extends Controller
             DB::table('crud_activos_pictures')->insert([
                 'id_activo' => $idActivo,
                 'url_picture' => $url_pict,
-                'picture' => $filename . '.webp',
+                'url_imagen' => $url,
+                'picture' => $namefile,
                 'origen' => $origen,
                 'fecha_update' => now(),
                 'idProyecto'   => $id_proyecto,

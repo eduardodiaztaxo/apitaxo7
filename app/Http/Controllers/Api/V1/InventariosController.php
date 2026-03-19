@@ -947,7 +947,7 @@ class InventariosController extends Controller
         LEFT JOIN dp_grupos AS grupos ON inv.id_grupo = grupos.id_grupo
         LEFT JOIN dp_familias AS familias ON inv.id_familia = familias.id_familia
         WHERE inv.id_inventario = ? 
-          AND inv.id_ciclo = ?
+        AND inv.id_ciclo = ?
     ";
 
         $data = DB::select($sql, [$id_inventario, $id_ciclo]);
@@ -1033,39 +1033,58 @@ class InventariosController extends Controller
 
                 $filename = $idProyecto . '_' . $etiqueta . '_' . $contador . '.webp';
 
-                $url = ImageService::saveImageInMainOrSecondDisk($file, $request->user()->nombre_cliente, $filename);
+                // El servicio devuelve un array: ['url', 'thumb_url', 'namefile']
+                $imageData = ImageService::saveImageInMainOrSecondDisk($file, $request->user()->nombre_cliente, $filename);
 
-                $url_pict = dirname($url) . '/';
+                if ($imageData) {
+                    $url = $imageData['url'];
+                    $url_pict = dirname($url) . '/';
 
-                if ($esCrudActivo) {
-                    DB::table('crud_activos_pictures')->insert([
-                        'id_activo'    => $idActivo,
-                        'picture'      => $filename,
-                        'origen'       => $origen,
-                        'url_picture'  => $url_pict,
-                        'url_imagen'   => $url,
-                        'fecha_update' => now(),
-                        'idProyecto'   => $idProyecto,
-                    ]);
-                } else {
-                    $img = new Inv_imagenes();
-                    $img->etiqueta     = $etiqueta;
-                    $img->id_img       = $id_img;
-                    $img->origen       = $origen;
-                    $img->picture      = $filename;
-                    $img->created_at   = now();
-                    $img->updated_at   = now();
-                    $img->url_imagen   = $url;
-                    $img->url_picture  = $url_pict;
-                    $img->id_proyecto  = $idProyecto;
-                    $img->save();
+                    if ($esCrudActivo) {
+                        DB::table('crud_activos_pictures')->insert([
+                            'id_activo'    => $idActivo,
+                            'picture'      => $imageData['namefile'],
+                            'origen'       => $origen,
+                            'url_picture'  => $url_pict,
+                            'url_imagen'   => $url,
+                            'fecha_update' => now(),
+                            'idProyecto'   => $idProyecto,
+                        ]);
+                    } else {
+                        $img = new Inv_imagenes();
+                        $img->etiqueta     = $etiqueta;
+                        $img->id_img       = $id_img;
+                        $img->origen       = $origen;
+                        $img->picture      = $imageData['namefile'];
+                        $img->created_at   = now();
+                        $img->updated_at   = now();
+                        $img->url_imagen   = $url;
+                        $img->url_picture  = $url_pict;
+                        $img->id_proyecto  = $idProyecto;
+                        $img->save();
+
+                        // Guardar miniatura si existe
+                        if ($imageData['thumb_url']) {
+                            DB::table('inv_imagenes_thumbnails')->insert([
+                                'id_proyecto' => $idProyecto,
+                                'id_img'      => $id_img,
+                                'origen'      => $origen,
+                                'etiqueta'    => $etiqueta,
+                                'picture'     => 'thumb_' . $imageData['namefile'],
+                                'url_imagen'  => $imageData['thumb_url'],
+                                'url_picture' => dirname($imageData['thumb_url']) . '/',
+                                'created_at'  => now()
+                            ]);
+                        }
+                    }
+
+                    $paths[] = [
+                        'id_img'   => $contador,
+                        'url'      => $url,
+                        'filename' => $imageData['namefile'],
+                        'thumb'    => $imageData['thumb_url'] ?? null
+                    ];
                 }
-
-                $paths[] = [
-                    'id_img'   => $contador,
-                    'url'      => $url,
-                    'filename' => $filename,
-                ];
             }
 
             return response()->json([

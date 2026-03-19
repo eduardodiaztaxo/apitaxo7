@@ -207,7 +207,7 @@ class Inventario extends Model
                 ->select('url_imagen')
                 ->whereColumn('etiqueta', 'inv_inventario.etiqueta')
                 ->whereColumn('id_proyecto', 'inv_inventario.id_proyecto')
-                ->orderBy('id_img', 'desc')
+                ->orderBy('id_img', 'asc')
                 ->limit(1)
         ]);
 
