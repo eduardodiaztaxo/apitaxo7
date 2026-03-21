@@ -444,22 +444,22 @@ class InventariosController extends Controller
             'ROUND(adjusted_lat, 7) = ROUND(?, 7)',
             [$request->adjusted_lat]
         )
-        ->whereRaw(
-            'ROUND(adjusted_lng, 7) = ROUND(?, 7)',
-            [$request->adjusted_lng]
-        )
-        ->where('etiqueta', '!=', $etiqueta)
-        ->exists();
+            ->whereRaw(
+                'ROUND(adjusted_lng, 7) = ROUND(?, 7)',
+                [$request->adjusted_lng]
+            )
+            ->where('etiqueta', '!=', $etiqueta)
+            ->exists();
 
-        if($existsCoincident){
+        if ($existsCoincident) {
             return response()->json([
                 'status'  => 'error',
                 'type'  => 'duplicate',
                 'message' => 'Está ingresando una misma coordenada para un diferente bien',
-                
+
             ], 422);
         }
-        
+
 
         $invObj = Inventario::where('etiqueta', $etiqueta)->first();
 
@@ -511,19 +511,19 @@ class InventariosController extends Controller
             'ROUND(adjusted_lat, 7) = ROUND(?, 7)',
             [$request->adjusted_lat]
         )
-        ->whereRaw(
-            'ROUND(adjusted_lng, 7) = ROUND(?, 7)',
-            [$request->adjusted_lng]
-        )
-        ->where('etiqueta', '!=', $etiqueta)
-        ->exists();
+            ->whereRaw(
+                'ROUND(adjusted_lng, 7) = ROUND(?, 7)',
+                [$request->adjusted_lng]
+            )
+            ->where('etiqueta', '!=', $etiqueta)
+            ->exists();
 
-        if($existsCoincident){
+        if ($existsCoincident) {
             return response()->json([
                 'status'  => 'error',
                 'type'  => 'duplicate',
                 'message' => 'Está ingresando una misma coordenada para un diferente bien',
-                
+
             ], 422);
         }
 
@@ -1227,6 +1227,48 @@ class InventariosController extends Controller
             'texto_abierto_8'    => $item->texto_abierto_8 ?? null,
             'texto_abierto_9'    => $item->texto_abierto_9 ?? null,
             'texto_abierto_10'   => $item->texto_abierto_10 ?? null,
+            'texto_abierto_11'   => $item->texto_abierto_11 ?? null,
+            'texto_abierto_12'   => $item->texto_abierto_12 ?? null,
+            'texto_abierto_13'   => $item->texto_abierto_13 ?? null,
+            'texto_abierto_14'   => $item->texto_abierto_14 ?? null,
+            'texto_abierto_15'   => $item->texto_abierto_15 ?? null,
+            'texto_abierto_16'   => $item->texto_abierto_16 ?? null,
+            'texto_abierto_17'   => $item->texto_abierto_17 ?? null,
+            'texto_abierto_18'   => $item->texto_abierto_18 ?? null,
+            'texto_abierto_19'   => $item->texto_abierto_19 ?? null,
+            'texto_abierto_20'   => $item->texto_abierto_20 ?? null,
+            'texto_abierto_21'   => $item->texto_abierto_21 ?? null,
+            'texto_abierto_22'   => $item->texto_abierto_22 ?? null,
+            'texto_abierto_23'   => $item->texto_abierto_23 ?? null,
+            'texto_abierto_24'   => $item->texto_abierto_24 ?? null,
+            'texto_abierto_25'   => $item->texto_abierto_25 ?? null,
+            'texto_abierto_26'   => $item->texto_abierto_26 ?? null,
+            'texto_abierto_27'   => $item->texto_abierto_27 ?? null,
+            'texto_abierto_28'   => $item->texto_abierto_28 ?? null,
+            'texto_abierto_29'   => $item->texto_abierto_29 ?? null,
+            'texto_abierto_30'   => $item->texto_abierto_30 ?? null,
+            'texto_abierto_31'   => $item->texto_abierto_31 ?? null,
+            'texto_abierto_32'   => $item->texto_abierto_32 ?? null,
+            'texto_abierto_33'   => $item->texto_abierto_33 ?? null,
+            'texto_abierto_34'   => $item->texto_abierto_34 ?? null,
+            'texto_abierto_35'   => $item->texto_abierto_35 ?? null,
+            'texto_abierto_36'   => $item->texto_abierto_36 ?? null,
+            'texto_abierto_37'   => $item->texto_abierto_37 ?? null,
+            'texto_abierto_38'   => $item->texto_abierto_38 ?? null,
+            'texto_abierto_39'   => $item->texto_abierto_39 ?? null,
+            'texto_abierto_40'   => $item->texto_abierto_40 ?? null,
+            'texto_abierto_41'   => $item->texto_abierto_41 ?? null,
+            'texto_abierto_42'   => $item->texto_abierto_42 ?? null,
+            'texto_abierto_43'   => $item->texto_abierto_43 ?? null,
+            'texto_abierto_44'   => $item->texto_abierto_44 ?? null,
+            'texto_abierto_45'   => $item->texto_abierto_45 ?? null,
+            'texto_abierto_46'   => $item->texto_abierto_46 ?? null,
+            'texto_abierto_47'   => $item->texto_abierto_47 ?? null,
+            'texto_abierto_48'   => $item->texto_abierto_48 ?? null,
+            'texto_abierto_49'   => $item->texto_abierto_49 ?? null,
+            'texto_abierto_50'   => $item->texto_abierto_50 ?? null,
+
+
             'modo'               => 'OFFLINE',
             'creado_el'          => $item->crud_activo_estado != 3 ? now() : null,
             'creado_por'         => $item->crud_activo_estado != 3 ? $usuario : null,
