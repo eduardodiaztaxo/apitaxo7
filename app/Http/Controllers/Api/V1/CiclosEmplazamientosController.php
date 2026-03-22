@@ -340,7 +340,7 @@ class CiclosEmplazamientosController extends Controller
                 return response()->json(['status' => 'error', 'code' => 404, 'message' => 'El emplazamiento no se corresponde con el ciclo'], 404);
             }
         }
-        
+
         $queryBuilder = $emplaObj->inv_group_families();
         if ($cicloObj) {
             $queryBuilder->where('inv_inventario.id_ciclo', $cicloObj->idCiclo);
@@ -356,7 +356,7 @@ class CiclosEmplazamientosController extends Controller
     }
 
     /**
-     * Display assets of the specified resource by level.
+     * Display assets of the specified resource.
      *
      * @param   int $ciclo 
      * @param   int $nivel
@@ -365,6 +365,29 @@ class CiclosEmplazamientosController extends Controller
      * @return  \Illuminate\Http\Response
      */
     public function showAssetsByLevel(int $ciclo, int $nivel, int $emplazamiento, Request $request)
+    {
+        switch ($nivel) {
+            case 1:
+                return $this->showAssetsN1($ciclo, $emplazamiento, $request);
+            case 2:
+                return $this->showAssetsN2($ciclo, $emplazamiento, $request);
+            case 3:
+                return $this->showAssetsN3($ciclo, $emplazamiento, $request);
+            default:
+                return response()->json(['status' => 'error', 'message' => 'Nivel no válido'], 400);
+        }
+    }
+
+    /**
+     * Display assets of the specified resource by level.
+     *
+     * @param   int $ciclo 
+     * @param   int $nivel
+     * @param   int $emplazamiento
+     * @param   \Illuminate\Http\Request
+     * @return  \Illuminate\Http\Response
+     */
+    public function showAssetsByLevel_New(int $ciclo, int $nivel, int $emplazamiento, Request $request)
     {
         $tableName = 'ubicaciones_n' . $nivel;
         $idFieldName = 'idUbicacionN' . $nivel;
