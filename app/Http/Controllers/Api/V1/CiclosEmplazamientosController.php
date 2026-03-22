@@ -426,7 +426,7 @@ class CiclosEmplazamientosController extends Controller
     }
 
     /**
-     * Display families of the specified resource by level.
+     * Display group families of the specified resource by level.
      *
      * @param   int $ciclo 
      * @param   int $nivel
@@ -435,6 +435,29 @@ class CiclosEmplazamientosController extends Controller
      * @return  \Illuminate\Http\Response
      */
     public function showGroupFamiliesByLevel(int $ciclo, int $nivel, int $emplazamiento, Request $request)
+    {
+        switch ($nivel) {
+            case 1:
+                return $this->showGroupFamiliesN1($ciclo, $emplazamiento, $request);
+            case 2:
+                return $this->showGroupFamiliesN2($ciclo, $emplazamiento, $request);
+            case 3:
+                return $this->showGroupFamiliesN3($ciclo, $emplazamiento, $request);
+            default:
+                return response()->json(['status' => 'error', 'message' => 'Nivel no válido'], 400);
+        }
+    }
+
+    /**
+     * Display families of the specified resource by level.
+     *
+     * @param   int $ciclo 
+     * @param   int $nivel
+     * @param   int $emplazamiento
+     * @param   \Illuminate\Http\Request
+     * @return  \Illuminate\Http\Response
+     */
+    public function showGroupFamiliesByLevel_New(int $ciclo, int $nivel, int $emplazamiento, Request $request)
     {
         $tableName = 'ubicaciones_n' . $nivel;
         $idFieldName = 'idUbicacionN' . $nivel;
