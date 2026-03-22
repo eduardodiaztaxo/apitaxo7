@@ -186,7 +186,7 @@ class CiclosEmplazamientosController extends Controller
      * @param   \Illuminate\Http\Request
      * @return  \Illuminate\Http\Response
      */
-    public function showAssetsByLevel(int $ciclo, int $nivel, int $emplazamiento, Request $request)
+    public function showAssetsByLevel_Legacy(int $ciclo, int $nivel, int $emplazamiento, Request $request)
     {
         switch ($nivel) {
             case 1:
@@ -405,7 +405,7 @@ class CiclosEmplazamientosController extends Controller
                 return response()->json(['status' => 'error', 'code' => 404, 'message' => 'El emplazamiento no se corresponde con el ciclo'], 404);
             }
         }
-        
+
         $queryBuilder = $emplaObj->inv_group_families();
         if ($cicloObj) {
             $queryBuilder->where('inv_inventario.id_ciclo', $cicloObj->idCiclo);
@@ -526,7 +526,7 @@ class CiclosEmplazamientosController extends Controller
      * @param   \Illuminate\Http\Request
      * @return  \Illuminate\Http\Response
      */
-    public function showGroupFamiliesByLevel(int $ciclo, int $nivel, int $emplazamiento, Request $request)
+    public function showGroupFamiliesByLevel_Legacy(int $ciclo, int $nivel, int $emplazamiento, Request $request)
     {
         switch ($nivel) {
             case 1:
