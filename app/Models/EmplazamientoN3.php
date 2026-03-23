@@ -65,7 +65,7 @@ class EmplazamientoN3 extends Model
 
         return Inventario::select(
             'ubicaciones_n3.codigoUbicacion',
-            DB::raw("'n1' AS place_level"),
+            DB::raw("'n3' AS place_level"),
             DB::raw("'1' AS isSub"),
             'inv_inventario.id_ciclo',
             'inv_inventario.id_grupo',
