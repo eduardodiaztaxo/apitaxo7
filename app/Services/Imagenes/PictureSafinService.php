@@ -27,7 +27,7 @@ class PictureSafinService
     public static function getImgSubdir(string $client_name): string
     {
         $cleanName = str_replace(' ', '_', $client_name);
-        return "/" . $cleanName . "/img";
+        return $cleanName . "/img";
     }
 
     public static function nextNameImageFile($proyecto_id, $etiqueta_nombre, $ext)
