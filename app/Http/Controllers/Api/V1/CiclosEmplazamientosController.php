@@ -186,7 +186,7 @@ class CiclosEmplazamientosController extends Controller
      * @param   \Illuminate\Http\Request
      * @return  \Illuminate\Http\Response
      */
-    public function showAssetsByLevel(int $ciclo, int $nivel, int $emplazamiento, Request $request)
+    public function showAssetsByLevel_Legacy(int $ciclo, int $nivel, int $emplazamiento, Request $request)
     {
         switch ($nivel) {
             case 1:
@@ -572,7 +572,7 @@ class CiclosEmplazamientosController extends Controller
      * @param   \Illuminate\Http\Request
      * @return  \Illuminate\Http\Response
      */
-    public function showGroupFamiliesByLevel(int $ciclo, int $nivel, int $emplazamiento, Request $request)
+    public function showGroupFamiliesByLevel_Legacy(int $ciclo, int $nivel, int $emplazamiento, Request $request)
     {
         switch ($nivel) {
             case 1:

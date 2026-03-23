@@ -12,9 +12,9 @@ use App\Http\Controllers\Api\V1\ResponsibleController;
 Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2')->group(function () {
 
     Route::get('ciclos/{ciclo}/emplazamientos/{nivel}/{emplazamiento}', [EmplazamientoController::class, 'show'])->where('nivel', '\d+');
-    Route::get('ciclos/{ciclo}/emplazamientos/{nivel}/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssetsByLevel'])->where('nivel', '\d+');
-    Route::get('ciclos/{ciclo}/emplazamientos/{nivel}/{emplazamiento}/group-families', [CiclosEmplazamientosController::class, 'showGroupFamiliesByLevel'])->where('nivel', '\d+');
-    
+    Route::get('ciclos/{ciclo}/generic-emplazamientos/{nivel}/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssetsByLevel'])->where('nivel', '\d+');
+    Route::get('ciclos/{ciclo}/generyc-emplazamientos/{nivel}/{emplazamiento}/group-families', [CiclosEmplazamientosController::class, 'showGroupFamiliesByLevel'])->where('nivel', '\d+');
+
     Route::get('crud-activos/emplazamientos/{nivel}/{emplazamiento}/assets', [EmplazamientoController::class, 'showAssets']);
 
     Route::get('ciclos/{ciclo}/emplazamientos-n1/{emplazamiento}', [EmplazamientoNivel1Controller::class, 'show']);
@@ -30,9 +30,9 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2')->group(func
 
     Route::get('ciclos/{ciclo}/emplazamientos-n3/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssetsN3']);
 
-    Route::get('ciclos/{ciclo}/emplazamientos/{nivel}/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssetsByLevel']);
+    Route::get('ciclos/{ciclo}/emplazamientos/{nivel}/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssetsByLevel_Legacy']);
 
-    Route::get('ciclos/{ciclo}/emplazamientos/{nivel}/{emplazamiento}/group-families', [CiclosEmplazamientosController::class, 'showGroupFamiliesByLevel']);
+    Route::get('ciclos/{ciclo}/emplazamientos/{nivel}/{emplazamiento}/group-families', [CiclosEmplazamientosController::class, 'showGroupFamiliesByLevel_Legacy']);
 
     Route::get('ciclos/{ciclo}/emplazamientos-n1/{emplazamiento}/group-families', [CiclosEmplazamientosController::class, 'showGroupFamiliesN1']);
 
