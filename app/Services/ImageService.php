@@ -13,7 +13,7 @@ use Intervention\Image\Laravel\Facades\Image as Image;
 class ImageService
 {
 
-    protected const string INV_IMG_ID = 'INV_IMG_ID';
+    const INV_IMG_ID = 'INV_IMG_ID';
     /**
      * Resize, optimize and save images.
      *
