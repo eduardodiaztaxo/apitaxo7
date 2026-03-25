@@ -119,6 +119,7 @@ class InventariosController extends Controller
                 ->where('id_proyecto', $id_proyecto)
                 ->get();
 
+            ImageService::createNextValInvImgIfNotExist();
             $next_img_id = ImageService::nextValInvImg();
             $origen = 'SAFIN_CLONE';
             $filename = $id_proyecto . '_' . $request->etiqueta;
@@ -843,6 +844,7 @@ class InventariosController extends Controller
 
 
         //$maxId = DB::table('inv_imagenes')->where('id_proyecto', $id_proyecto)->max('id_img');
+        ImageService::createNextValInvImgIfNotExist();
         $id_img = ImageService::nextValInvImg();
 
         $paths = [];
