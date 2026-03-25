@@ -119,13 +119,13 @@ class InventariosController extends Controller
                 ->where('id_proyecto', $id_proyecto)
                 ->get();
 
-            $url_img = DB::table('inv_imagenes')->where('id_proyecto', $id_proyecto)->max('id_img') + 1;
+            $next_img_id = ImageService::nextValInvImg();
             $origen = 'SAFIN_CLONE';
             $filename = $id_proyecto . '_' . $request->etiqueta;
 
             foreach ($imagenes as $img) {
                 DB::table('inv_imagenes')->insert([
-                    'id_img'     => $url_img,
+                    'id_img'     => $next_img_id,
                     'etiqueta'   => $request->etiqueta,
                     'origen'     => $origen,
                     'picture'    => $filename . '.jpg',
@@ -842,8 +842,8 @@ class InventariosController extends Controller
         }
 
 
-        $maxId = DB::table('inv_imagenes')->where('id_proyecto', $id_proyecto)->max('id_img');
-        $id_img = $maxId !== null ? $maxId + 1 : 1;
+        //$maxId = DB::table('inv_imagenes')->where('id_proyecto', $id_proyecto)->max('id_img');
+        $id_img = ImageService::nextValInvImg();
 
         $paths = [];
 
@@ -1204,11 +1204,12 @@ class InventariosController extends Controller
             'id_img'             => $item->id_img,
             'id_ciclo'           => $ciclo,
             'idUbicacionGeo'     => $item->idUbicacionGeo,
-            'codigoUbicacion_N1' => $idMapaN1_Codigo[$item->codigoUbicacion_N1] ?? $item->codigoUbicacion_N1,
+            'codigoUbicacion_N1' => $idMapaN1_Codigo[$item->codigoUbicacion_N1] ? $idMapaN1_Codigo[$item->codigoUbicacion_N1] : ($item->codigoUbicacion_N1 ?? '0'),
             'idUbicacionN2'      => $usarMapas ? ($mapaIdN2[$item->codigoUbicacion_N2] ?? null) : $item->idUbicacionN2,
-            'codigoUbicacion_N2' => $usarMapas ? ($mapaCodN2[$item->codigoUbicacion_N2] ?? null) : $item->codigoUbicacion_N2,
+            'codigoUbicacion_N2' => $usarMapas ? $mapaCodN2[$item->codigoUbicacion_N2] : ($item->codigoUbicacion_N2 ?? '0'),
             'idUbicacionN3'      => $usarMapas ? ($mapaIdN3[$item->codigoUbicacionN3] ?? null) : $item->idUbicacionN3,
-            'codigoUbicacionN3'  => $usarMapas ? ($mapaCodN3[$item->codigoUbicacionN3] ?? null) : $item->codigoUbicacionN3,
+            'codigoUbicacionN3'  => $usarMapas ? $mapaCodN3[$item->codigoUbicacionN3] : ($item->codigoUbicacionN3 ?? '0'),
+            'codigoUbicacionN4'  => '0',
             'responsable'        => $responsable,
             'idResponsable'      => $getIdResponsable,
             'latitud'            => $item->latitud,
@@ -1669,15 +1670,14 @@ class InventariosController extends Controller
         $failed = [];
         $paths = [];
 
-        $id_img = DB::table('inv_imagenes')->where('id_proyecto', $id_proyecto)->max('id_img') + 1;
+        ImageService::createNextValInvImgIfNotExist();
         $idsi = [];
 
 
         foreach ($files as $file) {
             foreach ($file['etiquetas'] as $etiqueta) {
                 if (!isset($idsi[$etiqueta])) {
-                    $idsi[$etiqueta] = $id_img;
-                    $id_img++;
+                    $idsi[$etiqueta] = ImageService::nextValInvImg();
                 }
             }
         }

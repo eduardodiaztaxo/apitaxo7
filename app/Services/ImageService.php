@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Inv_imagenes;
 use App\Services\Imagenes\PictureSafinService;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Encoders\JpegEncoder;
 use Intervention\Image\Laravel\Facades\Image as Image;
@@ -12,7 +13,7 @@ use Intervention\Image\Laravel\Facades\Image as Image;
 class ImageService
 {
 
-
+    protected const string INV_IMG_ID = 'INV_IMG_ID';
     /**
      * Resize, optimize and save images.
      *
@@ -321,11 +322,11 @@ class ImageService
      */
     public static function moveToMainDiskWhenImagesHaveBeenSavedInSecondDisk(string $proyecto_id, string $customer_name, int $max_images = 0): array
     {
-        
+
         $urlSecondDisk = Storage::disk('taxoImages')->url('/');
-    
+
         $imagesQuery = Inv_imagenes::where('id_proyecto', '=', $proyecto_id)
-            ->where('url_imagen', 'LIKE', ''.$urlSecondDisk.'%');
+            ->where('url_imagen', 'LIKE', '' . $urlSecondDisk . '%');
 
         $imagesQuery = $max_images > 0 ? $imagesQuery->take($max_images) : $imagesQuery;
 
@@ -339,11 +340,11 @@ class ImageService
 
             $moved = false;
 
-            if(!$exists){
+            if (!$exists) {
                 $moved = self::moveImageFromSecondDiskToMainDisk($customer_name, $image->picture);
             }
 
-            
+
 
             if ($moved || $exists) {
                 $new_path = PictureSafinService::getImgSubdir($customer_name) . '/' . $image->picture;
@@ -356,13 +357,12 @@ class ImageService
                 // log error or take appropriate action
                 $result['failed'] += 1;
             }
-            
         }
 
         return $result;
     }
 
-    
+
     /**
      * Move image from second disk to main disk.
      * 
@@ -382,10 +382,6 @@ class ImageService
             $content = Storage::disk('taxoImages')->get($old_path);
 
             $moved = Storage::disk('win_images')->put($new_path, $content);
-              
-
-           
-            
         } catch (\Exception $e) {
             $moved = false;
         }
@@ -447,12 +443,37 @@ class ImageService
             $path = PictureSafinService::getImgSubdir($customer_name) . '/' . $namefile;
 
             $exists = Storage::disk('win_images')->exists($path);
-
         } catch (\Exception $e) {
 
             $exists = false;
         }
 
         return $exists;
+    }
+
+    /**
+     * Create next value in sequence table for inv_img_id if not exist.
+     *
+     * @return void
+     */
+    public static function createNextValInvImgIfNotExist()
+    {
+
+        $secuence = DB::table('sequence')->where('name', '=', self::INV_IMG_ID)->first();
+        if (!$secuence) {
+            $id_img = DB::table('inv_imagenes')->max('id_img') + 1;
+            DB::insert('INSERT INTO `sequence` (`name`,`cur_value`) VALUES (?, ?)', [self::INV_IMG_ID, $id_img]);
+        }
+    }
+
+    /**
+     * Get next value in sequence table for inv_img_id.
+     *
+     * @return int next value
+     */
+    public static function nextValInvImg()
+    {
+        $nextVal = DB::selectOne('SELECT nextval(?) as next_val', [self::INV_IMG_ID]);
+        return $nextVal->next_val;
     }
 }

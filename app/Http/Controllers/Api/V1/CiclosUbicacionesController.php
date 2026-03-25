@@ -427,7 +427,11 @@ class CiclosUbicacionesController extends Controller
         $user = Auth::user();
 
         $usuario = $user?->name;
-        $puntos = $cicloObj->ciclo_puntos_users($usuario, $ciclo, $request->keyword, $request->from, $request->rows)->get();
+
+        $puntos = collect([]);
+
+        if ($usuario)
+            $puntos = $cicloObj->ciclo_puntos_users($usuario, $ciclo, $request->keyword, $request->from, $request->rows)->get();
 
 
 
