@@ -1206,7 +1206,7 @@ class InventariosController extends Controller
             'id_img'             => $item->id_img,
             'id_ciclo'           => $ciclo,
             'idUbicacionGeo'     => $item->idUbicacionGeo,
-            'codigoUbicacion_N1' => $idMapaN1_Codigo[$item->codigoUbicacion_N1] ? $idMapaN1_Codigo[$item->codigoUbicacion_N1] : ($item->codigoUbicacion_N1 ?? '0'),
+            'codigoUbicacion_N1' => isset($idMapaN1_Codigo[$item->codigoUbicacion_N1]) ? $idMapaN1_Codigo[$item->codigoUbicacion_N1] : ($item->codigoUbicacion_N1 ?? '0'),
             'idUbicacionN2'      => $usarMapas ? ($mapaIdN2[$item->codigoUbicacion_N2] ?? null) : $item->idUbicacionN2,
             'codigoUbicacion_N2' => $usarMapas ? $mapaCodN2[$item->codigoUbicacion_N2] : ($item->codigoUbicacion_N2 ?? '0'),
             'idUbicacionN3'      => $usarMapas ? ($mapaIdN3[$item->codigoUbicacionN3] ?? null) : $item->idUbicacionN3,
