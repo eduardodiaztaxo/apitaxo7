@@ -44,14 +44,14 @@ class CyclesDumpService implements DumpSQLiteInterface
         $cyclesCtrl = new CiclosController();
 
         $response = $cyclesCtrl->show($this->cycle);
-        
+
         // Get the JSON content and decode it
         $jsonContent = $response->getContent();
         $data = json_decode($jsonContent);
 
         // Si los datos están envueltos en "data", extraerlos
         $cycle = isset($data->data) ? $data->data : $data;
-        
+
         // Convert the single cycle to array format for insert method
         $cycles = [$cycle];
 
@@ -83,7 +83,8 @@ class CyclesDumpService implements DumpSQLiteInterface
                 date_end DATE,
                 assets_cycle INTEGER DEFAULT 0,
                 puntos_count INTEGER DEFAULT 0,
-                audith_count INTEGER DEFAULT 0
+                audith_count INTEGER DEFAULT 0,
+                persistence_assets INTEGER DEFAULT 1
             );
         ");
     }
@@ -109,7 +110,8 @@ class CyclesDumpService implements DumpSQLiteInterface
                 date_end,
                 assets_cycle,
                 puntos_count,
-                audith_count
+                audith_count,
+                persistence_assets
             )
             VALUES (
                 :idCiclo,
@@ -122,7 +124,9 @@ class CyclesDumpService implements DumpSQLiteInterface
                 :date_end,
                 :assets_cycle,
                 :puntos_count,
-                :audith_count
+                :audith_count,
+                :persistence_assets
+
             )
         ");
 
@@ -148,7 +152,9 @@ class CyclesDumpService implements DumpSQLiteInterface
                 ':date_end' => $cycle->date_end,
                 ':assets_cycle' => $cycle->assets_cycle,
                 ':puntos_count' => $cycle->puntos_count,
-                ':audith_count' => $cycle->audith_count
+                ':audith_count' => $cycle->audith_count,
+                ':persistence_assets' => $cycle->persistence_assets
+
             ]);
         }
     }
