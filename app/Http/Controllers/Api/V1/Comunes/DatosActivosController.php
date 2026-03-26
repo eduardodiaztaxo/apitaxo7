@@ -630,4 +630,35 @@ class DatosActivosController extends Controller
 
         return response()->json($marcas, 201);
     }
+
+
+    public function getAllInvPropertyData()
+    {
+
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+
+        $estados = IndiceListaEstado::where('idProyecto', $id_proyecto)->get();
+        $colores = IndiceListaColores::where('idProyecto', $id_proyecto)->get();
+        $estados_operacionales = IndiceListaOperacional::where('idProyecto', $id_proyecto)->get();
+        $estados_conservacion = IndiceListaConservacion::where('idProyecto', $id_proyecto)->get();
+        $tipos_trabajo = IndiceListaTipoTrabajo::where('idProyecto', $id_proyecto)->get();
+        $condiciones_ambientales = IndiceListaCondicionAmbiental::where('idProyecto', $id_proyecto)->get();
+        $cargas_trabajo = IndiceListaCargaTrabajo::where('idProyecto', $id_proyecto)->get();
+        $formas = IndiceListaForma::where('idProyecto', $id_proyecto)->get();
+        $materiales = IndiceListaMaterial::where('idProyecto', $id_proyecto)->get();
+
+
+
+        return response()->json([
+            'estados' => $estados,
+            'colores' => $colores,
+            'estados_operacionales' => $estados_operacionales,
+            'estados_conservacion' => $estados_conservacion,
+            'tipos_trabajo' => $tipos_trabajo,
+            'condiciones_ambientales' => $condiciones_ambientales,
+            'cargas_trabajo' => $cargas_trabajo,
+            'formas' => $formas,
+            'materiales' => $materiales
+        ], 200);
+    }
 }

@@ -8,13 +8,14 @@ use App\Http\Controllers\Api\V1\CiclosEmplazamientosController;
 use App\Http\Controllers\Api\V1\CiclosUbicacionesController;
 use App\Http\Controllers\Api\V1\EmplazamientoController;
 use App\Http\Controllers\Api\V1\ResponsibleController;
+use App\Http\Controllers\Api\V2\LogAppController;
 
 Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2')->group(function () {
 
     Route::get('ciclos/{ciclo}/emplazamientos/{nivel}/{emplazamiento}', [EmplazamientoController::class, 'show'])->where('nivel', '\d+');
     Route::get('ciclos/{ciclo}/emplazamientos/{nivel}/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssetsByLevel'])->where('nivel', '\d+');
     Route::get('ciclos/{ciclo}/emplazamientos/{nivel}/{emplazamiento}/group-families', [CiclosEmplazamientosController::class, 'showGroupFamiliesByLevel'])->where('nivel', '\d+');
-    
+
     Route::get('crud-activos/emplazamientos/{nivel}/{emplazamiento}/assets', [EmplazamientoController::class, 'showAssets']);
 
     Route::get('ciclos/{ciclo}/emplazamientos-n1/{emplazamiento}', [EmplazamientoNivel1Controller::class, 'show']);
@@ -45,4 +46,6 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2')->group(func
     Route::get('ciclos/{ciclo}/group-families-OT', [CiclosUbicacionesController::class, 'showGroupFamiliesByCycle']);
 
     Route::post('responsibles/{responsable_id}/register-signature', [ResponsibleController::class, 'registerSignature']);
+
+    Route::post('logs-app', [LogAppController::class, 'logsApp']);
 });
