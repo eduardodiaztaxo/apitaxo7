@@ -444,22 +444,22 @@ class InventariosController extends Controller
             'ROUND(adjusted_lat, 7) = ROUND(?, 7)',
             [$request->adjusted_lat]
         )
-        ->whereRaw(
-            'ROUND(adjusted_lng, 7) = ROUND(?, 7)',
-            [$request->adjusted_lng]
-        )
-        ->where('etiqueta', '!=', $etiqueta)
-        ->exists();
+            ->whereRaw(
+                'ROUND(adjusted_lng, 7) = ROUND(?, 7)',
+                [$request->adjusted_lng]
+            )
+            ->where('etiqueta', '!=', $etiqueta)
+            ->exists();
 
-        if($existsCoincident){
+        if ($existsCoincident) {
             return response()->json([
                 'status'  => 'error',
                 'type'  => 'duplicate',
                 'message' => 'Está ingresando una misma coordenada para un diferente bien',
-                
+
             ], 422);
         }
-        
+
 
         $invObj = Inventario::where('etiqueta', $etiqueta)->first();
 
@@ -511,19 +511,19 @@ class InventariosController extends Controller
             'ROUND(adjusted_lat, 7) = ROUND(?, 7)',
             [$request->adjusted_lat]
         )
-        ->whereRaw(
-            'ROUND(adjusted_lng, 7) = ROUND(?, 7)',
-            [$request->adjusted_lng]
-        )
-        ->where('etiqueta', '!=', $etiqueta)
-        ->exists();
+            ->whereRaw(
+                'ROUND(adjusted_lng, 7) = ROUND(?, 7)',
+                [$request->adjusted_lng]
+            )
+            ->where('etiqueta', '!=', $etiqueta)
+            ->exists();
 
-        if($existsCoincident){
+        if ($existsCoincident) {
             return response()->json([
                 'status'  => 'error',
                 'type'  => 'duplicate',
                 'message' => 'Está ingresando una misma coordenada para un diferente bien',
-                
+
             ], 422);
         }
 
@@ -629,7 +629,7 @@ class InventariosController extends Controller
             if (!$imagen) {
                 return response()->json([
                     'status'  => 'ERROR',
-                    'message' => 'Imagen no encontrada en crud_activos_pictures.'
+                    'message' => 'Imagen no encontrada en crud_activos_pictures 1.'
                 ], 404);
             }
 
@@ -700,7 +700,7 @@ class InventariosController extends Controller
         if (!$imagenCrud) {
             return response()->json([
                 'status'  => 'ERROR',
-                'message' => 'Imagen no encontrada en crud_activos_pictures.'
+                'message' => 'Imagen no encontrada en crud_activos_pictures 2.'
             ], 404);
         }
 
