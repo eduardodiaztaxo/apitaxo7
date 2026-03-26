@@ -620,7 +620,7 @@ class InventariosController extends Controller
     public function deleteImageByEtiqueta($etiqueta, $id_img, $idLista, $idActivo = null, $cycleid)
     {
         // Si viene idActivo directamente, eliminar de crud_activos_pictures
-        if (!empty($idActivo) || $idActivo == '0') {
+        if (!empty($idActivo) && $idActivo != '0') {
             $imagen = DB::table('crud_activos_pictures')
                 ->where('id_activo', $idActivo)
                 ->where('id_foto', $idLista)
