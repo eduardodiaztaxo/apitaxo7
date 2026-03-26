@@ -621,7 +621,7 @@ class InventariosController extends Controller
     public function deleteImageByEtiqueta($etiqueta, $id_img, $idLista, $idActivo = null, $cycleid)
     {
         // Si viene idActivo directamente, eliminar de crud_activos_pictures
-        if (!empty($idActivo)) {
+        if (!empty($idActivo) && $idActivo != '0') {
             $imagen = DB::table('crud_activos_pictures')
                 ->where('id_activo', $idActivo)
                 ->where('id_foto', $idLista)
@@ -630,7 +630,7 @@ class InventariosController extends Controller
             if (!$imagen) {
                 return response()->json([
                     'status'  => 'ERROR',
-                    'message' => 'Imagen no encontrada en crud_activos_pictures.'
+                    'message' => 'Imagen no encontrada en crud_activos_pictures 1.'
                 ], 404);
             }
 
@@ -701,7 +701,7 @@ class InventariosController extends Controller
         if (!$imagenCrud) {
             return response()->json([
                 'status'  => 'ERROR',
-                'message' => 'Imagen no encontrada en crud_activos_pictures.'
+                'message' => 'Imagen no encontrada en crud_activos_pictures 2.'
             ], 404);
         }
 

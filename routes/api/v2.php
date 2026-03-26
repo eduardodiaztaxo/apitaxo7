@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\CiclosEmplazamientosController;
 use App\Http\Controllers\Api\V1\CiclosUbicacionesController;
 use App\Http\Controllers\Api\V1\EmplazamientoController;
 use App\Http\Controllers\Api\V1\ResponsibleController;
+use App\Http\Controllers\Api\V2\LogAppController;
 
 Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2')->group(function () {
 
@@ -49,4 +50,6 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2')->group(func
     Route::get('ciclos/{ciclo}/group-families-OT', [CiclosUbicacionesController::class, 'showGroupFamiliesByCycle']);
 
     Route::post('responsibles/{responsable_id}/register-signature', [ResponsibleController::class, 'registerSignature']);
+
+    Route::post('logs-app', [LogAppController::class, 'logsApp']);
 });
