@@ -1456,7 +1456,8 @@ class InventariosController extends Controller
 
             if ($existeCodigo) {
 
-                $prefijo = substr($n3->codigoUbicacion, 0, 2);
+                //N2
+                $prefijo = substr($n3->codigoUbicacion, 0, 4);
 
                 $codigoExistente = DB::table('ubicaciones_n3')
                     ->where('idAgenda', $idAgendaReal)
@@ -1465,7 +1466,14 @@ class InventariosController extends Controller
                     ->selectRaw("MAX(CAST(codigoUbicacion AS UNSIGNED)) as maximo")
                     ->value('maximo');
 
-                $nuevoCodigo = str_pad($codigoExistente + 1, 6, '0', STR_PAD_LEFT);
+                $codigoExistente = str_pad($codigoExistente, 6, '0', STR_PAD_LEFT);
+
+                //Nuevo Código N3
+                $codn3 = (int)substr($codigoExistente, 4, 2) + 1;
+
+                $codn3 = str_pad($codn3, 2, '0', STR_PAD_LEFT);
+
+                $nuevoCodigo = $prefijo . $codn3;
             } else {
                 $nuevoCodigo = $n3->codigoUbicacion;
             }
