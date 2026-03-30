@@ -287,7 +287,7 @@ class EmplazamientoController extends Controller
         } else {
             // FLUJO ANTIGUO: ciclos/{ciclo}/emplazamientos-n[1,2,3]/{emplazamiento}
             $emplazamientoId = $param2;
-            
+
             $uri = request()->route()->uri();
             if (str_contains($uri, 'emplazamientos-n1')) $nivel = 1;
             elseif (str_contains($uri, 'emplazamientos-n2')) $nivel = 2;
@@ -297,15 +297,15 @@ class EmplazamientoController extends Controller
 
         [$emplaObj, $resourceClass] = match ($nivel) {
             1 => [
-                EmplazamientoN1::where('idUbicacionN1', $emplazamientoId)->first(), 
+                EmplazamientoN1::where('idUbicacionN1', $emplazamientoId)->first(),
                 EmplazamientoNivel1Resource::class
             ],
             2 => [
-                Emplazamiento::where('idUbicacionN2', $emplazamientoId)->first(), 
+                Emplazamiento::where('idUbicacionN2', $emplazamientoId)->first(),
                 EmplazamientoResource::class
             ],
             3 => [
-                EmplazamientoN3::where('idUbicacionN3', $emplazamientoId)->first(), 
+                EmplazamientoN3::where('idUbicacionN3', $emplazamientoId)->first(),
                 EmplazamientoNivel3Resource::class
             ],
             default => [null, null],
@@ -382,6 +382,22 @@ class EmplazamientoController extends Controller
         return response()->json(EmplazamientoGenericoResource::makeWithNivel($emplaObj, $nivelString));
     }
 
+    public function showTodosEmplazamientosN1N2N3(int $lastN1Id, int $lastN2Id, int $lastN3Id)
+    {
+        $emplazamientosN1 = EmplazamientoN1::where('idUbicacionN1', '>', $lastN1Id)->get();
+        $emplazamientosN2 = EmplazamientoN2::where('idUbicacionN2', '>', $lastN2Id)->get();
+        $emplazamientosN3 = EmplazamientoN3::where('idUbicacionN3', '>', $lastN3Id)->get();
+
+        return response()->json([
+            'status' => 'OK',
+            'data' => [
+                'n1' => EmplazamientoNivel1Resource::collection($emplazamientosN1),
+                'n2' => EmplazamientoNivel2Resource::collection($emplazamientosN2),
+                'n3' => EmplazamientoNivel3Resource::collection($emplazamientosN3)
+            ]
+        ]);
+    }
+
     /**
      * Display assets of a emplazamiento by dynamic level.
      *
@@ -391,58 +407,58 @@ class EmplazamientoController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
-   public function showTodosAssets(int $idAgenda, int $ciclo, int $nivel, string $codigoUbicacion, Request $request)
-{
-    // 1. Nombre de la columna dinámica según el nivel
-    $columnaFiltroNivel = "ubicacionOrganicaN{$nivel}_codigo";
+    public function showTodosAssets(int $idAgenda, int $ciclo, int $nivel, string $codigoUbicacion, Request $request)
+    {
+        // 1. Nombre de la columna dinámica según el nivel
+        $columnaFiltroNivel = "ubicacionOrganicaN{$nivel}_codigo";
 
-    // 2. Construcción de la consulta directa a la vista
-    $queryBuilder = DB::table('crud_activos_view')
-        ->select('*') // Trae todo lo que la vista ofrezca sin procesar
-        ->where('direccion_id', $idAgenda)
-        ->where('tipoCambio', '!=', 91)
-        ->where($columnaFiltroNivel, $codigoUbicacion);
+        // 2. Construcción de la consulta directa a la vista
+        $queryBuilder = DB::table('crud_activos_view')
+            ->select('*') // Trae todo lo que la vista ofrezca sin procesar
+            ->where('direccion_id', $idAgenda)
+            ->where('tipoCambio', '!=', 91)
+            ->where($columnaFiltroNivel, $codigoUbicacion);
 
-    // 3. Filtro de Ciclo
-    if ($ciclo != 0) {
-        $queryBuilder->where('id_ciclo', $ciclo);
+        // 3. Filtro de Ciclo
+        if ($ciclo != 0) {
+            $queryBuilder->where('id_ciclo', $ciclo);
+        }
+
+        // 4. Filtro de Búsqueda
+        if (!!keyword_is_searcheable($request->keyword)) {
+            $word = trim($request->keyword);
+            $queryBuilder->where(function ($query) use ($word) {
+                $query->where('nombreActivo', 'LIKE', "%$word%")
+                    ->orWhere('etiqueta', 'LIKE', "%$word%");
+            });
+        }
+
+        // 5. Paginación
+        if ($request->from && $request->rows) {
+            $queryBuilder->offset((int)$request->from - 1)->limit((int)$request->rows);
+        }
+
+        // 7. Obtener resultados como array de objetos planos
+        $assets = $queryBuilder->get();
+
+        return response()->json([
+            'status' => 'OK',
+            'data' => $assets // Devolución directa sin pasar por el Resource
+        ]);
     }
 
-    // 4. Filtro de Búsqueda
-    if (!!keyword_is_searcheable($request->keyword)) {
-        $word = trim($request->keyword);
-        $queryBuilder->where(function ($query) use ($word) {
-            $query->where('nombreActivo', 'LIKE', "%$word%")
-                  ->orWhere('etiqueta', 'LIKE', "%$word%");
-        });
+    public function getAssetPictures(string $etiqueta)
+    {
+        $pictures = DB::table('crud_activos_pictures')
+            ->where('etiqueta', $etiqueta)
+            ->get();
+
+        return response()->json([
+            'status' => 'OK',
+            'etiqueta' => $etiqueta,
+            'data' => $pictures
+        ]);
     }
-
-    // 5. Paginación
-    if ($request->from && $request->rows) {
-        $queryBuilder->offset((int)$request->from - 1)->limit((int)$request->rows);
-    }
-
-    // 7. Obtener resultados como array de objetos planos
-    $assets = $queryBuilder->get();
-
-    return response()->json([
-        'status' => 'OK',
-        'data' => $assets // Devolución directa sin pasar por el Resource
-    ]);
-}
-
-public function getAssetPictures(string $etiqueta)
-{
-    $pictures = DB::table('crud_activos_pictures')
-        ->where('etiqueta', $etiqueta)
-        ->get();
-
-    return response()->json([
-        'status' => 'OK',
-        'etiqueta' => $etiqueta,
-        'data' => $pictures
-    ]);
-}
 
     public function groupEmplazamientos(int $idAgenda, int $ciclo)
     {

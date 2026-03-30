@@ -58,4 +58,5 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::post('Subemplazamientos/nuevo', [EmplazamientoController::class, 'createSubEmplazamientosNivel3']);
 
+    Route::get('emplazamientos-todos/{lastN1Id}/{lastN2Id}/{lastN3Id}', [EmplazamientoController::class, 'showTodosEmplazamientosN1N2N3']);
 });
