@@ -33,7 +33,7 @@ use App\Services\Dump\Tables\RegionesDumpService;
 use App\Services\Dump\Tables\ComunasDumpService;
 use App\Services\Dump\Tables\AtributosDumpService;
 use App\Services\Dump\Tables\DifferencesAddressesDumpService;
-
+use App\Services\Dump\Tables\ResponsableDumpService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
@@ -183,6 +183,10 @@ class ExportInventoryCycleSQLiteDatabase extends Command
         $this->info('Tipos de Bienes...');
         $this->setBienesInventario();
         $this->setBieneGrupoFamilia();
+
+        //Responsables
+        $this->info('Responsables...');
+        $this->setResponsables();
 
         $this->info('Configuración...');
         $this->setConfiguracion();
@@ -342,5 +346,10 @@ class ExportInventoryCycleSQLiteDatabase extends Command
     private function setAtributos()
     {
         (new AtributosDumpService($this->pdo, $this->cycle))->runFromController();
+    }
+
+    private function setResponsables()
+    {
+        (new ResponsableDumpService($this->pdo, $this->cycle))->runFromController();
     }
 }

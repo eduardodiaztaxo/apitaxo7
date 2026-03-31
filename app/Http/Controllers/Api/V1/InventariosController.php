@@ -55,6 +55,15 @@ class InventariosController extends Controller
         return $idResponsable ?? 0;
     }
 
+    public function getNombreResponsableById($idResponsable)
+    {
+        $nombre = DB::table('responsables')
+            ->where('idResponsable', $idResponsable)
+            ->value('name');
+
+        return $nombre ?? 'Desconocido';
+    }
+
     public function createinventario(Request $request)
     {
         $request->validate([
@@ -1188,8 +1197,8 @@ class InventariosController extends Controller
         $usarMapas = isset($idMapaGeo[$item->idUbicacionGeo]);
         $id_bien_final  = $mapaIdListaBienes[$item->id_bien] ?? $item->id_bien;
         $id_marca_final = $mapaIdListaMarcas[$item->id_marca] ?? $item->id_marca;
-        $getIdResponsable = $this->getIdResponsable();
-        $responsable = $this->getNombre();
+        $getIdResponsable = $item->idResponsable ? $item->idResponsable : $this->getIdResponsable();
+        $responsable = $item->idResponsable ? $this->getNombreResponsableById($item->idResponsable) : $this->getNombre();
 
         return [
             'id_inventario'      => $id_inventario,
@@ -1577,7 +1586,7 @@ class InventariosController extends Controller
                     'id_grupo'         => $bien->id_grupo,
                     'ciclo_inventario' => $bien->ciclo_inventario,
                     'creadoPor'        => $bien->creadoPor,
-                    'fechaCreacion'    => $bien->fechaCreacion,
+                    'fechaCreacion'    => date('Y-m-d H:i:s'),
                     'modo'             => $bien->modo
                 ]);
 
@@ -1632,7 +1641,7 @@ class InventariosController extends Controller
                     'id_familia'       => $marca->id_familia,
                     'ciclo_inventario' => $marca->ciclo_inventario,
                     'creadoPor'        => $marca->creadoPor,
-                    'fechaCreacion'    => $marca->fechaCreacion,
+                    'fechaCreacion'    => date('Y-m-d H:i:s'),
                     'modo'             => $marca->modo
                 ]);
 

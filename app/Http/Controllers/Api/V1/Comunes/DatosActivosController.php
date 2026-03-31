@@ -615,6 +615,7 @@ class DatosActivosController extends Controller
         $bienes->ciclo_inventario = $request->ciclo_inventario;
         $bienes->creadoPor    = $usuario;
         $bienes->fechaModificacion = date('Y-m-d H:i:s');
+        $bienes->fechaCreacion = date('Y-m-d H:i:s');
         $bienes->modo          = 'ONLINE';
         $bienes->save();
 
@@ -674,6 +675,7 @@ class DatosActivosController extends Controller
         $marcas->id_familia  = $request->id_familia;
         $marcas->ciclo_inventario = $request->ciclo_inventario;
         $marcas->creadoPor     = $usuario;
+        $marcas->fechaCreacion = date('Y-m-d H:i:s');
         $marcas->fechaModificacion = date('Y-m-d H:i:s');
         $marcas->modo          = 'ONLINE';
         $marcas->save();
@@ -710,5 +712,18 @@ class DatosActivosController extends Controller
             'formas' => $formas,
             'materiales' => $materiales
         ], 200);
+    }
+
+    public function syncAllInvPropertyData(Request $request, int $cycle_id)
+    {
+        $lastDateMarca = $request->lastDateMarca && !empty($request->lastDateMarca) ? $request->lastDateMarca : '2000-01-01 00:00:00';
+        $lastDateBienesTipos = $request->lastDateBienesTipos && !empty($request->lastDateBienesTipos) ? $request->lastDateBienesTipos : '2000-01-01 00:00:00';
+        return response()->json([
+            'status' => 'OK',
+            'data' => [
+                'marcas' => Inventario_marcas::where('ciclo_inventario', $cycle_id)->where('fechaCreacion', '>', $lastDateMarca)->get(),
+                'bienesTipos' => Inventario_bienes::where('ciclo_inventario', $cycle_id)->where('fechaCreacion', '>', $lastDateBienesTipos)->get(),
+            ]
+        ]);
     }
 }
