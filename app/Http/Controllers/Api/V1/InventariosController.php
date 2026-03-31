@@ -1041,6 +1041,11 @@ class InventariosController extends Controller
      */
     public function storeInventoryMultiple(int $ciclo, Request $request)
     {
+
+        // $request->merge(['emplazamientoN1' => json_encode($request->emplazamientoN1)]);
+        // $request->merge(['emplazamientoN2' => json_encode($request->emplazamientoN2)]);
+        // $request->merge(['emplazamientoN3' => json_encode($request->emplazamientoN3)]);
+
         $this->validateRequest($request);
 
         $cycleObj = InvCiclo::find($ciclo);
@@ -1056,9 +1061,16 @@ class InventariosController extends Controller
 
         // Procesar emplazamientos N1/N2/N3
         $idMapaN1_Codigo = $this->procesarUbicacionesN1($request->emplazamientoN1, $ciclo, $usuario, $idMapaGeo, $id_proyecto);
-        [$mapaIdN2, $mapaCodN2] = $this->procesarUbicacionesN2($request->emplazamientoN2, $ciclo, $usuario, $idMapaGeo, $id_proyecto);
-        [$mapaIdN3, $mapaCodN3] = $this->procesarUbicacionesN3($request->emplazamientoN3, $ciclo, $usuario, $idMapaGeo, $id_proyecto);
-
+        [$mapaIdN2, $mapaCodN2] = $this->procesarUbicacionesN2($request->emplazamientoN2, $ciclo, $usuario, $idMapaGeo, $idMapaN1_Codigo, $id_proyecto);
+        [$mapaIdN3, $mapaCodN3] = $this->procesarUbicacionesN3($request->emplazamientoN3, $ciclo, $usuario, $idMapaGeo, $mapaCodN2, $id_proyecto);
+        // return response()->json([
+        //     'idMapaGeo' => $idMapaGeo,
+        //     'idMapaN1_Codigo' => $idMapaN1_Codigo,
+        //     'mapaIdN2' => $mapaIdN2,
+        //     'mapaCodN2' => $mapaCodN2,
+        //     'mapaIdN3' => $mapaIdN3,
+        //     'mapaCodN3' => $mapaCodN3
+        // ]);
         //Procesar bienes y marcas
         $mapaIdListaBienes = $this->procesarBienes($request->bienes, $ciclo, $id_proyecto);
         $mapaIdListaMarcas = $this->procesarMarcas($request->marcas, $ciclo, $id_proyecto);
@@ -1207,10 +1219,10 @@ class InventariosController extends Controller
             'id_ciclo'           => $ciclo,
             'idUbicacionGeo'     => $item->idUbicacionGeo,
             'codigoUbicacion_N1' => isset($idMapaN1_Codigo[$item->codigoUbicacion_N1]) ? $idMapaN1_Codigo[$item->codigoUbicacion_N1] : ($item->codigoUbicacion_N1 ?? '0'),
-            'idUbicacionN2'      => $usarMapas ? ($mapaIdN2[$item->codigoUbicacion_N2] ?? null) : $item->idUbicacionN2,
-            'codigoUbicacion_N2' => $usarMapas ? $mapaCodN2[$item->codigoUbicacion_N2] : ($item->codigoUbicacion_N2 ?? '0'),
-            'idUbicacionN3'      => $usarMapas ? ($mapaIdN3[$item->codigoUbicacionN3] ?? null) : $item->idUbicacionN3,
-            'codigoUbicacionN3'  => $usarMapas ? $mapaCodN3[$item->codigoUbicacionN3] : ($item->codigoUbicacionN3 ?? '0'),
+            'idUbicacionN2'      => isset($mapaIdN2[$item->codigoUbicacion_N2]) ? $mapaIdN2[$item->codigoUbicacion_N2] : ($item->idUbicacionN2 ?? '0'),
+            'codigoUbicacion_N2' => isset($mapaCodN2[$item->codigoUbicacion_N2]) ? $mapaCodN2[$item->codigoUbicacion_N2] : ($item->codigoUbicacion_N2 ?? '0'),
+            'idUbicacionN3'      => isset($mapaIdN3[$item->codigoUbicacionN3]) ? $mapaIdN3[$item->codigoUbicacionN3] : ($item->idUbicacionN3 ?? '0'),
+            'codigoUbicacionN3'  => isset($mapaCodN3[$item->codigoUbicacionN3]) ? $mapaCodN3[$item->codigoUbicacionN3] : ($item->codigoUbicacionN3 ?? '0'),
             'codigoUbicacionN4'  => '0',
             'responsable'        => $responsable,
             'idResponsable'      => $getIdResponsable,
@@ -1376,40 +1388,51 @@ class InventariosController extends Controller
     /**
      * Procesar Ubicaciones N2
      */
-    private function procesarUbicacionesN2($json, int $ciclo, string $usuario, array $idMapaGeo, $id_proyecto): array
+    private function procesarUbicacionesN2($json, int $ciclo, string $usuario, array $idMapaGeo, array $idMapaN1_Codigo, $id_proyecto): array
     {
         $data = $json ? json_decode($json) : [];
         $mapaId = [];
         $mapaCodigo = [];
 
         foreach ($data as $n2) {
+
             $idAgendaReal = $this->obtenerIdAgendaActualizado($n2->idAgenda, $idMapaGeo);
 
-            $existeCodigo = DB::table('ubicaciones_n2')
+
+            $prefijo = substr($n2->codigoUbicacion, 0, 2);
+
+            $newN1 = $idMapaN1_Codigo[$prefijo];
+
+
+            // Si el prefijo del código N2 coincide con el nuevo código N1, entonces se verifica la existencia del código N2
+            if ($prefijo !== $newN1) {
+                $prefijo = $newN1;
+            }
+
+            $codigoExistente = DB::table('ubicaciones_n2')
                 ->where('idAgenda', $idAgendaReal)
                 ->where('idProyecto', $id_proyecto)
-                ->where('codigoUbicacion', $n2->codigoUbicacion)
-                ->exists();
+                ->where('codigoUbicacion', 'like', $prefijo . '%')
+                ->selectRaw("MAX(CAST(codigoUbicacion AS UNSIGNED)) as maximo")
+                ->value('maximo');
 
-            if ($existeCodigo) {
 
-                $prefijo = substr($n2->codigoUbicacion, 0, 2);
 
-                $codigoExistente = DB::table('ubicaciones_n2')
-                    ->where('idAgenda', $idAgendaReal)
-                    ->where('idProyecto', $id_proyecto)
-                    ->where('codigoUbicacion', 'like', $prefijo . '%')
-                    ->selectRaw("MAX(CAST(codigoUbicacion AS UNSIGNED)) as maximo")
-                    ->value('maximo');
+            //Nuevo Código N2
+            $codigoExistente = $codigoExistente ?? '0000';
+            $codigoExistente = str_pad($codigoExistente, 4, '0', STR_PAD_LEFT);
+            $codn3 = (int)substr($codigoExistente, 2, 2) + 1;
 
-                $nuevoCodigo = str_pad($codigoExistente + 1, 4, '0', STR_PAD_LEFT);
-            } else {
-                $nuevoCodigo = $n2->codigoUbicacion;
-            }
+            $codn3 = str_pad($codn3, 2, '0', STR_PAD_LEFT);
+
+            $nuevoCodigo = $prefijo . $codn3;
+
+
 
             $registro = DB::table('ubicaciones_n2')
                 ->where('idAgenda', $idAgendaReal)
                 ->where('idProyecto', $id_proyecto)
+                ->where('codigoUbicacion', 'like', $prefijo . '%')
                 ->where('descripcionUbicacion', $n2->nombre)
                 ->first();
 
@@ -1425,11 +1448,11 @@ class InventariosController extends Controller
                     'newApp'               => $n2->newApp,
                     'modo'                 => $n2->modo
                 ]);
-                $mapaId[$nuevoCodigo] = $idInsertado;
-                $mapaCodigo[$nuevoCodigo] = $nuevoCodigo;
+                $mapaId[$n2->codigoUbicacion] = $idInsertado;
+                $mapaCodigo[$n2->codigoUbicacion] = $nuevoCodigo;
             } else {
-                $mapaId[$registro->codigoUbicacion] = $registro->idUbicacionN2;
-                $mapaCodigo[$registro->codigoUbicacion] = $registro->codigoUbicacion;
+                $mapaId[$n2->codigoUbicacion] = $registro->idUbicacionN2;
+                $mapaCodigo[$n2->codigoUbicacion] = $registro->codigoUbicacion;
             }
         }
 
@@ -1439,48 +1462,51 @@ class InventariosController extends Controller
     /**
      * Procesar Ubicaciones N3
      */
-    private function procesarUbicacionesN3($json, int $ciclo, string $usuario, array $idMapaGeo, $id_proyecto): array
+    private function procesarUbicacionesN3($json, int $ciclo, string $usuario, array $idMapaGeo, array $idMapaN2_Codigo, $id_proyecto): array
     {
         $data = $json ? json_decode($json) : [];
         $mapaId = [];
         $mapaCodigo = [];
 
         foreach ($data as $n3) {
+
             $idAgendaReal = $this->obtenerIdAgendaActualizado($n3->idAgenda, $idMapaGeo);
 
-            $existeCodigo = DB::table('ubicaciones_n3')
+
+
+            //N2
+            $prefijo = substr($n3->codigoUbicacion, 0, 4);
+
+            $newN2 = $idMapaN2_Codigo[$prefijo];
+
+            if ($prefijo !== $newN2) {
+                $prefijo = $newN2;
+            }
+
+            $codigoExistente = DB::table('ubicaciones_n3')
                 ->where('idAgenda', $idAgendaReal)
                 ->where('idProyecto', $id_proyecto)
-                ->where('codigoUbicacion', $n3->codigoUbicacion)
-                ->exists();
+                ->where('codigoUbicacion', 'like', $prefijo . '%')
+                ->selectRaw("MAX(CAST(codigoUbicacion AS UNSIGNED)) as maximo")
+                ->value('maximo');
 
-            if ($existeCodigo) {
 
-                //N2
-                $prefijo = substr($n3->codigoUbicacion, 0, 4);
 
-                $codigoExistente = DB::table('ubicaciones_n3')
-                    ->where('idAgenda', $idAgendaReal)
-                    ->where('idProyecto', $id_proyecto)
-                    ->where('codigoUbicacion', 'like', $prefijo . '%')
-                    ->selectRaw("MAX(CAST(codigoUbicacion AS UNSIGNED)) as maximo")
-                    ->value('maximo');
 
-                $codigoExistente = str_pad($codigoExistente, 6, '0', STR_PAD_LEFT);
+            //Nuevo Código N3
+            $codigoExistente = $codigoExistente ?? '000000';
+            $codigoExistente = str_pad($codigoExistente, 6, '0', STR_PAD_LEFT);
+            $codn3 = (int)substr($codigoExistente, 4, 2) + 1;
 
-                //Nuevo Código N3
-                $codn3 = (int)substr($codigoExistente, 4, 2) + 1;
+            $codn3 = str_pad($codn3, 2, '0', STR_PAD_LEFT);
 
-                $codn3 = str_pad($codn3, 2, '0', STR_PAD_LEFT);
+            $nuevoCodigo = $prefijo . $codn3;
 
-                $nuevoCodigo = $prefijo . $codn3;
-            } else {
-                $nuevoCodigo = $n3->codigoUbicacion;
-            }
 
             $registro = DB::table('ubicaciones_n3')
                 ->where('idAgenda', $idAgendaReal)
                 ->where('idProyecto', $id_proyecto)
+                ->where('codigoUbicacion', 'like', $prefijo . '%')
                 ->where('descripcionUbicacion', $n3->nombre)
                 ->first();
 
@@ -1496,11 +1522,11 @@ class InventariosController extends Controller
                     'newApp'               => $n3->newApp,
                     'modo'                 => $n3->modo
                 ]);
-                $mapaId[$nuevoCodigo] = $idInsertado;
-                $mapaCodigo[$nuevoCodigo] = $nuevoCodigo;
+                $mapaId[$n3->codigoUbicacion] = $idInsertado;
+                $mapaCodigo[$n3->codigoUbicacion] = $nuevoCodigo;
             } else {
-                $mapaId[$registro->codigoUbicacion] = $registro->idUbicacionN3;
-                $mapaCodigo[$registro->codigoUbicacion] = $registro->codigoUbicacion;
+                $mapaId[$n3->codigoUbicacion] = $registro->idUbicacionN3;
+                $mapaCodigo[$n3->codigoUbicacion] = $registro->codigoUbicacion;
             }
         }
 
