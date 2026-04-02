@@ -80,7 +80,7 @@ class InventarioDumpService
                 estado_conservacion INTEGER,
                 condicion_Ambiental INTEGER,
                 cantidad_img INTEGER NOT NULL,
-                id_img TEXT NOT NULL,
+                id_img TEXT,
                 id_ciclo INTEGER NOT NULL,
                 idUbicacionGeo INTEGER NOT NULL,
                 codigoUbicacion_N1 TEXT,

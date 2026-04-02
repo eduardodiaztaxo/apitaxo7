@@ -121,31 +121,31 @@ class InventariosController extends Controller
                 ->value('idUbicacionN3');
         }
 
+        /** AHORA: TODAS LOS BIENES CLONADOS REQUIEREN FOTOS */
+        // if ($request->clonarDesdeInventario == 'true' && intval($request->conf_fotos) === 0) {
+        //     $imagenes = DB::table('inv_imagenes')
+        //         ->where('id_img', $request->id_img_clone)
+        //         ->where('id_proyecto', $id_proyecto)
+        //         ->get();
 
-        if ($request->clonarDesdeInventario == 'true' && intval($request->conf_fotos) === 0) {
-            $imagenes = DB::table('inv_imagenes')
-                ->where('id_img', $request->id_img_clone)
-                ->where('id_proyecto', $id_proyecto)
-                ->get();
+        //     ImageService::createNextValInvImgIfNotExist();
+        //     $next_img_id = ImageService::nextValInvImg();
+        //     $origen = 'SAFIN_CLONE';
+        //     $filename = $id_proyecto . '_' . $request->etiqueta;
 
-            ImageService::createNextValInvImgIfNotExist();
-            $next_img_id = ImageService::nextValInvImg();
-            $origen = 'SAFIN_CLONE';
-            $filename = $id_proyecto . '_' . $request->etiqueta;
-
-            foreach ($imagenes as $img) {
-                DB::table('inv_imagenes')->insert([
-                    'id_img'     => $next_img_id,
-                    'etiqueta'   => $request->etiqueta,
-                    'origen'     => $origen,
-                    'picture'    => $filename . '.jpg',
-                    'url_imagen' => $img->url_imagen,
-                    'url_picture' => $img->url_picture,
-                    'id_proyecto' => $id_proyecto,
-                    'created_at' => now()
-                ]);
-            }
-        }
+        //     foreach ($imagenes as $img) {
+        //         DB::table('inv_imagenes')->insert([
+        //             'id_img'     => $next_img_id,
+        //             'etiqueta'   => $request->etiqueta,
+        //             'origen'     => $origen,
+        //             'picture'    => $filename . '.jpg',
+        //             'url_imagen' => $img->url_imagen,
+        //             'url_picture' => $img->url_picture,
+        //             'id_proyecto' => $id_proyecto,
+        //             'created_at' => now()
+        //         ]);
+        //     }
+        // }
 
 
         $id_img = DB::table('inv_imagenes')
