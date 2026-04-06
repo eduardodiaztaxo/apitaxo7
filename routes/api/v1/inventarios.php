@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\InventariosController;
+use Illuminate\Support\Facades\Http;
 
 Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(function () {
 
@@ -35,4 +36,12 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('inventario/cycle/{cycle}/etiqueta/{etiqueta}', [InventariosController::class, 'showByEtiqueta']);
 
+    Route::get('/image-proxy', function (\Illuminate\Http\Request $request) {
+        $url = $request->query('url');
+
+        $response = Http::get($url);
+
+        return response($response->body(), 200)
+            ->header('Content-Type', $response->header('Content-Type'));
+    });
 });
