@@ -961,6 +961,9 @@ class InventariosController extends Controller
             $esCrudActivo = $activoExiste instanceof \App\Models\CrudActivo;
 
             $id_img = $request->id_img ?? null;
+
+
+
             $paths = [];
 
             $idProyecto = ProyectoUsuarioService::getIdProyecto();
@@ -1005,6 +1008,18 @@ class InventariosController extends Controller
                         'idProyecto'   => $idProyecto,
                     ]);
                 } else {
+
+                    if ($id_img === null) {
+                        //IMPORTANTE: NO DEBE VENIR NULL, SI VIENE NULL ES POR ERROR DEL VOLCAMIENTO DE DATOS
+                        ImageService::createNextValInvImgIfNotExist();
+                        $id_img = ImageService::nextValInvImg();
+                        Inventario::where('etiqueta', $etiqueta)
+                            ->where('id_proyecto', $idProyecto)
+                            ->whereNull('id_img')
+                            ->update(['id_img' => $id_img]);
+                    }
+
+
                     $img = new Inv_imagenes();
                     $img->etiqueta     = $etiqueta;
                     $img->id_img       = $id_img;
