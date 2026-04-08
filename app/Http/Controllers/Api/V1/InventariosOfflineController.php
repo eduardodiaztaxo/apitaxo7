@@ -40,7 +40,7 @@ class InventariosOfflineController extends Controller
 
     public function responsables()
     {
-        $collection = Responsable::paginate(100);
+        $collection = Responsable::all();
         return response()->json($collection, 200);
     }
 

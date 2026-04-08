@@ -81,4 +81,6 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('get-user', [UserController::class, 'show']);
 
     Route::get('all-inv-property-data', [DatosActivosController::class, 'getAllInvPropertyData']);
+
+    Route::get('ciclos/{cycle_id}/sync-all-inv-property-data', [DatosActivosController::class, 'syncAllInvPropertyData']);
 });

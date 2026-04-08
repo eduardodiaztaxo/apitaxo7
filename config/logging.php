@@ -62,9 +62,9 @@ return [
             'level' => env('LOG_LEVEL', 'critical'),
         ],
 
-        'single' => [
+        'appMobil' => [
             'driver' => 'single',
-            'path' => storage_path('logs/laravel.log'),
+            'path' => storage_path('logs/appMobil.log'),
             'level' => env('LOG_LEVEL', 'debug'),
         ],
 

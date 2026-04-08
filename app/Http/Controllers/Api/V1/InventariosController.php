@@ -55,6 +55,15 @@ class InventariosController extends Controller
         return $idResponsable ?? 0;
     }
 
+    public function getNombreResponsableById($idResponsable)
+    {
+        $nombre = DB::table('responsables')
+            ->where('idResponsable', $idResponsable)
+            ->value('name');
+
+        return $nombre ?? 'Desconocido';
+    }
+
     public function createinventario(Request $request)
     {
         $request->validate([
@@ -112,31 +121,31 @@ class InventariosController extends Controller
                 ->value('idUbicacionN3');
         }
 
+        /** AHORA: TODAS LOS BIENES CLONADOS REQUIEREN FOTOS */
+        // if ($request->clonarDesdeInventario == 'true' && intval($request->conf_fotos) === 0) {
+        //     $imagenes = DB::table('inv_imagenes')
+        //         ->where('id_img', $request->id_img_clone)
+        //         ->where('id_proyecto', $id_proyecto)
+        //         ->get();
 
-        if ($request->clonarDesdeInventario == 'true' && intval($request->conf_fotos) === 0) {
-            $imagenes = DB::table('inv_imagenes')
-                ->where('id_img', $request->id_img_clone)
-                ->where('id_proyecto', $id_proyecto)
-                ->get();
+        //     ImageService::createNextValInvImgIfNotExist();
+        //     $next_img_id = ImageService::nextValInvImg();
+        //     $origen = 'SAFIN_CLONE';
+        //     $filename = $id_proyecto . '_' . $request->etiqueta;
 
-            ImageService::createNextValInvImgIfNotExist();
-            $next_img_id = ImageService::nextValInvImg();
-            $origen = 'SAFIN_CLONE';
-            $filename = $id_proyecto . '_' . $request->etiqueta;
-
-            foreach ($imagenes as $img) {
-                DB::table('inv_imagenes')->insert([
-                    'id_img'     => $next_img_id,
-                    'etiqueta'   => $request->etiqueta,
-                    'origen'     => $origen,
-                    'picture'    => $filename . '.jpg',
-                    'url_imagen' => $img->url_imagen,
-                    'url_picture' => $img->url_picture,
-                    'id_proyecto' => $id_proyecto,
-                    'created_at' => now()
-                ]);
-            }
-        }
+        //     foreach ($imagenes as $img) {
+        //         DB::table('inv_imagenes')->insert([
+        //             'id_img'     => $next_img_id,
+        //             'etiqueta'   => $request->etiqueta,
+        //             'origen'     => $origen,
+        //             'picture'    => $filename . '.jpg',
+        //             'url_imagen' => $img->url_imagen,
+        //             'url_picture' => $img->url_picture,
+        //             'id_proyecto' => $id_proyecto,
+        //             'created_at' => now()
+        //         ]);
+        //     }
+        // }
 
 
         $id_img = DB::table('inv_imagenes')
@@ -952,6 +961,9 @@ class InventariosController extends Controller
             $esCrudActivo = $activoExiste instanceof \App\Models\CrudActivo;
 
             $id_img = $request->id_img ?? null;
+
+
+
             $paths = [];
 
             $idProyecto = ProyectoUsuarioService::getIdProyecto();
@@ -996,6 +1008,18 @@ class InventariosController extends Controller
                         'idProyecto'   => $idProyecto,
                     ]);
                 } else {
+
+                    if ($id_img === null) {
+                        //IMPORTANTE: NO DEBE VENIR NULL, SI VIENE NULL ES POR ERROR DEL VOLCAMIENTO DE DATOS
+                        ImageService::createNextValInvImgIfNotExist();
+                        $id_img = ImageService::nextValInvImg();
+                        Inventario::where('etiqueta', $etiqueta)
+                            ->where('id_proyecto', $idProyecto)
+                            ->whereNull('id_img')
+                            ->update(['id_img' => $id_img]);
+                    }
+
+
                     $img = new Inv_imagenes();
                     $img->etiqueta     = $etiqueta;
                     $img->id_img       = $id_img;
@@ -1188,8 +1212,8 @@ class InventariosController extends Controller
         $usarMapas = isset($idMapaGeo[$item->idUbicacionGeo]);
         $id_bien_final  = $mapaIdListaBienes[$item->id_bien] ?? $item->id_bien;
         $id_marca_final = $mapaIdListaMarcas[$item->id_marca] ?? $item->id_marca;
-        $getIdResponsable = $this->getIdResponsable();
-        $responsable = $this->getNombre();
+        $getIdResponsable = $item->idResponsable ? $item->idResponsable : $this->getIdResponsable();
+        $responsable = $item->idResponsable ? $this->getNombreResponsableById($item->idResponsable) : $this->getNombre();
 
         return [
             'id_inventario'      => $id_inventario,
@@ -1577,7 +1601,7 @@ class InventariosController extends Controller
                     'id_grupo'         => $bien->id_grupo,
                     'ciclo_inventario' => $bien->ciclo_inventario,
                     'creadoPor'        => $bien->creadoPor,
-                    'fechaCreacion'    => $bien->fechaCreacion,
+                    'fechaCreacion'    => date('Y-m-d H:i:s'),
                     'modo'             => $bien->modo
                 ]);
 
@@ -1632,7 +1656,7 @@ class InventariosController extends Controller
                     'id_familia'       => $marca->id_familia,
                     'ciclo_inventario' => $marca->ciclo_inventario,
                     'creadoPor'        => $marca->creadoPor,
-                    'fechaCreacion'    => $marca->fechaCreacion,
+                    'fechaCreacion'    => date('Y-m-d H:i:s'),
                     'modo'             => $marca->modo
                 ]);
 

@@ -16,11 +16,10 @@ class ResponsableDumpService implements DumpSQLiteInterface
      */
     protected $pdo = null;
 
- public function __construct(PDO $pdo)
-{
-    $this->pdo = $pdo;
-
-}
+    public function __construct(PDO $pdo)
+    {
+        $this->pdo = $pdo;
+    }
     /**
      * Run dump from the controller.
      *
@@ -38,13 +37,12 @@ class ResponsableDumpService implements DumpSQLiteInterface
 
         $datsdActivosCtrl = new InventariosOfflineController();
 
-       $response = $datsdActivosCtrl->responsables();
+        $response = $datsdActivosCtrl->responsables();
 
         $jsonContent = $response->getContent();
 
         $data = json_decode($jsonContent, true);
-        $this->insert($data['data']); 
-
+        $this->insert($data);
     }
 
 
@@ -59,10 +57,13 @@ class ResponsableDumpService implements DumpSQLiteInterface
     {
 
         $this->pdo->exec("
-            CREATE TABLE IF NOT EXISTS responsable (
+            CREATE TABLE IF NOT EXISTS responsables (
                 idResponsable INTEGER PRIMARY KEY,
+                idUbicacionGeografica INTEGER,
                 descripcion TEXT NOT NULL,
-                mail TEXT NOT NULL
+                mail TEXT NOT NULL,
+                rut TEXT NOT NULL,
+                name TEXT NOT NULL
             );
         ");
     }
@@ -76,24 +77,34 @@ class ResponsableDumpService implements DumpSQLiteInterface
     {
         // Insertar datos
         $stmt = $this->pdo->prepare("
-            INSERT INTO responsable (
+            INSERT INTO responsables (
                 idResponsable,
+                idUbicacionGeografica,
                 descripcion,
-                mail
+                mail,
+                rut,
+                name
             )
             VALUES (
                :idResponsable,
+               :idUbicacionGeografica,
                :descripcion,
-               :mail
+               :mail,
+               :rut,
+               :name
+
             )
         ");
 
-       
+
         foreach ($resp as $res) {
             $stmt->execute([
-                ':idResponsable' => $res['idResponsable'],  
-                ':descripcion' => $res['descripcion'] ,
+                ':idResponsable' => $res['idResponsable'],
+                ':idUbicacionGeografica' => $res['idUbicacionGeografica'],
+                ':descripcion' => $res['descripcion'],
                 ':mail' => $res['mail'],
+                ':rut' => $res['rut'],
+                ':name' => $res['name']
             ]);
         }
     }
