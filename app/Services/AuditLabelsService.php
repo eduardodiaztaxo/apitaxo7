@@ -354,8 +354,7 @@ class AuditLabelsService
 
         if (!in_array($codigo, ['0', '']) && strlen($codigo) > 1 && $subnivel > 0) {
             $queryBuilder = $queryBuilder->where('codigo_ubicacion', '=', $codigo)
-                ->where('sublevel', '=', $subnivel)
-                ->get();
+                ->where('sublevel', '=', $subnivel);
         }
 
         //registros parciales del conteo, mismo u otro usuario, que se corresponden con el ciclo, punto y ubicación (si se especifica código de ubicación)
