@@ -94,6 +94,7 @@ class InventarioDumpService
                 longitud TEXT,
                 offline INTEGER,
                 update_inv INTEGER,
+                edit_offline INTEGER DEFAULT 0,
                 creado_por TEXT,
                 crud_activo_estado INTEGER,
                 -- edualejandro
