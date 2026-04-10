@@ -53,27 +53,27 @@ class EmplazamientoNnResource extends JsonResource
 
 
 
-        if ($this->subnivel === 1) {
+        if ($this->subnivel >= 1) {
 
-            $num_activos_N1 = CrudActivo::where('ubicacionOrganicaN1', $this->codigoUbicacion)
+            $num_activos_N1 = CrudActivo::where('ubicacionOrganicaN1', substr($this->codigoUbicacion, 0, 2))
                 ->where('ubicacionGeografica', $this->idAgenda)
                 ->where('ubicacionOrganicaN2', '<', 2)
                 ->whereIn('id_familia', $familias)
                 ->count();
         }
 
-        if ($this->subnivel <= 2) {
+        if ($this->subnivel >= 2) {
 
-            $num_activos_N2 = CrudActivo::where('ubicacionOrganicaN2', 'LIKE', $this->codigoUbicacion . '%')
+            $num_activos_N2 = CrudActivo::where('ubicacionOrganicaN2', 'LIKE', substr($this->codigoUbicacion, 0, 4) . '%')
                 ->where('ubicacionGeografica', $this->idAgenda)
                 ->where('ubicacionOrganicaN3', '<', 2)
                 ->whereIn('id_familia', $familias)
                 ->count();
         }
 
-        if ($this->subnivel <= 3) {
+        if ($this->subnivel >= 3) {
 
-            $num_activos_N3 = CrudActivo::where('ubicacionOrganicaN3', 'LIKE',  $this->codigoUbicacion . '%')
+            $num_activos_N3 = CrudActivo::where('ubicacionOrganicaN3', 'LIKE',  substr($this->codigoUbicacion, 0, 6) . '%')
                 ->where('ubicacionGeografica', $this->idAgenda)
                 ->where('ubicacionOrganicaN4', '<', 2)
                 ->whereIn('id_familia', $familias)
@@ -120,8 +120,10 @@ class EmplazamientoNnResource extends JsonResource
         $placeLevelsNavigation = '';
 
         for ($i = 1; $i < $this->subnivel; $i++) {
+
+            $codigo = substr($this->codigoUbicacion, 0, 2 * $i);
             $emplazamiento = EmplazamientoNn::fromTable('ubicaciones_n' . $i)->where('idAgenda', '=', $this->idAgenda)
-                ->where('codigo', 'like', $this->codigoUbicacion . '%')
+                ->where('codigoUbicacion', 'like', $codigo . '%')
                 ->first();
             $placeLevelsNavigation .= $emplazamiento->descripcionUbicacion . ' > ';
         }
