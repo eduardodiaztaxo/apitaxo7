@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\V2\Auditoria;
 
+use App\Models\Auditoria\EmplazamientoNn;
 use App\Models\CrudActivo;
 use App\Models\Inv_ciclos_categorias;
 use App\Models\InvCiclo;
@@ -98,6 +99,7 @@ class EmplazamientoNnResource extends JsonResource
             'ciclo_auditoria' => $this->ciclo_auditoria,
             'num_categorias' => $this->activos()->select('categoriaN3')->groupBy('categoriaN3')->get()->count(),
             'id_ciclo' => $this->cycle->idCiclo,
+            'placeLevelsNavigation' => $this->getPlaceLevelsNavigation()
 
         ];
 
@@ -106,5 +108,21 @@ class EmplazamientoNnResource extends JsonResource
 
 
         return $emplazamiento;
+    }
+
+    private function getPlaceLevelsNavigation()
+    {
+
+        $placeLevelsNavigation = '';
+
+        for ($i = 1; $i < $this->subnivel; $i++) {
+            $emplazamiento = EmplazamientoNn::fromTable('ubicaciones_n' . $i)->where('idAgenda', '=', $this->idAgenda)
+                ->where('codigo', 'like', $this->codigoUbicacion . '%')
+                ->first();
+            $placeLevelsNavigation .= $emplazamiento->descripcionUbicacion . ' > ';
+        }
+
+        $placeLevelsNavigation .= $this->descripcionUbicacion;
+        return $placeLevelsNavigation;
     }
 }
