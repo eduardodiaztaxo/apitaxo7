@@ -144,47 +144,7 @@ class CiclosAuditoriaUbicacionesController extends Controller
     }
 
 
-    public function showAssetsByUbicacionAndSublevel(int $ciclo, int $punto, string $codigo, int $subnivel, Request $request)
-    {
 
-        $addressObj = UbicacionGeografica::find($punto);
-
-        if (!$addressObj) {
-            return response()->json(['status' => 'error', 'code' => 404], 404);
-        }
-
-
-        $cicloObj = InvCiclo::find($ciclo);
-
-        if (!$cicloObj) {
-            return response()->json(['status' => 'error', 'code' => 404], 404);
-        }
-
-        if ($cicloObj->puntos()->where('idUbicacionGeo', $punto)->count() === 0) {
-            return response()->json(['status' => 'error', 'code' => 404, 'message' => 'La direccion no se corresponde con el ciclo'], 404);
-        }
-
-
-        $queryBuilder = CrudActivo::queryBuilderAsset_Audit_ConfigCycle_FindInAddressGroupFamily_Pagination(
-            $cicloObj,
-            $punto,
-            $codigo,
-            $subnivel,
-            $request->keyword ?? '',
-            $request->from ?? 0,
-            $request->rows ?? 0
-        );
-
-        $assets = $queryBuilder->get();
-
-        //
-        return response()->json([
-            'status' => 'OK',
-            'data' => CrudActivoLiteResource::collection($assets),
-            // 'sql' => $queryBuilder->toSql(),
-            // 'bindings' => $queryBuilder->getBindings()
-        ]);
-    }
 
 
     /**
