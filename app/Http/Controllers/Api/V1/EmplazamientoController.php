@@ -24,6 +24,7 @@ use App\Models\ZonaPunto;
 use App\Services\PlaceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class EmplazamientoController extends Controller
 {
@@ -419,8 +420,8 @@ class EmplazamientoController extends Controller
             ->where('tipoCambio', '!=', 91)
             ->where($columnaFiltroNivel, $codigoUbicacion);
 
-        // 3. Filtro de Ciclo
-        if ($ciclo != 0) {
+        // 3. Filtro de Ciclo (solo si la vista expone la columna)
+        if ($ciclo != 0 && Schema::hasColumn('crud_activos_view', 'id_ciclo')) {
             $queryBuilder->where('id_ciclo', $ciclo);
         }
 

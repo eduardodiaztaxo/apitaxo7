@@ -188,4 +188,76 @@ class CiclosAuditoriaUbicacionesController extends Controller
             'data' => GroupFamilyPlaceResumenResource::make($family_place_resumen)
         ]);
     }
+
+
+    /**
+     * Display emplazamientos (sub-levels) for a given point and cycle filtered by codigo/subnivel.
+     *
+     * @param  int $ciclo
+     * @param  int $punto
+     * @param  string $codigo
+     * @param  int $subnivel
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function showEmplazamientosByCycleAndGrupFamily(int $ciclo, int $punto, $codigo, int $subnivel, Request $request)
+    {
+        $addressObj = UbicacionGeografica::find($punto);
+
+        if (!$addressObj) {
+            return response()->json(['status' => 'error', 'code' => 404], 404);
+        }
+
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json(['status' => 'error', 'code' => 404], 404);
+        }
+
+        if ($cicloObj->puntos()->where('idUbicacionGeo', $punto)->count() === 0) {
+            return response()->json(['status' => 'error', 'code' => 404, 'message' => 'El punto no se corresponde con el ciclo'], 404);
+        }
+
+        switch ($subnivel) {
+            case 1:
+                $model = \App\Models\EmplazamientoN1::class;
+                $resource = \App\Http\Resources\V2\EmplazamientoNivel1Resource::class;
+                break;
+            case 2:
+                $model = \App\Models\EmplazamientoN2::class;
+                $resource = \App\Http\Resources\V2\EmplazamientoNivel2LiteResource::class;
+                break;
+            case 3:
+                $model = \App\Models\EmplazamientoN3::class;
+                $resource = \App\Http\Resources\V2\EmplazamientoNivel3LiteResource::class;
+                break;
+            default:
+                return response()->json(['status' => 'error', 'message' => 'Nivel no válido'], 400);
+        }
+
+        $query = $model::where('idAgenda', $addressObj->idUbicacionGeo)
+            ->where('codigoUbicacion', 'LIKE', $codigo . '%');
+
+        if ($request->filled('keyword')) {
+            $kw = $request->keyword;
+            $query->where('descripcionUbicacion', 'LIKE', "%{$kw}%");
+        }
+
+        if ($request->filled('from') && $request->filled('rows')) {
+            $offset = max(0, (int)$request->from - 1);
+            $limit = (int)$request->rows;
+            $query->offset($offset)->limit($limit);
+        }
+
+        $emplazamientos = $query->get();
+
+        foreach ($emplazamientos as $e) {
+            $e->cycle_id = $ciclo;
+        }
+
+        return response()->json([
+            'status' => 'OK',
+            'data' => $resource::collection($emplazamientos)
+        ], 200);
+    }
 }

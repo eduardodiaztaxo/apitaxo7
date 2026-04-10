@@ -45,11 +45,15 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2/auditoria')->
 
     Route::get('ciclos/{ciclo}/puntos/{punto}/assets-contain-group-family', [CiclosAuditoriaUbicacionesController::class, 'showAssetsByUbicacion']);
 
+
     Route::get('ciclos/{ciclo}/puntos/{punto}/codigo/{codigo}/subnivel/{subnivel}/assets-contain-group-family', [CiclosAuditoriaEmplazamientosController::class, 'showAssetsByUbicacionAndSublevel']);
 
     Route::get('ciclos/{ciclo}/puntos/{punto}/group-families', [CiclosAuditoriaUbicacionesController::class, 'showGroupFamilies']);
 
     Route::get('ciclos/{ciclo}/puntos/{punto}/codigo/{codigo}/subnivel/{subnivel}/group-families', [CiclosAuditoriaEmplazamientosController::class, 'showGroupFamilies']);
+
+
+    Route::get('ciclos/{ciclo}/punto/{punto}/codigo/{codigo}/subnivel/{subnivel}/emplazamiento-with-assets-contain-group-family', [CiclosAuditoriaUbicacionesController::class, 'showEmplazamientosByCycleAndGrupFamily']);
 
     Route::post('conteo/ciclo/{ciclo}/punto/{punto}/codigo/{codigo}/subnivel/{subnivel}/resumen', [AuditoriaConteoController::class, 'showResumen']);
 

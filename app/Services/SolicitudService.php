@@ -8,18 +8,23 @@ class SolicitudService
 {
     public function getNextIdMov()
     {
-        // Attempt to get the next value from the sequence
-        $result = DB::select("SELECT nextval('IDSOLASIGNAR') as idMov FROM DUAL");
+        $updated = DB::affectingStatement(
+            'UPDATE `sequence` SET `cur_value` = LAST_INSERT_ID(`cur_value`) + `increment` WHERE `name` = ?',
+            ['IDSOLASIGNAR']
+        );
 
-        if (!empty($result)) {
-            // If the sequence exists and returns a value, use it
-            $num_sol = $result[0]->idMov;
-        } else {
-            // If the sequence does not exist, create it and set the initial value
-            DB::insert("INSERT INTO sequence(name, increment, cycle) VALUES('IDSOLASIGNAR', 1, 1)");
-            $num_sol = 1;
+        if ($updated === 0) {
+            DB::insert("INSERT INTO `sequence` (`name`, `increment`, `cycle`, `cur_value`) VALUES (?, 1, 1, 1)", ['IDSOLASIGNAR']);
+
+            return 1;
         }
 
-        return $num_sol;
+        $result = DB::selectOne('SELECT LAST_INSERT_ID() as idMov');
+
+        if ($result && isset($result->idMov)) {
+            return (int) $result->idMov;
+        }
+
+        return 1;
     }
 }
