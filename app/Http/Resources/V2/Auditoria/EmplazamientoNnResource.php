@@ -45,6 +45,10 @@ class EmplazamientoNnResource extends JsonResource
 
         $num_activos = $this->activos_with_cats_with_child_levels_by_cycle($this->cycle->idCiclo)->count();
 
+        $num_activos_N1 = null;
+        $num_activos_N2 = null;
+        $num_activos_N3 = null;
+
 
 
 
