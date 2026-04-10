@@ -37,7 +37,7 @@ class CiclosAuditoriaEmplazamientosController extends Controller
         $queryBuilder = EmplazamientoNn::fromTable('ubicaciones_n' . $subnivel)->where('idAgenda', '=', $punto);
 
         if ($subnivel > 1) {
-            $queryBuilder = $queryBuilder->where('codigo', 'like', $codigo . '%');
+            $queryBuilder = $queryBuilder->where('codigoUbicacion', 'like', $codigo . '%');
         }
 
         $emplazamientos = $queryBuilder->get();
