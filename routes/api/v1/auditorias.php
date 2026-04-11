@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\Auditoria\InventarioConteoController;
 use App\Http\Controllers\Api\V2\Auditoria\AuditoriaConteoController;
+use App\Http\Controllers\Api\V2\Auditoria\CiclosAuditoriaController;
 use App\Http\Controllers\Api\V2\Auditoria\CiclosAuditoriaEmplazamientosController;
 use App\Http\Controllers\Api\V2\Auditoria\CiclosAuditoriaUbicacionesController;
 
@@ -42,6 +43,10 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2/auditoria')->
     Route::get('ciclos/{ciclo}/puntos/{punto}/codigo/{codigo}/subnivel/{subnivel}/sublevels-with-assets-contain-group-family', [CiclosAuditoriaEmplazamientosController::class, 'showByCycleAndGrupFamily']);
 
     Route::get('ciclos/{ciclo}/detalle-punto/{punto}', [CiclosAuditoriaUbicacionesController::class, 'showOne']);
+
+    Route::get('ciclos/{ciclo}/assets-contain-group-family', [CiclosAuditoriaController::class, 'showAssetsByCycle']);
+    Route::get('ciclos/{ciclo}/group-families', [CiclosAuditoriaController::class, 'showGroupFamilies']);
+
 
     Route::get('ciclos/{ciclo}/puntos/{punto}/assets-contain-group-family', [CiclosAuditoriaUbicacionesController::class, 'showAssetsByUbicacion']);
 

@@ -257,7 +257,11 @@ class CrudActivo extends Model
 
 
 
-        $queryBuilder = $cicloObj->activos_with_cats()->where('crud_activos.ubicacionGeografica', '=', $punto);
+        $queryBuilder = $cicloObj->activos_with_cats();
+
+        if ($punto > 0) {
+            $queryBuilder = $queryBuilder->where('crud_activos.ubicacionGeografica', '=', $punto);
+        }
 
         if ($sublevel > 0 && strlen($codigo) > 1) {
             $placeField = 'crud_activos.ubicacionOrganicaN' . $sublevel;

@@ -679,4 +679,53 @@ LEFT JOIN (
     {
         return $this->hasMany(DbAuditsDump::class, 'cycle_id', 'idCiclo');
     }
+
+
+    public function crud_audit_group_families()
+    {
+        return $this->crud_audit_group_families_with_child_levels();
+    }
+
+    public function crud_audit_group_families_with_child_levels()
+    {
+        $idUbicacionGeo = $this->idUbicacionGeo;
+
+        $queryBuilder = CrudActivo::select(
+            DB::raw("'00' AS codigoUbicacion"),
+            DB::raw("'n0' AS place_level"),
+            DB::raw("'0' AS isSub"),
+            'crud_activos.id_grupo',
+            'crud_activos.id_familia',
+            'dp_grupos.descripcion_grupo',
+            'dp_familias.descripcion_familia',
+            DB::raw('COUNT(*) as total')
+        );
+
+        $queryBuilder =  $this->queryBuilderJoinAuditAddressesGroupFamily($queryBuilder);
+        $queryBuilder = $queryBuilder
+            ->leftJoin('dp_familias', 'crud_activos.id_familia', 'dp_familias.id_familia')
+            ->leftJoin('dp_grupos', 'crud_activos.id_grupo', 'dp_grupos.id_grupo')
+
+            ->groupBy('codigoUbicacion', 'crud_activos.id_grupo', 'crud_activos.id_familia', 'dp_grupos.descripcion_grupo', 'dp_familias.descripcion_familia');
+
+        return $queryBuilder;
+    }
+
+    /**
+     * Query Builder Auditing for this address.
+     *
+     * @param   \Illuminate\Database\Eloquent\Builder $queryBuilder 
+     * @param   int $cycle_id
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function queryBuilderJoinAuditAddressesGroupFamily($queryBuilder)
+    {
+        return $queryBuilder->join('inv_ciclos_puntos', 'crud_activos.ubicacionGeografica', 'inv_ciclos_puntos.idPunto')
+            ->join('inv_ciclos', 'inv_ciclos.idCiclo', '=', 'inv_ciclos_puntos.idCiclo')
+            ->join('inv_ciclos_categorias', function (JoinClause $join) {
+                $join->on('inv_ciclos.idCiclo', '=', 'inv_ciclos_categorias.idCiclo')
+                    ->on('crud_activos.id_familia', '=', 'inv_ciclos_categorias.id_familia');
+            })
+            ->where('inv_ciclos.idCiclo', '=', $this->idCiclo);
+    }
 }
