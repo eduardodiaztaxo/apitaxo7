@@ -26,7 +26,7 @@ class CiclosAuditoriaEmplazamientosController extends Controller
      */
     public function showByCycleAndGrupFamily(Request $request, int $ciclo, int $punto, string $codigo, int $subnivel)
     {
-        $this->validateCodigoSubnivel($request, $codigo, $subnivel);
+        //$this->validateCodigoSubnivel($request, $codigo, $subnivel);
 
         $cycleObj = InvCiclo::find($ciclo);
 
@@ -123,7 +123,7 @@ class CiclosAuditoriaEmplazamientosController extends Controller
             return response()->json(['status' => 'error', 'code' => 404, 'message' => 'El punto no se corresponde con el ciclo'], 404);
         }
 
-        $emplazamiento = EmplazamientoNn::fromTable('ubicaciones_n' . $subnivel)->where('idAgenda', '=', $punto)->where('codigo', '=', $codigo)->first();
+        $emplazamiento = EmplazamientoNn::fromTable('ubicaciones_n' . $subnivel)->where('idAgenda', '=', $punto)->where('codigoUbicacion', '=', $codigo)->first();
 
         if (!$emplazamiento) {
             return response()->json(['status' => 'error', 'code' => 404, 'message' => 'El emplazamiento no se corresponde con el punto'], 404);

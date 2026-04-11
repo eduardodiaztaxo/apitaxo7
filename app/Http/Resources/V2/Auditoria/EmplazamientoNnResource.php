@@ -6,6 +6,7 @@ use App\Models\Auditoria\EmplazamientoNn;
 use App\Models\CrudActivo;
 use App\Models\Inv_ciclos_categorias;
 use App\Models\InvCiclo;
+use App\Models\InvConteoRegistro;
 use App\Services\ProyectoUsuarioService;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -53,32 +54,41 @@ class EmplazamientoNnResource extends JsonResource
 
 
 
-        if ($this->subnivel >= 1) {
+        if ($this->subnivel === 1) {
 
-            $num_activos_N1 = CrudActivo::where('ubicacionOrganicaN1', substr($this->codigoUbicacion, 0, 2))
+            $num_activos_N1 = CrudActivo::where('ubicacionOrganicaN1', $this->codigoUbicacion)
                 ->where('ubicacionGeografica', $this->idAgenda)
                 ->where('ubicacionOrganicaN2', '<', 2)
                 ->whereIn('id_familia', $familias)
                 ->count();
         }
 
-        if ($this->subnivel >= 2) {
+        if ($this->subnivel <= 2) {
 
-            $num_activos_N2 = CrudActivo::where('ubicacionOrganicaN2', 'LIKE', substr($this->codigoUbicacion, 0, 4) . '%')
+            $num_activos_N2 = CrudActivo::where('ubicacionOrganicaN2', 'LIKE', $this->codigoUbicacion . '%')
                 ->where('ubicacionGeografica', $this->idAgenda)
                 ->where('ubicacionOrganicaN3', '<', 2)
                 ->whereIn('id_familia', $familias)
                 ->count();
         }
 
-        if ($this->subnivel >= 3) {
+        if ($this->subnivel <= 3) {
 
-            $num_activos_N3 = CrudActivo::where('ubicacionOrganicaN3', 'LIKE',  substr($this->codigoUbicacion, 0, 6) . '%')
+            $num_activos_N3 = CrudActivo::where('ubicacionOrganicaN3', 'LIKE',  $this->codigoUbicacion . '%')
                 ->where('ubicacionGeografica', $this->idAgenda)
                 ->where('ubicacionOrganicaN4', '<', 2)
                 ->whereIn('id_familia', $familias)
                 ->count();
         }
+
+
+        $num_activos_audit = InvConteoRegistro::where('ciclo_id', '=', $this->cycle->idCiclo)
+            ->where('punto_id', '=', $this->idAgenda)
+            ->where('codigo_ubicacion', $this->codigoUbicacion)
+            ->where('sublevel', $this->subnivel)
+            ->where('status', '=', 1)
+            ->whereIn('audit_status', [1, 3])
+            ->count();
 
         $emplazamiento = [
             'id' => $this->idUbicacionN1,
@@ -98,7 +108,7 @@ class EmplazamientoNnResource extends JsonResource
             'num_activos_N1' => $num_activos_N1,
             'num_activos_N2' => $num_activos_N2,
             'num_activos_N3' => $num_activos_N3,
-            'num_activos_audit' => 0,
+            'num_activos_audit' => $num_activos_audit,
             'num_activos_cats_by_cycle' => 0,
             'ciclo_auditoria' => $this->ciclo_auditoria,
             'num_categorias' => $this->activos()->select('categoriaN3')->groupBy('categoriaN3')->get()->count(),
