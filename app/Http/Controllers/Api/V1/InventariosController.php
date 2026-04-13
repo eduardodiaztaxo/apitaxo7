@@ -1182,7 +1182,7 @@ class InventariosController extends Controller
         $ultimo_id_inventario = DB::table('inv_inventario')
             ->where('id_proyecto', $id_proyecto)
             ->max('id_inventario');
-
+        //aqui falta un next val
         $siguiente_id_inventario = ($ultimo_id_inventario ?? 0) + 1;
 
         foreach ($items as $key => $item) {
@@ -1757,7 +1757,14 @@ class InventariosController extends Controller
                 $asset = Inventario::create($activo);
                 $asset->fillCodeAndIDSEmplazamientos();
                 $saved[] = $asset->etiqueta;
-            } elseif ($activo['crud_activo_estado'] == 3 && $existsInv) {
+                //} elseif ($activo['crud_activo_estado'] == 3 && $existsInv) {
+            } elseif ($existsInv) {
+                //Si existe el activo y tiene id_img, remplazar
+                if ($existsInv->id_img) {
+                    $activo['id_img'] = $existsInv->id_img;
+                    $idsi[$activo['etiqueta']] = $existsInv->id_img;
+                }
+                $activo['id_inventario'] = $existsInv->id_inventario;
                 $existsInv->update($activo);
                 $saved[] = $activo['etiqueta'];
             } else {

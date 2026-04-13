@@ -315,6 +315,14 @@ class CrudActivoController extends Controller
 
             $invObj = Inventario::where('etiqueta', $etiqueta)->first();
 
+            if ($invObj->id_img === null) {
+                //IMPORTANTE: NO DEBE VENIR NULL, SI VIENE NULL ES POR ERROR DEL VOLCAMIENTO DE DATOS
+                ImageService::createNextValInvImgIfNotExist();
+                $id_img = ImageService::nextValInvImg();
+                $invObj->id_img = $id_img;
+                $invObj->save();
+            }
+
             // Si no hay imagen existente, crear nueva
             $nuevaImagen = new Inv_imagenes();
             $nuevaImagen->etiqueta = $etiqueta;
