@@ -319,10 +319,8 @@ class CrudActivoController extends Controller
                 //IMPORTANTE: NO DEBE VENIR NULL, SI VIENE NULL ES POR ERROR DEL VOLCAMIENTO DE DATOS
                 ImageService::createNextValInvImgIfNotExist();
                 $id_img = ImageService::nextValInvImg();
-                Inventario::where('etiqueta', $etiqueta)
-                    ->where('id_proyecto', $id_proyecto)
-                    ->whereNull('id_img')
-                    ->update(['id_img' => $id_img]);
+                $invObj->id_img = $id_img;
+                $invObj->save();
             }
 
             // Si no hay imagen existente, crear nueva
