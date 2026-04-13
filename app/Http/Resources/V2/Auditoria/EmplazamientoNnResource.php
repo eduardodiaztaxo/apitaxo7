@@ -7,6 +7,7 @@ use App\Models\CrudActivo;
 use App\Models\Inv_ciclos_categorias;
 use App\Models\InvCiclo;
 use App\Models\InvConteoRegistro;
+use App\Models\UbicacionGeografica;
 use App\Services\ProyectoUsuarioService;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -99,7 +100,7 @@ class EmplazamientoNnResource extends JsonResource
             'idUbicacionN1' => $this->idUbicacionN1,
             'detalle' => 'Detalle Emplazamiento (N' . $this->subnivel . ')',
             'num_nivel' => 'N' . $this->subnivel,
-            'next_level' => 'N' . ($this->subnivel + 1),
+            'next_level' => ($this->subnivel + 1) <= 3 ? 'N' . ($this->subnivel + 1) : '',
             'newApp' => $this->newApp,
             'modo' => $this->modo,
             'habilitadoNivel3' => 1,
@@ -127,7 +128,9 @@ class EmplazamientoNnResource extends JsonResource
     private function getPlaceLevelsNavigation()
     {
 
-        $placeLevelsNavigation = '';
+        $addressName = UbicacionGeografica::find($this->idAgenda)->descripcion;
+
+        $placeLevelsNavigation = $addressName . ' > ';
 
         for ($i = 1; $i < $this->subnivel; $i++) {
 
