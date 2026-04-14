@@ -4,6 +4,7 @@ namespace App\Http\Resources\V1;
 
 use App\Services\ActivoService;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 
 class CrudActivoResource extends JsonResource
@@ -11,17 +12,18 @@ class CrudActivoResource extends JsonResource
 
 
     private $activoService;
-
+    private $ciclo_obj;
     /**
      * Create a new resource instance.
      *
      * @param  mixed  $resource
      * @return void
      */
-    public function __construct($resource)
+    public function __construct($resource, $ciclo = null)
     {
         $this->activoService = new ActivoService();
         parent::__construct($resource);
+        $this->ciclo_obj = $ciclo;
     }
 
     /**
@@ -73,8 +75,13 @@ class CrudActivoResource extends JsonResource
         $imagenes = DB::table('crud_activos_pictures')
             ->where('id_activo', $this->idActivo)
             ->orderByDesc('id_foto')
-            ->select(DB::raw("CONCAT(url_picture, picture) as url_imagen"))
-            ->pluck('url_imagen')
+            ->select(['url_imagen', 'url_picture', 'picture'])
+            ->get()
+            ->map(function ($foto) {
+                return $this->normalizeImageUrl($foto->url_imagen, $foto->url_picture, $foto->picture);
+            })
+            ->filter()
+            ->values()
             ->toArray();
 
         $activo['fotoUrl'] = $imagenes[0] ?? null;
@@ -83,6 +90,7 @@ class CrudActivoResource extends JsonResource
             $activo['fotoUrl'] = $this->activoService->getUrlAsset($this->resource, $request->user());
 
         $activo['imagenes'] = $imagenes ?? [];
+        $activo['tipo_ciclo'] = $this->ciclo_obj ? $this->ciclo_obj->idTipoCiclo : null;
 
         $ubicacion = $this->ubicacionGeografica()->first();
 
@@ -100,5 +108,34 @@ class CrudActivoResource extends JsonResource
 
 
         return $activo;
+    }
+
+    /**
+     * Normalize the stored picture data into a single usable URL.
+     *
+     * @param  string|null  $urlImagen
+     * @param  string|null  $urlPicture
+     * @param  string|null  $picture
+     * @return string|null
+     */
+    private function normalizeImageUrl($urlImagen, $urlPicture, $picture)
+    {
+        if (!empty($urlImagen) && $urlImagen !== '0') {
+            return $urlImagen;
+        }
+
+        if (empty($urlPicture) && empty($picture)) {
+            return null;
+        }
+
+        if (empty($picture)) {
+            return $urlPicture;
+        }
+
+        if (!empty($urlPicture) && Str::endsWith($urlPicture, $picture)) {
+            return $urlPicture;
+        }
+
+        return rtrim((string) $urlPicture, '/') . '/' . ltrim((string) $picture, '/');
     }
 }
