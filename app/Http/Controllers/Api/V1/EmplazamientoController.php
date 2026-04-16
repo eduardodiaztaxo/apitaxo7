@@ -324,6 +324,51 @@ class EmplazamientoController extends Controller
         return response()->json($resourceClass::make($emplaObj));
     }
 
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $emplazamiento_id
+     * @return \Illuminate\Http\Response
+     */
+
+
+    public function showOne(int $emplazamiento, $ciclo, $codigoUbicacion)
+    {
+
+
+        $nivel = strlen($codigoUbicacion) / 2;
+
+
+
+        [$emplaObj, $resourceClass] = match ($nivel) {
+            1 => [
+                EmplazamientoN1::where('idUbicacionN1', $emplazamiento)->first(),
+                EmplazamientoNivel1Resource::class
+            ],
+            2 => [
+                Emplazamiento::where('idUbicacionN2', $emplazamiento)->first(),
+                EmplazamientoResource::class
+            ],
+            3 => [
+                EmplazamientoN3::where('idUbicacionN3', $emplazamiento)->first(),
+                EmplazamientoNivel3Resource::class
+            ],
+            default => [null, null],
+        };
+
+        if (!$emplaObj) {
+            return response()->json(['status' => 'NOK', 'code' => 404], 404);
+        }
+
+        // --- 3. ASIGNACIÓN DE DATOS EXTRA ---
+        $emplaObj->requirePunto = 1;
+        $emplaObj->requireActivos = 1;
+        $emplaObj->cycle_id = $ciclo;
+
+        return response()->json($resourceClass::make($emplaObj));
+    }
+
     /**
      * Devuelve los emplazamientos de un punto para un ciclo.
      *
