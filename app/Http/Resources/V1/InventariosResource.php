@@ -134,9 +134,9 @@ class InventariosResource extends JsonResource
             if ($subEmplazamiento) {
                 $idFinal = $subEmplazamiento->idUbicacionN2 ?? $subEmplazamiento->idUbicacionN3 ?? null;
                 $codigoUbicacionFinal = $subEmplazamiento->codigoUbicacion ?? '';
-                
+
                 //Si es N1
-                if($emplazamiento){
+                if ($emplazamiento) {
                     $descripcionZoneAddress = $emplazamiento->descripcionUbicacion ? $emplazamiento->descripcionUbicacion : '';
                     $codigoZoneAddress = $emplazamiento->codigoUbicacion ?? '';
                 } else {
@@ -145,11 +145,12 @@ class InventariosResource extends JsonResource
                 }
 
                 $nombreEmplazamiento = $subEmplazamiento->descripcionUbicacion ?? '';
-
             } elseif ($emplazamiento) {
                 $idFinal = $emplazamiento->idUbicacionN1 ?? null;
                 $codigoUbicacionFinal = $emplazamiento->codigoUbicacion ?? '';
                 $nombreEmplazamiento = $emplazamiento->descripcionUbicacion ?? '';
+                $descripcionZoneAddress = $emplazamiento->descripcionUbicacion ?? '';
+                $codigoZoneAddress = $emplazamiento->codigoUbicacion ?? '';
             }
         }
 
