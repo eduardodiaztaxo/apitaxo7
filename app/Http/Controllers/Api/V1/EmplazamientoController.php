@@ -412,39 +412,78 @@ class EmplazamientoController extends Controller
     {
         // 1. Nombre de la columna dinámica según el nivel
         $columnaFiltroNivel = "ubicacionOrganicaN{$nivel}_codigo";
+        $perPage = 50;
 
-        // 2. Construcción de la consulta directa a la vista
-        $queryBuilder = DB::table('crud_activos_view')
-            ->select('*') // Trae todo lo que la vista ofrezca sin procesar
-            ->where('direccion_id', $idAgenda)
-            ->where('tipoCambio', '!=', 91)
-            ->where($columnaFiltroNivel, $codigoUbicacion);
+        // Compatibilidad con el parámetro histórico `from`.
+        // La nueva paginación estándar usa `page`, pero si el consumidor
+        // aún envía `from`, lo convertimos a la página correspondiente.
+        $page = (int) $request->query('page', 1);
+        if ($page < 1) {
+            $page = 1;
+        }
+
+        if ($request->filled('from') && ! $request->filled('page')) {
+            $from = max(1, (int) $request->query('from'));
+            $page = (int) ceil($from / $perPage);
+        }
+
+        // 2. Construcción de la consulta directa a la vista con payload mínimo
+        $ultimaFotoSubquery = DB::table('crud_activos_pictures')
+            ->select('id_activo', DB::raw('MAX(id_foto) as id_foto'))
+            ->groupBy('id_activo');
+
+        $queryBuilder = DB::table('crud_activos_view as cav')
+            ->leftJoinSub($ultimaFotoSubquery, 'ultima_foto', function ($join) {
+                $join->on('ultima_foto.id_activo', '=', 'cav.idActivo');
+            })
+            ->leftJoin('crud_activos_pictures as cap', 'cap.id_foto', '=', 'ultima_foto.id_foto')
+            ->select([
+                'cav.idActivo as id',
+                'cav.nombreActivo',
+                'cav.etiqueta',
+                DB::raw("COALESCE(CONCAT(cap.url_picture, '/', cap.picture), '" . asset('img/notavailable.jpg') . "') as fotoUrl"),
+            ])
+            ->where('cav.direccion_id', $idAgenda)
+            ->where('cav.tipoCambio', '!=', 91)
+            ->where("cav.$columnaFiltroNivel", $codigoUbicacion);
 
         // 3. Filtro de Ciclo (solo si la vista expone la columna)
         if ($ciclo != 0 && Schema::hasColumn('crud_activos_view', 'id_ciclo')) {
-            $queryBuilder->where('id_ciclo', $ciclo);
+            $queryBuilder->where('cav.id_ciclo', $ciclo);
         }
 
         // 4. Filtro de Búsqueda
         if (!!keyword_is_searcheable($request->keyword)) {
             $word = trim($request->keyword);
             $queryBuilder->where(function ($query) use ($word) {
-                $query->where('nombreActivo', 'LIKE', "%$word%")
-                    ->orWhere('etiqueta', 'LIKE', "%$word%");
+                $query->where('cav.nombreActivo', 'LIKE', "%$word%")
+                    ->orWhere('cav.etiqueta', 'LIKE', "%$word%");
             });
         }
 
-        // 5. Paginación
-        if ($request->from && $request->rows) {
-            $queryBuilder->offset((int)$request->from - 1)->limit((int)$request->rows);
-        }
-
-        // 7. Obtener resultados como array de objetos planos
-        $assets = $queryBuilder->get();
+        // 5. Paginación estándar de 50 registros por página.
+        $assets = $queryBuilder
+            ->orderBy('etiqueta')
+            ->paginate($perPage, ['*'], 'page', $page)
+            ->appends($request->query());
 
         return response()->json([
             'status' => 'OK',
-            'data' => $assets // Devolución directa sin pasar por el Resource
+            'data' => $assets->items(),
+            'meta' => [
+                'current_page' => $assets->currentPage(),
+                'from' => $assets->firstItem(),
+                'last_page' => $assets->lastPage(),
+                'per_page' => $assets->perPage(),
+                'to' => $assets->lastItem(),
+                'total' => $assets->total(),
+            ],
+            'links' => [
+                'first' => $assets->url(1),
+                'last' => $assets->url($assets->lastPage()),
+                'prev' => $assets->previousPageUrl(),
+                'next' => $assets->nextPageUrl(),
+            ], // Devolución paginada sin pasar por el Resource
         ]);
     }
 
