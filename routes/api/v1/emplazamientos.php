@@ -32,7 +32,7 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('ciclos/{ciclo}/puntos/{punto}/activos/etiquetas', [UbicacionesActivosController::class, 'showOnlyLabelsByCycleCats']);
 
-    Route::get('emplazamientos/{emplazamiento}/{ciclo}/{codigoUbicacion}', [EmplazamientoController::class, 'show']);
+    Route::get('emplazamientos/{emplazamiento}/{ciclo}/{codigoUbicacion}', [EmplazamientoController::class, 'showOne']);
 
     // Specific routes first to avoid being caught by generic ones
     Route::get('todos-emplazamientos/pictures/{etiqueta}', [EmplazamientoController::class, 'getAssetPictures']);

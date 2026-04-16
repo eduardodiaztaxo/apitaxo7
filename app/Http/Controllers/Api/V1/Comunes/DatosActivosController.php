@@ -287,6 +287,8 @@ class DatosActivosController extends Controller
             }
         }
 
+        $queryBuilderbienesGrupoFamilia = $queryBuilderbienesGrupoFamilia->orderBy('descripcion')->orderBy('descripcion_grupo')->orderBy('descripcion_familia');
+
 
         if ($request->from && $request->rows) {
             $offset = $request->from - 1;

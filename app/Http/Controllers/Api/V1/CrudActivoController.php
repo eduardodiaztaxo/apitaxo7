@@ -133,6 +133,7 @@ class CrudActivoController extends Controller
 
 
         $activo = ActivoFinderService::findByEtiquetaAndCiclo($etiqueta, $ciclo);
+        $ciclo_obj = InvCiclo::find($ciclo);
 
         if (!$activo) {
             return response()->json([
@@ -150,7 +151,7 @@ class CrudActivoController extends Controller
 
 
 
-        return response()->json(new CrudActivoResource($activo), 200);
+        return response()->json(new CrudActivoResource($activo, $ciclo_obj), 200);
     }
 
 
