@@ -8,6 +8,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Encoders\JpegEncoder;
+use Intervention\Image\Encoders\WebpEncoder;
 use Intervention\Image\Laravel\Facades\Image as Image;
 
 class ImageService
@@ -143,6 +144,38 @@ class ImageService
 
 
         return $url;
+    }
+
+    /**
+     * Save only the thumbnail version of an image in the secondary disk.
+     *
+     * The thumbnail is compressed to webp, reduced to 96px width and stored
+     * exclusively in taxoImages under the customer image subdirectory.
+     *
+     * @param  \Illuminate\Http\UploadedFile $file
+     * @param  string  $customer_name   the customer name to build the subdir
+     * @param  string  $namefile
+     * @return string|null the URL of the saved thumbnail or null if save fails
+     */
+    public static function saveThumbnailInSecondDisk(UploadedFile $file, string $customer_name, string $namefile): string|null
+    {
+        try {
+            $thumbName = 'thumb_' . pathinfo($namefile, PATHINFO_FILENAME) . '.webp';
+            $thumbPath = PictureSafinService::getImgSubdir($customer_name) . '/' . $thumbName;
+
+            $img = Image::read($file->getRealPath());
+            $img->scale(width: 96);
+
+            $encodedThumb = $img->encode(new WebpEncoder(quality: 60))->toString();
+
+            if (Storage::disk('taxoImages')->put($thumbPath, $encodedThumb)) {
+                return Storage::disk('taxoImages')->url($thumbPath);
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error guardando miniatura: ' . $e->getMessage());
+        }
+
+        return null;
     }
 
     /**
