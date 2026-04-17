@@ -306,6 +306,8 @@ class CrudActivoController extends Controller
                     $imagenExistente->id_proyecto = $id_proyecto;
                     $imagenExistente->save();
 
+                    ImageService::createThumbnail($file, $request->user()->nombre_cliente, $namefile);
+
                     return response()->json([
                         'status' => 'OK',
                         'message' => 'Imagen existente actualizada',
@@ -336,6 +338,8 @@ class CrudActivoController extends Controller
             $nuevaImagen->created_at = now();
             $nuevaImagen->updated_at = now();
             $nuevaImagen->save();
+
+            ImageService::createThumbnail($file, $request->user()->nombre_cliente, $namefile);
 
             return response()->json([
                 'status' => 'OK',

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Inv_imagenes;
+use App\Models\Inv_imagenes_thumbnails;
 use App\Services\Imagenes\PictureSafinService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
@@ -191,19 +192,54 @@ class ImageService
 
     public static function saveThumbnailInDB(string $url, string $customer_name, string $namefile): Model|null
     {
-        // try {
-        //     $thumbnail = Thumbnail::create([
-        //         'customer_name' => $customer_name,
-        //         'namefile' => $namefile,
-        //         'url' => $url,
-        //     ]);
+        try {
+            $parentImage = Inv_imagenes::where('picture', $namefile)
+                ->orderByDesc('idLista')
+                ->first();
 
-        //     return $thumbnail;
-        // } catch (\Exception $e) {
-        //     \Illuminate\Support\Facades\Log::error('Error guardando miniatura en DB: ' . $e->getMessage());
-        //     return null;
-        // }
-        return null;
+            if (!$parentImage) {
+                \Illuminate\Support\Facades\Log::warning('No se encontró la imagen principal para guardar la miniatura', [
+                    'namefile' => $namefile,
+                    'customer_name' => $customer_name,
+                    'url' => $url,
+                ]);
+
+                return null;
+            }
+
+            $thumbName = 'thumb_' . pathinfo($namefile, PATHINFO_FILENAME) . '.webp';
+            $thumbPath = PictureSafinService::getImgSubdir($customer_name) . '/' . $thumbName;
+
+            $thumb = Inv_imagenes_thumbnails::where('id_img', $parentImage->id_img)
+                ->where('etiqueta', $parentImage->etiqueta)
+                ->first();
+
+            if ($thumb && $thumb->picture && $thumb->picture !== $thumbName) {
+                $oldThumbPath = PictureSafinService::getImgSubdir($customer_name) . '/' . $thumb->picture;
+                Storage::disk('taxoImages')->delete($oldThumbPath);
+            }
+
+            $thumb = $thumb ?? new Inv_imagenes_thumbnails();
+            $thumb->id_img = $parentImage->id_img;
+            $thumb->origen = $parentImage->origen;
+            $thumb->etiqueta = $parentImage->etiqueta;
+            $thumb->picture = $thumbName;
+            $thumb->url_imagen = $url;
+            $thumb->url_picture = dirname($url) . '/';
+            $thumb->id_proyecto = $parentImage->id_proyecto;
+            $thumb->q_descargas = $parentImage->q_descargas;
+            $thumb->save();
+
+            return $thumb;
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error guardando miniatura en DB: ' . $e->getMessage(), [
+                'namefile' => $namefile,
+                'customer_name' => $customer_name,
+                'url' => $url,
+            ]);
+
+            return null;
+        }
     }
 
     /**
