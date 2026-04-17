@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Inv_imagenes;
 use App\Services\Imagenes\PictureSafinService;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -175,6 +176,33 @@ class ImageService
             \Illuminate\Support\Facades\Log::error('Error guardando miniatura: ' . $e->getMessage());
         }
 
+        return null;
+    }
+
+    public static function createThumbnail(UploadedFile $file, string $customer_name, string $namefile): Model|null
+    {
+        $path = self::saveThumbnailInSecondDisk($file, $customer_name, $namefile);
+        if (!$path) {
+            return null;
+        }
+        $thumbnail = self::saveThumbnailInDB($path, $customer_name, $namefile);
+        return $thumbnail;
+    }
+
+    public static function saveThumbnailInDB(string $url, string $customer_name, string $namefile): Model|null
+    {
+        // try {
+        //     $thumbnail = Thumbnail::create([
+        //         'customer_name' => $customer_name,
+        //         'namefile' => $namefile,
+        //         'url' => $url,
+        //     ]);
+
+        //     return $thumbnail;
+        // } catch (\Exception $e) {
+        //     \Illuminate\Support\Facades\Log::error('Error guardando miniatura en DB: ' . $e->getMessage());
+        //     return null;
+        // }
         return null;
     }
 
