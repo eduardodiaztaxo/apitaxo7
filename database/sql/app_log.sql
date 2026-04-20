@@ -1,0 +1,21 @@
+CREATE TABLE `app_log` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned DEFAULT NULL,
+  `event_type` varchar(100) NOT NULL,
+  `severity` enum('debug','info','warning','error','critical') NOT NULL DEFAULT 'info',
+  `message` varchar(1000) NOT NULL,
+  `metadata` json DEFAULT NULL,
+  `client_at` datetime DEFAULT NULL,
+  `platform` varchar(50) DEFAULT NULL,
+  `app_version` varchar(50) DEFAULT NULL,
+  `device_id` varchar(100) DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` varchar(512) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_app_log_event_type` (`event_type`),
+  KEY `idx_app_log_severity` (`severity`),
+  KEY `idx_app_log_client_at` (`client_at`),
+  KEY `idx_app_log_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
