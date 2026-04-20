@@ -878,6 +878,8 @@ class InventariosController extends Controller
             $img->url_picture = $url_pict;
             $img->save();
 
+            ImageService::createThumbnail($file, $request->user()->nombre_cliente, $filename);
+
             $paths[] = [
                 'url' => $url_pict,
                 'filename' => $filename
