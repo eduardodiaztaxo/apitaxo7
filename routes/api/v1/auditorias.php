@@ -57,7 +57,6 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2/auditoria')->
 
     Route::get('ciclos/{ciclo}/puntos/{punto}/codigo/{codigo}/subnivel/{subnivel}/group-families', [CiclosAuditoriaEmplazamientosController::class, 'showGroupFamilies']);
 
-
     Route::get('ciclos/{ciclo}/punto/{punto}/codigo/{codigo}/subnivel/{subnivel}/emplazamiento-with-assets-contain-group-family', [CiclosAuditoriaUbicacionesController::class, 'showEmplazamientosByCycleAndGrupFamily']);
 
     Route::post('conteo/ciclo/{ciclo}/punto/{punto}/codigo/{codigo}/subnivel/{subnivel}/resumen', [AuditoriaConteoController::class, 'showResumen']);
@@ -71,4 +70,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2/auditoria')->
     Route::delete('conteo/ciclo/{ciclo}/punto/{punto}/codigo/{codigo}/subnivel/{subnivel}/delete-sobrantes', [AuditoriaConteoController::class, 'deleteSobrantes']);
 
     Route::delete('conteo/ciclo/{ciclo}/punto/{punto}/codigo/{codigo}/subnivel/{subnivel}/reset-delete-auditoria', [AuditoriaConteoController::class, 'resetDeleteAuditoria']);
+
+    Route::get('ciclos/{ciclo}/puntos/{punto}/codigo/{codigo}/subnivel/{subnivel}/assets-global-contain-group-family', [CiclosAuditoriaEmplazamientosController::class, 'showAssetsGlobalByUbicacionAndSublevel']);
+
+    Route::get('ciclos/{ciclo}/puntos/{punto}/codigo/{codigo}/subnivel/{subnivel}/group-families-global', [CiclosAuditoriaEmplazamientosController::class, 'showGroupFamiliesGlobal']);
 });
