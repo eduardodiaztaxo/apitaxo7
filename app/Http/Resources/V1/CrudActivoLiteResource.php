@@ -3,6 +3,7 @@
 namespace App\Http\Resources\V1;
 
 use App\Services\ActivoService;
+use App\Services\ImageService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -76,10 +77,23 @@ class CrudActivoLiteResource extends JsonResource
 
         $imagenes = DB::table('crud_activos_pictures')
             ->where('etiqueta', $this->etiqueta)
-            ->pluck('url_imagen')
+            ->select(['url_imagen', 'url_picture', 'picture'])
+            ->get()
+            ->map(function ($foto) {
+                return [
+                    'original_url' => ImageService::buildOriginalUrl($foto->url_imagen, $foto->url_picture, $foto->picture),
+                    'thumb_url' => ImageService::buildThumbnailUrl($foto->url_picture, $foto->picture),
+                ];
+            })
+            ->filter()
+            ->values()
             ->toArray();
 
-        $fotoUrl = $imagenes[0] ?? asset('img/notavailable.jpg');
+        $originalUrls = array_values(array_unique(array_filter(array_map(fn ($foto) => $foto['original_url'] ?? null, $imagenes))));
+        $thumbUrls = array_values(array_unique(array_filter(array_map(fn ($foto) => $foto['thumb_url'] ?? null, $imagenes))));
+        $primaryThumbUrl = $thumbUrls[0] ?? null;
+
+        $fotoUrl = $originalUrls[0] ?? asset('img/notavailable.jpg');
 
 
 
@@ -97,6 +111,10 @@ class CrudActivoLiteResource extends JsonResource
         $activo['descripcion_grupo'] = $grupoDescripcion ?? '';
         //$activo['fotoUrl'] = $this->activoService->getUrlAsset($this->resource, $request->user());
         $activo['fotoUrl'] = $fotoUrl;
+        $activo['originalUrl'] = $originalUrls[0] ?? $fotoUrl;
+        $activo['thumbUrl'] = $primaryThumbUrl ?? $fotoUrl;
+        $activo['imagenes'] = $originalUrls;
+        $activo['thumbnails'] = $thumbUrls;
 
         return $activo;
     }

@@ -307,11 +307,14 @@ class CrudActivoController extends Controller
                     $imagenExistente->save();
 
                     ImageService::createThumbnail($file, $request->user()->nombre_cliente, $namefile);
+                    $thumbUrl = ImageService::buildThumbnailUrl($url_pict, $namefile);
 
                     return response()->json([
                         'status' => 'OK',
                         'message' => 'Imagen existente actualizada',
-                        'url' => $url_pict . $namefile
+                        'url' => $url_pict . $namefile,
+                        'original_url' => ImageService::buildOriginalUrl($url, $url_pict, $namefile),
+                        'thumb_url' => $thumbUrl ?? ImageService::buildThumbnailUrl($url_pict, $namefile),
                     ], 200);
                 }
             }
@@ -340,11 +343,14 @@ class CrudActivoController extends Controller
             $nuevaImagen->save();
 
             ImageService::createThumbnail($file, $request->user()->nombre_cliente, $namefile);
+            $thumbUrl = ImageService::buildThumbnailUrl($url_pict, $namefile);
 
             return response()->json([
                 'status' => 'OK',
                 'message' => 'Nueva imagen creada',
-                'url' => $url_pict . $namefile
+                'url' => $url_pict . $namefile,
+                'original_url' => ImageService::buildOriginalUrl($url, $url_pict, $namefile),
+                'thumb_url' => $thumbUrl ?? ImageService::buildThumbnailUrl($url_pict, $namefile),
             ], 201);
         }
 
@@ -359,6 +365,7 @@ class CrudActivoController extends Controller
         $url = ImageService::saveImageInMainOrSecondDisk($file, $request->user()->nombre_cliente, $namefile);
 
         $url_pict = dirname($url) . '/';
+        $thumbUrl = ImageService::saveActiveThumbnailInSecondDisk($file, $request->user()->nombre_cliente, $namefile);
 
         $ultimo = DB::table('crud_activos_pictures')
             ->where('id_activo', $idActivo)
@@ -388,7 +395,9 @@ class CrudActivoController extends Controller
 
         return response()->json([
             'status' => 'OK',
-            'url' => $url
+            'url' => $url,
+            'original_url' => ImageService::buildOriginalUrl($url, $url_pict, $namefile),
+            'thumb_url' => $thumbUrl ?? ImageService::buildThumbnailUrl($url_pict, $namefile),
         ], 201);
     }
 

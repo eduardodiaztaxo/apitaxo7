@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\V2;
 
+use App\Services\ImageService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Services\ActivoFinderService;
@@ -53,14 +54,23 @@ class InventariosResource extends JsonResource
 
         $fotos = $this->imagenes()->where('id_proyecto', $id_proyecto)->get();
 
-        $foto = $fotos->first();
-
-        $fotoUrl = $foto->url_imagen ?? asset('img/notavailable.jpg');
-
         $imagenes = $fotos
             ->sortByDesc('id_img')
-            ->pluck('url_imagen')
+            ->map(function ($foto) {
+                return [
+                    'original_url' => ImageService::buildOriginalUrl($foto->url_imagen, $foto->url_picture, $foto->picture),
+                    'thumb_url' => ImageService::getInventoryThumbnailUrlByPicture($foto->id_img, $foto->etiqueta, $foto->picture),
+                    'picture' => $foto->picture,
+                ];
+            })
+            ->values()
             ->toArray();
+
+        $originalUrls = array_values(array_unique(array_filter(array_map(fn ($foto) => $foto['original_url'] ?? null, $imagenes))));
+        $thumbUrls = array_values(array_unique(array_filter(array_map(fn ($foto) => $foto['thumb_url'] ?? null, $imagenes))));
+        $primaryThumbUrl = $thumbUrls[0] ?? null;
+
+        $fotoUrl = $originalUrls[0] ?? asset('img/notavailable.jpg');
 
         return [
             'id_inventario'        => $this->id_inventario,
@@ -76,8 +86,10 @@ class InventariosResource extends JsonResource
             'id_familia'           => $this->id_familia,
             'etiqueta'             => $this->etiqueta,
             'responsable'          => $this->responsable ?? 'Sin Registros',
-            'imagenes'             => $imagenes ?? [],
+            'imagenes'             => $originalUrls ?? [],
+            'thumbnails'           => $thumbUrls,
             'fotoUrl'              => $fotoUrl,
+            'originalUrl'          => $originalUrls[0] ?? $fotoUrl,
             'update_inv'           => $this->update_inv,
             'foto4'                => $fotoUrl,
             'emplazamiento'        => [

@@ -3,8 +3,8 @@
 namespace App\Http\Resources\V1;
 
 use App\Services\ActivoService;
+use App\Services\ImageService;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 
 class CrudActivoResource extends JsonResource
@@ -78,18 +78,37 @@ class CrudActivoResource extends JsonResource
             ->select(['url_imagen', 'url_picture', 'picture'])
             ->get()
             ->map(function ($foto) {
-                return $this->normalizeImageUrl($foto->url_imagen, $foto->url_picture, $foto->picture);
+                return [
+                    'original_url' => ImageService::buildOriginalUrl($foto->url_imagen, $foto->url_picture, $foto->picture),
+                    'thumb_url' => ImageService::buildThumbnailUrl($foto->url_picture, $foto->picture),
+                    'picture' => $foto->picture,
+                ];
             })
             ->filter()
             ->values()
             ->toArray();
 
-        $activo['fotoUrl'] = $imagenes[0] ?? null;
+        $originalUrls = array_values(array_unique(array_filter(array_map(fn ($foto) => $foto['original_url'] ?? null, $imagenes))));
+        $thumbUrls = array_values(array_unique(array_filter(array_map(fn ($foto) => $foto['thumb_url'] ?? null, $imagenes))));
+        $primaryThumbUrl = $thumbUrls[0] ?? null;
+
+        $activo['fotoUrl'] = $originalUrls[0] ?? null;
+        $activo['originalUrl'] = $originalUrls[0] ?? null;
+        $activo['thumbUrl'] = $primaryThumbUrl;
 
         if ($request->user() && !$activo['fotoUrl'])
             $activo['fotoUrl'] = $this->activoService->getUrlAsset($this->resource, $request->user());
 
-        $activo['imagenes'] = $imagenes ?? [];
+        if (!$activo['originalUrl']) {
+            $activo['originalUrl'] = $activo['fotoUrl'];
+        }
+
+        if (!$activo['thumbUrl']) {
+            $activo['thumbUrl'] = $originalUrls[0] ?? null;
+        }
+
+        $activo['imagenes'] = $originalUrls ?? [];
+        $activo['thumbnails'] = $thumbUrls;
         $activo['tipo_ciclo'] = $this->ciclo_obj ? $this->ciclo_obj->idTipoCiclo : null;
 
         $ubicacion = $this->ubicacionGeografica()->first();
@@ -110,32 +129,4 @@ class CrudActivoResource extends JsonResource
         return $activo;
     }
 
-    /**
-     * Normalize the stored picture data into a single usable URL.
-     *
-     * @param  string|null  $urlImagen
-     * @param  string|null  $urlPicture
-     * @param  string|null  $picture
-     * @return string|null
-     */
-    private function normalizeImageUrl($urlImagen, $urlPicture, $picture)
-    {
-        if (!empty($urlImagen) && $urlImagen !== '0') {
-            return $urlImagen;
-        }
-
-        if (empty($urlPicture) && empty($picture)) {
-            return null;
-        }
-
-        if (empty($picture)) {
-            return $urlPicture;
-        }
-
-        if (!empty($urlPicture) && Str::endsWith($urlPicture, $picture)) {
-            return $urlPicture;
-        }
-
-        return rtrim((string) $urlPicture, '/') . '/' . ltrim((string) $picture, '/');
-    }
 }

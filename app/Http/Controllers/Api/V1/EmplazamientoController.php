@@ -22,6 +22,7 @@ use App\Models\EmplazamientoN3;
 use App\Models\Inventario;
 use App\Models\ZonaPunto;
 use App\Services\PlaceService;
+use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -451,7 +452,7 @@ class EmplazamientoController extends Controller
      * @param int $ciclo
      * @param int $nivel
      * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function showTodosAssets(int $idAgenda, int $ciclo, int $nivel, string $codigoUbicacion, Request $request)
     {
@@ -528,7 +529,7 @@ class EmplazamientoController extends Controller
                 'last' => $assets->url($assets->lastPage()),
                 'prev' => $assets->previousPageUrl(),
                 'next' => $assets->nextPageUrl(),
-            ], // Devolución paginada sin pasar por el Resource
+            ], 
         ]);
     }
 
@@ -537,6 +538,13 @@ class EmplazamientoController extends Controller
         $pictures = DB::table('crud_activos_pictures')
             ->where('etiqueta', $etiqueta)
             ->get();
+
+        $pictures = $pictures->map(function ($picture) {
+            $picture->original_url = ImageService::buildOriginalUrl($picture->url_imagen, $picture->url_picture, $picture->picture);
+            $picture->thumb_url = ImageService::buildThumbnailUrl($picture->url_picture, $picture->picture);
+
+            return $picture;
+        });
 
         return response()->json([
             'status' => 'OK',

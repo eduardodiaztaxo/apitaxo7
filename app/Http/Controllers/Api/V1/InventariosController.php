@@ -682,7 +682,20 @@ class InventariosController extends Controller
                 ], 404);
             }
 
+            $thumbName = ImageService::buildThumbnailName($imagen->picture);
+            $thumbPath = PictureSafinService::getImgSubdir(Auth::user()->nombre_cliente) . '/' . $thumbName;
+
             ImageService::deleteImageInMainOrSecondDisk(Auth::user()->nombre_cliente, $imagen->picture);
+
+            if (Storage::disk('taxoImages')->exists($thumbPath)) {
+                Storage::disk('taxoImages')->delete($thumbPath);
+            }
+
+            DB::table('inv_imagenes_thumbnails')
+                ->where('id_img', $imagen->id_img)
+                ->where('etiqueta', $imagen->etiqueta)
+                ->where('picture', $thumbName)
+                ->delete();
 
             $imagen->delete();
 
@@ -718,7 +731,7 @@ class InventariosController extends Controller
         if (Storage::disk('taxoImages')->exists($filePath)) {
             Storage::disk('taxoImages')->delete($filePath);
         }
-        ImageService::deleteImageInMainOrSecondDisk(Auth::user()->nombre_cliente, $imagen->picture);
+        ImageService::deleteImageInMainOrSecondDisk(Auth::user()->nombre_cliente, $imagenCrud->picture);
 
         DB::table('crud_activos_pictures')
             ->where('id_foto', $imagenCrud->id_foto)
@@ -1033,6 +1046,8 @@ class InventariosController extends Controller
                     $img->url_picture  = $url_pict;
                     $img->id_proyecto  = $idProyecto;
                     $img->save();
+
+                    ImageService::createThumbnail($file, $request->user()->nombre_cliente, $filename);
                 }
 
                 $paths[] = [

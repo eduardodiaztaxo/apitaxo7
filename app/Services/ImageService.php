@@ -35,12 +35,7 @@ class ImageService
         $ext = 'jpg';
 
         if ($img->width() > 1024) {
-
-            $height = round($img->height() * 1024 / $img->width());
-
-            $img->resize(1024, $height, function ($constraint) {
-                $constraint->aspectRatio();
-            });
+            $img->scale(width: 1024);
         }
 
 
@@ -87,12 +82,7 @@ class ImageService
         $ext = 'jpg';
 
         if ($img->width() > 1024) {
-
-            $height = round($img->height() * 1024 / $img->width());
-
-            $img->resize(1024, $height, function ($constraint) {
-                $constraint->aspectRatio();
-            });
+            $img->scale(width: 1024);
         }
 
 
@@ -212,6 +202,7 @@ class ImageService
 
             $thumb = Inv_imagenes_thumbnails::where('id_img', $parentImage->id_img)
                 ->where('etiqueta', $parentImage->etiqueta)
+                ->where('picture', $thumbName)
                 ->first();
 
             if ($thumb && $thumb->picture && $thumb->picture !== $thumbName) {
@@ -240,6 +231,141 @@ class ImageService
 
             return null;
         }
+    }
+
+    /**
+     * Save only the thumbnail version of an active image in the secondary disk.
+     *
+     * @param  \Illuminate\Http\UploadedFile $file
+     * @param  string  $customer_name
+     * @param  string  $namefile
+     * @return string|null
+     */
+    public static function saveActiveThumbnailInSecondDisk(UploadedFile $file, string $customer_name, string $namefile): string|null
+    {
+        try {
+            $thumbName = self::buildThumbnailName($namefile);
+            $thumbPath = PictureSafinService::getImgSubdir($customer_name) . '/' . $thumbName;
+
+            $img = Image::read($file->getRealPath());
+            $img->scale(width: 96);
+
+            $encodedThumb = $img->encode(new WebpEncoder(quality: 60))->toString();
+
+            if (Storage::disk('taxoImages')->put($thumbPath, $encodedThumb)) {
+                return Storage::disk('taxoImages')->url($thumbPath);
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error guardando miniatura de activo: ' . $e->getMessage());
+        }
+
+        return null;
+    }
+
+    /**
+     * Build the thumbnail filename for a stored image.
+     */
+    public static function buildThumbnailName(string $namefile): string
+    {
+        return 'thumb_' . pathinfo($namefile, PATHINFO_FILENAME) . '.webp';
+    }
+
+    /**
+     * Build the thumbnail URL from the stored folder URL and original filename.
+     */
+    public static function buildThumbnailUrl(?string $urlPicture, ?string $namefile): ?string
+    {
+        if (empty($urlPicture) || empty($namefile)) {
+            return null;
+        }
+
+        return rtrim($urlPicture, '/') . '/' . self::buildThumbnailName($namefile);
+    }
+
+    /**
+     * Normalize the original image URL from the stored values.
+     */
+    public static function buildOriginalUrl(?string $urlImagen, ?string $urlPicture, ?string $namefile): ?string
+    {
+        if (!empty($urlImagen) && $urlImagen !== '0') {
+            return $urlImagen;
+        }
+
+        if (empty($urlPicture) || empty($namefile)) {
+            return null;
+        }
+
+        return rtrim($urlPicture, '/') . '/' . ltrim($namefile, '/');
+    }
+
+    /**
+     * Get the thumbnail URL only if the thumbnail record exists in DB.
+     *
+     * @param  int|null  $idImg
+     * @param  string|null  $etiqueta
+     * @return string|null
+     */
+    public static function getInventoryThumbnailUrl(?int $idImg, ?string $etiqueta): ?string
+    {
+        if (!$idImg || empty($etiqueta)) {
+            return null;
+        }
+
+        $thumb = Inv_imagenes_thumbnails::where('id_img', $idImg)
+            ->where('etiqueta', $etiqueta)
+            ->orderByDesc('idLista')
+            ->first(['url_imagen', 'url_picture', 'picture']);
+
+        if (!$thumb) {
+            return null;
+        }
+
+        if (!empty($thumb->url_imagen) && $thumb->url_imagen !== '0') {
+            return $thumb->url_imagen;
+        }
+
+        if (empty($thumb->url_picture) || empty($thumb->picture)) {
+            return null;
+        }
+
+        return rtrim($thumb->url_picture, '/') . '/' . ltrim($thumb->picture, '/');
+    }
+
+    /**
+     * Get the thumbnail URL for a specific inventory image file only if the thumbnail record exists in DB.
+     *
+     * @param  int|null  $idImg
+     * @param  string|null  $etiqueta
+     * @param  string|null  $picture
+     * @return string|null
+     */
+    public static function getInventoryThumbnailUrlByPicture(?int $idImg, ?string $etiqueta, ?string $picture): ?string
+    {
+        if (!$idImg || empty($etiqueta) || empty($picture)) {
+            return null;
+        }
+
+        $thumbName = self::buildThumbnailName($picture);
+
+        $thumb = Inv_imagenes_thumbnails::where('id_img', $idImg)
+            ->where('etiqueta', $etiqueta)
+            ->where('picture', $thumbName)
+            ->orderByDesc('idLista')
+            ->first(['url_imagen', 'url_picture', 'picture']);
+
+        if (!$thumb) {
+            return null;
+        }
+
+        if (!empty($thumb->url_imagen) && $thumb->url_imagen !== '0') {
+            return $thumb->url_imagen;
+        }
+
+        if (empty($thumb->url_picture) || empty($thumb->picture)) {
+            return null;
+        }
+
+        return rtrim($thumb->url_picture, '/') . '/' . ltrim($thumb->picture, '/');
     }
 
     /**
