@@ -10,7 +10,7 @@ use App\Services\ProyectoUsuarioService;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\DB;
 
-class EmplazamientoNivel3Resource extends JsonResource
+class EmplazamientoNivel4Resource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -25,30 +25,31 @@ class EmplazamientoNivel3Resource extends JsonResource
 
         $num_activos_inv = $this->inv_activos()->where('inv_inventario.id_ciclo', $this->cycle_id)->where('inv_inventario.id_proyecto', $id_proyecto)->count();
 
-        $ubicacionN2 = $this->emplazamientoN2()->first();
+        $ubicacionN3 = $this->emplazamientoN3()->first();
 
         $emplazamiento = [
             'ciclo' => $this->cycle_id,
             'id_proyecto' => $id_proyecto,
-            'id' => $this->idUbicacionN3,
+            'id' => $this->idUbicacionN4,
             'codigo' => $this->codigo,
             'codigoUbicacion' => $this->codigoUbicacion,
             'nombre' => $this->descripcionUbicacion,
             'idAgenda' => $this->idAgenda,
-            'idUbicacionN3' => $this->idUbicacionN3,
-            'idUbicacionN2' => $ubicacionN2 ? $ubicacionN2->idUbicacionN2 : null,
-            'detalle' => 'Detalle Emplazamiento (N3)',
-            'num_nivel' => 'N3',
-            'next_level' => 'N4',
+            'idUbicacionN4' => $this->idUbicacionN4,
+            'idUbicacionN3' => $ubicacionN3 ? $ubicacionN3->idUbicacionN3 : null,
+            'detalle' => 'Detalle Emplazamiento (N4)',
+            'num_nivel' => 'N4',
+            'next_level' => '',
             'newApp' => $this->newApp,
             'modo' => $this->modo,
-            'habilitadoNivel3' => 0,
+            'habilitadoNivel4' => 0,
             'num_activos' => 0,
             'num_activos_audit' => 0,
             'num_activos_inv' => $num_activos_inv,
             'num_activos_N1' => null,
             'num_activos_N2' => null,
-            'num_activos_N3' => $num_activos_inv,
+            'num_activos_N3' => null,
+            'num_activos_N4' => $num_activos_inv,
             'num_activos_cats_by_cycle' => 0,
             'ciclo_auditoria' => 0,
             'num_categorias' => $this->activos()->select('categoriaN3')->groupBy('categoriaN3')->get()->count(),

@@ -469,6 +469,27 @@ LEFT JOIN (
         return collect(DB::select($sql, [$this->idCiclo, $zona->idAgenda]));
     }
 
+    public function EmplazamientosWithCatsN4(EmplazamientoN4 $zona)
+    {
+        $sql = "
+        SELECT DISTINCT
+            ubicaciones_n4.idUbicacionN1 AS idUbicacionN1,
+            ubicaciones_n4.idAgenda AS punto,
+            ubicaciones_n4.codigoUbicacion AS emplazamiento
+        FROM inv_ciclos
+        INNER JOIN inv_ciclos_puntos 
+            ON inv_ciclos.idCiclo = inv_ciclos_puntos.idCiclo
+        INNER JOIN ubicaciones_n4 
+            ON inv_ciclos_puntos.idPunto = ubicaciones_n4.idAgenda
+        INNER JOIN inv_ciclos_categorias 
+            ON inv_ciclos.idCiclo = inv_ciclos_categorias.idCiclo
+        WHERE inv_ciclos.idCiclo = ?
+            AND ubicaciones_n4.idAgenda = ?
+    ";
+
+        return collect(DB::select($sql, [$this->idCiclo, $zona->idAgenda]));
+    }
+
     public function emplazamientos_with_cats()
     {
 

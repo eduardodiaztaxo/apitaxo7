@@ -9,6 +9,7 @@ use App\Http\Resources\V2\EmplazamientoNivel1Resource;
 use App\Http\Resources\V2\EmplazamientoNivel2LiteResource;
 use App\Http\Resources\V2\EmplazamientoNivel2Resource;
 use App\Http\Resources\V2\EmplazamientoNivel3LiteResource;
+use App\Http\Resources\V2\EmplazamientoNivel4Resource;
 use App\Services\ActivoFinderService;
 use App\Services\ProyectoUsuarioService;
 use App\Models\InvCiclo;
@@ -18,6 +19,7 @@ use App\Models\Region;
 use App\Models\EmplazamientoN3;
 use App\Models\EmplazamientoN1;
 use App\Models\Emplazamiento;
+use App\Models\EmplazamientoN4;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -150,6 +152,45 @@ class ZonaEmplazamientosController extends Controller
         }
 
         return response()->json(EmplazamientoNivel3Resource::collection($emplazamientos), 200);
+    }
+
+
+    public function CycleCatsNivel4(Request $request, int $ciclo, string $codigo, int $agenda_id)
+    {
+
+
+        $zonaObjs = EmplazamientoN4::where('codigoUbicacion', 'LIKE', $codigo . '%')->where('idAgenda', '=', $agenda_id)->get();
+
+        if ($zonaObjs->isEmpty()) {
+            return response()->json([], 200);
+        }
+
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json([
+                'status' => 'NOK',
+                'message' => 'Ciclo no encontrado',
+                'code' => 404
+            ], 404);
+        }
+
+        $emplazamientos = collect();
+
+        foreach ($zonaObjs as $zonaObj) {
+            $emplaCats = $cicloObj->EmplazamientosWithCatsN4($zonaObj)->pluck('idUbicacionN3')->toArray();
+
+            $subEmplas = empty($emplaCats)
+                ? $zonaObj->subemplazamientosNivel4()->get()
+                : $zonaObj->subemplazamientosNivel4()->whereIn('idUbicacionN3', $emplaCats)->get();
+
+            foreach ($subEmplas as $sub) {
+                $sub->cycle_id = $ciclo;
+                $emplazamientos->push($sub);
+            }
+        }
+
+        return response()->json(EmplazamientoNivel4Resource::collection($emplazamientos), 200);
     }
 
 

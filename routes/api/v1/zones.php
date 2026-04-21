@@ -17,6 +17,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::get('ciclos/{ciclo}/zones/{zona}/Subemplazamientos/{agenda_id}', [ZonaEmplazamientosController::class, 'CycleCatsNivel3']);
 
+    Route::get('ciclos/{ciclo}/codigo/{codigo}/emplazamientos-n4/{agenda_id}', [ZonaEmplazamientosController::class, 'CycleCatsNivel4']);
+
     Route::get('ciclos/{ciclo}/zones/{zona}/activos/etiquetas', [ZonasActivosController::class, 'showOnlyLabelsByCycleCats']);
 
     Route::get('ciclos/{ciclo}/zones/{zona}', [ZonaController::class, 'showByCycleCats']);
@@ -28,5 +30,4 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
     Route::get('zones/{zona}/{id_ciclo}', [ZonaController::class, 'show_Direccion']);
 
     Route::post('zones', [ZonaController::class, 'store']);
-
 });
