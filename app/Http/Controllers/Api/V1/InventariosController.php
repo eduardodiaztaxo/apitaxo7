@@ -111,7 +111,7 @@ class InventariosController extends Controller
                 ->where('codigoUbicacion', $request->codigoUbicacion)
                 ->where('idAgenda', $request->idAgenda)
                 ->value('idUbicacionN2');
-        } else {
+        } else if (strlen($request->codigoUbicacion) === 6) {
             // Nivel 3
             $codigoUbicacionN3 = $request->codigoUbicacion;
 
@@ -119,6 +119,9 @@ class InventariosController extends Controller
                 ->where('codigoUbicacion', $request->codigoUbicacion)
                 ->where('idAgenda', $request->idAgenda)
                 ->value('idUbicacionN3');
+        } else if (strlen($request->codigoUbicacion) === 8) {
+            // Nivel 4
+            $codigoUbicacionN4 = $request->codigoUbicacion;
         }
 
         /** AHORA: TODAS LOS BIENES CLONADOS REQUIEREN FOTOS */
@@ -213,7 +216,7 @@ class InventariosController extends Controller
         $inventario->codigoUbicacion_N2  = $codigoUbicacion_N2 ?? 0;
         $inventario->codigoUbicacion_N1  = $codigoUbicacion_N1 ?? 0;
         $inventario->idUbicacionN3       = $idUbicacionN3 ?? 0;
-        $inventario->codigoUbicacionN4   = 0;
+        $inventario->codigoUbicacionN4   = $codigoUbicacionN4 ?? 0;
         $inventario->responsable         = $responsable;
         $inventario->idResponsable       = $getIdResponsable;
         $inventario->codigoUbicacionN3   = $codigoUbicacionN3 ?? 0;
