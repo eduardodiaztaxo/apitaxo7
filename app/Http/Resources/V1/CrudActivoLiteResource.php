@@ -77,12 +77,12 @@ class CrudActivoLiteResource extends JsonResource
 
         $imagenes = DB::table('crud_activos_pictures')
             ->where('etiqueta', $this->etiqueta)
-            ->select(['url_imagen', 'url_picture', 'picture'])
+            ->select(['id_foto', 'etiqueta', 'url_imagen', 'url_picture', 'picture'])
             ->get()
             ->map(function ($foto) {
                 return [
                     'original_url' => ImageService::buildOriginalUrl($foto->url_imagen, $foto->url_picture, $foto->picture),
-                    'thumb_url' => ImageService::buildThumbnailUrl($foto->url_picture, $foto->picture),
+                    'thumb_url' => ImageService::getCrudThumbnailUrlByPicture($foto->id_foto, $foto->etiqueta, $foto->picture),
                 ];
             })
             ->filter()

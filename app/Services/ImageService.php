@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Inv_imagenes;
+use App\Models\Crud_imagenes_thumbnails;
 use App\Models\Inv_imagenes_thumbnails;
 use App\Services\Imagenes\PictureSafinService;
 use Illuminate\Database\Eloquent\Model;
@@ -234,6 +235,56 @@ class ImageService
     }
 
     /**
+     * Save a CRUD active thumbnail row in the dedicated thumbnails table.
+     */
+    public static function saveCrudThumbnailInDB(string $url, int $idImg, string $etiqueta, string $origen, int $idProyecto, string $namefile, ?int $qDescargas = null): Model|null
+    {
+        try {
+            $thumbName = self::buildThumbnailName($namefile);
+
+            $thumb = Crud_imagenes_thumbnails::where('id_img', $idImg)
+                ->where('etiqueta', $etiqueta)
+                ->where('picture', $thumbName)
+                ->first();
+
+            $thumb = $thumb ?? new Crud_imagenes_thumbnails();
+            $thumb->id_img = $idImg;
+            $thumb->origen = $origen;
+            $thumb->etiqueta = $etiqueta;
+            $thumb->picture = $thumbName;
+            $thumb->url_imagen = $url;
+            $thumb->url_picture = dirname($url) . '/';
+            $thumb->id_proyecto = $idProyecto;
+            $thumb->q_descargas = $qDescargas;
+            $thumb->save();
+
+            return $thumb;
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error guardando miniatura CRUD en DB: ' . $e->getMessage(), [
+                'idImg' => $idImg,
+                'etiqueta' => $etiqueta,
+                'namefile' => $namefile,
+                'url' => $url,
+            ]);
+
+            return null;
+        }
+    }
+
+    /**
+     * Create and persist the thumbnail row for a CRUD active image.
+     */
+    public static function createCrudThumbnail(UploadedFile $file, string $customer_name, string $namefile, int $idImg, string $etiqueta, string $origen, int $idProyecto, ?int $qDescargas = null): Model|null
+    {
+        $path = self::saveThumbnailInSecondDisk($file, $customer_name, $namefile);
+        if (!$path) {
+            return null;
+        }
+
+        return self::saveCrudThumbnailInDB($path, $idImg, $etiqueta, $origen, $idProyecto, $namefile, $qDescargas);
+    }
+
+    /**
      * Save only the thumbnail version of an active image in the secondary disk.
      *
      * @param  \Illuminate\Http\UploadedFile $file
@@ -348,6 +399,38 @@ class ImageService
         $thumbName = self::buildThumbnailName($picture);
 
         $thumb = Inv_imagenes_thumbnails::where('id_img', $idImg)
+            ->where('etiqueta', $etiqueta)
+            ->where('picture', $thumbName)
+            ->orderByDesc('idLista')
+            ->first(['url_imagen', 'url_picture', 'picture']);
+
+        if (!$thumb) {
+            return null;
+        }
+
+        if (!empty($thumb->url_imagen) && $thumb->url_imagen !== '0') {
+            return $thumb->url_imagen;
+        }
+
+        if (empty($thumb->url_picture) || empty($thumb->picture)) {
+            return null;
+        }
+
+        return rtrim($thumb->url_picture, '/') . '/' . ltrim($thumb->picture, '/');
+    }
+
+    /**
+     * Get the thumbnail URL for a CRUD active image only if the thumbnail record exists in DB.
+     */
+    public static function getCrudThumbnailUrlByPicture(?int $idImg, ?string $etiqueta, ?string $picture): ?string
+    {
+        if (!$idImg || empty($etiqueta) || empty($picture)) {
+            return null;
+        }
+
+        $thumbName = self::buildThumbnailName($picture);
+
+        $thumb = Crud_imagenes_thumbnails::where('id_img', $idImg)
             ->where('etiqueta', $etiqueta)
             ->where('picture', $thumbName)
             ->orderByDesc('idLista')
