@@ -354,7 +354,10 @@ class AuditLabelsService
             ->where('global_general', '=', $isGlobal ? 1 : 0);
 
 
-        if (!in_array($codigo, ['0', '']) && strlen($codigo) > 1 && $subnivel > 0) {
+        if (!in_array($codigo, ['0', 0, '']) && strlen($codigo) > 1 && $subnivel > 0) {
+            $queryBuilder = $queryBuilder->where('codigo_ubicacion', '=', $codigo)
+                ->where('sublevel', '=', $subnivel);
+        } else if (in_array($codigo, ['0', 0]) && $subnivel === 0) {
             $queryBuilder = $queryBuilder->where('codigo_ubicacion', '=', $codigo)
                 ->where('sublevel', '=', $subnivel);
         }
