@@ -49,12 +49,13 @@ class EmplazamientoN4 extends Model
 
     public function inv_activos_with_child_levels()
     {
-        return $this->hasMany(Inventario::class, 'idUbicacionN4', 'idUbicacionN4');
+        return $this->hasMany(Inventario::class, 'codigoUbicacionN4', 'codigoUbicacion')->where('idUbicacionGeo', $this->idAgenda);
     }
 
     public function inv_group_families()
     {
-        return $this->inv_group_families_with_child_levels()->whereRaw('LENGTH(inv_inventario.codigoUbicacionN5) < 2');
+        //return $this->inv_group_families_with_child_levels()->whereRaw('LENGTH(inv_inventario.codigoUbicacionN5) < 2');
+        return $this->inv_group_families_with_child_levels();
     }
 
     public function inv_group_families_with_child_levels()
@@ -102,6 +103,12 @@ class EmplazamientoN4 extends Model
     {
         return EmplazamientoN3::where('idAgenda', $this->idAgenda)
             ->where('codigoUbicacion', substr($this->codigoUbicacion, 0, 6));
+    }
+
+    public function subemplazamientosNivel4()
+    {
+
+        return $this->hasMany(EmplazamientoN4::class, 'idAgenda', 'idAgenda')->where('codigoUbicacion', $this->codigoUbicacion);
     }
 
     public function zonaPunto()

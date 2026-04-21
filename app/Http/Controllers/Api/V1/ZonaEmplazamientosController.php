@@ -10,6 +10,7 @@ use App\Http\Resources\V2\EmplazamientoNivel2LiteResource;
 use App\Http\Resources\V2\EmplazamientoNivel2Resource;
 use App\Http\Resources\V2\EmplazamientoNivel3LiteResource;
 use App\Http\Resources\V2\EmplazamientoNivel4Resource;
+use App\Http\Resources\V2\EmplazamientoNivel4Resource as V2EmplazamientoNivel4Resource;
 use App\Services\ActivoFinderService;
 use App\Services\ProyectoUsuarioService;
 use App\Models\InvCiclo;
@@ -178,11 +179,11 @@ class ZonaEmplazamientosController extends Controller
         $emplazamientos = collect();
 
         foreach ($zonaObjs as $zonaObj) {
-            $emplaCats = $cicloObj->EmplazamientosWithCatsN4($zonaObj)->pluck('idUbicacionN3')->toArray();
+            $emplaCats = $cicloObj->EmplazamientosWithCatsN4($zonaObj)->pluck('idUbicacionN4')->toArray();
 
             $subEmplas = empty($emplaCats)
                 ? $zonaObj->subemplazamientosNivel4()->get()
-                : $zonaObj->subemplazamientosNivel4()->whereIn('idUbicacionN3', $emplaCats)->get();
+                : $zonaObj->subemplazamientosNivel4()->whereIn('idUbicacionN4', $emplaCats)->get();
 
             foreach ($subEmplas as $sub) {
                 $sub->cycle_id = $ciclo;

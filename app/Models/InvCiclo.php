@@ -473,7 +473,7 @@ LEFT JOIN (
     {
         $sql = "
         SELECT DISTINCT
-            ubicaciones_n4.idUbicacionN1 AS idUbicacionN1,
+            ubicaciones_n4.idUbicacionN4 AS idUbicacionN4,
             ubicaciones_n4.idAgenda AS punto,
             ubicaciones_n4.codigoUbicacion AS emplazamiento
         FROM inv_ciclos
