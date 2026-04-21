@@ -35,9 +35,10 @@ class UbicacionGeograficaAuditoriaResource extends JsonResource
     {
 
         //Buscar esta relación
-        $id_estado = $this->ciclos_puntos->where('idCiclo', $this->cycle->idCiclo)->pluck('id_estado')->first();
+        $cp = $this->ciclos_puntos->where('idCiclo', $this->cycle->idCiclo)->first();
 
-
+        $id_estado = $cp ? $cp->id_estado : null;
+        $auditoria_general = $cp ? $cp->auditoria_general : null;
 
         $descripcionEstado = null;
 
@@ -67,7 +68,7 @@ class UbicacionGeograficaAuditoriaResource extends JsonResource
             'estadoGeo'     => $this->estadoGeo,
             'id_estado'     => ($id_estado && $descripcionEstado) ? $id_estado : 1,
             'estado_punto'  => ($id_estado && $descripcionEstado) ? $descripcionEstado : 'ABIERTO',
-            'auditoria_general' => 1,
+            'auditoria_general' => $auditoria_general,
             'newApp'        => $this->newApp,
             'modo'          => $this->modo,
             'zonas_punto'   => [],

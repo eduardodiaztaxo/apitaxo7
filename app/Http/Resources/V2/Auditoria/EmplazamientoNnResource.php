@@ -93,7 +93,9 @@ class EmplazamientoNnResource extends JsonResource
 
         $global_num_activos_audit = InvConteoRegistro::where('ciclo_id', '=', $this->cycle->idCiclo)
             ->where('punto_id', '=', $this->idAgenda)
-            ->where('codigo_ubicacion', 'LIKE', $this->codigoUbicacion . '%')
+            ->where('codigo_ubicacion', '=', $this->codigoUbicacion)
+            ->where('global_general', '=', 1)
+            ->where('sublevel', $this->subnivel)
             ->where('status', '=', 1)
             ->whereIn('audit_status', [CrudActivo::AUDIT_STATUS_COINCIDENTE, CrudActivo::AUDIT_STATUS_SOBRANTE])
             ->count();

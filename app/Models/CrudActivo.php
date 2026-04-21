@@ -255,6 +255,47 @@ class CrudActivo extends Model
         int $rows = 0
     ) {
 
+        $queryBuilder = self::queryBuilderAsset_Audit_ConfigCycle_FindInAddressGroupFamily_Pagination_Base($cicloObj, $punto, $codigo, $sublevel, $keyword, $from, $rows);
+
+
+        $queryBuilder = self::applySublevelFilter($queryBuilder, $codigo, $sublevel);
+
+
+        return $queryBuilder;
+    }
+
+
+    public static function queryBuilderAssetGlobal_Audit_ConfigCycle_FindInAddressGroupFamily_Pagination(
+        InvCiclo $cicloObj,
+        int $punto,
+        string $codigo,
+        int $sublevel,
+        string $keyword = '',
+        int $from = 0,
+        int $rows = 0
+    ) {
+
+
+        $queryBuilder = self::queryBuilderAsset_Audit_ConfigCycle_FindInAddressGroupFamily_Pagination_Base($cicloObj, $punto, $codigo, $sublevel, $keyword, $from, $rows);
+
+
+        $queryBuilder = self::applySublevelGlobalFilter($queryBuilder, $codigo, $sublevel);
+
+
+        return $queryBuilder;
+    }
+
+
+    private static function queryBuilderAsset_Audit_ConfigCycle_FindInAddressGroupFamily_Pagination_Base(
+        InvCiclo $cicloObj,
+        int $punto,
+        string $codigo,
+        int $sublevel,
+        string $keyword = '',
+        int $from = 0,
+        int $rows = 0
+    ) {
+
 
 
         $queryBuilder = $cicloObj->activos_with_cats();
@@ -263,6 +304,17 @@ class CrudActivo extends Model
             $queryBuilder = $queryBuilder->where('crud_activos.ubicacionGeografica', '=', $punto);
         }
 
+        $queryBuilder = self::applyKeywordSearchFilter($queryBuilder, $keyword);
+
+        $queryBuilder = self::applyPagination($queryBuilder, $from, $rows);
+
+
+        return $queryBuilder;
+    }
+
+
+    private static function applySublevelFilter($queryBuilder, $codigo, $sublevel)
+    {
         if ($sublevel > 0 && strlen($codigo) > 1) {
             $placeField = 'crud_activos.ubicacionOrganicaN' . $sublevel;
             $nexPlaceField = 'crud_activos.ubicacionOrganicaN' . ($sublevel + 1);
@@ -281,9 +333,24 @@ class CrudActivo extends Model
             }
         }
 
+        return $queryBuilder;
+    }
+
+
+    private static function applySublevelGlobalFilter($queryBuilder, $codigo, $sublevel)
+    {
+        if ($sublevel > 0 && $sublevel < 6 && strlen($codigo) > 1) {
+            $placeField = 'crud_activos.ubicacionOrganicaN' . $sublevel;
+
+            $queryBuilder = $queryBuilder->where($placeField, '=', $codigo);
+        }
+
+        return $queryBuilder;
+    }
+
+    private static function applyKeywordSearchFilter($queryBuilder, $keyword)
+    {
         if (!!keyword_is_searcheable($keyword)) {
-
-
 
             $complete_word = trim($keyword);
             $possible_name_words = keyword_search_terms_from_keyword($keyword);
@@ -313,6 +380,11 @@ class CrudActivo extends Model
             }
         }
 
+        return $queryBuilder;
+    }
+
+    private static function applyPagination($queryBuilder, $from, $rows)
+    {
         if ($from && $rows) {
             $offset = $from - 1;
             $limit = $rows;

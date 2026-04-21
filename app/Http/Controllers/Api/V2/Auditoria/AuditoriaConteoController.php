@@ -40,6 +40,8 @@ class AuditoriaConteoController extends Controller
         Request $request
     ) {
 
+        $isGlobalAudit = $request->global === 1 || $request->global === '1';
+
         $this->validateCodigoSubnivel($request, $codigo, $subnivel);
 
         $cicloObj = InvCiclo::find($ciclo);
@@ -53,11 +55,12 @@ class AuditoriaConteoController extends Controller
             $ciclo,
             $punto,
             $codigo,
-            $subnivel
+            $subnivel,
+            $isGlobalAudit
         );
 
         //Etiquetas que debieran estar
-        $tags = ActivoService::getTagsByCycleAndAnyPlace($cicloObj, $punto, $codigo, $subnivel);
+        $tags = ActivoService::getTagsByCycleAndAnyPlace($cicloObj, $punto, $codigo, $subnivel, $isGlobalAudit);
 
         //etiquetas encontradas en el conteo, que se corresponden con las que debían estar
         $foundTags = $request->foundTags ?? [];
@@ -96,6 +99,8 @@ class AuditoriaConteoController extends Controller
         int $subnivel,
         Request $request
     ) {
+
+        $isGlobalAudit = $request->global === 1 || $request->global === '1';
         // Similar a showResumen, pero en lugar de devolver solo el resumen, devuelve los activos encontrados, faltantes y sobrantes con su información detallada.
         // Se puede reutilizar la lógica de showResumen para obtener las etiquetas coincidentes, faltantes y sobrantes, y luego hacer consultas adicionales para obtener la información de cada activo.
 
@@ -113,11 +118,12 @@ class AuditoriaConteoController extends Controller
             $ciclo,
             $punto,
             $codigo,
-            $subnivel
+            $subnivel,
+            $isGlobalAudit
         );
 
         //Etiquetas que debieran estar
-        $tags = ActivoService::getTagsByCycleAndAnyPlace($cicloObj, $punto, $codigo, $subnivel);
+        $tags = ActivoService::getTagsByCycleAndAnyPlace($cicloObj, $punto, $codigo, $subnivel, $isGlobalAudit);
 
         //etiquetas encontradas en el conteo, que se corresponden con las que debían estar
         $foundTags = $request->foundTags ?? [];
@@ -146,6 +152,7 @@ class AuditoriaConteoController extends Controller
                 0,
                 0
             );
+
 
             //Está en el lugar o está como sobrante pero en otro lugar
             $etiquetas_aceptadas = $queryBuilder->orWhere(function ($query) use ($sobrantes) {
@@ -203,6 +210,8 @@ class AuditoriaConteoController extends Controller
         Request $request
     ) {
 
+        $isGlobalAudit = $request->global === 1 || $request->global === '1';
+
         $this->validateCodigoSubnivel($request, $codigo, $subnivel);
 
         $cicloObj = InvCiclo::find($ciclo);
@@ -214,22 +223,16 @@ class AuditoriaConteoController extends Controller
 
 
         //Se consulta todo pero sin paginar
-        $queryBuilder = CrudActivo::queryBuilderAsset_Audit_ConfigCycle_FindInAddressGroupFamily_Pagination(
-            $cicloObj,
-            $punto,
-            $codigo,
-            $subnivel,
-            '',
-            0,
-            0
-        );
+
+
+        $tags = ActivoService::getTagsByCycleAndAnyPlace($cicloObj, $punto, $codigo, $subnivel, $isGlobalAudit);
 
 
 
 
         return response()->json([
             'status' => 'OK',
-            'data' => $queryBuilder->get()->pluck('etiqueta')->toArray(),
+            'data' => $tags->toArray(),
         ]);
     }
 
@@ -253,7 +256,7 @@ class AuditoriaConteoController extends Controller
     ) {
 
 
-
+        $isGlobalAudit = $request->global === 1 || $request->global === '1';
 
         // Similar a showResumen, pero en lugar de devolver solo el resumen, devuelve los activos encontrados, faltantes y sobrantes con su información detallada.
         // Se puede reutilizar la lógica de showResumen para obtener las etiquetas coincidentes, faltantes y sobrantes, y luego hacer consultas adicionales para obtener la información de cada activo.
@@ -272,11 +275,12 @@ class AuditoriaConteoController extends Controller
             $ciclo,
             $punto,
             $codigo,
-            $subnivel
+            $subnivel,
+            $isGlobalAudit
         );
 
         //Etiquetas que debieran estar
-        $tags = ActivoService::getTagsByCycleAndAnyPlace($cicloObj, $punto, $codigo, $subnivel);
+        $tags = ActivoService::getTagsByCycleAndAnyPlace($cicloObj, $punto, $codigo, $subnivel, $isGlobalAudit);
 
         //etiquetas encontradas en el conteo, que se corresponden con las que debían estar
         $foundTags = $request->foundTags ?? [];
@@ -305,6 +309,7 @@ class AuditoriaConteoController extends Controller
                     'audit_status'      => $item['audit_status'],
                     'codigo_ubicacion'  => $codigo,
                     'sublevel'          => $subnivel,
+                    'global_general'    => $isGlobalAudit ? 1 : 0,
                     'user_id'           => $request->user()->id,
                     'created_at'        => date('Y-m-d H:i:s'),
                     'updated_at'        => date('Y-m-d H:i:s'),
@@ -351,6 +356,8 @@ class AuditoriaConteoController extends Controller
         int $subnivel,
         Request $request
     ) {
+
+        $isGlobalAudit = $request->global === 1 || $request->global === '1';
         // Elimina los registros de conteo que están marcados como sobrantes para el ciclo, punto y ubicación especificados.
 
         $this->validateCodigoSubnivel($request, $codigo, $subnivel);
@@ -371,7 +378,7 @@ class AuditoriaConteoController extends Controller
             'status' => 'OK',
             'code'   => 200,
             'message' => 'Sobrantes eliminados correctamente',
-            'data' => ActivoService::getTagsByCycleAndAnyPlace($cicloObj, $punto, $codigo, $subnivel),
+            'data' => ActivoService::getTagsByCycleAndAnyPlace($cicloObj, $punto, $codigo, $subnivel, $isGlobalAudit),
         ]);
     }
 

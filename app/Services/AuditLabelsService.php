@@ -343,13 +343,15 @@ class AuditLabelsService
         int $ciclo,
         int $punto,
         string $codigo,
-        int $subnivel
+        int $subnivel,
+        bool $isGlobal = false
     ): Collection {
 
         $queryBuilder = DB::table("inv_conteo_registro")
             ->where('status', '=', 1)
             ->where('ciclo_id', '=', $ciclo)
-            ->where('punto_id', '=', $punto);
+            ->where('punto_id', '=', $punto)
+            ->where('global_general', '=', $isGlobal ? 1 : 0);
 
 
         if (!in_array($codigo, ['0', '']) && strlen($codigo) > 1 && $subnivel > 0) {

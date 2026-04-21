@@ -27,7 +27,7 @@ class EmplazamientoNn extends Model
         if ($nextnivel > 6) {
             return $this->activos_without_join();
         }
-        return $this->activos_with_child_levels()->whereRaw('LENGTH(ubicacionOrganicaN' . $nextnivel . ') < 2');;
+        return $this->activos_with_child_levels()->whereRaw('LENGTH(ubicacionOrganicaN' . $nextnivel . ') < 2');
     }
 
 
@@ -76,7 +76,13 @@ class EmplazamientoNn extends Model
 
     public function crud_audit_group_families($cycle_id)
     {
-        return $this->crud_audit_group_families_with_child_levels($cycle_id);
+        $queryBuilder = $this->crud_audit_group_families_with_child_levels($cycle_id);
+
+        $nextnivel = (int)substr($this->table, -1) + 1;
+        if ($nextnivel > 6) {
+            return $queryBuilder;
+        }
+        return $queryBuilder->whereRaw('LENGTH(ubicacionOrganicaN' . $nextnivel . ') < 2');
     }
 
     public function crud_audit_group_families_with_child_levels($cycle_id)
@@ -100,6 +106,7 @@ class EmplazamientoNn extends Model
         $queryBuilder = $queryBuilder->leftJoin('dp_familias', 'crud_activos.id_familia', 'dp_familias.id_familia')
             ->leftJoin('dp_grupos', 'crud_activos.id_grupo', 'dp_grupos.id_grupo')
             ->where('crud_activos.ubicacionGeografica', '=', $idUbicacionGeo)
+            ->where('crud_activos.ubicacionOrganicaN' . $nivel, '=', $this->codigoUbicacion)
             ->groupBy('codigoUbicacion', 'crud_activos.id_grupo', 'crud_activos.id_familia', 'dp_grupos.descripcion_grupo', 'dp_familias.descripcion_familia');
 
         return $queryBuilder;

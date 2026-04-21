@@ -97,6 +97,14 @@ class ActivoService
         return false;
     }
 
+    public static function getTagsByCycleAndAnyPlace(InvCiclo $cicloObj, int $punto, string $codigo, int $subnivel, bool $isGlobal = false): Collection
+    {
+
+        return $isGlobal ?
+            self::getTagsByCycleAndAnyPlace_Recursive($cicloObj, $punto, $codigo, $subnivel) :
+            self::getTagsByCycleAndAnyPlace_OnlyLevel($cicloObj, $punto, $codigo, $subnivel);
+    }
+
 
     /**
      * Gets tag by cycle and any place (adress or sublevel)
@@ -107,10 +115,37 @@ class ActivoService
      * @param int $sublevel
      * @return \Illuminate\Support\Collection
      */
-    public static function getTagsByCycleAndAnyPlace(InvCiclo $cicloObj, int $punto, string $codigo, int $sublevel)
+    private static function getTagsByCycleAndAnyPlace_OnlyLevel(InvCiclo $cicloObj, int $punto, string $codigo, int $sublevel)
     {
 
         $queryBuilder = CrudActivo::queryBuilderAsset_Audit_ConfigCycle_FindInAddressGroupFamily_Pagination(
+            $cicloObj,
+            $punto,
+            $codigo,
+            $sublevel
+        );
+
+
+
+        $tags = $queryBuilder->get()->pluck('etiqueta');
+
+        return $tags;
+    }
+
+
+    /**
+     * Gets tag by cycle and any place (adress or sublevel) RECURSIVE // WITH CHILD LEVELS // GENERAL // GLOBAL
+     * 
+     * @param \App\Models\InvCiclo $cicloObj
+     * @param int $punto
+     * @param string $codigo
+     * @param int $sublevel
+     * @return \Illuminate\Support\Collection
+     */
+    private static function getTagsByCycleAndAnyPlace_Recursive(InvCiclo $cicloObj, int $punto, string $codigo, int $sublevel)
+    {
+
+        $queryBuilder = CrudActivo::queryBuilderAssetGlobal_Audit_ConfigCycle_FindInAddressGroupFamily_Pagination(
             $cicloObj,
             $punto,
             $codigo,
