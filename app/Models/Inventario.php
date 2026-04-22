@@ -198,6 +198,11 @@ class Inventario extends Model
         return $this->belongsTo(EmplazamientoN3::class, 'idUbicacionN3', 'idUbicacionN3');
     }
 
+    public function emplazamientoN4()
+    {
+        return $this->belongsTo(EmplazamientoN4::class, 'codigoUbicacionN4', 'codigoUbicacion')->where('idAgenda', $this->idUbicacionGeo);
+    }
+
     public static function queryBuilderInventory_FindInGroupFamily_Pagination($model, ?InvCiclo $cicloObj, Request $request)
     {
         $queryBuilder = $model->inv_activos();

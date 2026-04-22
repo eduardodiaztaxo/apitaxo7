@@ -473,15 +473,7 @@ class ImageService
      */
     public static function nextValInvImg()
     {
-        self::createNextValInvImgIfNotExist();
-
-        DB::statement(
-            'UPDATE `sequence` SET `cur_value` = LAST_INSERT_ID(`cur_value`) + `increment` WHERE `name` = ?',
-            [self::INV_IMG_ID]
-        );
-
-        $nextVal = DB::selectOne('SELECT LAST_INSERT_ID() as next_val');
-
-        return (int) $nextVal->next_val;
+        $nextVal = DB::selectOne('SELECT nextval(?) as next_val', [self::INV_IMG_ID]);
+        return $nextVal->next_val;
     }
 }

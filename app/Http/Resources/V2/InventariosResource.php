@@ -28,10 +28,14 @@ class InventariosResource extends JsonResource
         $estadoBien = $estadoObj ? $estadoObj->descripcion : '';
 
 
-        $subEmplazamiento =  $this->emplazamientoN2()->first();
+        $subEmplazamiento =  $this->emplazamientoN4()->first();
 
         if (!$subEmplazamiento) {
             $subEmplazamiento =  $this->emplazamientoN3()->first();
+        }
+
+        if (!$subEmplazamiento) {
+            $subEmplazamiento =  $this->emplazamientoN2()->first();
         }
 
 
