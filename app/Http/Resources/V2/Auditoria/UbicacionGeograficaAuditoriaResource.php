@@ -106,18 +106,24 @@ class UbicacionGeograficaAuditoriaResource extends JsonResource
             ->where('punto_id', '=', $this->idUbicacionGeo)
             ->where('status', '=', 1)
             ->whereIn('audit_status', [1, 3])
+            ->select('ciclo_id', 'punto_id', 'etiqueta')
+            ->distinct()
             ->count();
 
         $address['num_activos_audit_coincidentes'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle->idCiclo)
             ->where('punto_id', '=', $this->idUbicacionGeo)
             ->where('status', '=', 1)
             ->where('audit_status', '=', 1)
+            ->select('ciclo_id', 'punto_id', 'etiqueta')
+            ->distinct()
             ->count();
 
         $address['num_activos_audit_sobrantes'] = InvConteoRegistro::where('ciclo_id', '=', $this->cycle->idCiclo)
             ->where('punto_id', '=', $this->idUbicacionGeo)
             ->where('status', '=', 1)
             ->where('audit_status', '=', 3)
+            ->select('ciclo_id', 'punto_id', 'etiqueta')
+            ->distinct()
             ->count();
 
 
