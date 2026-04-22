@@ -75,7 +75,7 @@ class EmplazamientoN4 extends Model
             'dp_grupos.descripcion_grupo',
             'dp_familias.descripcion_familia',
             DB::raw('COUNT(*) as total')
-        )->join('ubicaciones_n4', function (JoinClause $join) use ($idUbicacionN4) {
+        )->join('ubicaciones_n4', function (JoinClause $join) {
 
             $join->on('inv_inventario.idUbicacionGeo', '=', 'ubicaciones_n4.idAgenda')
                 ->on('inv_inventario.codigoUbicacionN4', '=', 'ubicaciones_n4.codigoUbicacion');
