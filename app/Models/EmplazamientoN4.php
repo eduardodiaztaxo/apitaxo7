@@ -76,12 +76,14 @@ class EmplazamientoN4 extends Model
             'dp_familias.descripcion_familia',
             DB::raw('COUNT(*) as total')
         )->join('ubicaciones_n4', function (JoinClause $join) use ($idUbicacionN4) {
-            $join->on('inv_inventario.idUbicacionN4', '=', 'ubicaciones_n4.idUbicacionN4')
-                ->on('ubicaciones_n4.idUbicacionN4', '=', DB::raw($idUbicacionN4));
+
+            $join->on('inv_inventario.idUbicacionGeo', '=', 'ubicaciones_n4.idAgenda')
+                ->on('inv_inventario.codigoUbicacionN4', '=', 'ubicaciones_n4.codigoUbicacion');
         })
             ->join('dp_familias', 'inv_inventario.id_familia', 'dp_familias.id_familia')
             ->join('dp_grupos', 'inv_inventario.id_grupo', 'dp_grupos.id_grupo')
-            ->groupBy('ubicaciones_n3.codigoUbicacion', 'inv_inventario.id_ciclo', 'inv_inventario.id_grupo', 'inv_inventario.id_familia', 'dp_grupos.descripcion_grupo', 'dp_familias.descripcion_familia');
+            ->where('ubicaciones_n4.idUbicacionN4', '=', $idUbicacionN4)
+            ->groupBy('ubicaciones_n4.codigoUbicacion', 'inv_inventario.id_ciclo', 'inv_inventario.id_grupo', 'inv_inventario.id_familia', 'dp_grupos.descripcion_grupo', 'dp_familias.descripcion_familia');
     }
 
     public function activos_with_cats_by_cycle($cycle_id)
