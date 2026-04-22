@@ -50,6 +50,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2')->group(func
     Route::get('ciclos/{ciclo}/group-families-OT', [CiclosUbicacionesController::class, 'showGroupFamiliesByCycle']);
 
     Route::post('responsibles/{responsable_id}/register-signature', [ResponsibleController::class, 'registerSignature']);
+});
 
+Route::prefix('v2')->group(function () {
     Route::post('logs-app', [LogAppController::class, 'logsApp']);
 });
