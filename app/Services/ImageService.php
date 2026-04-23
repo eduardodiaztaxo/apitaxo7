@@ -100,6 +100,38 @@ class ImageService
     }
 
     /**
+     * Create a webp thumbnail in the secondary disk from any readable image path.
+     *
+     * @param  string  $sourcePath
+    * @param  string  $thumbPath
+     * @return string|null
+     */
+    private static function saveThumbnailToSecondDiskFromPath(string $sourcePath, string $thumbPath): string|null
+    {
+        try {
+            $img = Image::read($sourcePath);
+            $img->scale(width: 96);
+
+            $encodedThumb = $img->encode(new WebpEncoder(quality: 60))->toString();
+
+            if (Storage::disk('taxoImages')->put($thumbPath, $encodedThumb)) {
+                $baseUrl = rtrim((string) config('filesystems.disks.taxoImages.url'), '/');
+
+                return $baseUrl !== ''
+                    ? $baseUrl . '/' . ltrim($thumbPath, '/')
+                    : $thumbPath;
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error guardando miniatura: ' . $e->getMessage(), [
+                'source_path' => $sourcePath,
+                'thumb_path' => $thumbPath,
+            ]);
+        }
+
+        return null;
+    }
+
+    /**
      * Save image in main disk or second disk if fails.
      *
      * @param  \Illuminate\Http\UploadedFile $file 
@@ -119,7 +151,7 @@ class ImageService
                 'win_images'
             );
 
-            $url = Storage::disk('win_images')->url($path);
+            $url = self::buildDiskUrl('win_images', $path);
         } catch (\Exception $e) {
 
             try {
@@ -130,7 +162,7 @@ class ImageService
                     'taxoImages'
                 );
 
-                $url = Storage::disk('taxoImages')->url($path);
+                $url = self::buildDiskUrl('taxoImages', $path);
             } catch (\Exception $e) {
             }
         }
@@ -152,23 +184,9 @@ class ImageService
      */
     public static function saveThumbnailInSecondDisk(UploadedFile $file, string $customer_name, string $namefile): string|null
     {
-        try {
-            $thumbName = 'thumb_' . pathinfo($namefile, PATHINFO_FILENAME) . '.webp';
-            $thumbPath = PictureSafinService::getImgSubdir($customer_name) . '/' . $thumbName;
+        $thumbPath = PictureSafinService::getImgSubdir($customer_name) . '/' . self::buildThumbnailName($namefile);
 
-            $img = Image::read($file->getRealPath());
-            $img->scale(width: 96);
-
-            $encodedThumb = $img->encode(new WebpEncoder(quality: 60))->toString();
-
-            if (Storage::disk('taxoImages')->put($thumbPath, $encodedThumb)) {
-                return Storage::disk('taxoImages')->url($thumbPath);
-            }
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Error guardando miniatura: ' . $e->getMessage());
-        }
-
-        return null;
+        return self::saveThumbnailToSecondDiskFromPath($file->getRealPath(), $thumbPath);
     }
 
     public static function createThumbnail(UploadedFile $file, string $customer_name, string $namefile): Model|null
@@ -177,8 +195,8 @@ class ImageService
         if (!$path) {
             return null;
         }
-        $thumbnail = self::saveThumbnailInDB($path, $customer_name, $namefile);
-        return $thumbnail;
+
+        return self::saveThumbnailInDB($path, $customer_name, $namefile);
     }
 
     public static function saveThumbnailInDB(string $url, string $customer_name, string $namefile): Model|null
@@ -190,43 +208,64 @@ class ImageService
 
             if (!$parentImage) {
                 \Illuminate\Support\Facades\Log::warning('No se encontró la imagen principal para guardar la miniatura', [
+                    'url' => $url,
                     'namefile' => $namefile,
                     'customer_name' => $customer_name,
-                    'url' => $url,
                 ]);
 
                 return null;
             }
 
-            $thumbName = 'thumb_' . pathinfo($namefile, PATHINFO_FILENAME) . '.webp';
-            $thumbPath = PictureSafinService::getImgSubdir($customer_name) . '/' . $thumbName;
-
-            $thumb = Inv_imagenes_thumbnails::where('id_img', $parentImage->id_img)
-                ->where('etiqueta', $parentImage->etiqueta)
-                ->where('picture', $thumbName)
-                ->first();
-
-            if ($thumb && $thumb->picture && $thumb->picture !== $thumbName) {
-                $oldThumbPath = PictureSafinService::getImgSubdir($customer_name) . '/' . $thumb->picture;
-                Storage::disk('taxoImages')->delete($oldThumbPath);
-            }
-
-            $thumb = $thumb ?? new Inv_imagenes_thumbnails();
-            $thumb->id_img = $parentImage->id_img;
-            $thumb->origen = $parentImage->origen;
-            $thumb->etiqueta = $parentImage->etiqueta;
-            $thumb->picture = $thumbName;
-            $thumb->url_imagen = $url;
-            $thumb->url_picture = dirname($url) . '/';
-            $thumb->id_proyecto = $parentImage->id_proyecto;
-            $thumb->q_descargas = $parentImage->q_descargas;
-            $thumb->save();
-
-            return $thumb;
+            return self::saveInventoryThumbnailInDB(
+                $url,
+                (int) $parentImage->id_img,
+                (string) $parentImage->etiqueta,
+                (string) $parentImage->origen,
+                (int) $parentImage->id_proyecto,
+                $namefile,
+                $parentImage->q_descargas ? (int) $parentImage->q_descargas : null
+            );
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Error guardando miniatura en DB: ' . $e->getMessage(), [
                 'namefile' => $namefile,
                 'customer_name' => $customer_name,
+                'url' => $url,
+            ]);
+
+            return null;
+        }
+    }
+
+    /**
+     * Save an inventory thumbnail row in the dedicated thumbnails table.
+     */
+    public static function saveInventoryThumbnailInDB(string $url, int $idImg, string $etiqueta, string $origen, int $idProyecto, string $namefile, ?int $qDescargas = null): Model|null
+    {
+        try {
+            $thumbName = self::buildThumbnailName($namefile);
+
+            $thumb = Inv_imagenes_thumbnails::where('id_img', $idImg)
+                ->where('etiqueta', $etiqueta)
+                ->where('picture', $thumbName)
+                ->first();
+
+            $thumb = $thumb ?? new Inv_imagenes_thumbnails();
+            $thumb->id_img = $idImg;
+            $thumb->origen = $origen;
+            $thumb->etiqueta = $etiqueta;
+            $thumb->picture = $thumbName;
+            $thumb->url_imagen = $url;
+            $thumb->url_picture = dirname($url) . '/';
+            $thumb->id_proyecto = $idProyecto;
+            $thumb->q_descargas = $qDescargas;
+            $thumb->save();
+
+            return $thumb;
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error guardando miniatura de inventario en DB: ' . $e->getMessage(), [
+                'idImg' => $idImg,
+                'etiqueta' => $etiqueta,
+                'namefile' => $namefile,
                 'url' => $url,
             ]);
 
@@ -285,6 +324,172 @@ class ImageService
     }
 
     /**
+     * Get the configured base URL for a disk.
+     */
+    private static function getDiskBaseUrl(string $disk): string
+    {
+        return rtrim((string) config('filesystems.disks.' . $disk . '.url'), '/');
+    }
+
+    /**
+     * Build a public URL for a disk path using the configured disk URL.
+     */
+    private static function buildDiskUrl(string $disk, string $path): string
+    {
+        $baseUrl = self::getDiskBaseUrl($disk);
+
+        if ($baseUrl === '') {
+            return $path;
+        }
+
+        return $baseUrl . '/' . ltrim($path, '/');
+    }
+
+    /**
+     * Resolve the storage path of an image in the main or secondary disk.
+     *
+     * @param  string  $customer_name
+     * @param  string  $namefile
+     * @return array{disk:string,path:string,absolute_path:string}|null
+     */
+    public static function resolveStoredImagePath(string $customer_name, string $namefile): array|null
+    {
+        $relativePath = PictureSafinService::getImgSubdir($customer_name) . '/' . $namefile;
+
+        foreach (['win_images', 'taxoImages'] as $disk) {
+            try {
+                if (Storage::disk($disk)->exists($relativePath)) {
+                    $root = (string) config('filesystems.disks.' . $disk . '.root');
+
+                    return [
+                        'disk' => $disk,
+                        'path' => $relativePath,
+                        'absolute_path' => $root !== ''
+                            ? rtrim($root, '\\/') . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath)
+                            : $relativePath,
+                    ];
+                }
+            } catch (\Exception $e) {
+                continue;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Resolve the storage path of an image by matching its stored URL first.
+     *
+     * @param  string|null  $urlImagen
+     * @param  string|null  $urlPicture
+     * @param  string  $customer_name
+     * @param  string  $namefile
+     * @return array{disk:string,path:string,absolute_path:string}|null
+     */
+    public static function resolveStoredImagePathFromUrls(?string $urlImagen, ?string $urlPicture, string $customer_name, string $namefile): array|null
+    {
+        $candidates = array_values(array_unique(array_filter([
+            self::buildOriginalUrl($urlImagen, $urlPicture, $namefile),
+            $urlImagen,
+            $urlPicture ? rtrim($urlPicture, '/') . '/' . ltrim($namefile, '/') : null,
+        ])));
+
+        foreach ($candidates as $candidateUrl) {
+            foreach (['win_images', 'taxoImages'] as $disk) {
+                $baseUrl = self::getDiskBaseUrl($disk);
+                if ($baseUrl === '' || !str_starts_with($candidateUrl, $baseUrl)) {
+                    continue;
+                }
+
+                $relativePath = ltrim(substr($candidateUrl, strlen($baseUrl)), '/');
+                if ($relativePath === '') {
+                    continue;
+                }
+
+                try {
+                    if (Storage::disk($disk)->exists($relativePath)) {
+                        $root = (string) config('filesystems.disks.' . $disk . '.root');
+
+                        return [
+                            'disk' => $disk,
+                            'path' => $relativePath,
+                            'url' => $candidateUrl,
+                            'folder_url' => rtrim(dirname($candidateUrl), '/') . '/',
+                            'absolute_path' => $root !== ''
+                                ? rtrim($root, '\\/') . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath)
+                                : $relativePath,
+                        ];
+                    }
+                } catch (\Exception $e) {
+                    continue;
+                }
+            }
+        }
+
+        return self::resolveStoredImagePath($customer_name, $namefile);
+    }
+
+    /**
+     * Create and persist an inventory thumbnail from an existing stored image path.
+     */
+    public static function createThumbnailFromStoredImagePath(Inv_imagenes $image, string $customer_name, string $sourcePath): Model|null
+    {
+        if (empty($image->picture)) {
+            return null;
+        }
+
+        $thumbPath = PictureSafinService::getImgSubdir($customer_name) . '/' . self::buildThumbnailName($image->picture);
+        $path = self::saveThumbnailToSecondDiskFromPath($sourcePath, $thumbPath);
+        if (!$path) {
+            return null;
+        }
+
+        return self::saveInventoryThumbnailInDB(
+            $path,
+            (int) $image->id_img,
+            (string) $image->etiqueta,
+            (string) $image->origen,
+            (int) $image->id_proyecto,
+            $image->picture,
+            $image->q_descargas ? (int) $image->q_descargas : null
+        );
+    }
+
+    /**
+     * Create and persist a CRUD thumbnail from an existing stored image path.
+     */
+    public static function createCrudThumbnailFromStoredImagePath(object $pictureRow, string $customer_name, string $sourcePath): Model|null
+    {
+        if (empty($pictureRow->picture) || empty($pictureRow->id_foto) || empty($pictureRow->etiqueta)) {
+            return null;
+        }
+
+        $thumbPath = PictureSafinService::getImgSubdir($customer_name) . '/' . self::buildThumbnailName($pictureRow->picture);
+        $path = self::saveThumbnailToSecondDiskFromPath($sourcePath, $thumbPath);
+        if (!$path) {
+            return null;
+        }
+
+        return self::saveCrudThumbnailInDB(
+            $path,
+            (int) $pictureRow->id_foto,
+            (string) $pictureRow->etiqueta,
+            (string) ($pictureRow->origen ?? 'SAFIN_APP_IMAGEN_ACTUALIZADA'),
+            (int) ($pictureRow->idProyecto ?? 0),
+            $pictureRow->picture,
+            isset($pictureRow->q_descargas) ? (int) $pictureRow->q_descargas : null
+        );
+    }
+
+    /**
+     * Build the thumbnail filename for a stored image.
+     */
+    public static function buildThumbnailName(string $namefile): string
+    {
+        return 'thumb_' . pathinfo($namefile, PATHINFO_FILENAME) . '.webp';
+    }
+
+    /**
      * Save only the thumbnail version of an active image in the secondary disk.
      *
      * @param  \Illuminate\Http\UploadedFile $file
@@ -295,8 +500,7 @@ class ImageService
     public static function saveActiveThumbnailInSecondDisk(UploadedFile $file, string $customer_name, string $namefile): string|null
     {
         try {
-            $thumbName = self::buildThumbnailName($namefile);
-            $thumbPath = PictureSafinService::getImgSubdir($customer_name) . '/' . $thumbName;
+            $thumbPath = PictureSafinService::getImgSubdir($customer_name) . '/' . self::buildThumbnailName($namefile);
 
             $img = Image::read($file->getRealPath());
             $img->scale(width: 96);
@@ -304,7 +508,7 @@ class ImageService
             $encodedThumb = $img->encode(new WebpEncoder(quality: 60))->toString();
 
             if (Storage::disk('taxoImages')->put($thumbPath, $encodedThumb)) {
-                return Storage::disk('taxoImages')->url($thumbPath);
+                return self::buildDiskUrl('taxoImages', $thumbPath);
             }
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Error guardando miniatura de activo: ' . $e->getMessage());
@@ -315,8 +519,6 @@ class ImageService
 
     /**
      * Build the thumbnail filename for a stored image.
-     */
-    public static function buildThumbnailName(string $namefile): string
     {
         return 'thumb_' . pathinfo($namefile, PATHINFO_FILENAME) . '.webp';
     }
@@ -460,28 +662,21 @@ class ImageService
      */
     public static function deleteImageInMainOrSecondDisk(string $customer_name, string $namefile): bool
     {
-        $deleted = false;
-
-
-
+        $path = PictureSafinService::getImgSubdir($customer_name) . '/' . $namefile;
 
         try {
-
-            $path = PictureSafinService::getImgSubdir($customer_name) . '/' . $namefile;
-
-            $deleted = Storage::disk('win_images')->delete($path);
-        } catch (\Exception $e) {
-
-            try {
-
-                $path = PictureSafinService::getImgSubdir($customer_name) . '/' . $namefile;
-
-                $deleted = Storage::disk('taxoImages')->delete($path);
-            } catch (\Exception $e) {
+            if (Storage::disk('win_images')->delete($path)) {
+                return true;
             }
+        } catch (\Exception $e) {
+            // fallback to secondary disk
         }
 
-        return $deleted;
+        try {
+            return Storage::disk('taxoImages')->delete($path);
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
     /**
@@ -599,7 +794,7 @@ class ImageService
 
             Storage::disk('win_images')->move($old_path, $new_path);
 
-            $url = Storage::disk('win_images')->url($new_path);
+            $url = self::buildDiskUrl('win_images', $new_path);
         } catch (\Exception $e) {
 
             try {
@@ -609,7 +804,7 @@ class ImageService
 
                 Storage::disk('taxoImages')->move($old_path, $new_path);
 
-                $url = Storage::disk('taxoImages')->url($new_path);
+                $url = self::buildDiskUrl('taxoImages', $new_path);
             } catch (\Exception $e) {
             }
         }
@@ -629,7 +824,7 @@ class ImageService
     public static function moveToMainDiskWhenImagesHaveBeenSavedInSecondDisk(string $proyecto_id, string $customer_name, int $max_images = 0): array
     {
 
-        $urlSecondDisk = Storage::disk('taxoImages')->url('/');
+        $urlSecondDisk = self::getDiskBaseUrl('taxoImages') . '/';
 
         $imagesQuery = Inv_imagenes::where('id_proyecto', '=', $proyecto_id)
             ->where('url_imagen', 'LIKE', '' . $urlSecondDisk . '%');
@@ -654,8 +849,8 @@ class ImageService
 
             if ($moved || $exists) {
                 $new_path = PictureSafinService::getImgSubdir($customer_name) . '/' . $image->picture;
-                $image->url_imagen = Storage::disk('win_images')->url($new_path);
-                $image->url_picture = Storage::disk('win_images')->url(PictureSafinService::getImgSubdir($customer_name) . '/');
+                $image->url_imagen = self::buildDiskUrl('win_images', $new_path);
+                $image->url_picture = self::buildDiskUrl('win_images', PictureSafinService::getImgSubdir($customer_name) . '/');
                 $image->save();
 
                 $result['success'] += 1;

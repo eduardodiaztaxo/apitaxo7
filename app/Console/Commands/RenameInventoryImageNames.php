@@ -51,14 +51,14 @@ class RenameInventoryImageNames extends Command
         }
 
 
-        $result = DB::select('SELECT project_name FROM api_project_conn WHERE conn_field = ?', [$conn_field]);
+        $customer_name = DB::table('project_conn')
+            ->where('conn_field', $conn_field)
+            ->value('project_name');
 
-        if (empty($result)) {
+        if (empty($customer_name)) {
             $this->error('No project found for the given connection field.');
             return 1;
         }
-
-        $customer_name = $result[0]->project_name;
 
         $project_id = $this->option('project_id');
 
