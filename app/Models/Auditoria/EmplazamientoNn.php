@@ -4,10 +4,8 @@ namespace App\Models\Auditoria;
 
 use App\Models\CrudActivo;
 use App\Models\Inv_ciclos_categorias;
-use App\Models\InvCicloPunto;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Facades\DB;
 
 class EmplazamientoNn extends Model

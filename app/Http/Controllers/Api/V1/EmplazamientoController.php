@@ -20,6 +20,7 @@ use App\Models\EmplazamientoN2;
 use App\Models\EmplazamientoN1;
 use App\Models\EmplazamientoN3;
 use App\Models\Inventario;
+use App\Models\Inventario\EmplazamientoNn;
 use App\Models\ZonaPunto;
 use App\Services\PlaceService;
 use Illuminate\Http\Request;
@@ -97,6 +98,58 @@ class EmplazamientoController extends Controller
         ];
 
         $empla = EmplazamientoN2::create($data);
+
+        if (!$empla) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No se pudo crear el emplazamiento'
+            ], 422);
+        }
+
+        return response()->json([
+            'status'  => 'OK',
+            'message' => 'Creado exitosamente',
+            'data'    => EmplazamientoNivel2Resource::make($empla)
+        ]);
+    }
+
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function storeAnyLevel(Request $request)
+    {
+        $request->validate([
+            'description'     => 'required|string',
+            'parentCode'      => 'required|exists:ubicaciones_n1,codigoUbicacion',
+            'agenda_id'       => 'required|exists:ubicaciones_geograficas,idUbicacionGeo',
+            'level'           => 'required|integer|min:1|max:6',
+            'cycle' => 'required|integer'
+        ]);
+
+        $table = 'ubicaciones_n' . $request->level;
+
+        $code =  EmplazamientoNn::fromTable($table)->nextCode($request->agenda_id, $request->parentCode);
+
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+
+        $data = [
+            'idProyecto'            => $id_proyecto,
+            'idAgenda'              => $request->agenda_id,
+            'descripcionUbicacion'  => $request->descripcion,
+            'codigoUbicacion'       => $code,
+            'fechaCreacion'         => date('Y-m-d H:i:s'),
+            'estado'                => $request->estado !== null ? $request->estado : 1,
+            'usuario'               => $request->user()->name,
+            'ciclo_auditoria'       => $request->cycle,
+            'newApp'                => 1,
+            'modo'                  => 'ONLINE'
+        ];
+
+        $empla = EmplazamientoNn::fromTable($table)->create($data);
 
         if (!$empla) {
             return response()->json([

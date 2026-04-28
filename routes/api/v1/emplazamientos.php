@@ -56,7 +56,14 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::post('emplazamientos', [EmplazamientoController::class, 'store']);
 
+
+
     Route::post('Subemplazamientos/nuevo', [EmplazamientoController::class, 'createSubEmplazamientosNivel3']);
 
     Route::get('emplazamientos-todos/{lastN1Id}/{lastN2Id}/{lastN3Id}', [EmplazamientoController::class, 'showTodosEmplazamientosN1N2N3']);
+});
+
+Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2')->group(function () {
+    Route::post('emplazamientos/create-any-level', [EmplazamientoController::class, 'storeAnyLevel']);
+    Route::get('inventario/ciclos/{cycle_id}/puntos/{address_id}/parent-code/{codigoUbicacion}/nivel/{nivel}/sublevels', [EmplazamientoController::class, 'getSublevelsWithAssetsContainGroupFamily']);
 });
