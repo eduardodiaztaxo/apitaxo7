@@ -13,6 +13,8 @@ use App\Models\EmplazamientoN3;
 use App\Models\EmplazamientoN4;
 use App\Models\InvCiclo;
 use App\Models\Inventario;
+use App\Models\Inventario\EmplazamientoNn;
+use App\Rules\SubLevelPlaceRule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -210,6 +212,44 @@ class CiclosEmplazamientosController extends Controller
         }
 
         $queryBuilder = Inventario::queryBuilderInventory_FindInGroupFamily_Pagination($emplaN4Obj, $cicloObj, $request);
+
+        $assets = $queryBuilder->get();
+
+        //
+        return response()->json([
+            'status' => 'OK',
+            'data' => InventariosResource::collection($assets)
+        ]);
+    }
+
+
+    /**
+     * Display assets of the specified resource.
+     *
+     * @param   int $ciclo 
+     * @param   int $emplazamiento
+     * @param   \Illuminate\Http\Request
+     * @return  \Illuminate\Http\Response
+     */
+    public function showAssetsNn(Request $request, int $ciclo, int $level, int $address_id, string $codigoUbicacion)
+    {
+
+        $this->validateCodigoSubnivel($request, $codigoUbicacion, $level);
+
+        $cycleObj = InvCiclo::find($ciclo);
+
+        if (!$cycleObj) {
+            return response()->json(['status' => 'error', 'message' => 'Not Found Cycle', 'code' => 404], 404);
+        }
+
+        $table = 'ubicaciones_n' . $level;
+        $emplaObj = EmplazamientoNn::fromTable($table)->where('codigoUbicacion', '=', $codigoUbicacion)->where('idAgenda', '=', $address_id)->first();
+
+        if (!$emplaObj) {
+            return response()->json(['status' => 'error', 'code' => 404], 404);
+        }
+
+        $queryBuilder = Inventario::queryBuilderInventory_FindInGroupFamily_Pagination($emplaObj, $cycleObj, $request);
 
         $assets = $queryBuilder->get();
 
@@ -510,6 +550,49 @@ class CiclosEmplazamientosController extends Controller
         ]);
     }
 
+
+    /**
+     * Display families of the specified resource.
+     *
+     * @param   \Illuminate\Http\Request $request
+     * @param   int $ciclo
+     * @param   int $nivel
+     * @param   int $address_id
+     * @param   string $codigoUbicacion
+     * @return  \Illuminate\Http\Response
+     */
+    public function showGroupFamiliesNn(Request $request, int $ciclo, int $nivel, int $address_id, string $codigoUbicacion)
+    {
+
+        $this->validateCodigoSubnivel($request, $codigoUbicacion, $nivel);
+
+        $cycleObj = InvCiclo::find($ciclo);
+
+        if (!$cycleObj) {
+            return response()->json(['status' => 'error', 'message' => 'Not Found Cycle', 'code' => 404], 404);
+        }
+
+        $table = 'ubicaciones_n' . $nivel;
+        $emplaObj = EmplazamientoNn::fromTable($table)->where('codigoUbicacion', '=', $codigoUbicacion)->where('idAgenda', '=', $address_id)->first();
+
+        if (!$emplaObj) {
+            return response()->json(['status' => 'error', 'code' => 404], 404);
+        }
+
+        $queryBuilder = $emplaObj->inv_group_families();
+        if ($cycleObj) {
+            $queryBuilder->where('inv_inventario.id_ciclo', $cycleObj->idCiclo);
+        }
+
+        $family_place_resumen = $queryBuilder->get();
+
+        //
+        return response()->json([
+            'status' => 'OK',
+            'data' => GroupFamilyPlaceResumenResource::make($family_place_resumen)
+        ]);
+    }
+
     /**
      * Display assets of the specified resource.
      *
@@ -676,5 +759,20 @@ class CiclosEmplazamientosController extends Controller
             default:
                 return response()->json(['status' => 'error', 'message' => 'Nivel no válido'], 400);
         }
+    }
+
+    protected function validateCodigoSubnivel(Request $request,  string $codigo, int $subnivel)
+    {
+        $request->merge([
+            'parentCode' => $codigo,
+            'nivel' => $subnivel,
+        ]);
+
+
+
+        $request->validate([
+            'parentCode' => ['required', 'string', new SubLevelPlaceRule($request->nivel)],
+            'nivel' => ['required', 'integer'],
+        ]);
     }
 }

@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\CiclosEmplazamientosController;
 use App\Http\Controllers\Api\V1\CiclosUbicacionesController;
 use App\Http\Controllers\Api\V1\EmplazamientoController;
 use App\Http\Controllers\Api\V1\ResponsibleController;
+use App\Http\Controllers\Api\V2\EmplazamientoNivelnController;
 use App\Http\Controllers\Api\V2\LogAppController;
 
 Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2')->group(function () {
@@ -24,6 +25,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2')->group(func
 
     Route::get('ciclos/{ciclo}/emplazamientos-n3/{emplazamiento}', [EmplazamientoNivel3Controller::class, 'show']);
 
+    Route::get('ciclos/{ciclo}/emplazamientos-nn/nivel/{level}/punto/{address_id}/codigo/{codigoUbicacion}', [EmplazamientoNivelnController::class, 'show']);
+
     Route::get('ciclos/{ciclo}/emplazamientos-n1/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssetsN1']);
 
 
@@ -33,7 +36,11 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2')->group(func
 
     Route::get('ciclos/{ciclo}/emplazamientos/{nivel}/{emplazamiento}/assets', [CiclosEmplazamientosController::class, 'showAssetsByLevel_Legacy']);
 
+    Route::get('ciclos/{ciclo}/emplazamientos/nivel/{level}/punto/{address_id}/codigo/{codigoUbicacion}/assets', [CiclosEmplazamientosController::class, 'showAssetsNn']);
+
     Route::get('ciclos/{ciclo}/emplazamientos/{nivel}/{emplazamiento}/group-families', [CiclosEmplazamientosController::class, 'showGroupFamiliesByLevel_Legacy']);
+
+    Route::get('ciclos/{ciclo}/emplazamientos/nivel/{nivel}/punto/{address_id}/codigo/{codigoUbicacion}/group-families', [CiclosEmplazamientosController::class, 'showGroupFamiliesNn']);
 
     Route::get('ciclos/{ciclo}/emplazamientos-n1/{emplazamiento}/group-families', [CiclosEmplazamientosController::class, 'showGroupFamiliesN1']);
 

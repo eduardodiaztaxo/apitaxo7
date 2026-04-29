@@ -7,6 +7,7 @@ use App\Models\UbicacionGeografica;
 use App\Models\ZonaPunto;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Facades\DB;
 
 
@@ -63,6 +64,54 @@ class EmplazamientoNn extends Model
 
         return $this->hasMany(Inventario::class, 'idUbicacionGeo', 'idAgenda')
             ->where('inv_inventario.' . $field_ubicacion, $this->codigoUbicacion);
+    }
+
+    public function inv_group_families()
+    {
+
+        $nextLevel = $this->getNextLevel();
+
+        $queryBuilder =  $this->inv_group_families_with_child_levels();
+
+        if ($nextLevel != -1) {
+            $field_codeUbicacion = $this->getFieldcodigoUbicacionInvByLevel($nextLevel);
+            $queryBuilder = $queryBuilder->whereRaw('LENGTH(inv_inventario.' . $field_codeUbicacion . ') < 2');
+        }
+        return $queryBuilder;
+    }
+
+    public function inv_group_families_with_child_levels()
+    {
+
+        $level = $this->getSubnivel();
+
+        $table = $this->getTable();
+
+        $fieldCodigoUbicacion = $this->getFieldcodigoUbicacionInv();
+
+        $idAgenda = $this->idAgenda;
+        $codigoUbicacion = $this->codigoUbicacion;
+
+
+        return Inventario::select(
+            $table . '.codigoUbicacion',
+            DB::raw("'n$level' AS place_level"),
+            DB::raw("'1' AS isSub"),
+            'inv_inventario.id_ciclo',
+            'inv_inventario.id_grupo',
+            'inv_inventario.id_familia',
+            'dp_grupos.descripcion_grupo',
+            'dp_familias.descripcion_familia',
+            DB::raw('COUNT(*) as total')
+        )->join($table, function (JoinClause $join) use ($table, $fieldCodigoUbicacion) {
+
+            $join->on('inv_inventario.idUbicacionGeo', '=', $table . '.idAgenda')
+                ->on('inv_inventario.' . $fieldCodigoUbicacion, '=', $table . '.codigoUbicacion');
+        })
+            ->join('dp_familias', 'inv_inventario.id_familia', 'dp_familias.id_familia')
+            ->join('dp_grupos', 'inv_inventario.id_grupo', 'dp_grupos.id_grupo')
+            ->where($table . '.idAgenda', '=', $idAgenda)->where($table . '.codigoUbicacion', '=', $codigoUbicacion)
+            ->groupBy($table . '.codigoUbicacion', 'inv_inventario.id_ciclo', 'inv_inventario.id_grupo', 'inv_inventario.id_familia', 'dp_grupos.descripcion_grupo', 'dp_familias.descripcion_familia');
     }
 
     public function zonaPunto()
