@@ -44,8 +44,8 @@ class EmplazamientoN4 extends Model
 
     public function inv_activos()
     {
-        //return $this->inv_activos_with_child_levels()->whereRaw('LENGTH(inv_inventario.codigoUbicacionN5) < 2');
-        return $this->inv_activos_with_child_levels();
+        return $this->inv_activos_with_child_levels()->whereRaw('LENGTH(inv_inventario.codigoUbicacionN5) < 2');
+        //return $this->inv_activos_with_child_levels();
     }
 
     public function inv_activos_with_child_levels()

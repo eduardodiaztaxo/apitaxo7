@@ -27,6 +27,27 @@ class EmplazamientoNivel4Resource extends JsonResource
 
         $ubicacionN3 = $this->emplazamientoN3()->first();
 
+
+
+
+
+        $num_activos_N5 = Inventario::where('inv_inventario.codigoUbicacionN5', 'LIKE',  $this->codigoUbicacion . '%')
+            ->where('inv_inventario.idUbicacionGeo', $this->idAgenda)
+            ->where('inv_inventario.id_ciclo', $this->cycle_id)
+            ->where('inv_inventario.id_proyecto', $id_proyecto)
+            ->where('codigoUbicacionN6', '<', 2)
+            ->count();
+
+
+
+
+        $num_activos_N6 = Inventario::where('inv_inventario.codigoUbicacionN6', 'LIKE',  $this->codigoUbicacion . '%')
+            ->where('inv_inventario.idUbicacionGeo', $this->idAgenda)
+            ->where('inv_inventario.id_ciclo', $this->cycle_id)
+            ->where('inv_inventario.id_proyecto', $id_proyecto)
+            ->count();
+
+
         $emplazamiento = [
             'ciclo' => $this->cycle_id,
             'id_proyecto' => $id_proyecto,
@@ -39,7 +60,7 @@ class EmplazamientoNivel4Resource extends JsonResource
             'idUbicacionN3' => $ubicacionN3 ? $ubicacionN3->idUbicacionN3 : null,
             'detalle' => 'Detalle Emplazamiento (N4)',
             'num_nivel' => 'N4',
-            'next_level' => '',
+            'next_level' => 'N5',
             'newApp' => $this->newApp,
             'modo' => $this->modo,
             'habilitadoNivel4' => 0,
@@ -50,6 +71,8 @@ class EmplazamientoNivel4Resource extends JsonResource
             'num_activos_N2' => null,
             'num_activos_N3' => null,
             'num_activos_N4' => $num_activos_inv,
+            'num_activos_N5' => $num_activos_N5,
+            'num_activos_N6' => $num_activos_N6,
             'num_activos_cats_by_cycle' => 0,
             'ciclo_auditoria' => 0,
             'num_categorias' => $this->activos()->select('categoriaN3')->groupBy('categoriaN3')->get()->count(),

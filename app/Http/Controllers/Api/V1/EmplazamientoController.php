@@ -10,6 +10,7 @@ use App\Http\Resources\V2\EmplazamientoGenericoResource;
 use App\Http\Resources\V1\EmplazamientoNivel1Resource;
 use App\Http\Resources\V1\EmplazamientoAllResource;
 use App\Http\Resources\V2\CrudActivoResource;
+use App\Http\Resources\V2\Inventario\EmplazamientoNnResource;
 use App\Http\Resources\V2\InventariosResource;
 use App\Services\ActivoFinderService;
 use App\Services\ProyectoUsuarioService;
@@ -122,13 +123,21 @@ class EmplazamientoController extends Controller
      */
     public function storeAnyLevel(Request $request)
     {
+
+
         $request->validate([
             'description'     => 'required|string',
-            'parentCode'      => 'required|exists:ubicaciones_n1,codigoUbicacion',
+            'parentCode'      => 'required',
             'agenda_id'       => 'required|exists:ubicaciones_geograficas,idUbicacionGeo',
             'level'           => 'required|integer|min:1|max:6',
-            'cycle' => 'required|integer'
+            'cycle'           => 'required|integer'
         ]);
+
+        $cycleObj = InvCiclo::find($request->cycle);
+
+        if (!$cycleObj) {
+            return response()->json(['status' => 'error', 'code' => 404, 'messaje' => 'cycle not found'], 404);
+        }
 
         $table = 'ubicaciones_n' . $request->level;
 
@@ -139,7 +148,7 @@ class EmplazamientoController extends Controller
         $data = [
             'idProyecto'            => $id_proyecto,
             'idAgenda'              => $request->agenda_id,
-            'descripcionUbicacion'  => $request->descripcion,
+            'descripcionUbicacion'  => $request->description,
             'codigoUbicacion'       => $code,
             'fechaCreacion'         => date('Y-m-d H:i:s'),
             'estado'                => $request->estado !== null ? $request->estado : 1,
@@ -161,7 +170,8 @@ class EmplazamientoController extends Controller
         return response()->json([
             'status'  => 'OK',
             'message' => 'Creado exitosamente',
-            'data'    => EmplazamientoNivel2Resource::make($empla)
+            'colle' => $empla,
+            'data'    => new EmplazamientoNnResource($empla, $cycleObj, $request->level)
         ]);
     }
 

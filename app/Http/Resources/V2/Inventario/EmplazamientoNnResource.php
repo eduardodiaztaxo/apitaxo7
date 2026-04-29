@@ -6,6 +6,8 @@ use App\Http\Resources\V1\UbicacionGeograficaResource;
 use App\Http\Resources\V1\ZonaPuntoResource;
 use App\Models\InvCiclo;
 use App\Models\Inventario;
+use App\Models\Inventario\EmplazamientoNn;
+use App\Models\UbicacionGeografica;
 use App\Services\ProyectoUsuarioService;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -122,7 +124,7 @@ class EmplazamientoNnResource extends JsonResource
         }
 
         $idPropiedad = 'idUbicacionN' . $this->subnivel;
-        $idUbicacionNn = $this->{$idPropiedad};
+        $idUbicacionNn = $this->id;
 
         $emplazamiento = [
             'id' => $idUbicacionNn,
@@ -149,9 +151,10 @@ class EmplazamientoNnResource extends JsonResource
             'num_activos_N6' => $num_activos_N6,
             'num_activos_cats_by_cycle' => 0,
             'ciclo_auditoria' => $this->ciclo_auditoria,
-            'num_categorias' => $this->activos()->select('categoriaN3')->groupBy('categoriaN3')->get()->count(),
+            'num_categorias' => 0,
             'id_ciclo' => $this->cycle_id,
-            'zone_address' => ZonaPuntoResource::make($this->zonaPunto()->first())
+            'zone_address' => ZonaPuntoResource::make($this->zonaPunto()->first()),
+            'placeLevelsNavigation' => $this->getPlaceLevelsNavigation()
         ];
 
         if (isset($this->requirePunto) && $this->requirePunto) {
@@ -163,5 +166,25 @@ class EmplazamientoNnResource extends JsonResource
 
 
         return $emplazamiento;
+    }
+
+    private function getPlaceLevelsNavigation()
+    {
+
+        $addressName = UbicacionGeografica::find($this->idAgenda)->descripcion;
+
+        $placeLevelsNavigation = $addressName . ' > ';
+
+        for ($i = 1; $i < $this->subnivel; $i++) {
+
+            $codigo = substr($this->codigoUbicacion, 0, 2 * $i);
+            $emplazamiento = EmplazamientoNn::fromTable('ubicaciones_n' . $i)->where('idAgenda', '=', $this->idAgenda)
+                ->where('codigoUbicacion', 'like', $codigo . '%')
+                ->first();
+            $placeLevelsNavigation .= $emplazamiento->descripcionUbicacion . ' > ';
+        }
+
+        $placeLevelsNavigation .= $this->descripcionUbicacion;
+        return $placeLevelsNavigation;
     }
 }

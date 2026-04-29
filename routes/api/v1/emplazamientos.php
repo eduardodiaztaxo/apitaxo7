@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V1\EmplazamientoController;
 use App\Http\Controllers\Api\V1\EmplazamientosActivosController;
 use App\Http\Controllers\Api\V1\UbicacionesActivosController;
 use App\Http\Controllers\Api\V1\ZonaEmplazamientosController;
+use App\Http\Controllers\Api\V2\Inventario\CiclosInventarioEmplazamientosController;
 
 Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(function () {
 
@@ -65,5 +66,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
 Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2')->group(function () {
     Route::post('emplazamientos/create-any-level', [EmplazamientoController::class, 'storeAnyLevel']);
-    Route::get('inventario/ciclos/{cycle_id}/puntos/{address_id}/parent-code/{codigoUbicacion}/nivel/{nivel}/sublevels', [EmplazamientoController::class, 'getSublevelsWithAssetsContainGroupFamily']);
+    Route::get(
+        'inventario/ciclos/{cycle_id}/puntos/{address_id}/parent-code/{parentCode}/nivel/{nivel}/sublevels',
+        [CiclosInventarioEmplazamientosController::class, 'showByCycleAndLevel']
+    );
 });
