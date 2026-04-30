@@ -19,6 +19,8 @@ use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\V2\EmplazamientoNivel3Resource;
 use App\Http\Resources\V2\EmplazamientoNivel1Resource;
+use App\Http\Resources\V2\Inventario\EmplazamientoNnResource;
+use App\Models\Inventario\EmplazamientoNn;
 use App\Services\ActivoFinderService;
 use App\Services\ProyectoUsuarioService;
 use App\Services\InvConfigService;
@@ -191,6 +193,63 @@ class InventariosOfflineController extends Controller
 
         return response()->json(EmplazamientoNivel3Resource::collection($emplazamientos), 200);
     }
+
+
+    public function CycleCatsNn(int $ciclo, int $level)
+    {
+
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json([
+                'status' => 'NOK',
+                'message' => 'Ciclo no encontrado',
+                'code' => 404
+            ], 404);
+        }
+
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+
+        if (!$id_proyecto) {
+            $id_proyecto = DB::table('inv_ciclos')->where('idCiclo', $ciclo)->value('id_proyecto') ?? 0;
+        }
+
+        $ids = $cicloObj->puntos()->get()->pluck('idUbicacionGeo');
+
+        $table = 'ubicaciones_n' . $level;
+
+        $queryBuilder = EmplazamientoNn::fromTable($table)->where('idProyecto', $id_proyecto);
+
+        if (!empty($ids)) {
+
+            $queryBuilder = $queryBuilder->whereIn('idAgenda', $ids);
+        }
+
+        $emplazamientos = $queryBuilder->get();
+
+        if ($emplazamientos->isEmpty()) {
+            return response()->json([
+                'status' => 'NOK',
+                'message' => 'No encontrada',
+
+                'code' => 404
+            ], 404);
+        }
+
+
+
+
+
+        $resources = $emplazamientos->map(function ($emplazamiento) use ($cicloObj, $level) {
+            return new EmplazamientoNnResource($emplazamiento, $cicloObj, $level);
+        });
+
+
+
+        return response()->json($resources, 200);
+    }
+
+
 
     public function CycleCatsNivel1($ciclo)
     {

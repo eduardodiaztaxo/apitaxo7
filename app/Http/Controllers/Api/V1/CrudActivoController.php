@@ -115,8 +115,12 @@ class CrudActivoController extends Controller
 
         $activos = $cicloObj->activos_with_cats()->get();
 
+        $resources = $activos->map(function ($activo) use ($cicloObj) {
+            return new CrudActivoResource($activo, $cicloObj);
+        });
 
-        return response()->json(CrudActivoResource::collection($activos), 200);
+
+        return response()->json($resources, 200);
     }
 
 

@@ -12,6 +12,27 @@ class EmplazamientoNn extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'idUbicacionN1',
+        'idUbicacionN2',
+        'idUbicacionN3',
+        'idUbicacionN4',
+        'idUbicacionN5',
+        'idUbicacionN6',
+        'idProyecto',
+        'idAgenda',
+        'codigoUbicacion',
+        'descripcionUbicacion',
+        'estado',
+        'usuario',
+        'ciclo_auditoria',
+        'newApp',
+        'modo'
+    ];
+
+    const CREATED_AT = 'fechaCreacion';
+    const UPDATED_AT = 'fechaActualizacion';
+
     public static function fromTable($table)
     {
         $instance = new static;

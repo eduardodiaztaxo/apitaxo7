@@ -33,6 +33,7 @@ use App\Services\Dump\Tables\RegionesDumpService;
 use App\Services\Dump\Tables\ComunasDumpService;
 use App\Services\Dump\Tables\AtributosDumpService;
 use App\Services\Dump\Tables\DifferencesAddressesDumpService;
+use App\Services\Dump\Tables\EmplazamientoNnDumpService;
 use App\Services\Dump\Tables\ResponsableDumpService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -128,18 +129,24 @@ class ExportInventoryCycleSQLiteDatabase extends Command
 
         $this->info('Emplazamientos y Zonas...');
         $this->setZonesByCycle();
-        $this->info('setEmplazamientosByCycle...');
+
+        $this->info('setEmplazamientoN1...');
+        $this->setEmplazamientoN1();
+        $this->info('setEmplazamientoN2...');
         $this->setEmplazamientosByCycle();
         $this->info('setEmplazamientoN3...');
         $this->setEmplazamientoN3();
-        $this->info('setEmplazamientoN1...');
-        $this->setEmplazamientoN1();
+        $this->info('setEmplazamientoN4...');
+        $this->setEmplazamientoN4();
+        $this->info('setEmplazamientoN5...');
+        $this->setEmplazamientoN5();
+        $this->info('setEmplazamientoN6...');
+        $this->setEmplazamientoN6();
 
         $this->info('Cycles Categorias...');
         $this->setCyclesCategoriasByCycle();
 
-        //$this->info('Conteo Registro...');
-        //$this->setConteoRegistroByCycle();
+
 
         $this->info('Assets...');
         $this->setAssetsByCycle();
@@ -334,6 +341,24 @@ class ExportInventoryCycleSQLiteDatabase extends Command
     private function setEmplazamientoN1()
     {
         (new EmplazamientoN1DumpService($this->pdo, $this->cycle))->runFromController();
+    }
+    private function setEmplazamientoN4()
+    {
+        $empService = new EmplazamientoNnDumpService($this->pdo, $this->cycle);
+        $empService->setLevel(4);
+        $empService->runFromController();
+    }
+    private function setEmplazamientoN5()
+    {
+        $empService = new EmplazamientoNnDumpService($this->pdo, $this->cycle);
+        $empService->setLevel(5);
+        $empService->runFromController();
+    }
+    private function setEmplazamientoN6()
+    {
+        $empService = new EmplazamientoNnDumpService($this->pdo, $this->cycle);
+        $empService->setLevel(6);
+        $empService->runFromController();
     }
     private function setComunas()
     {

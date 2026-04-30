@@ -124,7 +124,7 @@ class EmplazamientoNnResource extends JsonResource
         }
 
         $idPropiedad = 'idUbicacionN' . $this->subnivel;
-        $idUbicacionNn = $this->id;
+        $idUbicacionNn = $this->{$idPropiedad};
 
         $emplazamiento = [
             'id' => $idUbicacionNn,
