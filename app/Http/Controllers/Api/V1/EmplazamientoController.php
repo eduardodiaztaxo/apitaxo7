@@ -507,6 +507,30 @@ class EmplazamientoController extends Controller
         ]);
     }
 
+    public function showTodosEmplazamientosSixLevels(int $cycle_id, int $lastN1Id, int $lastN2Id, int $lastN3Id, int $lastN4Id, int $lastN5Id, int $lastN6Id)
+    {
+
+
+        $cycleObj = InvCiclo::find($cycle_id);
+
+        $data = [];
+        for ($i = 1; $i <= 6; $i++) {
+            $varIDName = 'lastN' . $i . 'Id';
+            $currentTable = 'ubicaciones_n' . $i;
+            $emplazamientos = EmplazamientoNn::fromTable($currentTable)->where('idUbicacionN' . $i, '>', ${$varIDName})->get();
+            $resources = $emplazamientos->map(function ($emplazamiento) use ($i, $cycleObj) {
+                return new EmplazamientoNnResource($emplazamiento, $cycleObj, $i);
+            });
+
+            $data['n' . $i] = $resources;
+        }
+
+        return response()->json([
+            'status' => 'OK',
+            'data' => $data
+        ]);
+    }
+
     /**
      * Display assets of a emplazamiento by dynamic level.
      *
@@ -716,99 +740,44 @@ class EmplazamientoController extends Controller
     }
     public function moverEmplazamientos(Request $request, string $codigoUbicacion, int $ciclo_id, int $agenda_id, string $etiqueta)
     {
-        // Nivel 1
-        if (strlen($codigoUbicacion) === 2) {
-            $emplaObj = EmplazamientoN1::where('idAgenda', $agenda_id)
-                ->where('codigoUbicacion', $codigoUbicacion)
-                ->first();
 
-            if (!$emplaObj) {
+        $nivel = (int)(strlen($codigoUbicacion) / 2);
+        $currentTable = 'ubicaciones_n' . $nivel;
+        $emplaObj = EmplazamientoNn::fromTable($currentTable)->where('idAgenda', $agenda_id)
+            ->where('codigoUbicacion', $codigoUbicacion)
+            ->first();
 
-                return response()->json([
-                    'status' => 'NOK',
-                    'code' => 404,
-                    'data' => [
-                        'idAgenda' => $agenda_id,
-                        'codigoUbicacion' => $codigoUbicacion
-                    ]
-                ], 404);
-            }
-
-            $idEmplazamiento = $emplaObj->idUbicacionN1;
-            $nombre = $emplaObj->descripcionUbicacion;
-            $codigoUbicacion = (string) $emplaObj->codigoUbicacion;
+        if (!$emplaObj) {
+            return response()->json([
+                'status' => 'NOK',
+                'code' => 404,
+                'data' => [
+                    'idAgenda' => $agenda_id,
+                    'codigoUbicacion' => $codigoUbicacion
+                ]
+            ], 404);
         }
-        // Nivel 2
-        else if (strlen($codigoUbicacion) === 4) {
-            $emplaObj = Emplazamiento::where('idAgenda', $agenda_id)
-                ->where('codigoUbicacion', $codigoUbicacion)
-                ->first();
-
-            if (!$emplaObj) {
-
-                return response()->json([
-                    'status' => 'NOK',
-                    'code' => 404,
-                    'data' => [
-                        'idAgenda' => $agenda_id,
-                        'codigoUbicacion' => $codigoUbicacion
-                    ]
-                ], 404);
-            }
-
-            $idEmplazamiento = $emplaObj->idUbicacionN2;
-            $nombre = $emplaObj->descripcionUbicacion;
-            $codigoUbicacion = (string) $emplaObj->codigoUbicacion;
-        }
-        // Nivel 3
-        else {
-            $emplaObj = EmplazamientoN3::where('idAgenda', $agenda_id)
-                ->where('codigoUbicacion', $codigoUbicacion)
-                ->first();
-
-            if (!$emplaObj) {
-
-                return response()->json([
-                    'status' => 'NOK',
-                    'code' => 404,
-                    'data' => [
-                        'idAgenda' => $agenda_id,
-                        'codigoUbicacion' => $codigoUbicacion
-                    ]
-                ], 404);
-            }
-
-            $idEmplazamiento = $emplaObj->idUbicacionN3;
-            $nombre = $emplaObj->descripcionUbicacion;
-            $codigoUbicacion = (string) $emplaObj->codigoUbicacion;
-        }
-
 
         $updateData = [
             'modo' => 'ONLINE',
         ];
 
 
-        if (strlen($codigoUbicacion) === 2) {
-            $updateData['codigoUbicacion_N1'] = $codigoUbicacion;
-            $updateData['idUbicacionN2'] = 0;
-            $updateData['codigoUbicacion_N2'] = 0;
-            $updateData['idUbicacionN3'] = 0;
-            $updateData['codigoUbicacionN3'] = 0;
-        } elseif (strlen($codigoUbicacion) === 4) {
-            $updateData['codigoUbicacion_N1'] = 0;
-            $updateData['idUbicacionN2'] = $emplaObj->idUbicacionN2;
-            $updateData['codigoUbicacion_N2'] = $codigoUbicacion;
-            $updateData['idUbicacionN3'] = 0;
-            $updateData['codigoUbicacionN3'] = 0;
-        } elseif (strlen($codigoUbicacion) === 6) {
-            $updateData['codigoUbicacion_N1'] = 0;
-            $updateData['idUbicacionN2'] = 0;
-            $updateData['codigoUbicacion_N2'] = 0;
-            $updateData['idUbicacionN3'] = $emplaObj->idUbicacionN3;
-            $updateData['codigoUbicacionN3'] = $codigoUbicacion;
-            $updateData['codigoUbicacionN4'] = 0;
-        }
+        $updateData['idUbicacionN2'] = $nivel === 2 ? $emplaObj->idUbicacionN2 : 0;
+        $updateData['idUbicacionN3'] = $nivel === 3 ? $emplaObj->idUbicacionN3 : 0;
+        $updateData['codigoUbicacion_N1'] = $nivel === 1 ? $codigoUbicacion : 0;
+        $updateData['codigoUbicacion_N2'] = $nivel === 2 ? $codigoUbicacion : 0;
+        $updateData['codigoUbicacionN3'] = $nivel === 3 ? $codigoUbicacion : 0;
+        $updateData['codigoUbicacionN4'] = $nivel === 4 ? $codigoUbicacion : 0;
+        $updateData['codigoUbicacionN5'] = $nivel === 5 ? $codigoUbicacion : 0;
+        $updateData['codigoUbicacionN6'] = $nivel === 6 ? $codigoUbicacion : 0;
+
+        $idProperty = 'idUbicacionN' . $nivel;
+
+        $idEmplazamiento = $emplaObj->{$idProperty};
+        $nombre = $emplaObj->descripcionUbicacion;
+        $codigoUbicacion = (string) $emplaObj->codigoUbicacion;
+
 
 
         $updated = DB::table('inv_inventario')

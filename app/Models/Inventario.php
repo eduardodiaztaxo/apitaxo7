@@ -104,6 +104,8 @@ class Inventario extends Model
         'idUbicacionN3',
         'codigoUbicacionN3',
         'codigoUbicacionN4',
+        'codigoUbicacionN5',
+        'codigoUbicacionN6',
         'responsable',
         'idResponsable',
         'latitud',
@@ -252,6 +254,14 @@ class Inventario extends Model
      */
     public function fillCodeAndIDSEmplazamientos()
     {
+
+        if (strlen($this->codigoUbicacionN6) === 12) {
+            $this->codigoUbicacionN5 = substr($this->codigoUbicacionN6, 0, 10);
+        }
+
+        if (strlen($this->codigoUbicacionN5) === 10) {
+            $this->codigoUbicacionN4 = substr($this->codigoUbicacionN5, 0, 8);
+        }
 
         if (strlen($this->codigoUbicacionN4) === 8) {
             $this->codigoUbicacionN3 = substr($this->codigoUbicacionN4, 0, 6);

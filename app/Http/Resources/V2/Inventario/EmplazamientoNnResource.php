@@ -16,8 +16,11 @@ class EmplazamientoNnResource extends JsonResource
 
 
 
-    /** @var App\Models\InvCiclo */
+    /** @var \App\Models\InvCiclo */
     protected $cycle;
+
+    /** @var int */
+    protected $cycle_id = 0;
 
 
     protected $subnivel = 1;
@@ -33,6 +36,7 @@ class EmplazamientoNnResource extends JsonResource
         parent::__construct($resource);
         $this->cycle = $cycle;
         $this->subnivel = $subnivel;
+        $this->cycle_id = $this->cycle->idCiclo;
     }
 
     /**
@@ -110,7 +114,7 @@ class EmplazamientoNnResource extends JsonResource
                 ->where('inv_inventario.idUbicacionGeo', $this->idAgenda)
                 ->where('inv_inventario.id_ciclo', $this->cycle_id)
                 ->where('inv_inventario.id_proyecto', $id_proyecto)
-                ->where('codigoUbicacionN5', '<', 2)
+                ->where('codigoUbicacionN6', '<', 2)
                 ->count();
         }
 

@@ -70,4 +70,6 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2')->group(func
         'inventario/ciclos/{cycle_id}/puntos/{address_id}/parent-code/{parentCode}/nivel/{nivel}/sublevels',
         [CiclosInventarioEmplazamientosController::class, 'showByCycleAndLevel']
     );
+
+    Route::get('ciclos/{ciclo}/emplazamientos-todos-six-levels/{lastN1Id}/{lastN2Id}/{lastN3Id}/{lastN4Id}/{lastN5Id}/{lastN6Id}', [EmplazamientoController::class, 'showTodosEmplazamientosSixLevels']);
 });
