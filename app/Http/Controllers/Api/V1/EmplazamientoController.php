@@ -10,6 +10,7 @@ use App\Http\Resources\V2\EmplazamientoGenericoResource;
 use App\Http\Resources\V1\EmplazamientoNivel1Resource;
 use App\Http\Resources\V1\EmplazamientoAllResource;
 use App\Http\Resources\V2\CrudActivoResource;
+use App\Http\Resources\V2\EmplazamientoNnLiteResource;
 use App\Http\Resources\V2\Inventario\EmplazamientoNnResource;
 use App\Http\Resources\V2\InventariosResource;
 use App\Services\ActivoFinderService;
@@ -738,6 +739,30 @@ class EmplazamientoController extends Controller
             ],
         ], 200);
     }
+
+    public function selectEmplazamientosNn(Request $request, int $ciclo, int $nivel, int $agenda_id)
+    {
+
+        $currentTable = 'ubicaciones_n' . $nivel;
+        $emplazamientosObjs = EmplazamientoNn::fromTable($currentTable)->where('idAgenda', '=', $agenda_id)->get();
+
+        if ($emplazamientosObjs->isEmpty()) {
+            return response()->json([], 200);
+        }
+
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Ciclo no encontrado',
+                'code' => 404
+            ], 404);
+        }
+
+        return response()->json(['status' => 'OK', 'data' => EmplazamientoNnLiteResource::collection($emplazamientosObjs)], 200);
+    }
+
     public function moverEmplazamientos(Request $request, string $codigoUbicacion, int $ciclo_id, int $agenda_id, string $etiqueta)
     {
 

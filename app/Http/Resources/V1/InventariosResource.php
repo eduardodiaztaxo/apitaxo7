@@ -35,6 +35,8 @@ class InventariosResource extends JsonResource
                 'idUbicacionN3',
                 'codigoUbicacionN3',
                 'codigoUbicacionN4',
+                'codigoUbicacionN5',
+                'codigoUbicacionN6',
                 'update_inv',
                 'id_img',
                 'latitud',
@@ -68,16 +70,30 @@ class InventariosResource extends JsonResource
         $codigoN2 = !empty($activo->codigoUbicacion_N2) && $activo->codigoUbicacion_N2 != 0 && $activo->codigoUbicacion_N2 != '0' ? $activo->codigoUbicacion_N2 : null;
         $codigoN3 = !empty($activo->codigoUbicacionN3) && $activo->codigoUbicacionN3 != 0 && $activo->codigoUbicacionN3 != '0' ? $activo->codigoUbicacionN3 : null;
         $codigoN4 = !empty($activo->codigoUbicacionN4) && $activo->codigoUbicacionN4 != 0 && $activo->codigoUbicacionN4 != '0' ? $activo->codigoUbicacionN4 : null;
+        $codigoN5 = !empty($activo->codigoUbicacionN5) && $activo->codigoUbicacionN5 != 0 && $activo->codigoUbicacionN5 != '0' ? $activo->codigoUbicacionN5 : null;
+        $codigoN6 = !empty($activo->codigoUbicacionN6) && $activo->codigoUbicacionN6 != 0 && $activo->codigoUbicacionN6 != '0' ? $activo->codigoUbicacionN6 : null;
+
 
         // Determinar el nivel de asignación
         $bien_asignado = 'Sin asignación';
-        if ($codigoN4) {
+        $nivel = 0;
+        if ($codigoN6) {
+            $nivel = 6;
+            $bien_asignado = 'Asignado en Nivel 6';
+        } elseif ($codigoN5) {
+            $nivel = 5;
+            $bien_asignado = 'Asignado en Nivel 5';
+        } elseif ($codigoN4) {
+            $nivel = 4;
             $bien_asignado = 'Asignado en Nivel 4';
         } elseif ($codigoN3) {
+            $nivel = 3;
             $bien_asignado = 'Asignado en Nivel 3';
         } elseif ($codigoN2) {
+            $nivel = 2;
             $bien_asignado = 'Asignado en Nivel 2';
         } elseif ($codigoN1) {
+            $nivel = 1;
             $bien_asignado = 'Asignado en Nivel 1';
         } elseif (!empty($activo->idUbicacionGeo)) {
             $bien_asignado = 'Asignado solo en Dirección';
@@ -85,7 +101,7 @@ class InventariosResource extends JsonResource
 
         // Verificar si hay emplazamiento asignado
         // Si todos los campos de emplazamiento están en 0 o vacíos, no hay emplazamiento
-        $hasEmplazamiento = $codigoN1 || $codigoN2 || $codigoN3 || $codigoN4
+        $hasEmplazamiento = $codigoN1 || $codigoN2 || $codigoN3 || $codigoN4 || $codigoN5 || $codigoN6
             || (!empty($activo->idUbicacionN2) && $activo->idUbicacionN2 != 0 && $activo->idUbicacionN2 != '0')
             || (!empty($activo->idUbicacionN3) && $activo->idUbicacionN3 != 0 && $activo->idUbicacionN3 != '0');
 
@@ -99,38 +115,32 @@ class InventariosResource extends JsonResource
 
         if ($hasEmplazamiento) {
             // Solo buscar emplazamientos si hay valores asignados
-            if (!empty($activo->idUbicacionN3) && $activo->idUbicacionN3 != 0 && $activo->idUbicacionN3 != '0') {
-                $subEmplazamiento = DB::table('ubicaciones_n3')
-                    ->where('idUbicacionN3', $activo->idUbicacionN3)
-                    ->where('idAgenda', $activo->idUbicacionGeo)
-                    ->select('idUbicacionN3', 'descripcionUbicacion', 'codigoUbicacion')
-                    ->first();
-            } elseif (!empty($activo->idUbicacionN2) && $activo->idUbicacionN2 != 0 && $activo->idUbicacionN2 != '0') {
-                $subEmplazamiento = DB::table('ubicaciones_n2')
-                    ->where('idUbicacionN2', $activo->idUbicacionN2)
-                    ->where('idAgenda', $activo->idUbicacionGeo)
-                    ->select('idUbicacionN2', 'descripcionUbicacion', 'codigoUbicacion')
-                    ->first();
-            }
+            $currentTable = 'ubicaciones_n' . $nivel;
 
-            $codigoUbicacionN1 = '';
-            if ($codigoN1) {
-                $codigoUbicacionN1 = $codigoN1;
-            } elseif ($codigoN2) {
-                $codigoUbicacionN1 = $codigoN2;
-            } elseif ($codigoN3) {
-                $codigoUbicacionN1 = $codigoN3;
-            }
+            $currentCode = ${'codigoN' . $nivel};
+
+            $subEmplazamiento = DB::table($currentTable)
+                ->where('codigoUbicacion', $currentCode)
+                ->where('idAgenda', $activo->idUbicacionGeo)
+                ->select('idUbicacionN' . $nivel, 'descripcionUbicacion', 'codigoUbicacion')
+                ->first();
+
+
+
+
+
+            $codigoUbicacionN1 = substr($currentCode, 0, 2);
+
 
             if (!empty($codigoUbicacionN1)) {
                 $emplazamiento = DB::table('ubicaciones_n1')
-                    ->where('codigoUbicacion', 'like', '%' . $codigoUbicacionN1 . '%')
+                    ->where('codigoUbicacion', 'like', '' . $codigoUbicacionN1 . '%')
                     ->where('idAgenda', $activo->idUbicacionGeo)
                     ->select('idUbicacionN1', 'descripcionUbicacion', 'codigoUbicacion')
                     ->first();
             }
 
-            //Si existe n2 o n3
+            //Si existe nn
             if ($subEmplazamiento) {
                 $idFinal = $subEmplazamiento->idUbicacionN2 ?? $subEmplazamiento->idUbicacionN3 ?? null;
                 $codigoUbicacionFinal = $subEmplazamiento->codigoUbicacion ?? '';
@@ -211,6 +221,9 @@ class InventariosResource extends JsonResource
             'codigoUbicacion_N1'   => $codigoN1,
             'codigoUbicacion_N2'   => $codigoN2,
             'codigoUbicacionN3'   => $codigoN3,
+            'codigoUbicacionN4'   => $codigoN4,
+            'codigoUbicacionN5'   => $codigoN5,
+            'codigoUbicacionN6'   => $codigoN6,
 
             'emplazamiento' => [
                 'id'              => $idFinal,
