@@ -76,4 +76,6 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v2')->group(func
     Route::get('ciclos/{ciclo}/emplazamientos-todos-six-levels/{lastN1Id}/{lastN2Id}/{lastN3Id}/{lastN4Id}/{lastN5Id}/{lastN6Id}', [EmplazamientoController::class, 'showTodosEmplazamientosSixLevels']);
 
     Route::get('ciclos/{ciclo}/emplazamientos-select-nn/level/{nivel}/punto/{agenda_id}', [EmplazamientoController::class, 'selectEmplazamientosNn']);
+
+    Route::get('puntos/{agenda_id}/emplazamientos-recursive-tree-view', [EmplazamientoController::class, 'showEmplazamientosRecursiveTreeView']);
 });

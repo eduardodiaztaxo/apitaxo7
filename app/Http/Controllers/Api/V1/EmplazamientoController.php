@@ -763,6 +763,207 @@ class EmplazamientoController extends Controller
         return response()->json(['status' => 'OK', 'data' => EmplazamientoNnLiteResource::collection($emplazamientosObjs)], 200);
     }
 
+    public function showEmplazamientosRecursiveTreeView(Request $request, int $agenda_id)
+    {
+
+        if (!keyword_is_searcheable($request->keyword)) {
+            return response()->json([
+                'status' => 'OK',
+                'data' => []
+            ]);
+        }
+
+        $complete_word = trim($request->keyword);
+        $possible_name_words = keyword_search_terms_from_keyword($request->keyword);
+        $levels_nn_results = [];
+
+        $found_parents_codes = [];
+
+        $found_children_codes = [];
+
+        for ($i = 6; $i > 0; $i--) {
+
+
+
+            if (!isset($found_parents_codes['n' . $i])) {
+                $found_parents_codes['n' . $i] = [];
+            }
+
+            if (!isset($found_children_codes['n' . $i])) {
+                $found_children_codes['n' . $i] = [];
+            }
+
+            $table = 'ubicaciones_n' . $i;
+            $queryBuilder = EmplazamientoNn::fromTable($table)->where('idAgenda', $agenda_id)
+                ->where('descripcionUbicacion', 'LIKE', '%' . $complete_word . '%');
+
+
+            if (count($possible_name_words) > 1) {
+                $queryBuilder = $queryBuilder->orWhere(function ($query) use ($possible_name_words) {
+                    foreach ($possible_name_words as $palabra) {
+                        $query->where('descripcionUbicacion', 'LIKE', "%$palabra%");
+                    }
+                });
+            }
+
+            $emplazamientos = $queryBuilder->get();
+
+            $codes = $emplazamientos->pluck('codigoUbicacion')->toArray();
+
+
+            foreach ($codes as $code) {
+                for ($j = $i; $j > 0; $j--) {
+                    if (!isset($found_parents_codes['n' . $j])) {
+                        $found_parents_codes['n' . $j] = [];
+                    }
+                    $found_parents_codes['n' . $j][] = substr($code, 0, 2 * $j);
+                }
+
+                for ($k = $i + 1; $k <= 6; $k++) {
+                    $nextLevel = 'n' . $k;
+                    $nextTable = 'ubicaciones_n' . $k;
+                    // if (in_array($code, $found_children_codes[$nextLevel])) {
+                    //     break;
+                    // }
+                    $children_codes = EmplazamientoNn::fromTable($nextTable)
+                        ->select('codigoUbicacion')->where('idAgenda', $agenda_id)
+                        ->where('codigoUbicacion', 'LIKE', '' . $code . '%')
+                        ->whereNotIn('codigoUbicacion', $found_children_codes[$nextLevel])
+                        ->get()->pluck('codigoUbicacion')->toArray();
+                    $found_children_codes[$nextLevel] = array_merge($children_codes, $found_children_codes[$nextLevel]);
+                }
+            }
+        }
+
+        //Consolidate, merge and delete repeat data
+        $consolidate = $this->consolidateChildAndParentCodes($found_children_codes, $found_parents_codes);
+
+
+        //Este array ya contiene todos los datos normalizados
+        $tree_codes = $this->getTreeSubplaceFromConsolidateData($consolidate);
+
+        return response()->json([
+            'status' => 'OK',
+            // 'parent_codes' => $found_parents_codes,
+            // 'child_codes' => $found_children_codes,
+            'consolidate' => $consolidate,
+            'data' => $tree_codes,
+        ], 200);
+    }
+
+    /**
+     * @param array $find_children_codes['n1'=>[code1,code2,code3...coden],'n2'=>[code1,code2,code3...coden], ... 'nn'=>[code1,code2,code3...coden]]
+     * @param array $find_parents_codes['n1'=>[code1,code2,code3...coden],'n2'=>[code1,code2,code3...coden], ... 'nn'=>[code1,code2,code3...coden]]
+     * 
+     * @return array ['n1'=>[code1,code2,code3...coden],'n2'=>[code1,code2,code3...coden], ... 'nn'=>[code1,code2,code3...coden]]
+     */
+    public function consolidateChildAndParentCodes(array $found_children_codes, array $found_parents_codes)
+    {
+        $consolidate = [];
+
+        for ($m = 1; $m <= 6; $m++) {
+            $found_codes = array_merge($found_parents_codes['n' . $m], $found_children_codes['n' . $m]);
+            $consolidate['n' . $m] = array_values(array_unique($found_codes));
+        }
+
+        return $consolidate;
+    }
+
+    /**
+     * @param array $consolidate ['n1'=>[code1,code2,code3], 'n2'=>[code1,code2,code3], 'n3'=>[code1,code2,code3]]
+     * 
+     * @return array [
+     *                  [
+     *                      'item' => $itemN1, 
+     *                      'children' => [
+     *                          ['item' => $itemN2, 'children' => $children_code],
+     *                          ['item' => $itemN2, 'children' => $children_code]  
+     *                      ]
+     *                  ],
+     *                  [
+     *                      'item' => $itemN1, 
+     *                      'children' => [
+     *                          ['item' => $itemN2, 'children' => $children_code],
+     *                          ['item' => $itemN2, 'children' => $children_code]  
+     *                      ]
+     *                  ]
+     *              ]
+     */
+    public function getTreeSubplaceFromConsolidateData(array $consolidate): array
+    {
+
+
+        $tree_codes = [];
+
+        $last_codes = [];
+
+        for ($n = 6; $n > 0; $n--) {
+            foreach ($consolidate['n' . $n] as $parentcode) {
+
+                $item = $parentcode;
+                $children_code = [];
+
+                foreach ($tree_codes as $childcode) {
+                    if (str_starts_with($childcode['item'], $parentcode)) {
+                        $children_code[] = $childcode;
+                    }
+                }
+
+                $last_codes[] = ['item' => $item, 'children' => $children_code];
+            }
+
+            //bajo el supuesto de que todos los objetos fueron organizados de forma diferente
+            //Y que el arreglo contiene todo lo de consolidate en el nivel especificado 
+            $tree_codes = $last_codes;
+
+            $last_codes = [];
+        }
+
+        return $tree_codes;
+    }
+
+
+    // public function queryBuilderInventory($model, InvCiclo $cicloObj, Request $request)
+    // {
+    //     $queryBuilder = $model->inv_activos()->where('inv_inventario.id_ciclo', $cicloObj->idCiclo);
+
+    //     if (!!keyword_is_searcheable($request->keyword)) {
+    //         $complete_word = trim($request->keyword);
+    //         $possible_name_words = keyword_search_terms_from_keyword($request->keyword);
+
+    //         $queryBuilder = $queryBuilder->join('dp_familias', 'inv_inventario.id_familia', 'dp_familias.id_familia');
+
+    //         $queryBuilder = $queryBuilder
+    //             ->where(function ($query) use ($complete_word) {
+    //                 $query->where('inv_inventario.descripcion_bien', 'LIKE', "%$complete_word%");
+    //                 $query->orWhere('inv_inventario.etiqueta', 'LIKE', "%$complete_word%");
+    //                 $query->orWhere('dp_familias.descripcion_familia', 'LIKE', "%$complete_word%");
+    //             });
+
+    //         if (count($possible_name_words) > 1) {
+    //             $queryBuilder = $queryBuilder->orWhere(function ($query) use ($possible_name_words) {
+    //                 foreach ($possible_name_words as $palabra) {
+    //                     $query->where('inv_inventario.descripcion_bien', 'LIKE', "%$palabra%");
+    //                 }
+    //             });
+
+    //             $queryBuilder = $queryBuilder->orWhere(function ($query) use ($possible_name_words) {
+    //                 foreach ($possible_name_words as $palabra) {
+    //                     $query->where('dp_familias.descripcion_familia', 'LIKE', "%$palabra%");
+    //                 }
+    //             });
+    //         }
+    //     }
+
+    //     if ($request->from && $request->rows) {
+    //         $offset = $request->from - 1;
+    //         $limit = $request->rows;
+    //         $queryBuilder->offset($offset)->limit($limit);
+    //     }
+
+    //     return $queryBuilder;
+    // }
+
     public function moverEmplazamientos(Request $request, string $codigoUbicacion, int $ciclo_id, int $agenda_id, string $etiqueta)
     {
 
