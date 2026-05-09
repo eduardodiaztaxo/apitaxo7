@@ -763,6 +763,8 @@ class EmplazamientoController extends Controller
         return response()->json(['status' => 'OK', 'data' => EmplazamientoNnLiteResource::collection($emplazamientosObjs)], 200);
     }
 
+    const NUM_LEVELS = 6;
+
     public function showEmplazamientosRecursiveTreeView(Request $request, int $agenda_id)
     {
 
@@ -773,65 +775,28 @@ class EmplazamientoController extends Controller
             ]);
         }
 
-        $complete_word = trim($request->keyword);
-        $possible_name_words = keyword_search_terms_from_keyword($request->keyword);
-        $levels_nn_results = [];
 
-        $found_parents_codes = [];
+        $found_parents_codes = $this->doEmptyArrayCodesByLevel();
 
-        $found_children_codes = [];
+        $found_children_codes = $this->doEmptyArrayCodesByLevel();
 
-        for ($i = 6; $i > 0; $i--) {
+        for ($i = self::NUM_LEVELS; $i > 0; $i--) {
 
 
-
-            if (!isset($found_parents_codes['n' . $i])) {
-                $found_parents_codes['n' . $i] = [];
-            }
-
-            if (!isset($found_children_codes['n' . $i])) {
-                $found_children_codes['n' . $i] = [];
-            }
-
-            $table = 'ubicaciones_n' . $i;
-            $queryBuilder = EmplazamientoNn::fromTable($table)->where('idAgenda', $agenda_id)
-                ->where('descripcionUbicacion', 'LIKE', '%' . $complete_word . '%');
-
-
-            if (count($possible_name_words) > 1) {
-                $queryBuilder = $queryBuilder->orWhere(function ($query) use ($possible_name_words) {
-                    foreach ($possible_name_words as $palabra) {
-                        $query->where('descripcionUbicacion', 'LIKE', "%$palabra%");
-                    }
-                });
-            }
-
-            $emplazamientos = $queryBuilder->get();
-
-            $codes = $emplazamientos->pluck('codigoUbicacion')->toArray();
+            $codes = $this->getSubPlacesByLevelAndWord($agenda_id, $i, $request->keyword);
 
 
             foreach ($codes as $code) {
-                for ($j = $i; $j > 0; $j--) {
-                    if (!isset($found_parents_codes['n' . $j])) {
-                        $found_parents_codes['n' . $j] = [];
-                    }
-                    $found_parents_codes['n' . $j][] = substr($code, 0, 2 * $j);
-                }
 
-                for ($k = $i + 1; $k <= 6; $k++) {
-                    $nextLevel = 'n' . $k;
-                    $nextTable = 'ubicaciones_n' . $k;
-                    // if (in_array($code, $found_children_codes[$nextLevel])) {
-                    //     break;
-                    // }
-                    $children_codes = EmplazamientoNn::fromTable($nextTable)
-                        ->select('codigoUbicacion')->where('idAgenda', $agenda_id)
-                        ->where('codigoUbicacion', 'LIKE', '' . $code . '%')
-                        ->whereNotIn('codigoUbicacion', $found_children_codes[$nextLevel])
-                        ->get()->pluck('codigoUbicacion')->toArray();
-                    $found_children_codes[$nextLevel] = array_merge($children_codes, $found_children_codes[$nextLevel]);
-                }
+
+                $parentCodes = $this->getParentLevelCode($i, $code);
+
+                $found_parents_codes = $this->mergeCodesByLevel($found_parents_codes, $parentCodes);
+
+
+                $childrenCodes = $this->getChildrenLevelCode($agenda_id, $i, $code);
+
+                $found_children_codes = $this->mergeCodesByLevel($found_children_codes, $childrenCodes);
             }
         }
 
@@ -846,9 +811,83 @@ class EmplazamientoController extends Controller
             'status' => 'OK',
             // 'parent_codes' => $found_parents_codes,
             // 'child_codes' => $found_children_codes,
-            'consolidate' => $consolidate,
+            //'consolidate' => $consolidate,
             'data' => $tree_codes,
         ], 200);
+    }
+
+    private function doEmptyArrayCodesByLevel()
+    {
+        $group = [];
+        for ($i = 1; $i <= self::NUM_LEVELS; $i++) {
+            $indexLevel = "n" . $i;
+            $group[$indexLevel] = [];
+        }
+        return $group;
+    }
+
+    private function getParentLevelCode(int $level, string $code): array
+    {
+        $codes = [];
+        for ($j = $level; $j > 0; $j--) {
+            $codes['n' . $j][] = substr($code, 0, 2 * $j);
+        }
+
+        return $codes;
+    }
+
+    private function getChildrenLevelCode(int $agenda_id, int $level, string $code): array
+    {
+        $codes = [];
+        for ($k = $level + 1; $k <= self::NUM_LEVELS; $k++) {
+            $nextLevel = 'n' . $k;
+            $nextTable = 'ubicaciones_n' . $k;
+
+            $children_codes = EmplazamientoNn::fromTable($nextTable)
+                ->select('codigoUbicacion')->where('idAgenda', $agenda_id)
+                ->where('codigoUbicacion', 'LIKE', '' . $code . '%')
+                ->get()->pluck('codigoUbicacion')->toArray();
+            $codes[$nextLevel] = $children_codes;
+        }
+
+        return $codes;
+    }
+
+    private function mergeCodesByLevel(array $currentCodes, array $newCodes)
+    {
+        foreach ($newCodes as $key => $groupCode) {
+            foreach ($groupCode as $code) {
+                $currentCodes[$key][] = $code;
+            }
+        }
+
+        return $currentCodes;
+    }
+
+
+
+
+    private function getSubPlacesByLevelAndWord(int $agenda_id, int $level, string $phrase)
+    {
+
+        $complete_word = trim($phrase);
+        $possible_name_words = keyword_search_terms_from_keyword($phrase);
+        $table = 'ubicaciones_n' . $level;
+        $queryBuilder = EmplazamientoNn::fromTable($table)->where('idAgenda', $agenda_id)
+            ->where('descripcionUbicacion', 'LIKE', '%' . $complete_word . '%');
+
+
+        if (count($possible_name_words) > 1) {
+            $queryBuilder = $queryBuilder->orWhere(function ($query) use ($possible_name_words) {
+                foreach ($possible_name_words as $palabra) {
+                    $query->where('descripcionUbicacion', 'LIKE', "%$palabra%");
+                }
+            });
+        }
+
+        $emplazamientos = $queryBuilder->get();
+
+        return $emplazamientos->pluck('codigoUbicacion')->toArray();
     }
 
     /**
