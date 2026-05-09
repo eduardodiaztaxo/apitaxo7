@@ -24,6 +24,7 @@ use App\Models\EmplazamientoN3;
 use App\Models\Inventario;
 use App\Models\Inventario\EmplazamientoNn;
 use App\Models\ZonaPunto;
+use App\Services\EmplazamientosRecursiveTreeViewService;
 use App\Services\PlaceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -763,9 +764,30 @@ class EmplazamientoController extends Controller
         return response()->json(['status' => 'OK', 'data' => EmplazamientoNnLiteResource::collection($emplazamientosObjs)], 200);
     }
 
-    const NUM_LEVELS = 6;
 
     public function showEmplazamientosRecursiveTreeView(Request $request, int $agenda_id)
+    {
+
+        if (!keyword_is_searcheable($request->keyword)) {
+            return response()->json([
+                'status' => 'OK',
+                'data' => []
+            ]);
+        }
+
+
+        $tree_codes = EmplazamientosRecursiveTreeViewService::showEmplazamientosRecursiveTreeView($request->keyword, $agenda_id);
+
+
+        return response()->json([
+            'status' => 'OK',
+            'data' => $tree_codes,
+        ], 200);
+    }
+
+    const NUM_LEVELS = 6;
+
+    public function showEmplazamientosRecursiveTreeView_Old(Request $request, int $agenda_id)
     {
 
         if (!keyword_is_searcheable($request->keyword)) {
