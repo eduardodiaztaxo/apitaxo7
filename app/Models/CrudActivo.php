@@ -95,6 +95,36 @@ class CrudActivo extends Model
         return $this->belongsTo(Emplazamiento::class, 'ubicacionOrganicaN2', 'codigoUbicacion')->where('idAgenda', $this->ubicacionGeografica);
     }
 
+    public function emplazamientoN1()
+    {
+        return $this->belongsTo(EmplazamientoN1::class, 'ubicacionOrganicaN1', 'codigoUbicacion')->where('idAgenda', $this->ubicacionGeografica);
+    }
+
+    public function emplazamientoN2()
+    {
+        return $this->belongsTo(EmplazamientoN2::class, 'ubicacionOrganicaN2', 'codigoUbicacion')->where('idAgenda', $this->ubicacionGeografica);
+    }
+
+    public function emplazamientoN3()
+    {
+        return $this->belongsTo(EmplazamientoN3::class, 'ubicacionOrganicaN3', 'codigoUbicacion')->where('idAgenda', $this->ubicacionGeografica);
+    }
+
+    public function emplazamientoN4()
+    {
+        return $this->belongsTo(EmplazamientoN4::class, 'ubicacionOrganicaN4', 'codigoUbicacion')->where('idAgenda', $this->ubicacionGeografica);
+    }
+
+    public function emplazamientoN5()
+    {
+        return $this->belongsTo(EmplazamientoN5::class, 'ubicacionOrganicaN5', 'codigoUbicacion')->where('idAgenda', $this->ubicacionGeografica);
+    }
+
+    public function emplazamientoN6()
+    {
+        return $this->belongsTo(EmplazamientoN6::class, 'ubicacionOrganicaN6', 'codigoUbicacion')->where('idAgenda', $this->ubicacionGeografica);
+    }
+
 
 
     public function ubicacionGeografica()
