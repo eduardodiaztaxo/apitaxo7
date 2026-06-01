@@ -8,9 +8,11 @@ use App\Http\Resources\V1\crudActivoInventarioResource;
 use App\Models\InvConteoRegistro;
 use App\Models\Inv_ciclos_categorias;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Services\ActivoFinderService;
+use App\Services\ProyectoUsuarioService;
 use Illuminate\Support\Facades\Storage;
 
-class EmplazamientoNivel3Resource extends JsonResource
+class EmplazamientoNivel5Resource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -50,8 +52,9 @@ class EmplazamientoNivel3Resource extends JsonResource
                     GROUP BY id_activo
                 )
             ) as crud_activos_pictures'), 'crud_activos_pictures.id_activo', '=', 'crud_activos.idActivo')
-                ->where('crud_activos.tipoCambio', '!=', 200)
-                ->get();
+            ->where('crud_activos.tipoCambio', '!=', 200)
+            ->where('crud_activos.ubicacionOrganicaN1', '=', $this->codigoUbicacion)
+            ->get();
         }
 
         // Solo consultar inventario si el ciclo es tipo 1
@@ -60,7 +63,7 @@ class EmplazamientoNivel3Resource extends JsonResource
             $activosInventario = DB::table('inv_inventario')
                 ->leftJoin('categoria_n3', 'inv_inventario.id_familia', '=', 'categoria_n3.id_familia')
                 ->leftJoin('inv_imagenes', 'inv_inventario.id_img', '=', 'inv_imagenes.id_img')
-                ->where('inv_inventario.codigoUbicacionN3', 'LIKE', $this->codigoUbicacion . '%')
+                ->where('inv_inventario.codigoUbicacion_N1', '=', $this->codigoUbicacion)
                 ->where('inv_inventario.id_ciclo', $this->cycle_id)
                 ->select(
                     'inv_inventario.id_ciclo',
@@ -73,8 +76,7 @@ class EmplazamientoNivel3Resource extends JsonResource
                     'inv_inventario.modelo',
                     'inv_inventario.serie',
                     'inv_inventario.descripcion_marca',
-                    'inv_inventario.idUbicacionN3',
-                    'inv_inventario.codigoUbicacionN3',
+                    'inv_inventario.codigoUbicacion_N1',
                     'inv_inventario.update_inv',
                     'categoria_n3.descripcionCategoria',
                     DB::raw('MIN(inv_imagenes.url_imagen) as url_imagen')
@@ -90,8 +92,7 @@ class EmplazamientoNivel3Resource extends JsonResource
                     'inv_inventario.modelo',
                     'inv_inventario.serie',
                     'inv_inventario.descripcion_marca',
-                    'inv_inventario.codigoUbicacionN3',
-                    'inv_inventario.idUbicacionN3',
+                    'inv_inventario.codigoUbicacion_N1',
                     'inv_inventario.update_inv',
                     'categoria_n3.descripcionCategoria'
                 )
@@ -120,9 +121,9 @@ class EmplazamientoNivel3Resource extends JsonResource
                     }
                 }
             }
-            $familiaDescripcion = DB::table('dp_familias')
-                ->where('id_familia', $this->id_familia)
-                ->value('descripcion_familia');
+         $familiaDescripcion = DB::table('dp_familias')
+        ->where('id_familia', $this->id_familia)
+        ->value('descripcion_familia');
 
             return (object)[
                 'id_ciclo' => $this->cycle_id,
@@ -135,9 +136,9 @@ class EmplazamientoNivel3Resource extends JsonResource
                 'modelo' => $activo->modelo ?? '',
                 'serie' => $activo->serie ?? '',
                 'marca' => $activo->descripcion_marca ?? null,
-                'ubicacionOrganicaN2' => $activo->idUbicacionN3,
+                'ubicacionOrganicaN2' => $activo->codigoUbicacion_N1,
                 'update_inv' => $activo->update_inv,
-                'codigoUbicacionN3' => $activo->codigoUbicacionN3,
+                'codigoUbicacionN3' => $activo->codigoUbicacion_N1,
                 'categoria' => null,
                 'familia' => null,
                 'descripcionCategoria' => $activo->descripcionCategoria,
@@ -147,20 +148,19 @@ class EmplazamientoNivel3Resource extends JsonResource
         });
         }
 
-
+    
         $emplazamiento = [
-            'id' => $this->idUbicacionN3,
+            'id' => $this->idUbicacionN5,
             'codigo' => $this->codigo,
             'codigoUbicacion' => $this->codigoUbicacion,
             'nombre' => $this->descripcionUbicacion,
             'idAgenda' => $this->idAgenda,
-            'idUbicacionN2' => $this->idUbicacionN3,
-            'idUbicacionN3' => $this->idUbicacionN3,
+            'idUbicacionN2' => 0,
             'num_activos' => 0,
-            'detalle' => 'Detalle Emplazamiento (N3)',
-            'num_nivel' => 'N3',
-            'next_level' => 'N4',
-            'habilitadoNivel3' => 0,
+            'habilitadoNivel3' => 1,
+            'detalle'=> 'Detalle Emplazamiento (N5)',
+            'num_nivel' => 'N5',
+            'next_level' => 'N6',
             'modo' => $this->modo,
             'num_activos_inv' => $activosInventario->count(),
             'num_activos_cats_by_cycle' => 0,
@@ -168,7 +168,6 @@ class EmplazamientoNivel3Resource extends JsonResource
             'num_categorias' => $this->activos()->select('categoriaN3')->groupBy('categoriaN3')->get()->count(),
             'id_ciclo' => $this->cycle_id,
             'newApp' => $this->newApp,
-            'zone_address' => ZonaPuntoResource::make($this->zonaPunto()->first())
         ];
 
         if (isset($this->requirePunto) && $this->requirePunto) {
@@ -216,7 +215,7 @@ class EmplazamientoNivel3Resource extends JsonResource
                     
                 } else {
                     // Tipo 2 o null: Consultar desde crud_activos
-                    $activosByCycle = $this->activos_with_cats_by_cycle($this->cycle_id, $this->idAgenda)
+                    $activosByCycle = $this->activos_with_cats_by_cycle($this->cycle_id, $this->idAgenda, $this->codigoUbicacion)
                         ->whereIn('crud_activos.id_grupo', $categorias)
                         ->get()
                         ->map(function ($activo) {

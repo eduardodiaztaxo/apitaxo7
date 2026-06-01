@@ -106,6 +106,15 @@ class CrudActivoResource extends JsonResource
             $activo['emplazamiento'] = EmplazamientoResource::make($this->emplazamientoZona()->first());
         }
 
+        if (isset($this->requireEmplazamiento) && $this->requireEmplazamiento) {
+            $activo['emplazamiento_1'] = EmplazamientoNivel1Resource::make($this->emplazamientoN1()->first());
+            $activo['emplazamiento_2'] = EmplazamientoNivel2Resource::make($this->emplazamientoN2()->first());
+            $activo['emplazamiento_3'] = EmplazamientoNivel3Resource::make($this->emplazamientoN3()->first());
+            $activo['emplazamiento_4'] = EmplazamientoNivel4Resource::make($this->emplazamientoN4()->first());
+            $activo['emplazamiento_5'] = EmplazamientoNivel5Resource::make($this->emplazamientoN5()->first());
+            $activo['emplazamiento_6'] = EmplazamientoNivel6Resource::make($this->emplazamientoN6()->first());            
+        }
+
 
         return $activo;
     }
