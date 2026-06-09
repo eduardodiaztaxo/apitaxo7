@@ -189,20 +189,41 @@ class Inventario extends Model
                 ->on('ubicaciones_n1.codigoUbicacion', '=', 'inv_inventario.codigoUbicacion_N1');
         })->where('ubicaciones_n1.idAgenda', '=', $this->idUbicacionGeo)->where('ubicaciones_n1.codigoUbicacion', '=', $this->codigoUbicacionN1);
     }
+    
+    public function getEmplazamientoN1()
+    {
+        return EmplazamientoN1::where('codigoUbicacion', $this->codigoUbicacion_N1)
+            ->where('idAgenda', $this->idUbicacionGeo);
+    }
 
     public function emplazamientoN2()
     {
-        return $this->belongsTo(EmplazamientoN2::class, 'idUbicacionN2', 'idUbicacionN2');
+        return EmplazamientoN2::where('codigoUbicacion', $this->codigoUbicacion_N2)
+            ->where('idAgenda', $this->idUbicacionGeo);
     }
 
     public function emplazamientoN3()
     {
-        return $this->belongsTo(EmplazamientoN3::class, 'idUbicacionN3', 'idUbicacionN3');
+        return EmplazamientoN3::where('codigoUbicacion', $this->codigoUbicacionN3)
+            ->where('idAgenda', $this->idUbicacionGeo);
     }
 
     public function emplazamientoN4()
     {
-        return $this->belongsTo(EmplazamientoN4::class, 'codigoUbicacionN4', 'codigoUbicacion')->where('idAgenda', $this->idUbicacionGeo);
+        return EmplazamientoN4::where('codigoUbicacion', $this->codigoUbicacionN4)
+            ->where('idAgenda', $this->idUbicacionGeo);
+    }
+
+    public function emplazamientoN5()
+    {
+        return EmplazamientoN5::where('codigoUbicacion', $this->codigoUbicacionN5)
+            ->where('idAgenda', $this->idUbicacionGeo);
+    }
+
+    public function emplazamientoN6()
+    {
+        return EmplazamientoN6::where('codigoUbicacion', $this->codigoUbicacionN6)
+            ->where('idAgenda', $this->idUbicacionGeo);
     }
 
     public static function queryBuilderInventory_FindInGroupFamily_Pagination($model, ?InvCiclo $cicloObj, Request $request)

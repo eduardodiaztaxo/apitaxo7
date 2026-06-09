@@ -112,6 +112,12 @@ class InventariosResource extends JsonResource
         $nombreEmplazamiento = '';
         $descripcionZoneAddress = '';
         $codigoZoneAddress = '';
+        $emplazamiento_1 = "";
+        $emplazamiento_2 = "";
+        $emplazamiento_3 = "";
+        $emplazamiento_4 = "";
+        $emplazamiento_5 = "";
+        $emplazamiento_6 = "";
 
         if ($hasEmplazamiento) {
             // Solo buscar emplazamientos si hay valores asignados
@@ -162,6 +168,13 @@ class InventariosResource extends JsonResource
                 $descripcionZoneAddress = $emplazamiento->descripcionUbicacion ?? '';
                 $codigoZoneAddress = $emplazamiento->codigoUbicacion ?? '';
             }
+            
+            $emplazamiento_1 = EmplazamientoNivel1Resource::make($this->getEmplazamientoN1()->first());
+            $emplazamiento_2 = EmplazamientoNivel2Resource::make($this->emplazamientoN2()->first());
+            $emplazamiento_3 = EmplazamientoNivel3Resource::make($this->emplazamientoN3()->first());
+            $emplazamiento_4 = EmplazamientoNivel4Resource::make($this->emplazamientoN4()->first());
+            $emplazamiento_5 = EmplazamientoNivel5Resource::make($this->emplazamientoN5()->first());
+            $emplazamiento_6 = EmplazamientoNivel6Resource::make($this->emplazamientoN6()->first());
         }
 
         $direccion = DB::table('ubicaciones_geograficas')
@@ -235,7 +248,12 @@ class InventariosResource extends JsonResource
                     'codigoUbicacion'      => $hasEmplazamiento ? $codigoZoneAddress : '',
                 ],
             ],
-
+            'emplazamiento_1' => $emplazamiento_1,
+            'emplazamiento_2' => $emplazamiento_2,
+            'emplazamiento_3' => $emplazamiento_3,
+            'emplazamiento_4' => $emplazamiento_4,
+            'emplazamiento_5' => $emplazamiento_5,
+            'emplazamiento_6' => $emplazamiento_6,
             'ubicacion' => [
                 'idUbicacionGeo' => $activo->idUbicacionGeo,
                 'direccion'      => $direccion->direccion ?? 'No disponible',
