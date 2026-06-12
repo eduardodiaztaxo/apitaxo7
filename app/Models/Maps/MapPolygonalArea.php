@@ -7,6 +7,7 @@ use App\Models\UbicacionGeografica;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use App\Models\Maps\Activo;
 
 class MapPolygonalArea extends Model
 {
@@ -367,5 +368,114 @@ class MapPolygonalArea extends Model
         //Check for edge intersections (not implemented here for simplicity)
 
         return false;
+    }
+
+    public function activo_markers()
+    {
+        if(!$this->address_id && $this->level === 2){
+            $preMarkers = $this->belongsToMany(
+                Activo::class,
+                'map_activos_levels_areas',
+                'area_id',
+                'activo_id'
+            )->wherePivot('level', $this->level)->get();
+        } else if(!$this->address_id){
+            return collect([]);
+        } else {
+            $preMarkers = $this->hasMany(Activo::class, 'idUbicacionGeo', 'address_id')->get();
+        }
+
+        $positionCounts = $preMarkers
+            ->groupBy(function ($item) {
+                return ($item->adjusted_lat ?? $item->latitud) . ',' .
+                    ($item->adjusted_lng ?? $item->longitud);
+            })
+            ->map->count();
+
+        $markers = $preMarkers->map(function ($activo) use ($positionCounts) {
+            $lat = $activo->adjusted_lat ?? $activo->latitud;
+            $lng = $activo->adjusted_lng ?? $activo->longitud;
+            $key = $lat . ',' . $lng;
+
+            return new MapMarkerAsset([
+                'inv_id'      => $activo->id_inventario,
+                'category_id' => $activo->id_familia,
+                'name'        => $activo->descripcion_bien,
+                'fix_quality' => $activo->fix_quality,
+                'lat'         => (float) $lat,
+                'lng'         => (float) $lng,
+                'adjusted_at' => $activo->adjusted_at,
+                'adjusted_by' => $activo->adjusted_by,
+                'etiqueta'    => $activo->etiqueta,
+                'repeated'    => $positionCounts[$key] ?? 1,
+                'created_at'  => now(),
+                'updated_at'  => now()
+            ]);
+        });
+
+        return $markers;
+    }
+
+    public function activo_markers_by_coordinates()
+    {
+        $markers = Activo::where('latitud', '>=', $this->min_lat)
+            ->where('latitud', '<=', $this->max_lat)
+            ->where('longitud', '>=', $this->min_lng)
+            ->where('longitud', '<=', $this->max_lng)
+            ->where('latitud', '!=', 0)
+            ->where('longitud', '!=', 0)
+            ->whereNull('adjusted_lat')
+            ->get();
+
+        $filteredMarkers = $markers->filter(function ($marker) {
+            return $this->isPointInsidePolygon(
+                (float)$marker->latitud,
+                (float)$marker->longitud,
+                json_decode($this->area, true)
+            );
+        });
+
+        $filteredMarkersMap = $filteredMarkers->map(function ($activo) {
+            return new MapMarkerAsset([
+                'inv_id'      => $activo->id_inventario,
+                'category_id' => $activo->id_familia,
+                'name'        => $activo->descripcion_bien,
+                'fix_quality' => null,
+                'lat'         => (float)$activo->latitud,
+                'lng'         => (float)$activo->longitud,
+                'created_at'  => now(),
+                'updated_at'  => now()
+            ]);
+        });
+
+        $markers_adjusted = Activo::where('adjusted_lat', '>=', $this->min_lat)
+            ->where('adjusted_lat', '<=', $this->max_lat)
+            ->where('adjusted_lng', '>=', $this->min_lng)
+            ->where('adjusted_lng', '<=', $this->max_lng)
+            ->whereNotNull('adjusted_lat')
+            ->get();
+
+        $filteredMarkersAdjusted = $markers_adjusted->filter(function ($marker) {
+            return $this->isPointInsidePolygon(
+                (float)$marker->adjusted_lat,
+                (float)$marker->adjusted_lng,
+                json_decode($this->area, true)
+            );
+        });
+
+        $filteredMarkersAdjustedMap = $filteredMarkersAdjusted->map(function ($activo) {
+            return new MapMarkerAsset([
+                'inv_id'      => $activo->id_inventario,
+                'category_id' => $activo->id_familia,
+                'name'        => $activo->descripcion_bien,
+                'fix_quality' => $activo->fix_quality,
+                'lat'         => (float)$activo->adjusted_lat,
+                'lng'         => (float)$activo->adjusted_lng,
+                'created_at'  => now(),
+                'updated_at'  => now()
+            ]);
+        });
+
+        return $filteredMarkersMap->concat($filteredMarkersAdjustedMap);
     }
 }

@@ -8,6 +8,7 @@ use App\Http\Resources\V1\Maps\MapPolygonalAreaResource;
 use App\Models\Inventario;
 use App\Models\Maps\MapPolygonalArea;
 use Illuminate\Http\Request;
+use App\Models\Maps\Activo;
 
 class MapPolygonController extends Controller
 {
@@ -293,15 +294,17 @@ class MapPolygonController extends Controller
         return response()->json(MapMarkerAssetResource::collection($markers), 200);
     }
 
-    public function showInventoryMarkers($id)
+    public function showInventoryMarkers(Request $request, $id)
     {
         $mapArea = MapPolygonalArea::find($id);
-
         if (!$mapArea) {
             return response()->json(['error' => 'Map area not found'], 404);
         }
 
-        $markers = $mapArea->inventory_markers();
+        $source = $request->query('source', 'inventario');
+        $markers = ($source === 'activos')
+            ? $mapArea->activo_markers()
+            : $mapArea->inventory_markers();
 
         return response()->json(MapMarkerAssetResource::collection($markers), 200);
     }
@@ -315,7 +318,10 @@ class MapPolygonController extends Controller
             'lng' => 'required|numeric'
         ]);
 
-        $asset = Inventario::find($id);
+        $source = $request->query('source', 'inventario');
+        $asset = ($source === 'activos')
+            ? Activo::find($id)
+            : Inventario::find($id);
 
         if (!$asset) {
             return response()->json(['error' => 'asset not found'], 404);
@@ -323,15 +329,9 @@ class MapPolygonController extends Controller
 
         $asset->adjusted_lat = $request->lat;
         $asset->adjusted_lng = $request->lng;
-
         $asset->adjusted_at = date('Y-m-d H:i:s');
-
-        $usuario = $request->user()->name;
-
         $asset->adjusted_origin = 'map_tool';
-
-        $asset->adjusted_by = $usuario;
-        
+        $asset->adjusted_by = $request->user()->name;
         $asset->save();
 
         return response()->json($asset, 200);

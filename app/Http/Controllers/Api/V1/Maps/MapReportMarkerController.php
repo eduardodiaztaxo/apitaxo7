@@ -16,17 +16,16 @@ class MapReportMarkerController extends Controller
      */
     public function indexOverlappingInventoryMarkers(Request $request){
 
-        $duplicates = DB::table('inv_inventario')
-        ->select(
-            'adjusted_lat',
-            'adjusted_lng',
-            DB::raw('COUNT(*) as total')
-        )
-        ->whereNotNull('adjusted_lat')
-        ->whereNotNull('adjusted_lng')
-        ->groupBy('adjusted_lat', 'adjusted_lng')
-        ->having('total', '>', 1)
-        ->get();
+        $source = $request->query('source', 'inventario');
+        $table = ($source === 'activos') ? 'map_crud_activos' : 'inv_inventario';
+
+        $duplicates = DB::table($table)
+            ->select('adjusted_lat', 'adjusted_lng', DB::raw('COUNT(*) as total'))
+            ->whereNotNull('adjusted_lat')
+            ->whereNotNull('adjusted_lng')
+            ->groupBy('adjusted_lat', 'adjusted_lng')
+            ->having('total', '>', 1)
+            ->get();        
 
         return response()->json(
             $duplicates,
@@ -40,16 +39,17 @@ class MapReportMarkerController extends Controller
      * 
      * @return \Illuminate\Http\Response 
      */
-    public function indexUsersInventoryMarkers(){
+    public function indexUsersInventoryMarkers(Request $request){
 
-        $usersMarkers = DB::table('inv_inventario')
-        ->select(
-            'adjusted_by',
-            DB::raw('COUNT(*) as total_markers')
-        )
-        ->whereNotNull('adjusted_by')
-        ->groupBy('adjusted_by')
-        ->get();
+        $source = $request->query('source', 'inventario');
+        $table = ($source === 'activos') ? 'map_crud_activos' : 'inv_inventario';
+
+        $usersMarkers = DB::table($table)
+            ->select('adjusted_by', DB::raw('COUNT(*) as total_markers'))
+            ->whereNotNull('adjusted_by')
+            ->groupBy('adjusted_by')
+            ->get();
+
 
         return response()->json(
             $usersMarkers,
