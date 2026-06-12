@@ -7,13 +7,22 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class InventariosResource extends JsonResource
 {
+    protected $source;
+
+    public function __construct($resource, $source = 'inventario')
+    {
+        parent::__construct($resource);
+        $this->source = $source;
+    }
+
     /**
      * Transform the resource into an array.
      */
     public function toArray($request)
     {
         // Obtener el registro principal del inventario
-        $activo = DB::table('inv_inventario')
+        $tabla = ($this->source === 'activos') ? 'map_crud_activos' : 'inv_inventario';
+        $activo = DB::table($tabla)
             ->where('id_inventario', $this->id_inventario)
             ->select(
                 'id_inventario',
@@ -169,12 +178,12 @@ class InventariosResource extends JsonResource
                 $codigoZoneAddress = $emplazamiento->codigoUbicacion ?? '';
             }
             
-            $emplazamiento_1 = EmplazamientoNivel1Resource::make($this->getEmplazamientoN1()->first());
-            $emplazamiento_2 = EmplazamientoNivel2Resource::make($this->emplazamientoN2()->first());
-            $emplazamiento_3 = EmplazamientoNivel3Resource::make($this->emplazamientoN3()->first());
-            $emplazamiento_4 = EmplazamientoNivel4Resource::make($this->emplazamientoN4()->first());
-            $emplazamiento_5 = EmplazamientoNivel5Resource::make($this->emplazamientoN5()->first());
-            $emplazamiento_6 = EmplazamientoNivel6Resource::make($this->emplazamientoN6()->first());
+            $emplazamiento_1 = method_exists($this, 'getEmplazamientoN1') ? EmplazamientoNivel1Resource::make($this->getEmplazamientoN1()->first()) : null;
+            $emplazamiento_2 = method_exists($this, 'emplazamientoN2') ? EmplazamientoNivel2Resource::make($this->emplazamientoN2()->first()) : null;
+            $emplazamiento_3 = method_exists($this, 'emplazamientoN3') ? EmplazamientoNivel3Resource::make($this->emplazamientoN3()->first()) : null;
+            $emplazamiento_4 = method_exists($this, 'emplazamientoN4') ? EmplazamientoNivel4Resource::make($this->emplazamientoN4()->first()) : null;
+            $emplazamiento_5 = method_exists($this, 'emplazamientoN5') ? EmplazamientoNivel5Resource::make($this->emplazamientoN5()->first()) : null;
+            $emplazamiento_6 = method_exists($this, 'emplazamientoN6') ? EmplazamientoNivel6Resource::make($this->emplazamientoN6()->first()) : null;
         }
 
         $direccion = DB::table('ubicaciones_geograficas')

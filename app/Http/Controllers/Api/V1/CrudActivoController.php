@@ -23,6 +23,7 @@ use App\Services\Imagenes\PictureSafinService;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Encoders\JpegEncoder;
 use Intervention\Image\Laravel\Facades\Image as Image;
+use App\Models\Maps\Activo;
 
 class CrudActivoController extends Controller
 {
@@ -168,8 +169,13 @@ class CrudActivoController extends Controller
      */
     public function showInventoryByID(Request $request, $id)
     {
+        $source = $request->query('source', 'inventario');
 
-        $activo = Inventario::find($id);
+        if ($source === 'activos') {
+            $activo = Activo::find($id);
+        } else {
+            $activo = Inventario::find($id);
+        }
 
         if (!$activo) {
             return response()->json([
@@ -178,7 +184,7 @@ class CrudActivoController extends Controller
             ], 404);
         }
 
-        $resource = new InventariosResource($activo);
+        $resource = new InventariosResource($activo, $source);
 
         return response()->json($resource, 200);
     }
