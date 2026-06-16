@@ -47,7 +47,7 @@ class EmplazamientosN2DumpService implements DumpSQLiteInterface
 
         $zonasEmplaCtrl = new ZonaEmplazamientosController();
 
-        $response = $zonasEmplaCtrl->showAllEmplaByCycleCats($request, $this->cycle);
+        $response = $zonasEmplaCtrl->showAllEmplaByCycleCatsWithFallback($request, $this->cycle);
 
         $jsonContent = $response->getContent();
 

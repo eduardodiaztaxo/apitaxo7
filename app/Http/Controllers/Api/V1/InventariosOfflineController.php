@@ -221,30 +221,26 @@ class InventariosOfflineController extends Controller
         $queryBuilder = EmplazamientoNn::fromTable($table)->where('idProyecto', $id_proyecto);
 
         if (!empty($ids)) {
-
             $queryBuilder = $queryBuilder->whereIn('idAgenda', $ids);
         }
 
         $emplazamientos = $queryBuilder->get();
 
         if ($emplazamientos->isEmpty()) {
+            $emplazamientos = EmplazamientoNn::fromTable($table)->where('idProyecto', $id_proyecto)->get();
+        }
+
+        if ($emplazamientos->isEmpty()) {
             return response()->json([
                 'status' => 'NOK',
                 'message' => 'No encontrada',
-
                 'code' => 404
             ], 404);
         }
 
-
-
-
-
         $resources = $emplazamientos->map(function ($emplazamiento) use ($cicloObj, $level) {
             return new EmplazamientoNnResource($emplazamiento, $cicloObj, $level);
         });
-
-
 
         return response()->json($resources, 200);
     }

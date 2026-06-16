@@ -336,6 +336,45 @@ class ZonaEmplazamientosController extends Controller
         return response()->json(EmplazamientoNivel2Resource::collection($emplazamientos), 200);
     }
 
+    public function showAllEmplaByCycleCatsWithFallback(Request $request, int $ciclo)
+    {
+        $cicloObj = InvCiclo::find($ciclo);
+
+        if (!$cicloObj) {
+            return response()->json(['status' => 'NOK', 'message' => 'Ciclo no encontrado', 'code' => 404], 404);
+        }
+
+        $id_proyecto = DB::table('inv_ciclos')->where('idCiclo', $ciclo)->value('id_proyecto') ?? 0;
+
+        $allN2 = Emplazamiento::where('idProyecto', $id_proyecto)->get();
+
+        if ($allN2->isEmpty()) {
+            return response()->json(['status' => 'NOK', 'message' => 'Sin emplazamientos', 'code' => 404], 404);
+        }
+
+        $emplazamientos = collect();
+
+        foreach ($allN2 as $n2) {
+            $emplaCats = $cicloObj->zoneEmplazamientosWithCats($n2)->pluck('idUbicacionN2')->toArray();
+
+            if (!empty($emplaCats)) {
+                $n2->cycle_id = $ciclo;
+                $n2->type_cycle = $cicloObj->idTipoCiclo;
+                $emplazamientos->push($n2);
+            }
+        }
+
+        if ($emplazamientos->isEmpty()) {
+            foreach ($allN2 as $n2) {
+                $n2->cycle_id = $ciclo;
+                $n2->type_cycle = $cicloObj->idTipoCiclo;
+                $emplazamientos->push($n2);
+            }
+        }
+
+        return response()->json(EmplazamientoNivel2Resource::collection($emplazamientos), 200);
+    }
+
     public function regiones()
     {
         $RegionesObj = Region::all();
