@@ -49,6 +49,8 @@ class InventarioDumpService
         $inventario = isset($data->data) ? $data->data : $data;
 
         $this->insert($inventario);
+
+        $this->createIndexes();
     }
 
     public function createTable(): void
@@ -460,5 +462,19 @@ class InventarioDumpService
                 ':texto_abierto_50' => $i->texto_abierto_50 ?? null
             ]);
         }
+    }
+
+    public function createIndexes(): void
+    {
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_inventario_ciclo ON inventario(id_ciclo)");
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_inventario_etiqueta ON inventario(etiqueta)");
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_inventario_ubicacion ON inventario(idUbicacionGeo)");
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_inventario_ciclo_geo ON inventario(id_ciclo, idUbicacionGeo)");
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_inventario_ciclo_n1 ON inventario(id_ciclo, codigoUbicacion_N1)");
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_inventario_ciclo_n2 ON inventario(id_ciclo, codigoUbicacion_N2)");
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_inventario_ciclo_n3 ON inventario(id_ciclo, codigoUbicacionN3)");
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_inventario_offline ON inventario(offline)");
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_inventario_grupo ON inventario(id_grupo)");
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_inventario_familia ON inventario(id_familia)");
     }
 }

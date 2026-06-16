@@ -69,6 +69,7 @@ class ZonesDumpService implements DumpSQLiteInterface
         }
 
         $this->insert($zonas);
+        $this->createIndexes();
     }
 
 
@@ -165,5 +166,12 @@ class ZonesDumpService implements DumpSQLiteInterface
                 ':num_total_orphans' => $zona->num_total_orphans ?? 0
             ]);
         }
+    }
+
+    public function createIndexes(): void
+    {
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_zonas_agenda ON zonas(idAgenda)");
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_zonas_codigo_agenda ON zonas(codigoUbicacion, idAgenda)");
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_zonas_ubicacion_n1 ON zonas(idUbicacionN1)");
     }
 }

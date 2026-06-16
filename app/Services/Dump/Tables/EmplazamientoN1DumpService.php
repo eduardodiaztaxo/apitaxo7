@@ -58,8 +58,8 @@ class EmplazamientoN1DumpService implements DumpSQLiteInterface
             return;
         }
 
-
         $this->insert($data);
+        $this->createIndexes();
     }
 
 
@@ -176,5 +176,12 @@ class EmplazamientoN1DumpService implements DumpSQLiteInterface
                 ':offline' => 0
             ]);
         }
+    }
+
+    public function createIndexes(): void
+    {
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_emplazamientosN1_agenda ON emplazamientosN1(idAgenda)");
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_emplazamientosN1_codigo_agenda ON emplazamientosN1(codigoUbicacion, idAgenda)");
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_emplazamientosN1_offline ON emplazamientosN1(offline)");
     }
 }

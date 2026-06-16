@@ -58,8 +58,8 @@ class MarcasDumpService implements DumpSQLiteInterface
             return;
         }
 
-
         $this->insert($data);
+        $this->createIndexes();
     }
 
     /**
@@ -88,26 +88,26 @@ class MarcasDumpService implements DumpSQLiteInterface
      * @param \Illuminate\Http\Resources\Json\AnonymousResourceCollection $cycles Array of cycle objects to insert.
      * @return void
      */
-  public function insert(array|AnonymousResourceCollection $marca): void
+    public function insert(array|AnonymousResourceCollection $marca): void
     {
         $stmt = $this->pdo->prepare("
-    INSERT INTO marcas (
-        idLista,
-        idAtributo,
-        idIndice,
-        id_familia,
-        descripcion,
-        ciclo_inventario
-    )
-    VALUES (
-        :idLista,
-        :idAtributo,
-        :idIndice,
-        :id_familia,
-        :descripcion,
-        :ciclo_inventario
-    )
-");
+            INSERT INTO marcas (
+                idLista,
+                idAtributo,
+                idIndice,
+                id_familia,
+                descripcion,
+                ciclo_inventario
+            )
+            VALUES (
+                :idLista,
+                :idAtributo,
+                :idIndice,
+                :id_familia,
+                :descripcion,
+                :ciclo_inventario
+            )
+        ");
 
 
 
@@ -122,5 +122,10 @@ class MarcasDumpService implements DumpSQLiteInterface
                 ':ciclo_inventario' => $m->ciclo_inventario
             ]);
         }
+    }
+    
+    public function createIndexes(): void
+    {
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_marcas_familia ON marcas(id_familia)");
     }
 }

@@ -65,6 +65,7 @@ class AddressesDumpService implements DumpSQLiteInterface
         $addresses = isset($data->data) ? $data->data : $data;
 
         $this->insert($addresses);
+        $this->createIndexes();
     }
 
 
@@ -208,5 +209,10 @@ class AddressesDumpService implements DumpSQLiteInterface
     public function getZones(): array
     {
         return $this->zones;
+    }
+
+    public function createIndexes(): void
+    {
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_ubicaciones_offline ON ubicaciones(offline)");
     }
 }

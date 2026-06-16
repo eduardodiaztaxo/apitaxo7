@@ -59,6 +59,7 @@ class BienesInventarioDumpService
         $bienes = isset($data->data) ? $data->data : $data;
 
         $this->insert($bienes);
+        $this->createIndexes();
     }
 
     public function createTable(): void
@@ -101,22 +102,22 @@ class BienesInventarioDumpService
                 fechaCreacion,
                 modo,
                 offline
-    )
-    VALUES (
-                :idLista,
-                :idIndice,
-                :descripcion,
-                :observacion,
-                :idAtributo,
-                :id_familia,
-                :id_grupo,
-                :ciclo_inventario,
-                :creadoPor,
-                :fechaCreacion,
-                :modo,
-                :offline
-    )
-");
+            )
+            VALUES (
+                        :idLista,
+                        :idIndice,
+                        :descripcion,
+                        :observacion,
+                        :idAtributo,
+                        :id_familia,
+                        :id_grupo,
+                        :ciclo_inventario,
+                        :creadoPor,
+                        :fechaCreacion,
+                        :modo,
+                        :offline
+            )
+        ");
 
         foreach ($bienes as $b) {
 
@@ -135,5 +136,10 @@ class BienesInventarioDumpService
                 'offline' => 0,
             ]);
         }
+    }
+
+    public function createIndexes(): void
+    {
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_bienes_inv_offline ON bienesInventario(offline)");
     }
 }

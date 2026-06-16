@@ -55,8 +55,8 @@ class MarcasInventarioDumpService
             return;
         }
 
-
         $this->insert($data);
+        $this->createIndexes();
     }
 
 
@@ -86,33 +86,33 @@ class MarcasInventarioDumpService
     public function insert(array|AnonymousResourceCollection $marcas): void
     {
         $stmt = $this->pdo->prepare("
-    INSERT INTO marcasInventario (
-                idLista,
-                idIndice,
-                descripcion,
-                observacion,
-                idAtributo,
-                id_familia,
-                ciclo_inventario,
-                creadoPor,
-                fechaCreacion,
-                modo,
-                offline
-    )
-    VALUES (
-                :idLista,
-                :idIndice,
-                :descripcion,
-                :observacion,
-                :idAtributo,
-                :id_familia,
-                :ciclo_inventario,
-                :creadoPor,
-                :fechaCreacion,
-                :modo,
-                :offline
-    )
-");
+            INSERT INTO marcasInventario (
+                        idLista,
+                        idIndice,
+                        descripcion,
+                        observacion,
+                        idAtributo,
+                        id_familia,
+                        ciclo_inventario,
+                        creadoPor,
+                        fechaCreacion,
+                        modo,
+                        offline
+            )
+            VALUES (
+                        :idLista,
+                        :idIndice,
+                        :descripcion,
+                        :observacion,
+                        :idAtributo,
+                        :id_familia,
+                        :ciclo_inventario,
+                        :creadoPor,
+                        :fechaCreacion,
+                        :modo,
+                        :offline
+            )
+        ");
 
 
 
@@ -132,5 +132,10 @@ class MarcasInventarioDumpService
                 'offline' => 0
             ]);
         }
+    }
+
+    public function createIndexes(): void
+    {
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_marcas_inv_offline ON marcasInventario(offline)");
     }
 }

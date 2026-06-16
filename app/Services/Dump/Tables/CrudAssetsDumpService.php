@@ -69,6 +69,7 @@ class CrudAssetsDumpService implements DumpSQLiteInterface
         $assets = isset($data->data) ? $data->data : $data;
 
         $this->insert($assets);
+        $this->createIndexes();
     }
 
 
@@ -377,5 +378,13 @@ class CrudAssetsDumpService implements DumpSQLiteInterface
                 ':status_scan_extra_class' => isset($asset->status_scan_extra_class) ? $asset->status_scan_extra_class : ''
             ]);
         }
+    }
+
+    public function createIndexes(): void
+    {
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_assets_etiqueta ON assets(etiqueta)");
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_assets_ubicacion ON assets(idUbicacionGeografica)");
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_assets_ciclo ON assets(ciclo_id)");
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_assets_organica_n1 ON assets(ubicacionOrganicaN1)");
     }
 }

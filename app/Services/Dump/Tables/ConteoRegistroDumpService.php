@@ -31,6 +31,7 @@ class ConteoRegistroDumpService implements DumpSQLiteInterface
         $Registros = \App\Models\InvConteoRegistro::where('ciclo_id', $this->cycle)->where('status', 1)->get();
 
         $this->insert($Registros->toArray());
+        $this->createIndexes();
     }
 
     public function createTable(): void
@@ -111,5 +112,10 @@ class ConteoRegistroDumpService implements DumpSQLiteInterface
                 'updated_at' => $c->updated_at
             ]);
         }
+    }
+    
+    public function createIndexes(): void
+    {
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_conteo_punto_status ON conteo_registro(punto_id, status)");
     }
 }

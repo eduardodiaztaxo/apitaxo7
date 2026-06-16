@@ -62,6 +62,7 @@ class EmplazamientosN2DumpService implements DumpSQLiteInterface
         $emplazamientos = isset($data->data) ? $data->data : $data;
 
         $this->insert($emplazamientos);
+        $this->createIndexes();
     }
 
 
@@ -178,5 +179,12 @@ class EmplazamientosN2DumpService implements DumpSQLiteInterface
                 ':offline' => 0
             ]);
         }
+    }
+
+    public function createIndexes(): void
+    {
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_emplazamientosN2_agenda ON emplazamientosN2(idAgenda)");
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_emplazamientosN2_codigo_agenda ON emplazamientosN2(codigoUbicacion, idAgenda)");
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_emplazamientosN2_offline ON emplazamientosN2(offline)");
     }
 }

@@ -56,8 +56,8 @@ class BienGrupoFamiliaDumpService implements DumpSQLiteInterface
             return;
         }
 
-
         $this->insert($data);
+        $this->createIndexes();
     }
 
 
@@ -133,5 +133,10 @@ class BienGrupoFamiliaDumpService implements DumpSQLiteInterface
                 ':id_grupo' => $B->id_grupo
             ]);
         }
+    }
+
+    public function createIndexes(): void
+    {
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_bien_grupo_familia ON BienGrupoFamilia(id_grupo, id_familia)");
     }
 }

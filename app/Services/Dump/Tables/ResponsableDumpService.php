@@ -43,6 +43,7 @@ class ResponsableDumpService implements DumpSQLiteInterface
 
         $data = json_decode($jsonContent, true);
         $this->insert($data);
+        $this->createIndexes();
     }
 
 
@@ -107,5 +108,11 @@ class ResponsableDumpService implements DumpSQLiteInterface
                 ':name' => $res['name']
             ]);
         }
+    }
+
+    public function createIndexes(): void
+    {
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_responsables_rut ON responsables(rut)");
+        $this->pdo->exec("CREATE INDEX IF NOT EXISTS idx_responsables_name ON responsables(name)");
     }
 }
