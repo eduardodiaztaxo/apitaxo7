@@ -355,9 +355,12 @@ class ZonaEmplazamientosController extends Controller
         $emplazamientos = collect();
 
         foreach ($allN2 as $n2) {
-            $emplaCats = $cicloObj->zoneEmplazamientosWithCats($n2)->pluck('idUbicacionN2')->toArray();
+            $tieneActivosEnCiclo = $n2->inv_activos_with_child_levels()
+                ->where('inv_inventario.id_ciclo', $ciclo)
+                ->where('inv_inventario.id_proyecto', $id_proyecto)
+                ->exists();
 
-            if (!empty($emplaCats)) {
+            if ($tieneActivosEnCiclo) {
                 $n2->cycle_id = $ciclo;
                 $n2->type_cycle = $cicloObj->idTipoCiclo;
                 $emplazamientos->push($n2);
