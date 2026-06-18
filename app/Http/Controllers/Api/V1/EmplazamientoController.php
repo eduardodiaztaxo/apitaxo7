@@ -26,6 +26,7 @@ use App\Models\Inventario\EmplazamientoNn;
 use App\Models\ZonaPunto;
 use App\Services\EmplazamientosRecursiveTreeViewService;
 use App\Services\PlaceService;
+use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -540,7 +541,7 @@ class EmplazamientoController extends Controller
      * @param int $ciclo
      * @param int $nivel
      * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function showTodosAssets(int $idAgenda, int $ciclo, int $nivel, string $codigoUbicacion, Request $request)
     {
@@ -573,8 +574,10 @@ class EmplazamientoController extends Controller
             ->leftJoin('crud_activos_pictures as cap', 'cap.id_foto', '=', 'ultima_foto.id_foto')
             ->select([
                 'cav.idActivo as id',
+                'cap.id_foto as id_foto',
                 'cav.nombreActivo',
                 'cav.etiqueta',
+                'cap.picture',
                 DB::raw("COALESCE(CONCAT(cap.url_picture, '/', cap.picture), '" . asset('img/notavailable.jpg') . "') as fotoUrl"),
             ])
             ->where('cav.direccion_id', $idAgenda)
@@ -601,9 +604,16 @@ class EmplazamientoController extends Controller
             ->paginate($perPage, ['*'], 'page', $page)
             ->appends($request->query());
 
+        $items = collect($assets->items())->map(function ($asset) {
+            $asset->thumbUrl = ImageService::getCrudThumbnailUrlByPicture($asset->id_foto ?? null, $asset->etiqueta ?? null, $asset->picture ?? null);
+            $asset->thumbnails = array_values(array_unique(array_filter([$asset->thumbUrl])));
+
+            return $asset;
+        })->all();
+
         return response()->json([
             'status' => 'OK',
-            'data' => $assets->items(),
+            'data' => $items,
             'meta' => [
                 'current_page' => $assets->currentPage(),
                 'from' => $assets->firstItem(),
@@ -617,7 +627,7 @@ class EmplazamientoController extends Controller
                 'last' => $assets->url($assets->lastPage()),
                 'prev' => $assets->previousPageUrl(),
                 'next' => $assets->nextPageUrl(),
-            ], // Devolución paginada sin pasar por el Resource
+            ], 
         ]);
     }
 
@@ -626,6 +636,13 @@ class EmplazamientoController extends Controller
         $pictures = DB::table('crud_activos_pictures')
             ->where('etiqueta', $etiqueta)
             ->get();
+
+        $pictures = $pictures->map(function ($picture) {
+            $picture->original_url = ImageService::buildOriginalUrl($picture->url_imagen, $picture->url_picture, $picture->picture);
+            $picture->thumb_url = ImageService::getCrudThumbnailUrlByPicture($picture->id_foto ?? null, $picture->etiqueta ?? null, $picture->picture ?? null);
+
+            return $picture;
+        });
 
         return response()->json([
             'status' => 'OK',
