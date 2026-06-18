@@ -312,6 +312,7 @@ class ZonaEmplazamientosController extends Controller
         return response()->json(EmplazamientoNivel1Resource::collection($emplazamientos), 200);
     }
 
+
     // public function showAllEmplaByCycleCats(Request $request, int $ciclo)
     // {
 

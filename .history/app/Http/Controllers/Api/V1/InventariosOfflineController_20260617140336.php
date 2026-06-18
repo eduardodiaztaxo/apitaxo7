@@ -265,38 +265,40 @@ class InventariosOfflineController extends Controller
 
         $table = 'ubicaciones_n' . $level;
 
-        // 1. Puntos asignados al ciclo
-        $cyclePoints = $cicloObj->puntos()->get()->pluck('idUbicacionGeo');
-
-        // 2. Puntos que tienen registros de inventario en el ciclo
-        $invPoints = DB::table('inv_inventario')
-            ->where('id_ciclo', $ciclo)
-            ->where('id_proyecto', $id_proyecto)
-            ->distinct()
-            ->pluck('idUbicacionGeo');
-
-        // 3. Unir ambos, sin duplicados
-        $ids = $cyclePoints->merge($invPoints)->unique()->values();
-
-        // 4. Buscar emplazamientos del nivel para esos puntos
-        $emplazamientos = EmplazamientoNn::fromTable($table)
+        // Obtener TODOS los emplazamientos del nivel del proyecto (sin filtrar por puntos)
+        $allEmplazamientos = EmplazamientoNn::fromTable($table)
             ->where('idProyecto', $id_proyecto)
-            ->whereIn('idAgenda', $ids)
             ->get();
 
-        // 5. Fallback: si no se encontró nada, traer todos del proyecto
-        if ($emplazamientos->isEmpty()) {
-            $emplazamientos = EmplazamientoNn::fromTable($table)
-                ->where('idProyecto', $id_proyecto)
-                ->get();
-        }
-
-        if ($emplazamientos->isEmpty()) {
+        if ($allEmplazamientos->isEmpty()) {
             return response()->json([
                 'status' => 'NOK',
                 'message' => 'No encontrada',
                 'code' => 404
             ], 404);
+        }
+
+        // Para cada emplazamiento, verificar si tiene activos en el ciclo
+        $emplazamientos = collect();
+
+        foreach ($allEmplazamientos as $emplazamiento) {
+            $tieneActivosEnCiclo = $emplazamiento->inv_activos_with_child_levels()
+                ->where('inv_inventario.id_ciclo', $ciclo)
+                ->where('inv_inventario.id_proyecto', $id_proyecto)
+                ->exists();
+
+            if ($tieneActivosEnCiclo) {
+                $emplazamiento->cycle_id = $ciclo;
+                $emplazamientos->push($emplazamiento);
+            }
+        }
+
+        // Fallback: si ningún emplazamiento tiene activos en el ciclo, incluir todos
+        if ($emplazamientos->isEmpty()) {
+            foreach ($allEmplazamientos as $emplazamiento) {
+                $emplazamiento->cycle_id = $ciclo;
+                $emplazamientos->push($emplazamiento);
+            }
         }
 
         $resources = $emplazamientos->map(function ($emplazamiento) use ($cicloObj, $level) {

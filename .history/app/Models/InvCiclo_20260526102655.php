@@ -507,31 +507,13 @@ LEFT JOIN (
         return $queryBuilder;
     }
 
-    // public function emplazamientos_with_cats_inv()
-    // {
-    //     $queryBuilder = Emplazamiento::select('ubicaciones_n2.*')
-    //         ->distinct()
-    //         ->join('inv_ciclos_puntos', 'ubicaciones_n2.idAgenda', 'inv_ciclos_puntos.idPunto')
-    //         ->join('inv_ciclos', 'inv_ciclos.idCiclo', '=', 'inv_ciclos_puntos.idCiclo')
-    //         ->where('inv_ciclos.idCiclo', '=', $this->idCiclo);
-
-    //     return $queryBuilder;
-    // }
-
     public function emplazamientos_with_cats_inv()
     {
-        $cyclePoints = InvCicloPunto::where('idCiclo', $this->idCiclo)
-            ->pluck('idPunto');
-
-        $invPoints = Inventario::where('id_ciclo', $this->idCiclo)
-            ->distinct()
-            ->pluck('idUbicacionGeo');
-
-        $allPoints = $cyclePoints->merge($invPoints)->unique()->values();
-
         $queryBuilder = Emplazamiento::select('ubicaciones_n2.*')
             ->distinct()
-            ->whereIn('ubicaciones_n2.idAgenda', $allPoints);
+            ->join('inv_ciclos_puntos', 'ubicaciones_n2.idAgenda', 'inv_ciclos_puntos.idPunto')
+            ->join('inv_ciclos', 'inv_ciclos.idCiclo', '=', 'inv_ciclos_puntos.idCiclo')
+            ->where('inv_ciclos.idCiclo', '=', $this->idCiclo);
 
         return $queryBuilder;
     }

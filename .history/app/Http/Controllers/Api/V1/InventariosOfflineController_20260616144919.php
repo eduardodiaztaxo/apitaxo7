@@ -195,58 +195,9 @@ class InventariosOfflineController extends Controller
     }
 
 
-    // public function CycleCatsNn(int $ciclo, int $level)
-    // {
-
-    //     $cicloObj = InvCiclo::find($ciclo);
-
-    //     if (!$cicloObj) {
-    //         return response()->json([
-    //             'status' => 'NOK',
-    //             'message' => 'Ciclo no encontrado',
-    //             'code' => 404
-    //         ], 404);
-    //     }
-
-    //     $id_proyecto = ProyectoUsuarioService::getIdProyecto();
-
-    //     if (!$id_proyecto) {
-    //         $id_proyecto = DB::table('inv_ciclos')->where('idCiclo', $ciclo)->value('id_proyecto') ?? 0;
-    //     }
-
-    //     $ids = $cicloObj->puntos()->get()->pluck('idUbicacionGeo');
-
-    //     $table = 'ubicaciones_n' . $level;
-
-    //     $queryBuilder = EmplazamientoNn::fromTable($table)->where('idProyecto', $id_proyecto);
-
-    //     if (!empty($ids)) {
-    //         $queryBuilder = $queryBuilder->whereIn('idAgenda', $ids);
-    //     }
-
-    //     $emplazamientos = $queryBuilder->get();
-
-    //     if ($emplazamientos->isEmpty()) {
-    //         $emplazamientos = EmplazamientoNn::fromTable($table)->where('idProyecto', $id_proyecto)->get();
-    //     }
-
-    //     if ($emplazamientos->isEmpty()) {
-    //         return response()->json([
-    //             'status' => 'NOK',
-    //             'message' => 'No encontrada',
-    //             'code' => 404
-    //         ], 404);
-    //     }
-
-    //     $resources = $emplazamientos->map(function ($emplazamiento) use ($cicloObj, $level) {
-    //         return new EmplazamientoNnResource($emplazamiento, $cicloObj, $level);
-    //     });
-
-    //     return response()->json($resources, 200);
-    // }
-
     public function CycleCatsNn(int $ciclo, int $level)
     {
+
         $cicloObj = InvCiclo::find($ciclo);
 
         if (!$cicloObj) {
@@ -263,32 +214,20 @@ class InventariosOfflineController extends Controller
             $id_proyecto = DB::table('inv_ciclos')->where('idCiclo', $ciclo)->value('id_proyecto') ?? 0;
         }
 
+        $ids = $cicloObj->puntos()->get()->pluck('idUbicacionGeo');
+
         $table = 'ubicaciones_n' . $level;
 
-        // 1. Puntos asignados al ciclo
-        $cyclePoints = $cicloObj->puntos()->get()->pluck('idUbicacionGeo');
+        $queryBuilder = EmplazamientoNn::fromTable($table)->where('idProyecto', $id_proyecto);
 
-        // 2. Puntos que tienen registros de inventario en el ciclo
-        $invPoints = DB::table('inv_inventario')
-            ->where('id_ciclo', $ciclo)
-            ->where('id_proyecto', $id_proyecto)
-            ->distinct()
-            ->pluck('idUbicacionGeo');
+        if (!empty($ids)) {
+            $queryBuilder = $queryBuilder->whereIn('idAgenda', $ids);
+        }
 
-        // 3. Unir ambos, sin duplicados
-        $ids = $cyclePoints->merge($invPoints)->unique()->values();
+        $emplazamientos = $queryBuilder->get();
 
-        // 4. Buscar emplazamientos del nivel para esos puntos
-        $emplazamientos = EmplazamientoNn::fromTable($table)
-            ->where('idProyecto', $id_proyecto)
-            ->whereIn('idAgenda', $ids)
-            ->get();
-
-        // 5. Fallback: si no se encontró nada, traer todos del proyecto
         if ($emplazamientos->isEmpty()) {
-            $emplazamientos = EmplazamientoNn::fromTable($table)
-                ->where('idProyecto', $id_proyecto)
-                ->get();
+            $emplazamientos = EmplazamientoNn::fromTable($table)->where('idProyecto', $id_proyecto)->get();
         }
 
         if ($emplazamientos->isEmpty()) {
@@ -305,6 +244,8 @@ class InventariosOfflineController extends Controller
 
         return response()->json($resources, 200);
     }
+
+
 
     public function CycleCatsNivel1($ciclo)
     {

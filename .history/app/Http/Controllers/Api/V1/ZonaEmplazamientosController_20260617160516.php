@@ -312,52 +312,21 @@ class ZonaEmplazamientosController extends Controller
         return response()->json(EmplazamientoNivel1Resource::collection($emplazamientos), 200);
     }
 
-    // public function showAllEmplaByCycleCats(Request $request, int $ciclo)
-    // {
-
-    //     $cicloObj = InvCiclo::find($ciclo);
-
-    //     if (!$cicloObj) {
-    //         return response()->json(['status' => 'NOK', 'message' => 'Ciclo no encontrado', 'code' => 404], 404);
-    //     }
-
-
-    //     if ($cicloObj->idTipoCiclo == 1) {
-    //         $emplazamientos = $cicloObj->emplazamientos_with_cats_inv()->get();
-    //     } else {
-    //         $emplazamientos = $cicloObj->emplazamientos_with_cats()->get();
-    //     }
-
-    //     foreach ($emplazamientos as $emplazamiento) {
-    //         $emplazamiento->cycle_id = $ciclo;
-    //     }
-
-    //     return response()->json(EmplazamientoNivel2Resource::collection($emplazamientos), 200);
-    // }
 
     public function showAllEmplaByCycleCats(Request $request, int $ciclo)
     {
+
         $cicloObj = InvCiclo::find($ciclo);
 
         if (!$cicloObj) {
             return response()->json(['status' => 'NOK', 'message' => 'Ciclo no encontrado', 'code' => 404], 404);
         }
 
-        $id_proyecto = $cicloObj->id_proyecto;
 
         if ($cicloObj->idTipoCiclo == 1) {
             $emplazamientos = $cicloObj->emplazamientos_with_cats_inv()->get();
-
-            // Fallback: si no se encontró nada, traer todos del proyecto
-            if ($emplazamientos->isEmpty()) {
-                $emplazamientos = Emplazamiento::where('idProyecto', $id_proyecto)->get();
-            }
         } else {
             $emplazamientos = $cicloObj->emplazamientos_with_cats()->get();
-
-            if ($emplazamientos->isEmpty()) {
-                $emplazamientos = Emplazamiento::where('idProyecto', $id_proyecto)->get();
-            }
         }
 
         foreach ($emplazamientos as $emplazamiento) {
@@ -386,9 +355,12 @@ class ZonaEmplazamientosController extends Controller
         $emplazamientos = collect();
 
         foreach ($allN2 as $n2) {
-            $emplaCats = $cicloObj->zoneEmplazamientosWithCats($n2)->pluck('idUbicacionN2')->toArray();
+            $tieneActivosEnCiclo = $n2->inv_activos_with_child_levels()
+                ->where('inv_inventario.id_ciclo', $ciclo)
+                ->where('inv_inventario.id_proyecto', $id_proyecto)
+                ->exists();
 
-            if (!empty($emplaCats)) {
+            if ($tieneActivosEnCiclo) {
                 $n2->cycle_id = $ciclo;
                 $n2->type_cycle = $cicloObj->idTipoCiclo;
                 $emplazamientos->push($n2);
