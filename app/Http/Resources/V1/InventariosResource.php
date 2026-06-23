@@ -54,7 +54,9 @@ class InventariosResource extends JsonResource
                 'adjusted_lng',
                 'creado_el',
                 'precision_geo',
-                'calidad_geo'
+                'calidad_geo',
+                'estado_operacional',
+                'estado_conservacion'
             )
             ->first();
 
@@ -73,6 +75,26 @@ class InventariosResource extends JsonResource
         $estadoBien = DB::table('ind_list_estado')
             ->where('idLista', $activo->estado)
             ->value('descripcion');
+
+        $estadoOperacional = DB::table('ind_list_estados_operacionales')
+        ->where('idLista', $activo->estado_operacional)
+        ->value('descripcion');
+
+        $estadoConservacion = DB::table('ind_list_estados_conservacion')
+        ->where('idLista', $activo->estado_conservacion)
+        ->value('descripcion');
+
+        $apoyaBrazosRuedas = null;
+        $tipoCambio = null;
+        if ($this->source === 'activos') {
+            $crudActivo = DB::table('crud_activos_view')
+                ->where('etiqueta', $activo->etiqueta)
+                ->select('apoyaBrazosRuedas', 'tipoCambio')
+                ->first();
+
+            $apoyaBrazosRuedas = $crudActivo->apoyaBrazosRuedas ?? null;
+            $tipoCambio = $crudActivo->tipoCambio ?? null;
+        }
 
         // Determinar el nivel de asignación del bien
         $codigoN1 = !empty($activo->codigoUbicacion_N1) && $activo->codigoUbicacion_N1 != 0 && $activo->codigoUbicacion_N1 != '0' ? $activo->codigoUbicacion_N1 : null;
@@ -227,6 +249,10 @@ class InventariosResource extends JsonResource
             'modelo'               => $activo->modelo ?: 'Sin Registros',
             'serie'                => $activo->serie ?: 'Sin Registros',
             'estadoBien'           => $estadoBien ?? 'No definido',
+            'estado_operacional'   => $estadoOperacional ?? 'No definido',
+            'estado_conservacion'  => $estadoConservacion ?? 'No definido',
+            'estado'               => $apoyaBrazosRuedas ?? ($this->source === 'activos' ? 'No definido' : null),
+            'situacion'            => $tipoCambio ?? ($this->source === 'activos' ? 'No definido' : null),
             'etiqueta'             => $activo->etiqueta,
             'responsable'          => $activo->responsable ?? 'Sin Registros',
             'creado_por'           => $activo->creado_por ?? 'Sin Registros',
