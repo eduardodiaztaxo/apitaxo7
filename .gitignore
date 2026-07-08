@@ -16,4 +16,4 @@ yarn-error.log
 /.vscode
 /.history
 /config/database.php
-/AGENTS.MD
+/AGENTS.md

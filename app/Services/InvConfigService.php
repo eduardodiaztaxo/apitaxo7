@@ -78,7 +78,8 @@ class InvConfigService
         END AS datatype,
         valor_minimo AS `min`,
         valor_maximo AS `max`,
-        label_input AS label
+        label_input AS label,
+        habilitar_scan
         FROM inv_atributos WHERE id_atributo IN (27,28,29,30,31,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78) AND id_validacion != 0 AND id_grupo = ? AND id_proyecto = ?";
 
         $inputs = DB::select($sql, [$id_grupo, $id_proyecto]);
@@ -97,7 +98,8 @@ class InvConfigService
                 'min'           => $input->min,
                 'max'           => $input->max,
                 'label'         => $input->label,
-                'options'       => $options->pluck('texto')
+                'options'       => $options->pluck('texto'),
+                'habilitar_scan' => (int)($input->habilitar_scan ?? 0)
             ];
         }
 
