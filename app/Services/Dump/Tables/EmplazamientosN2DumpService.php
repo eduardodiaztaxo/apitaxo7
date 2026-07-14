@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\ZonaEmplazamientosController;
 use App\Services\Dump\Tables\DumpSQLiteInterface;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use PDO;
+use App\Http\Controllers\Api\V1\InventariosOfflineController;
 
 class EmplazamientosN2DumpService implements DumpSQLiteInterface
 {
@@ -45,9 +46,9 @@ class EmplazamientosN2DumpService implements DumpSQLiteInterface
         $request = new \Illuminate\Http\Request();
         $request->setMethod('GET');
 
-        $zonasEmplaCtrl = new ZonaEmplazamientosController();
+        $zonasEmplaCtrl = new InventariosOfflineController();
 
-        $response = $zonasEmplaCtrl->showAllEmplaByCycleCatsWithFallback($request, $this->cycle);
+        $response = $zonasEmplaCtrl->CycleCatsNn($this->cycle, 2);
 
         $jsonContent = $response->getContent();
 
