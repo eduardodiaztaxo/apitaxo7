@@ -30,33 +30,6 @@ class EmplazamientoNivel6Resource extends JsonResource
                 ->value('idTipoCiclo');
         }
 
-        // Solo consultar activos si el ciclo no es tipo 1
-        $activosCollection = collect([]);
-        if ($tipoCiclo != 1) {
-            $activosCollection = $this->activos()
-                ->select(
-                    'crud_activos.etiqueta',
-                    'crud_activos.categoriaN3',
-                    'crud_activos.id_familia',
-                    'crud_activos.id_grupo',
-                    'crud_activos.nombreActivo',
-                    'crud_activos.idIndice',
-                    DB::raw("COALESCE(CONCAT(crud_activos_pictures.url_picture, '/', crud_activos_pictures.picture), 'https://api.taxochile.cl/img/notavailable.jpg') AS foto4")
-                )
-                ->leftJoin(DB::raw('(
-                SELECT id_foto, id_activo, url_picture, picture
-                FROM crud_activos_pictures
-                WHERE (id_foto, id_activo) IN (
-                    SELECT MAX(id_foto), id_activo
-                    FROM crud_activos_pictures
-                    GROUP BY id_activo
-                )
-            ) as crud_activos_pictures'), 'crud_activos_pictures.id_activo', '=', 'crud_activos.idActivo')
-            ->where('crud_activos.tipoCambio', '!=', 200)
-            ->where('crud_activos.ubicacionOrganicaN1', '=', $this->codigoUbicacion)
-            ->get();
-        }
-
         // Solo consultar inventario si el ciclo es tipo 1
         $activosInventario = collect([]);
         if ($tipoCiclo == 1 && isset($this->cycle_id)) {
