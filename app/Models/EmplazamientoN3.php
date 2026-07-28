@@ -23,9 +23,11 @@ class EmplazamientoN3 extends Model
         'idAgenda',
         'descripcionUbicacion',
         'codigoUbicacion',
+        'codigo',
         'estado',
         'fechaCreacion',
         'usuario',
+        'ciclo_auditoria',
         'newApp',
         'modo'
     ];
