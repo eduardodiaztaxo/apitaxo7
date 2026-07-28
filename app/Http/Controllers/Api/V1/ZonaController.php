@@ -13,6 +13,7 @@ use App\Services\ProyectoUsuarioService;
 use App\Models\ZonaPunto;
 use App\Services\PlaceService;
 use Illuminate\Http\Request;
+use App\Models\EmplazamientoLegacy;
 use Illuminate\Support\Facades\DB;
 
 class ZonaController extends Controller
@@ -52,43 +53,106 @@ class ZonaController extends Controller
             'ciclo_auditoria' => 'required'
         ]);
 
-
         $punto = UbicacionGeografica::find($request->punto_id);
 
         $placeService = new PlaceService();
         $cicloAuditoria = $request->ciclo_auditoria;
         $code = $placeService->getNewZoneCode($punto);
 
-       $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
 
-        $data = [
-            'idProyecto'            => $id_proyecto,
-            'idAgenda'              => $request->punto_id,
-            'descripcionUbicacion'  => $request->descripcion,
-            'codigoUbicacion'       => $code,
-            'estado'                => $request->estado !== null ? $request->estado : 1,
-            'fechaCreacion'         => date('Y-m-d H:i:s'),
-            'usuario'               => $request->user()->name,
-            'ciclo_auditoria'       => $cicloAuditoria,
-            'newApp'                => 1,
-            'modo'                  => 'ONLINE'
-        ];
+        $descripcion = strtoupper(trim(preg_replace('/\s+/', ' ', $request->descripcion)));
+        $codigo = $descripcion;
 
-        $zona = ZonaPunto::create($data);
+        $exists = ZonaPunto::where('idAgenda', $request->punto_id)
+            ->whereRaw(
+                'UPPER(TRIM(REPLACE(REPLACE(REPLACE(descripcionUbicacion, "  ", " "), "  ", " "), "  ", " "))) = ?',
+                [$descripcion]
+            )
+            ->exists();
 
-        if (!$zona) {
+        $existsEmplazamiento = EmplazamientoLegacy::where('id_agenda', $request->punto_id)
+        ->where('id_padre', 0)
+        ->where('nivel', 1)
+        ->where('activo', 'S')
+        ->whereRaw(
+            'UPPER(TRIM(REPLACE(REPLACE(REPLACE(descripcion, "  ", " "), "  ", " "), "  ", " "))) = ?',
+            [$descripcion]
+        )
+        ->exists();
+
+        if ($exists || $existsEmplazamiento) {
             return response()->json([
-                'status' => 'error',
-                'No se pudo crear la zona',
-                422
+                'status'  => 'error',
+                'message' => 'Ya existe una zona con esa descripción en este punto.'
             ], 422);
         }
 
-        return response()->json([
-            'status'    => 'OK',
-            'message'   => 'Creado exitosamente',
-            'data'      => ZonaPuntoResource::make($zona)
-        ]);
+        try{
+            DB::beginTransaction();
+
+            /*
+            * 1. Crear primero en emplazamientos
+            */
+            $emplazamiento = EmplazamientoLegacy::create([
+                'id_proyecto'         => $id_proyecto,
+                'id_agenda'           => $request->punto_id,
+                'id_padre'            => 0,
+                'nivel'               => 1,
+                'codigo_ubicacion'    => $code,
+                'descripcion'         => $descripcion,
+                'estado'              => 'ACTIVO',
+                'activo'              => 'S',
+                'fecha_creacion'      => date('Y-m-d H:i:s'),
+                'fecha_actualizacion' => date('Y-m-d H:i:s'),
+                'usuario'             => $request->user()->name,
+                'codigo'              => $codigo,
+                'ciclo_auditoria'     => $cicloAuditoria, // desde el mantenedor lo deja en cero
+                'new_app'             => 1,
+                'modo'                => 'ONLINE'
+            ]);
+
+            /*
+            * 2. Crear relación self en emplazamientos_closure
+            */
+            DB::table('emplazamientos_closure')->insert([
+                'ancestro'     => $emplazamiento->id_emplazamiento,
+                'descendiente' => $emplazamiento->id_emplazamiento,
+                'profundidad'  => 0,
+            ]);
+
+            /*
+            * 3. Crear después en ubicaciones_n1
+            */
+            $data = [
+                'idProyecto'            => $id_proyecto,
+                'idAgenda'              => $request->punto_id,
+                'descripcionUbicacion'  => $descripcion,
+                'codigoUbicacion'       => $code,
+                'codigo'                => $codigo,
+                'estado'                => $request->estado !== null ? $request->estado : 1,
+                'fechaCreacion'         => date('Y-m-d H:i:s'),
+                'usuario'               => $request->user()->name,
+                'ciclo_auditoria'       => $cicloAuditoria,
+                'newApp'                => 1,
+                'modo'                  => 'ONLINE'
+            ];
+            $zona = ZonaPunto::create($data);
+
+            DB::commit();
+
+            return response()->json([
+                'status'  => 'OK',
+                'message' => 'Creado exitosamente',
+                'data'    => ZonaPuntoResource::make($zona)
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Error al crear la zona: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

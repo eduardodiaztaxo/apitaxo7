@@ -26,6 +26,7 @@ class ZonaPunto extends Model
         'idAgenda',
         'descripcionUbicacion',
         'codigoUbicacion',
+        'codigo',
         'estado',
         'usuario',
         'ciclo_auditoria',
