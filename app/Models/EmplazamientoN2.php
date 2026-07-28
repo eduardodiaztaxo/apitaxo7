@@ -23,9 +23,12 @@ class EmplazamientoN2 extends Model
         'idAgenda',
         'descripcionUbicacion',
         'codigoUbicacion',
+        'codigo',
         'estado',
         'usuario',
-        'ciclo_auditoria'
+        'ciclo_auditoria',
+        'newApp',
+        'modo'
     ];
 
 
