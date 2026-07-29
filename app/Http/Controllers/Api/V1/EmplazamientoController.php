@@ -247,58 +247,191 @@ class EmplazamientoController extends Controller
      */
     public function storeAnyLevel(Request $request)
     {
-
-
         $request->validate([
-            'description'     => 'required|string',
-            'parentCode'      => 'required',
-            'agenda_id'       => 'required|exists:ubicaciones_geograficas,idUbicacionGeo',
-            'level'           => 'required|integer|min:1|max:6',
-            'cycle'           => 'required|integer'
+            'description' => 'required|string|max:200',
+            'parentCode'  => 'required',
+            'agenda_id'   => 'required|exists:ubicaciones_geograficas,idUbicacionGeo',
+            'level'       => 'required|integer|min:4|max:6',
+            'cycle'       => 'required|integer'
         ]);
 
         $cycleObj = InvCiclo::find($request->cycle);
 
         if (!$cycleObj) {
-            return response()->json(['status' => 'error', 'code' => 404, 'messaje' => 'cycle not found'], 404);
+            return response()->json([
+                'status'  => 'error',
+                'code'    => 404,
+                'messaje' => 'cycle not found'
+            ], 404);
         }
 
-        $table = 'ubicaciones_n' . $request->level;
+        $nivelNuevo = (int) $request->level;
+        $nivelPadre = $nivelNuevo - 1;
+        $table      = 'ubicaciones_n' . $nivelNuevo;
 
-        $code =  EmplazamientoNn::fromTable($table)->nextCode($request->agenda_id, $request->parentCode);
+        $descripcion = strtoupper(trim(preg_replace('/\s+/', ' ', $request->description)));
+        $codigo = $descripcion;
 
-        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+        $parentEmplazamiento = EmplazamientoLegacy::where('id_agenda', $request->agenda_id)
+            ->where('codigo_ubicacion', $request->parentCode)
+            ->where('nivel', $nivelPadre)
+            ->where('activo', 'S')
+            ->first();
 
-        $data = [
-            'idProyecto'            => $id_proyecto,
-            'idAgenda'              => $request->agenda_id,
-            'descripcionUbicacion'  => $request->description,
-            'codigoUbicacion'       => $code,
-            'fechaCreacion'         => date('Y-m-d H:i:s'),
-            'estado'                => $request->estado !== null ? $request->estado : 1,
-            'usuario'               => $request->user()->name,
-            'ciclo_auditoria'       => $request->cycle,
-            'newApp'                => 1,
-            'modo'                  => 'ONLINE'
-        ];
-
-        $empla = EmplazamientoNn::fromTable($table)->create($data);
-
-        if (!$empla) {
+        if (!$parentEmplazamiento) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'No se pudo crear el emplazamiento'
+                'status'  => 'error',
+                'message' => "No se encontró el emplazamiento padre N{$nivelPadre}."
             ], 422);
         }
 
-        return response()->json([
-            'status'  => 'OK',
-            'message' => 'Creado exitosamente',
-            'colle' => $empla,
-            'data'    => new EmplazamientoNnResource($empla, $cycleObj, $request->level)
-        ]);
-    }
+        if (((int) $parentEmplazamiento->nivel + 1) !== $nivelNuevo) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'El nivel generado no corresponde al nivel solicitado.'
+            ], 422);
+        }
 
+        $exists = EmplazamientoNn::fromTable($table)
+            ->where('idAgenda', $request->agenda_id)
+            ->where('codigoUbicacion', 'like', $request->parentCode . '%')
+            ->whereRaw(
+                'UPPER(TRIM(REPLACE(REPLACE(REPLACE(descripcionUbicacion, "  ", " "), "  ", " "), "  ", " "))) = ?',
+                [$descripcion]
+            )
+            ->exists();
+
+        $existsEmplazamiento = EmplazamientoLegacy::where('id_agenda', $request->agenda_id)
+            ->where('id_padre', $parentEmplazamiento->id_emplazamiento)
+            ->where('nivel', $nivelNuevo)
+            ->where('activo', 'S')
+            ->whereRaw(
+                'UPPER(TRIM(REPLACE(REPLACE(REPLACE(descripcion, "  ", " "), "  ", " "), "  ", " "))) = ?',
+                [$descripcion]
+            )
+            ->exists();
+
+        if ($exists || $existsEmplazamiento) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Ya existe un emplazamiento con esa descripción bajo este padre.'
+            ], 422);
+        }
+
+        $nextSegment = DB::table(DB::raw('(
+            SELECT (d1.numero * 10) + d2.numero AS numero
+            FROM (
+                SELECT 0 AS numero UNION ALL
+                SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
+                UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7
+                UNION ALL SELECT 8 UNION ALL SELECT 9
+            ) d1
+            CROSS JOIN (
+                SELECT 0 AS numero UNION ALL
+                SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
+                UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7
+                UNION ALL SELECT 8 UNION ALL SELECT 9
+            ) d2
+        ) n'))
+        ->whereBetween('n.numero', [1, 99])
+        ->whereNotExists(function ($query) use ($parentEmplazamiento) {
+            $query->select(DB::raw(1))
+                ->from('emplazamientos as e')
+                ->where('e.id_padre', $parentEmplazamiento->id_emplazamiento)
+                ->whereRaw('CAST(RIGHT(e.codigo_ubicacion, 2) AS UNSIGNED) = n.numero');
+        })
+        ->orderBy('n.numero')
+        ->value(DB::raw("LPAD(n.numero, 2, '0')"));
+
+        if (!$nextSegment) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'No hay correlativos disponibles para crear otro emplazamiento bajo este padre.'
+            ], 422);
+        }
+
+        $code = $parentEmplazamiento->codigo_ubicacion . $nextSegment;
+
+        if (strlen($code) !== ($nivelNuevo * 2)) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'El código de ubicación generado no es válido.'
+            ], 422);
+        }
+
+        $id_proyecto = ProyectoUsuarioService::getIdProyecto();
+
+        try {
+            DB::beginTransaction();
+
+            $emplazamientoLegacy = EmplazamientoLegacy::create([
+                'id_proyecto'         => $id_proyecto,
+                'id_agenda'           => $request->agenda_id,
+                'id_padre'            => $parentEmplazamiento->id_emplazamiento,
+                'nivel'               => $nivelNuevo,
+                'codigo_ubicacion'    => $code,
+                'descripcion'         => $descripcion,
+                'estado'              => 'ACTIVO',
+                'activo'              => 'S',
+                'fecha_creacion'      => date('Y-m-d H:i:s'),
+                'fecha_actualizacion' => date('Y-m-d H:i:s'),
+                'usuario'             => $request->user()->name,
+                'codigo'              => $codigo,
+                'ciclo_auditoria'     => $request->cycle,
+                'new_app'             => 1,
+                'modo'                => 'ONLINE'
+            ]);
+
+            $parentClosures = DB::table('emplazamientos_closure')
+                ->where('descendiente', $parentEmplazamiento->id_emplazamiento)
+                ->get();
+
+            foreach ($parentClosures as $closure) {
+                DB::table('emplazamientos_closure')->insert([
+                    'ancestro'     => $closure->ancestro,
+                    'descendiente' => $emplazamientoLegacy->id_emplazamiento,
+                    'profundidad'  => $closure->profundidad + 1,
+                ]);
+            }
+
+            DB::table('emplazamientos_closure')->insert([
+                'ancestro'     => $emplazamientoLegacy->id_emplazamiento,
+                'descendiente' => $emplazamientoLegacy->id_emplazamiento,
+                'profundidad'  => 0,
+            ]);
+
+            $data = [
+                'idProyecto'           => $id_proyecto,
+                'idAgenda'             => $request->agenda_id,
+                'descripcionUbicacion' => $descripcion,
+                'codigoUbicacion'      => $code,
+                'fechaCreacion'        => date('Y-m-d H:i:s'),
+                'estado'               => $request->estado !== null ? $request->estado : 1,
+                'usuario'              => $request->user()->name,
+                'ciclo_auditoria'      => $request->cycle,
+                'newApp'               => 1,
+                'modo'                 => 'ONLINE'
+            ];
+
+            $empla = EmplazamientoNn::fromTable($table)->create($data);
+
+            DB::commit();
+
+            return response()->json([
+                'status'  => 'OK',
+                'message' => 'Creado exitosamente',
+                'colle'   => $empla,
+                'data'    => new EmplazamientoNnResource($empla, $cycleObj, $request->level)
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Error al crear el emplazamiento: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 
     /**
      * Create sub emplazamientos.
