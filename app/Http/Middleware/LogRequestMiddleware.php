@@ -17,16 +17,21 @@ class LogRequestMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        
-        LogApi::create(
-            [
-                'ip' => $request->getClientIp(),
-                'url' => $request->path(),
-                'header' => json_encode($request->headers->all()),
-                'body' => $request->getContent()
-            ]
-        );
-        
+        if (env('API_REQUEST_DB_LOG_ENABLED', false)) {
+            try {
+                LogApi::create(
+                    [
+                        'ip' => $request->getClientIp(),
+                        'url' => $request->path(),
+                        'header' => json_encode($request->headers->all()),
+                        'body' => $request->getContent()
+                    ]
+                );
+            } catch (\Exception $e) {
+                \Log::error('Error al registrar API request log: ' . $e->getMessage());
+            }
+        }
+
         return $next($request);
     }
 }
