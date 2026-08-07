@@ -316,10 +316,15 @@ class CrudActivoController extends Controller
                     $imagenExistente->id_proyecto = $id_proyecto;
                     $imagenExistente->save();
 
+                    $thumbnail = ImageService::createThumbnail($file, $request->user()->nombre_cliente, $namefile);
+                    $thumbUrl = $thumbnail?->url_imagen ?? null;
+
                     return response()->json([
                         'status' => 'OK',
                         'message' => 'Imagen existente actualizada',
-                        'url' => $url_pict . $namefile
+                        'url' => $url_pict . $namefile,
+                        'original_url' => ImageService::buildOriginalUrl($url, $url_pict, $namefile),
+                        'thumb_url' => $thumbUrl,
                     ], 200);
                 }
             }
@@ -347,10 +352,15 @@ class CrudActivoController extends Controller
             $nuevaImagen->updated_at = now();
             $nuevaImagen->save();
 
+            $thumbnail = ImageService::createThumbnail($file, $request->user()->nombre_cliente, $namefile);
+            $thumbUrl = $thumbnail?->url_imagen ?? null;
+
             return response()->json([
                 'status' => 'OK',
                 'message' => 'Nueva imagen creada',
-                'url' => $url_pict . $namefile
+                'url' => $url_pict . $namefile,
+                'original_url' => ImageService::buildOriginalUrl($url, $url_pict, $namefile),
+                'thumb_url' => $thumbUrl,
             ], 201);
         }
 
@@ -371,6 +381,8 @@ class CrudActivoController extends Controller
             ->orderByDesc('id_foto')
             ->first();
 
+        $idFotoCrud = null;
+
         if ($ultimo) {
             DB::table('crud_activos_pictures')
                 ->where('id_foto', $ultimo->id_foto)
@@ -381,20 +393,36 @@ class CrudActivoController extends Controller
                     'fecha_update' => now(),
                     'idProyecto'   => $id_proyecto,
                 ]);
+
+            $idFotoCrud = $ultimo->id_foto;
         } else {
-            DB::table('crud_activos_pictures')->insert([
+            $idFotoCrud = DB::table('crud_activos_pictures')->insertGetId([
                 'id_activo' => $idActivo,
                 'url_picture' => $url_pict,
                 'picture' => $filename . '.jpg',
                 'origen' => $origen,
                 'fecha_update' => now(),
                 'idProyecto'   => $id_proyecto,
-            ]);
+            ], 'id_foto');
         }
+
+        $thumbnail = ImageService::createCrudThumbnail(
+            $file,
+            $request->user()->nombre_cliente,
+            $namefile,
+            $idFotoCrud,
+            $etiqueta,
+            $origen,
+            $id_proyecto
+        );
+
+        $thumbUrl = $thumbnail?->url_imagen ?? ImageService::getCrudThumbnailUrlByPicture($idFotoCrud, $etiqueta, $namefile);
 
         return response()->json([
             'status' => 'OK',
-            'url' => $url
+            'url' => $url,
+            'original_url' => ImageService::buildOriginalUrl($url, $url_pict, $namefile),
+            'thumb_url' => $thumbUrl,
         ], 201);
     }
 

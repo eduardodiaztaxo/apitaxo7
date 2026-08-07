@@ -695,7 +695,20 @@ class InventariosController extends Controller
                 ], 404);
             }
 
+            $thumbName = ImageService::buildThumbnailName($imagen->picture);
+            $thumbPath = PictureSafinService::getImgSubdir(Auth::user()->nombre_cliente) . '/' . $thumbName;
+
             ImageService::deleteImageInMainOrSecondDisk(Auth::user()->nombre_cliente, $imagen->picture);
+
+            if (Storage::disk('taxoImages')->exists($thumbPath)) {
+                Storage::disk('taxoImages')->delete($thumbPath);
+            }
+
+            DB::table('inv_imagenes_thumbnails')
+                ->where('id_img', $imagen->id_img)
+                ->where('etiqueta', $imagen->etiqueta)
+                ->where('picture', $thumbName)
+                ->delete();
 
             $imagen->delete();
 
@@ -728,10 +741,21 @@ class InventariosController extends Controller
         }
 
         $filePath = PictureSafinService::getImgSubdir(Auth::user()->nombre_cliente) . '/' . $imagenCrud->picture;
+        $thumbName = ImageService::buildThumbnailName($imagenCrud->picture);
+        $thumbPath = PictureSafinService::getImgSubdir(Auth::user()->nombre_cliente) . '/' . $thumbName;
         if (Storage::disk('taxoImages')->exists($filePath)) {
             Storage::disk('taxoImages')->delete($filePath);
         }
-        ImageService::deleteImageInMainOrSecondDisk(Auth::user()->nombre_cliente, $imagen->picture);
+        if (Storage::disk('taxoImages')->exists($thumbPath)) {
+            Storage::disk('taxoImages')->delete($thumbPath);
+        }
+        ImageService::deleteImageInMainOrSecondDisk(Auth::user()->nombre_cliente, $imagenCrud->picture);
+
+        DB::table('crud_imagenes_thumbnails')
+            ->where('id_img', $imagenCrud->id_foto)
+            ->where('etiqueta', $etiqueta)
+            ->where('picture', $thumbName)
+            ->delete();
 
         DB::table('crud_activos_pictures')
             ->where('id_foto', $imagenCrud->id_foto)
@@ -891,6 +915,8 @@ class InventariosController extends Controller
             $img->url_picture = $url_pict;
             $img->save();
 
+            ImageService::createThumbnail($file, $request->user()->nombre_cliente, $filename);
+
             $paths[] = [
                 'url' => $url_pict,
                 'filename' => $filename
@@ -1011,7 +1037,7 @@ class InventariosController extends Controller
                 $url_pict = dirname($url) . '/';
 
                 if ($esCrudActivo) {
-                    DB::table('crud_activos_pictures')->insert([
+                    $idFoto = DB::table('crud_activos_pictures')->insertGetId([
                         'id_activo'    => $idActivo,
                         'picture'      => $filename,
                         'origen'       => $origen,
@@ -1019,7 +1045,19 @@ class InventariosController extends Controller
                         'url_imagen'   => $url,
                         'fecha_update' => now(),
                         'idProyecto'   => $idProyecto,
-                    ]);
+                    ], 'id_foto');
+
+                    $thumbnail = ImageService::createCrudThumbnail(
+                        $file,
+                        $request->user()->nombre_cliente,
+                        $filename,
+                        $idFoto,
+                        $etiqueta,
+                        $origen,
+                        $idProyecto
+                    );
+
+                    $thumbUrl = $thumbnail?->url_imagen ?? ImageService::getCrudThumbnailUrlByPicture($idFoto, $etiqueta, $filename);
                 } else {
 
                     if ($id_img === null) {
@@ -1044,12 +1082,17 @@ class InventariosController extends Controller
                     $img->url_picture  = $url_pict;
                     $img->id_proyecto  = $idProyecto;
                     $img->save();
+
+                    $thumbnail = ImageService::createThumbnail($file, $request->user()->nombre_cliente, $filename);
+                    $thumbUrl = $thumbnail?->url_imagen ?? ImageService::getInventoryThumbnailUrlByPicture($id_img, $etiqueta, $filename);
                 }
 
                 $paths[] = [
                     'id_img'   => $contador,
                     'url'      => $url,
                     'filename' => $filename,
+                    'original_url' => ImageService::buildOriginalUrl($url, $url_pict, $filename),
+                    'thumb_url' => $thumbUrl ?? null,
                 ];
             }
 
