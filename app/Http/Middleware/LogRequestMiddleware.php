@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\LogApi;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class LogRequestMiddleware
 {
@@ -27,8 +28,8 @@ class LogRequestMiddleware
                         'body' => $request->getContent()
                     ]
                 );
-            } catch (\Exception $e) {
-                \Log::error('Error al registrar API request log: ' . $e->getMessage());
+            } catch (\Throwable $e) {
+                Log::error('Error al registrar API request log: ' . $e->getMessage());
             }
         }
 
