@@ -571,13 +571,24 @@ class DatosActivosController extends Controller
 
     public function createBienes(Request $request)
     {
+        $crearIndice = DB::connection()->getDatabaseName() === 'taxochil_ac-ecuessence';
+
         $request->validate([
             'descripcion'       => 'required|string',
-            'idAtributo'        => 'required|exists:indices_listas,idAtributo',
+            // Ecuessence puede comenzar con el catálogo vacío.
+            'idAtributo'        => $crearIndice ? 'required|integer|min:1' : 'required|exists:indices_listas,idAtributo',
             'id_familia'        => 'required|exists:dp_familias,id_familia',
             'id_grupo'          => 'required|exists:dp_grupos,id_grupo',
             'ciclo_inventario'  => 'required|exists:inv_ciclos,idCiclo'
         ]);
+
+        if ($crearIndice) {
+            // Invocación interna: el cliente móvil mantiene una sola petición.
+            $respuestaIndice = $this->createIndiceLista($request);
+            if ($respuestaIndice->getStatusCode() >= 400) {
+                return $respuestaIndice;
+            }
+        }
 
         if (!$request->observacion) {
             $request->merge(['observacion' => 'Sin observación',]);
@@ -622,6 +633,118 @@ class DatosActivosController extends Controller
         $bienes->save();
 
         return response()->json($bienes, 201);
+    }
+
+    /**
+     * Creates the index-list entry required before creating a new good.
+     * The operation is idempotent for project + attribute + family + description.
+     */
+    public function createIndiceLista(Request $request)
+    {
+        // La creación del catálogo por esta API está habilitada solo para Ecuessence.
+        // Se comprueba la base efectiva seleccionada por DatabaseSwitcher.
+        if (DB::connection()->getDatabaseName() !== 'taxochil_ac-ecuessence') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'La creación de índices está habilitada únicamente para Ecuessence',
+            ], 403);
+        }
+
+        $request->validate([
+            'descripcion'      => 'required|string|max:100',
+            'observacion'      => 'nullable|string|max:100',
+            'id_familia'       => 'required|integer|exists:dp_familias,id_familia',
+            'id_grupo'         => 'required|integer|exists:dp_grupos,id_grupo',
+            'idAtributo'       => 'sometimes|integer|min:1',
+            'ciclo_inventario' => 'nullable|integer|exists:inv_ciclos,idCiclo',
+        ]);
+
+        $idAtributo = (int) $request->input('idAtributo', 1);
+        $idFamilia = (int) $request->input('id_familia');
+        $idGrupo = (int) $request->input('id_grupo');
+        $descripcion = trim($request->input('descripcion'));
+        $idProyecto = ProyectoUsuarioService::getIdProyecto();
+
+        if (!$idProyecto) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'El usuario no tiene un proyecto asociado',
+            ], 422);
+        }
+
+        // id_grupo no existe en indices_listas; se usa para validar la relación.
+        $familiaPerteneceAlGrupo = DB::table('dp_familias')
+            ->where('id_familia', $idFamilia)
+            ->where('id_grupo', $idGrupo)
+            ->where('id_proyecto', $idProyecto)
+            ->where('soft_delete', 'N')
+            ->exists();
+
+        $grupoDisponible = DB::table('dp_grupos')
+            ->where('id_grupo', $idGrupo)
+            ->where('id_proyecto', $idProyecto)
+            ->where('soft_delete', 'N')
+            ->exists();
+
+        if (!$familiaPerteneceAlGrupo || !$grupoDisponible) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'El grupo y la familia deben estar activos, pertenecer al proyecto del usuario y estar relacionados',
+            ], 422);
+        }
+
+        // Para los bienes, el índice corresponde a la familia.
+        $idIndice = (string) $idFamilia;
+
+        // Dipreca demuestra que una familia puede tener muchos bienes.
+        // Por eso la descripción también forma parte de la identidad lógica.
+        $existente = IndiceLista::query()
+            ->where('idAtributo', $idAtributo)
+            ->where('idIndice', $idIndice)
+            ->where('idProyecto', $idProyecto)
+            ->where('id_familia', $idFamilia)
+            ->whereRaw('LOWER(TRIM(descripcion)) = ?', [mb_strtolower($descripcion, 'UTF-8')])
+            ->first();
+
+        if ($existente) {
+            return response()->json([
+                'status' => 'OK',
+                'created' => false,
+                'message' => 'El índice ya existe; se reutiliza el registro existente',
+                'data' => $existente,
+            ], 200);
+        }
+
+        $usuario = Auth::user()->name;
+        $ahora = date('Y-m-d H:i:s');
+
+        $indice = new IndiceLista();
+        // La tabla asigna idLista mediante AUTO_INCREMENT. No calcular MAX + 1.
+        $indice->setKeyName('idLista');
+        $indice->idAtributo = $idAtributo;
+        $indice->idIndice = $idIndice;
+        $indice->idProyecto = $idProyecto;
+        $indice->id_familia = $idFamilia;
+        $indice->descripcion = $descripcion;
+        $indice->observacion = $request->input('observacion', 'Sin observación');
+        $indice->listaRapida = '0';
+        $indice->creadoPor = $usuario;
+        $indice->fechaCreacion = $ahora;
+        $indice->ciclo_inventario = (int) $request->input('ciclo_inventario', 0);
+        $indice->en_listas = 0;
+        $indice->modo = 'ONLINE';
+        $indice->creado_por = $usuario;
+        $indice->creado_el = $ahora;
+        $indice->fl_catalogo_activo = 1;
+        $indice->fl_creado_auto = 1;
+        $indice->save();
+
+        return response()->json([
+            'status' => 'OK',
+            'created' => true,
+            'message' => 'Índice creado correctamente',
+            'data' => $indice,
+        ], 201);
     }
 
     /**

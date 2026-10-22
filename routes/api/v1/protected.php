@@ -76,6 +76,8 @@ Route::middleware(['auth:sanctum', 'switch.database'])->prefix('v1')->group(func
 
     Route::post('create-bienes', [DatosActivosController::class, 'createBienes']);
 
+    Route::post('indices-listas', [DatosActivosController::class, 'createIndiceLista']);
+
     Route::post('create-marcas', [DatosActivosController::class, 'createMarcas']);
 
     Route::get('get-user', [UserController::class, 'show']);
